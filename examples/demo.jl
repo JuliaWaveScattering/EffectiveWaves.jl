@@ -12,7 +12,7 @@ background = Glycerol
 
 # angular frequencies
 ωs = linspace(0.01,1.0,60)*30.0e6
-wavenumbers = sqrt.(multispecies_wavenumber(ωs, background, species))
+wavenumbers = multispecies_wavenumber(ωs, background, species)
 
 speeds = ωs./real(wavenumbers)
 attenuations = imag(wavenumbers)
