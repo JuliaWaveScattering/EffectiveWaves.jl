@@ -43,7 +43,7 @@ kTs_arr = [
   begin
     sp1 = Specie(0.0, r1; volfrac=vols[i])
     sp2 = Specie(Inf, r1; volfrac=volfrac-vols[i])
-    [ sqrt(multispecies_wavenumber(ω, medium, [sp1,sp2])) for ω in ωs]
+    [ multispecies_wavenumber(ω, medium, [sp1,sp2]) for ω in ωs]
   end
 for i = 1:N];
 
