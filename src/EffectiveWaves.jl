@@ -2,7 +2,7 @@
 module EffectiveWaves
 
 
-export  Specie, Medium, volume_fraction, Zn, p_speed
+export  Specie, Medium, volume_fraction, Zn, p_speed,
         multispecies_wavenumber, multispecies_wavenumber_low_volfrac, multispecies_challis, one_species_low_wavenumber,
         opt_methods, optimal_species,
         gray_square!, gray_square
