@@ -1,5 +1,6 @@
-include("../src/multi-species.jl")
+using EffectiveWaves
 
+include("materials.jl")
 
 ## Choose two species randomly (uniformly) distributed
 # Usage Specie(ρ = density, r = radius, c = wavespeed, volfrac = volume fraction)
