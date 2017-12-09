@@ -1,6 +1,5 @@
 using EffectiveWaves
 
-include("../materials.jl")
 ## choose material
 
   # concrete

@@ -1,7 +1,5 @@
 using EffectiveWaves
 
-include("../materials.jl")
-
 using LaTeXStrings
 using Plots
 height=500

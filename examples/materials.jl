@@ -1,4 +1,4 @@
-
+# The material below are explicity exported with the package EffectiveWaves.jl, so no need to include this file.
 
 ## functions for matieral properties
   p_speed(ρ,β,μ) = sqrt(β+4*μ/3)/sqrt(ρ)

@@ -16,8 +16,6 @@ using EffectiveWaves
 ### Calculate effective wavenumbers for two species randomly (uniformly) distributed in Glycerol. List of possible materials given in [examples/materials.jl](examples/materials.jl).
 ```julia
 #where: ρ = density, r = radius, c = wavespeed, and volfrac = volume fraction
-WaterDistilled= Medium(ρ=0.998*1000,  c = 1496.0)
-Glycerol      = Medium(ρ=1.26*1000 ,  c = 1904.0)
 
 species = [
     Specie(ρ=WaterDistilled.ρ,r=30.e-6, c=WaterDistilled.c, volfrac=0.1),
