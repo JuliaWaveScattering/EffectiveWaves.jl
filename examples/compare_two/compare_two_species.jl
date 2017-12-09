@@ -29,9 +29,9 @@ height=500
   sp2 = Specie(ρ=inclusion2.ρ ,r=r2, c=inclusion2.c, volfrac = volfrac-vol1)
 
   # True wavenumber
-  kTs  = sqrt.(multispecies_wavenumber(ωs, medium, [sp1,sp2]));
+  kTs  = multispecies_wavenumber(ωs, medium, [sp1,sp2]);
   # Approximate wavenumber
-  kTLSs = sqrt.(two_species_approx(ωs, medium, [sp1,sp2]));
+  kTLSs = two_species_approx(ωs, medium, [sp1,sp2]);
 
   speed_arr = [ ωs./real(kTs), ωs./real(kTLSs), 0.*ωs + real(medium.c)]
   atten_arr = imag([kTs,kTLSs])
@@ -62,8 +62,8 @@ height=500
 ## Zoomed in version
   ωs = linspace(real(medium.c/10000),ωs[m],100) # k from 0 to 1
   m = length(ωs);
-  kTs  = sqrt.(multispecies_wavenumber(ωs, medium, [sp1,sp2]));
-  kTLSs = sqrt.(two_species_approx(ωs, medium, [sp1,sp2]));
+  kTs  = multispecies_wavenumber(ωs, medium, [sp1,sp2]);
+  kTLSs = two_species_approx(ωs, medium, [sp1,sp2]);
 
   speed_arr = [ ωs./real(kTs), ωs./real(kTLSs)]
   atten_arr = imag([kTs,kTLSs])

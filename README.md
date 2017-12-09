@@ -15,9 +15,10 @@ using EffectiveWaves
 ## Simple example, complete code in [examples/demo.jl](examples/demo.jl)
 ### Run: calculate effective wavenumbers for two species randomly (uniformly) distributed in Glycerol. List of possible materials given in [src/materials.jl](src/materials.jl).
 ```julia
-include("src/multi-species.jl")
+#where: ρ = density, r = radius, c = wavespeed, and volfrac = volume fraction
+WaterDistilled= Medium(ρ=0.998*1000,  c = 1496.0)
+Glycerol      = Medium(ρ=1.26*1000 ,  c = 1904.0)
 
-# Usage Specie(ρ = density, r = radius, c = wavespeed, volfrac = volume fraction)
 species = [
     Specie(ρ=WaterDistilled.ρ,r=30.e-6, c=WaterDistilled.c, volfrac=0.1),
     Specie(ρ=Inf, r=100.0e-6, c=2.0, volfrac=0.2)
@@ -31,7 +32,7 @@ background = Glycerol
 
 # angular frequencies
 ωs = linspace(0.01,1.0,60)*30.0e6
-wavenumbers = sqrt.(multispecies_wavenumber(ωs, background, species))
+wavenumbers = multispecies_wavenumber(ωs, background, species)
 
 speeds = ωs./real(wavenumbers)
 attenuations = imag(wavenumbers)
