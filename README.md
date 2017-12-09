@@ -13,7 +13,7 @@ using EffectiveWaves
 ```
 
 ## Simple example, complete code in [examples/demo.jl](examples/demo.jl)
-### Run: calculate effective wavenumbers for two species randomly (uniformly) distributed in Glycerol. List of possible materials given in [src/materials.jl](src/materials.jl).
+### Calculate effective wavenumbers for two species randomly (uniformly) distributed in Glycerol. List of possible materials given in [examples/materials.jl](examples/materials.jl).
 ```julia
 #where: ρ = density, r = radius, c = wavespeed, and volfrac = volume fraction
 WaterDistilled= Medium(ρ=0.998*1000,  c = 1496.0)

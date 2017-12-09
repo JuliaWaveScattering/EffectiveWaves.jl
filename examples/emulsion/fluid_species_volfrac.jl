@@ -1,4 +1,6 @@
-include("../../src/EffectiveWaves.jl")
+using EffectiveWaves
+
+include("../materials.jl")
 
 using LaTeXStrings
 using Plots
