@@ -1,4 +1,4 @@
-try include("scattering.jl") end
+include("scattering.jl")
 
 multispecies_challis{T<:Number}(ωs::AbstractArray,medium::Medium, species::Array{Specie{T}}; kws...) = [multispecies_challis(ω, medium, species; kws...) for ω in ωs]
 
