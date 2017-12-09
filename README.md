@@ -9,16 +9,14 @@ This package is tested and works for Julia 0.6 and 0.5.
 To get started, download and include the library
 ```julia
 Pkg.clone("https://github.com/arturgower/EffectiveWaves.jl.git")
-Pkg.add("SpecialFunctions")
+using EffectiveWaves
 ```
 
 ## Simple example, complete code in [examples/demo.jl](examples/demo.jl)
-### Run
-Choose two types of particles, the first centred at [-2.,2.] and the second at [-2.,-2.]
+### Run: calculate effective wavenumbers for two species randomly (uniformly) distributed in Glycerol. List of possible materials given in [src/materials.jl](src/materials.jl).
 ```julia
 include("src/multi-species.jl")
 
-## Choose two species randomly (uniformly) distributed
 # Usage Specie(ρ = density, r = radius, c = wavespeed, volfrac = volume fraction)
 species = [
     Specie(ρ=WaterDistilled.ρ,r=30.e-6, c=WaterDistilled.c, volfrac=0.1),
@@ -27,7 +25,6 @@ species = [
 # background medium
 background = Glycerol
 ```
-### A list of possible materials are given in [src/materials.jl](src/materials.jl).
 
 ### Calculate effective wavenumbers
 ```julia
@@ -39,3 +36,10 @@ wavenumbers = sqrt.(multispecies_wavenumber(ωs, background, species))
 speeds = ωs./real(wavenumbers)
 attenuations = imag(wavenumbers)
 ```
+
+## More examples
+For more examples and details go to [examples/](examples/).
+
+## Acknowledgements and contributing
+This library was originally written by Artur L Gower.
+Please contribute, if nothing else, criticism is welcome, as I am relatively new to Julia.
