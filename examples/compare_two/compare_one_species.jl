@@ -1,12 +1,9 @@
-include("multi-species.jl")
-include("two_species_approx.jl")
+include("../../src/EffectiveWaves.jl")
 
 using Plots
-#height=500
-unicodeplots()
- #pyplot(linewidth=3, size=(2.0*height,height))
-
- # Plots.scalefontsizes(2.)
+# unicodeplots() # alternative plot backend
+height=500
+pyplot(linewidth=3, size=(2.0*height,height))
 
 # for fixed total volfrac fraction
 medium = Medium(ρ=3200.0,c = 2595.0)
@@ -16,14 +13,8 @@ volfrac = 0.12
 r1 = 30.0e-8
 r2 = 2*30.0e-6
 
-# sp1 = Specie(2329, r1; volfrac=0.06)
-# sp2 = Specie(1550, r2; volfrac=0.12)
-
 sp1 = Specie(ρ=2329.,r=r1,c=8433.,volfrac = 0.06)
-# sp1 = Specie(ρ=0,r=r1,c=8433.,volfrac = 0.06)
 sp2 = Specie(ρ=2329.,r=r2,c=8433.,volfrac = volfrac-0.06)
-
- #sp2 = Specie(ρ=3200.,r=r2,c=2595.,volfrac = volfrac-0.06)
 
 vol = pi*sp1.num_density*sp1.r^2
 
@@ -31,11 +22,10 @@ rhoeff =  medium.ρ*(medium.ρ + sp1.ρ - vol*(medium.ρ - sp1.ρ))/
 (medium.ρ + sp1.ρ + vol*(medium.ρ - sp1.ρ))
 
 # rhoeff =  medium.ρ*(1.0-vol) + vol*sp1.ρ
-
 # rhoeff =  medium.ρ*(1 + volfrac)/(1 - volfrac)
 
 kTs = [ sqrt(multispecies_wavenumber(ω, medium, [sp1,sp2])) for ω in ωs]
-kTaprx =[ sqrt(two_species_wavenumber(ω, medium, [sp1,sp2])) for ω in ωs]
+kTaprx =[ sqrt(two_species_approx_wavenumber(ω, medium, [sp1,sp2])) for ω in ωs]
 
 kTSs =[ sqrt(multispecies_wavenumber(ω, medium, [sp1])) for ω in ωs]
 kTLs = [
@@ -57,15 +47,3 @@ gui()
 
 speed_arr = [abs.(1 .- real(kTLs)./real(kTs))]
 p1 = plot(r1.*(ωs./real(medium.c))/(2pi), speed_arr, labels=labs, xlabel="a/λ", ylabel="relative wave speed");
-# imag_arr = imag([kTs,kTLs])
-# real_arr = real([kTs./ωs,kTLs./ωs])
-#
-# labs = reshape(["kT","kTL"] ,1, 2);
-# p1 = plot(r1.*(ωs./real(medium.c))/2pi, imag_arr, labels=labs, xlabel="a/λ", ylabel="imag");
-# p2 = plot(r1.*(ωs./real(medium.c))/2pi, real_arr, labels=labs, xlabel="a/λ", ylabel="real");
-# plot(p1,p2)
-
- # savefig("compare_one_species.png")
-
-
-# Plots.scalefontsizes(1/2.)

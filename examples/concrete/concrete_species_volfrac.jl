@@ -1,8 +1,4 @@
-include("multi-species.jl")
-include("multi-species_challis.jl")
-include("two_species_approximate.jl")
-include("materials.jl")
-include("graphics.jl")
+include("../../src/EffectiveWaves.jl")
 
 using LaTeXStrings
 using Plots
@@ -80,7 +76,7 @@ mediumname = "Lime stone"
                 #  , ylims = (minimum(ys_arr[1]), maximum(ys_arr[1])*1.04));
   plot(p1,p2)
   gui()
-  savefig("../images/compare_$(filename)_volfrac.png")
-  savefig("../images/compare_$(filename)_volfrac.pdf")
+  savefig("compare_$(filename)_volfrac.png")
+  savefig("compare_$(filename)_volfrac.pdf")
 
 Plots.scalefontsizes(1/1.7)

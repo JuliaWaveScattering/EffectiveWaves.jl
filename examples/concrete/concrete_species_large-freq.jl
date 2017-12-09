@@ -1,8 +1,4 @@
-include("multi-species.jl")
-include("multi-species_challis.jl")
-include("two_species_approximate.jl")
-include("materials.jl")
-include("graphics.jl")
+include("../../src/EffectiveWaves.jl")
 
 using LaTeXStrings
 using Plots
@@ -21,8 +17,6 @@ height=500
 
   ωfactor = 50.0;
   ωs = 20*ωfactor.*linspace(real(medium.c/10000),real(medium.c),400) # k from 0 to 1
-  # ωs = linspace(real(medium.c/10000),real(medium.c/1000),100) # k from 0 to 1
-  # ωs = 2.0*pi*linspace(1.0e1,1.0e7,100)
 
   volfrac = 0.16
   r1 = 0.1/ωfactor; vol1 = 0.06
@@ -57,8 +51,8 @@ height=500
         # , ylims = ( min(ys_arr[1]...,ys_arr[3]...)*0.995,  max(ys_arr[1]...,ys_arr[3]...)*1.005));
 
   plot(p1,p2)
-  savefig("../images/compare_concrete_large-w.png")
-  savefig("../images/compare_concrete_large-w.pdf")
+  savefig("compare_concrete_large-w.png")
+  savefig("compare_concrete_large-w.pdf")
   gui()
 
 Plots.scalefontsizes(1/1.7)

@@ -1,5 +1,4 @@
 
-
 function two_species_approx_wavenumber(ω::Number, medium, species)
   sp1 = species[1]
   sp2 = species[2]

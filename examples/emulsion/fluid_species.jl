@@ -1,8 +1,4 @@
-include("multi-species.jl")
-include("multi-species_challis.jl")
-include("two_species_approximate.jl")
-include("materials.jl")
-include("graphics.jl")
+include("../../src/EffectiveWaves.jl")
 
 using LaTeXStrings
 using Plots
@@ -110,7 +106,7 @@ mediumname = "water"
               , ylims = (minimum(minimum.(ys_arr))*0.995, maximum(maximum.(ys_arr))*1.005));
   plot(p1,p2)
   gui()
-  savefig("../images/compare_$(filename)_small.png")
-  savefig("../images/compare_$(filename)_small.pdf")
+  savefig("compare_$(filename)_small.png")
+  savefig("compare_$(filename)_small.pdf")
 
 Plots.scalefontsizes(1/1.8)

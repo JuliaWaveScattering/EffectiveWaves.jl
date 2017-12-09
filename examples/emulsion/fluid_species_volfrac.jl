@@ -1,7 +1,4 @@
-include("multi-species.jl")
-include("two_species_approximate.jl")
-include("materials.jl")
-include("graphics.jl")
+include("../../src/EffectiveWaves.jl")
 
 using LaTeXStrings
 using Plots
@@ -10,7 +7,6 @@ height=500
  pyplot(linewidth=3, size=(2.6*height,height))
 
  Plots.scalefontsizes(1.8)
-
 
 filename="fluid"
 mediumname = "water"
@@ -81,7 +77,7 @@ mediumname = "water"
                 #  , ylims = (minimum(ys_arr[1]), maximum(ys_arr[1])*1.04));
   plot(p1,p2)
   gui()
-  savefig("../images/compare_$(filename)_volfrac.png")
-  savefig("../images/compare_$(filename)_volfrac.pdf")
+  savefig("compare_$(filename)_volfrac.png")
+  savefig("compare_$(filename)_volfrac.pdf")
 
 Plots.scalefontsizes(1/1.8)

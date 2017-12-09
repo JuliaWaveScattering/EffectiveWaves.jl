@@ -1,6 +1,3 @@
-try include("scattering.jl") end
-
-# try using SpecialFunctions end
 
 d(x,m) = diffbesselj(m,x)*diffhankelh1(m,x) + (1.0 - (m/x)^2)*besselj(m,x)*hankelh1(m,x)
 
