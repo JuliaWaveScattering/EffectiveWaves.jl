@@ -1,8 +1,4 @@
-include("multi-species.jl")
-include("two_species_approximate.jl")
-include("materials.jl")
-include("graphics.jl")
-
+using EffectiveWaves
 using LaTeXStrings
 using Plots
 height=500
@@ -19,7 +15,6 @@ height=500
   inclusion2 = Brick
   ωs = linspace(real(medium.c/10000),real(medium.c),100) # k from 0 to 1
   # ωs = linspace(real(medium.c/10000),real(medium.c/1000),100) # k from 0 to 1
-  # ωs = 2.0*pi*linspace(1.0e1,1.0e7,100)
 
   volfrac = 0.16
   r1 = 0.1; vol1 = 0.06
@@ -31,7 +26,7 @@ height=500
   # True wavenumber
   kTs  = multispecies_wavenumber(ωs, medium, [sp1,sp2]);
   # Approximate wavenumber
-  kTLSs = two_species_approx(ωs, medium, [sp1,sp2]);
+  kTLSs = two_species_approx_wavenumber(ωs, medium, [sp1,sp2]);
 
   speed_arr = [ ωs./real(kTs), ωs./real(kTLSs), 0.*ωs + real(medium.c)]
   atten_arr = imag([kTs,kTLSs])
@@ -44,26 +39,25 @@ height=500
   y1 = min(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
   y2 = max(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
   plot(xs, ys_arr, xlabel=L"a_S k", ylabel="sound speed", labels=labs, line = styles);
-  p1 = gray_square!([xs[1],xs[m]],[y1,y2]);
-
+  p1 = gray_square([xs[1],xs[m]],[y1,y2], plot!)
 
   ys_arr = atten_arr;
   labs = reshape([L"Effective $k_{*}$",L"Approximate $k_{*LS}$"] ,1, 2);
   plot(xs, ys_arr, labels=labs, xlabel=L"a_S k", ylabel="attenuation");
   y1 = min(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
   y2 = max(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
-  p2 = gray_square!([xs[1],xs[m]],[y1,y2]);
+  p2 = gray_square([xs[1],xs[m]],[y1,y2], plot!)
 
   plot(p1,p2)
-  savefig("../images/compare_concrete.png")
-  savefig("../images/compare_concrete.pdf")
+  savefig("compare_concrete.png")
+  savefig("compare_concrete.pdf")
   gui()
 
 ## Zoomed in version
   ωs = linspace(real(medium.c/10000),ωs[m],100) # k from 0 to 1
   m = length(ωs);
   kTs  = multispecies_wavenumber(ωs, medium, [sp1,sp2]);
-  kTLSs = two_species_approx(ωs, medium, [sp1,sp2]);
+  kTLSs = two_species_approx_wavenumber(ωs, medium, [sp1,sp2]);
 
   speed_arr = [ ωs./real(kTs), ωs./real(kTLSs)]
   atten_arr = imag([kTs,kTLSs])
@@ -75,7 +69,7 @@ height=500
                  , border = false);
   y1 = min(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
   y2 = max(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
-  p1 = gray_square!([xs[1],xs[m]],[y1,y2]);
+  p1 = gray_square([xs[1],xs[m]],[y1,y2], plot!)
 
   ys_arr = atten_arr;
   labs = reshape([L"Effective $k_{*}$",L"Approximate $k_{*LS}$"] ,1, 2);
@@ -84,10 +78,10 @@ height=500
   y1 = min(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
   y2 = max(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
   dy = abs(y2- y1)/120.0;
-  p2 = gray_square!([xs[1],xs[m]],[y1,y2]);
+  p2 = gray_square([xs[1],xs[m]],[y1,y2], plot!)
 
   plot(p1,p2)
-  savefig("../images/compare_concrete_zoom.png")
-  savefig("../images/compare_concrete_zoom.pdf")
+  savefig("compare_concrete_zoom.png")
+  savefig("compare_concrete_zoom.pdf")
 
 Plots.scalefontsizes(1/1.7)

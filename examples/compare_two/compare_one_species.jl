@@ -1,4 +1,4 @@
-include("../../src/EffectiveWaves.jl")
+using EffectiveWaves
 
 using Plots
 # unicodeplots() # alternative plot backend
