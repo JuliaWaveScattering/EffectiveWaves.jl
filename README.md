@@ -1,19 +1,18 @@
 # Multi-species effective waves
 
-A Julia library for calculating, processing and plotting effective waves travelling in inhomogeneous materials.
+A Julia (v0.5-v0.6) library for calculating, processing and plotting effective waves travelling in inhomogeneous materials.
 
 At present, the library focuses on effective wavenumbers and wave reflection from random particulate materials, see ?? for details on the mathematics.
 
 ## Get started
-This package is tested and works for Julia 0.6 and 0.5.
-To get started, download and include the library
+To get started, type the following into Julia:
 ```julia
 Pkg.clone("https://github.com/arturgower/EffectiveWaves.jl.git")
 using EffectiveWaves
 ```
 
-## Simple example, complete code in [examples/demo.jl](examples/demo.jl)
-### Calculate effective wavenumbers for two species randomly (uniformly) distributed in Glycerol. List of possible materials given in [examples/materials.jl](examples/materials.jl).
+## Simple example
+### Calculate effective wavenumbers for two species randomly (uniformly) distributed in Glycerol, complete code in [examples/demo.jl](examples/demo.jl). For a list of possible materials go to [examples/materials.jl](examples/materials.jl).
 ```julia
 #where: ρ = density, r = radius, c = wavespeed, and volfrac = volume fraction
 
