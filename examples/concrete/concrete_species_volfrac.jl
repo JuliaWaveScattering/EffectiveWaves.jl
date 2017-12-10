@@ -76,6 +76,7 @@ mediumname = "Lime stone"
                 #  , ylims = (minimum(ys_arr[1]), maximum(ys_arr[1])*1.04));
   plot(p1,p2)
   gui()
+  try mkdir("media") end
   savefig("media/compare_$(filename)_volfrac.png")
   savefig("media/compare_$(filename)_volfrac.pdf")
 

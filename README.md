@@ -1,6 +1,8 @@
 # Multi-species effective waves
 
 A Julia (v0.5-v0.6) library for calculating, processing and plotting effective waves travelling in inhomogeneous materials.
+You can run Julia on
+[JuliaBox](https://www.juliabox.com/) in your browser without installation.
 
 At present, the library focuses on effective wavenumbers and wave reflection from random particulate materials, see ?? for details on the mathematics.
 

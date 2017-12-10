@@ -57,6 +57,7 @@ using LaTeXStrings
   p2 = gray_square([xs[1],xs[m]],[y1,y2],plot!);
 
   plot(p1,p2)
+  try mkdir("media") end
   savefig("media/compare_concrete.png")
   savefig("media/compare_concrete.pdf")
   gui()

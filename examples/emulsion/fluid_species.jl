@@ -58,6 +58,7 @@ mediumname = "water"
   p2 = plot(xs, ys_arr, labels=labs, xlabel=xlabel, ylabel="attenuation (1/m)", line = styles
               , ylims = (minimum(minimum.(ys_arr))*0.995, maximum(maximum.(ys_arr))*1.005));
   plot(p1,p2)
+  try mkdir("media") end
   savefig("../images/compare_$(filename).png")
   savefig("../images/compare_$(filename).pdf")
 

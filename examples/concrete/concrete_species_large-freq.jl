@@ -51,6 +51,7 @@ height=500
         # , ylims = ( min(ys_arr[1]...,ys_arr[3]...)*0.995,  max(ys_arr[1]...,ys_arr[3]...)*1.005));
 
   plot(p1,p2)
+  try mkdir("media") end
   savefig("media/compare_concrete_large-w.png")
   savefig("media/compare_concrete_large-w.pdf")
   gui()
