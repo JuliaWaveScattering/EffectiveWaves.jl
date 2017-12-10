@@ -55,7 +55,7 @@ mediumname = "water"
   p2 = plot(xs, ys_arr, labels=labs, xlabel=xlabel, ylabel="attenuation (1/m)", line = styles
               , ylims = (minimum(minimum.(ys_arr))*0.995, maximum(maximum.(ys_arr))*1.005));
   plot(p1,p2)
-  savefig("compare_$(filename)_large-w.png")
-  savefig("compare_$(filename)_large-w.pdf")
+  savefig("media/compare_$(filename)_large-w.png")
+  savefig("media/compare_$(filename)_large-w.pdf")
 
   Plots.scalefontsizes(1/1.8)

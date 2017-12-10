@@ -51,8 +51,8 @@ height=500
         # , ylims = ( min(ys_arr[1]...,ys_arr[3]...)*0.995,  max(ys_arr[1]...,ys_arr[3]...)*1.005));
 
   plot(p1,p2)
-  savefig("compare_concrete_large-w.png")
-  savefig("compare_concrete_large-w.pdf")
+  savefig("media/compare_concrete_large-w.png")
+  savefig("media/compare_concrete_large-w.pdf")
   gui()
 
 Plots.scalefontsizes(1/1.7)

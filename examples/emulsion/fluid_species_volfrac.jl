@@ -77,7 +77,7 @@ mediumname = "water"
                 #  , ylims = (minimum(ys_arr[1]), maximum(ys_arr[1])*1.04));
   plot(p1,p2)
   gui()
-  savefig("compare_$(filename)_volfrac.png")
-  savefig("compare_$(filename)_volfrac.pdf")
+  savefig("media/compare_$(filename)_volfrac.png")
+  savefig("media/compare_$(filename)_volfrac.pdf")
 
 Plots.scalefontsizes(1/1.8)
