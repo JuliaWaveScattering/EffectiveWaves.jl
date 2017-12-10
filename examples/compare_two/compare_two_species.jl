@@ -49,8 +49,8 @@ height=500
   p2 = gray_square([xs[1],xs[m]],[y1,y2], plot!)
 
   plot(p1,p2)
-  savefig("compare_concrete.png")
-  savefig("compare_concrete.pdf")
+  savefig("media/compare_concrete.png")
+  savefig("media/compare_concrete.pdf")
   gui()
 
 ## Zoomed in version
