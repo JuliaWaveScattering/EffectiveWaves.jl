@@ -19,6 +19,8 @@ try import BlackBoxOptim end
 
 # using RecipesBase # Have not really needed yet
 
+# push!(LOAD_PATH,"$(homedir())/.julia/v0.6/EffectiveWaves/examples/")
+
 include("plot/graphics.jl")
 include("scattering.jl")
 include("multi-species.jl")

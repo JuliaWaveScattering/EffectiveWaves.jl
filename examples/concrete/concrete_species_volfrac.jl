@@ -66,7 +66,7 @@ mediumname = "Lime stone"
                  , line = styles ) #, ylims = (minimum(minimum.(ys_arr)), maximum(ys_arr[1])*1.04));
   # y1 = min(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
   # y2 = max(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
-  # p1 = gray_square!([xs[1],xs[m]],[y1,y2]);
+  # p1 = gray_square([xs[1],xs[m]],[y1,y2],plot!);
 
   ys_arr = atten_arr;
   styles = [:solid :dash :dashdot :dashdot]

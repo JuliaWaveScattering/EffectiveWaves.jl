@@ -1,4 +1,5 @@
 using EffectiveWaves
+using LaTeXStrings
 
 ## choose material
 
@@ -37,7 +38,6 @@ using EffectiveWaves
   y1 = min(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
   y2 = max(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
 
-  using LaTeXStrings
   using Plots
   height=500
   # unicodeplots()
@@ -46,7 +46,7 @@ using EffectiveWaves
   Plots.scalefontsizes(1.7)
   plot(xs, ys_arr, xlabel=L"a_S k", ylabel="sound speed (m/s)", labels=labs, line = styles, xlims = (-0.002,maximum(xs))
         , ylims = ( min(ys_arr[1]...,ys_arr[3]...,ys_arr[4]...)*0.995,  max(ys_arr[1]...,ys_arr[3]...,ys_arr[4]...)*1.005));
-  p1 = gray_square!([xs[1],xs[m]],[y1,y2]);
+  p1 = gray_square([xs[1],xs[m]],[y1,y2],plot!);
 
   ys_arr = atten_arr;
   labs = [L"Effective $k_{*}$" L"Approximate $k_{*LS}$" L"Approximate $k_{*C}$"]
@@ -54,7 +54,7 @@ using EffectiveWaves
         , ylims = ( min(ys_arr[1]...,ys_arr[3]...)*0.995,  max(ys_arr[1]...,ys_arr[3]...)*1.005));
   y1 = min(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
   y2 = max(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
-  p2 = gray_square!([xs[1],xs[m]],[y1,y2]);
+  p2 = gray_square([xs[1],xs[m]],[y1,y2],plot!);
 
   plot(p1,p2)
   savefig("media/compare_concrete.png")
@@ -80,7 +80,7 @@ using EffectiveWaves
                  , border = false, line = styles, xlims = (0,maximum(xs)));
   y1 = min(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
   y2 = max(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
-  p1 = gray_square!([xs[1],xs[m]],[y1,y2]);
+  p1 = gray_square([xs[1],xs[m]],[y1,y2],plot!);
 
   ys_arr = atten_arr;
   labs = [L"Effective $k_{*}$" L"Approximate $k_{*LS}$" L"Approximate $k_{*C}$"]
@@ -89,7 +89,7 @@ using EffectiveWaves
   y1 = min(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
   y2 = max(ys_arr[1][1:m]..., ys_arr[2][1:m]...);
   dy = abs(y2- y1)/120.0;
-  p2 = gray_square!([xs[1],xs[m]],[y1,y2]);
+  p2 = gray_square([xs[1],xs[m]],[y1,y2],plot!);
 
   plot(p1,p2)
   savefig("media/compare_concrete_zoom.png")
