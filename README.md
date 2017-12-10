@@ -7,14 +7,14 @@ You can run Julia on
 At present, the library focuses on effective wavenumbers and wave reflection from random particulate materials, see ?? for details on the mathematics.
 
 ## Get started
-To get started, type the following into Julia:
+Type into Julia:
 ```julia
 Pkg.clone("https://github.com/arturgower/EffectiveWaves.jl.git")
 using EffectiveWaves
 ```
 
 ## Simple example
-### Calculate effective wavenumbers for two species randomly (uniformly) distributed in Glycerol, complete code in [examples/demo.jl](examples/demo.jl). For a list of possible materials go to [examples/materials.jl](examples/materials.jl).
+### Effective wavenumbers for two species randomly (uniformly) distributed in Glycerol, complete code in [examples/demo.jl](examples/demo.jl).
 ```julia
 #where: ρ = density, r = radius, c = wavespeed, and volfrac = volume fraction
 
@@ -36,6 +36,7 @@ wavenumbers = multispecies_wavenumber(ωs, background, species)
 speeds = ωs./real(wavenumbers)
 attenuations = imag(wavenumbers)
 ```
+### For a list of possible materials go to [examples/materials.jl](examples/materials.jl).
 
 ## More examples
 For more examples and details go to [examples/](examples/).
