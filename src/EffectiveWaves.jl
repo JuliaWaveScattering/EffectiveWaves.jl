@@ -22,7 +22,7 @@ try import BlackBoxOptim end
 # push!(LOAD_PATH,"$(homedir())/.julia/v0.6/EffectiveWaves/examples/")
 
 include("plot/graphics.jl")
-include("scattering.jl")
+include("specie.jl")
 include("multi-species.jl")
 include("multi-species_challis.jl")
 include("two_species_approximate.jl")
