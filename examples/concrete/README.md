@@ -5,7 +5,7 @@
 ![Compare effective wavenumber for 2D concrete](media/compare_concrete.png)
 ![Compare effective wavenumber for 2D concrete](media/compare_concrete_zoom.png)
 
-[Code: concrete_species-large_freq.ipynb](concrete_species-large_freq.ipynb)
+[Code: concrete_species-large_freq.ipynb](concrete_species_large-freq.ipynb)
 ![Compare effective wavenumber for 2D concrete](media/compare_concrete_large-w.png)
 
 [Code: concrete_species_volfrac.ipynb](concrete_species_volfrac.ipynb)
