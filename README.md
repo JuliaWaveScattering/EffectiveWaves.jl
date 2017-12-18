@@ -13,7 +13,7 @@ using EffectiveWaves
 ```
 
 ## Simple example
-### Effective wavenumbers for two species randomly (uniformly) distributed in Glycerol, complete code in [examples/demo.jl](examples/demo.jl).
+Effective wavenumbers for two species randomly (uniformly) distributed in Glycerol, complete code in [examples/demo.jl](examples/demo.jl).
 ```julia
 #where: ρ = density, r = radius, c = wavespeed, and volfrac = volume fraction
 
@@ -25,7 +25,7 @@ species = [
 background = Glycerol
 ```
 
-### Calculate effective wavenumbers
+Calculate effective wavenumbers:
 ```julia
 
 # angular frequencies
@@ -35,7 +35,7 @@ wavenumbers = multispecies_wavenumber(ωs, background, species)
 speeds = ωs./real(wavenumbers)
 attenuations = imag(wavenumbers)
 ```
-### For a list of possible materials go to [examples/materials.jl](examples/materials.jl).
+For a list of possible materials go to [examples/materials.jl](examples/materials.jl).
 
 ## More examples
 For more examples and details go to [examples/](examples/).
