@@ -1,4 +1,4 @@
-include("optimse_two.jl")
+using EffectiveWaves
 
 using JLD
 
