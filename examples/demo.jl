@@ -7,7 +7,7 @@ species = [
     Specie(ρ=Inf, r=100.0e-6, c=2.0, volfrac=0.2)
 ]
 # background medium
-background = Glycerol
+background = Glycerol # for other materials, see materials.jl
 
 # angular frequencies
 ωs = linspace(0.01,1.0,60)*30.0e6
