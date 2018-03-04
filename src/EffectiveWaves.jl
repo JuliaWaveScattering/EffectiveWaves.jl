@@ -23,6 +23,7 @@ try import BlackBoxOptim end
 
 include("plot/graphics.jl")
 include("specie.jl")
+include("optimise_wavenumber.jl")
 include("multi-species.jl")
 include("multi-species_challis.jl")
 include("two_species_approximate.jl")
