@@ -1,4 +1,4 @@
-include("../src/optimise_wavenumber.jl")
+using EffectiveWaves
 
 ## Choose objective function
 function f_slow(sps, medium,ωs,kTs)
