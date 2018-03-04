@@ -26,7 +26,7 @@ species = optimal_species(f_obj, medium, ωs;
               opt_fields = opt_fields,
               fix_fields = fix_fields,
               num_species=num_species, MaxTime=100., method = :xnes)
-# For a list of possible methods see variable: opt_methods 
+# To choose other methods see variable: opt_methods. To auto select a method, just omit the method option, or equivalently use method = :choose_method.  
 
 kTs_arr =[
   multispecies_wavenumber(ωs, medium, sps)
