@@ -1,6 +1,6 @@
 using EffectiveWaves
 
-## Choose two species randomly (uniformly) distributed
+## Choose two species randomly (uniformly) distributed in the medium
 # Usage Specie(ρ = density, r = radius, c = wavespeed, volfrac = volume fraction)
 species = [
     Specie(ρ=WaterDistilled.ρ,r=30.e-6, c=WaterDistilled.c, volfrac=0.1),
