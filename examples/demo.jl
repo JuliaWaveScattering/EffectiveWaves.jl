@@ -26,6 +26,7 @@ plot(p1,p2)
 ## An example where we vary the species
 
 height=450
+# unicodeplot() # alternative plot backend
 pyplot(linewidth=3, size=(2*height,height))
 Plots.scalefontsizes(1.5)
 
