@@ -137,13 +137,13 @@ with $q = (\rho_j c_j)/(\rho c)$. For instance, taking the limits $q \to 0$ or $
 
 The series expansions for low number density (or volume fraction) do not work when the particles are strong scatterers. In these cases we need to use formulas valid for any volume fraction.
 
-Borrowing equations (4.4), (4.5) and (4.6) from~\cite{gower_reflection_2017} we have
+Borrowing equations (45 - 47) from~\cite{gower_reflection_2017} we have
 \begin{align}
     &k_\eff \sin \theta_\eff = k \sin \theta_\inc  \quad \text{with} \quad \mathbf k_\eff =(\alpha_\eff, \beta) := k_\eff(\cos\theta_\eff, \sin\theta_\eff),
     \label{eqn:Snells}
   \\
-    &  \sum_\ell \sum_{n=-\infty}^\infty ( 2 \pi\nfrac \ell \scatZ^n_\ell
-  \mathcal K^{n-m}_{j \ell}(k_\eff) + \delta_{m n} \delta_{j \ell}  ) \A n_\ell
+    &  \sum_\ell \sum_{n=-\infty}^\infty ( 2 \pi\nfrac \ell
+  \mathcal Q^{n-m}_{j \ell}(k_\eff) \scatZ^n_\ell + \delta_{m n} \delta_{j \ell}  ) \A n_\ell
    = 0,
  \label{eqn:AmT}
 \\
@@ -154,7 +154,7 @@ Borrowing equations (4.4), (4.5) and (4.6) from~\cite{gower_reflection_2017} we 
  \end{align}
 in terms of the unknown parameters $\A n_\ell$ and $k_\eff$, where
 \begin{align}
-  &\mathcal K^n_{j \ell}(k_\eff) =  \frac{\mathcal N_{n}(ka_{j\ell},k_\eff a_{j\ell})}{k^2 - k_\eff^2}  +  \mathcal X_{n}(\s_j,\s_\ell),
+  &\mathcal Q^n_{j \ell}(k_\eff) =  \frac{\mathcal N_{n}(ka_{j\ell},k_\eff a_{j\ell})}{k^2 - k_\eff^2}  +  \mathcal X_{n}(\s_j,\s_\ell),
    \\
   & \mathcal N_n(x,y) = x H_n'(x) J_n(y) - y H_n(x) J_n'(y),
 \label{eqn:Nn}
@@ -168,28 +168,57 @@ where we assume that when the distance between two cylinders $R_{j \ell} > \bar 
 
 In the notation given in~\cite{gower_reflection_2017} we replaced $\A m_\eff(\s_2) \to \A m_\ell$, $\p(\s_2) \to \delta(\s_2 - \s_\ell) \frac{\nfrac \ell}{\nfrac {}}$,  $\nfrac {} = \sum_\ell \nfrac j$, $\nfrac {} = \sum_\ell \nfrac j$,
 $\scatZ^n(\s_2) \to \scatZ^n_j$, $\mathcal X_{\eff} \to \mathcal X_{n-m}(\s_j,\s_\ell)$ and here we assumed no boundary-layer $\bar x = 0$.
+%
+% Rewriting in terms of infinite dimensional tensors
+% \begin{align}
+%    & (\vec A_\ell)_n = \A n_\ell, \quad  (\vec z_\ell)_n =  \sqrt{\scatZ^n_\ell},
+%     % \;\; n=-N,\ldots, N,
+%    \\
+%    & (\vec { Q}_{j \ell})_{mn} =  \mathcal Q^{n-m}_{j \ell}(k_\eff),
+%  \end{align}
+%
+% \begin{align}
+%     &  \sum_\ell \sum_{n=-\infty}^\infty ( 2 \pi\nfrac \ell
+%   \vec {Q}_{j \ell}(k_\eff) \scatZ^n_\ell + \delta_{m n} \delta_{j \ell}  ) \A n_\ell
+%    = 0,
+% \\
+%   &
+%    2\sum_{n=-\infty}^\infty \ee^{\ii n (\theta_\inc - \theta_\eff)} \sum_\ell
+%    \nfrac \ell \scatZ^n_\ell \A n_\ell = (\alpha_\eff-\alpha) \ii \alpha,
+%  \end{align}
 
 Now we approximate (\ref{eqn:AmInc},\ref{eqn:AmT}) by summing $n$ from $-N$ to $N$ and then rewriting these equations as
 \begin{align}
     &  \sum_\ell \vec M_{j \ell} \vec A_\ell
    = 0, \implies \det (\vec M_{j \ell}) = 0,
    \label{eqn:secular}
-\\
-  &
-    \sum_\ell
-   \vec Z_\ell \cdot \vec A_\ell = (\alpha_\eff-\alpha) \ii \alpha,
-   \label{eqn:effective_amplitude}
+% \\
+%   &
+%     \sum_\ell \vec Z_\ell \cdot \vec A_\ell = (\alpha_\eff-\alpha) \ii \alpha,
+%    \label{eqn:effective_amplitude}
  \end{align}
 where
 \begin{align}
-   & (\vec A_\ell)_n = \A n_\ell, \quad  (\vec Z_\ell)_n =  2 \nfrac \ell \scatZ^n_\ell \ee^{\ii n (\theta_\inc - \theta_\eff)},
+   & (\vec A_\ell)_n = \A n_\ell, \quad
+  %  (\vec Z_\ell)_n =  \scatZ^n_\ell,
     % \;\; n=-N,\ldots, N,
-   \\
-   & (\vec M_{j \ell})_{mn} =  2 \pi\nfrac \ell \scatZ^n_\ell \mathcal K^{n-m}_{j \ell}(k_\eff) + \delta_{m n} \delta_{j \ell},
+   (\vec M_{j \ell})_{mn} =  2 \pi\nfrac \ell \scatZ^n_\ell \mathcal Q^{n-m}_{j \ell}(k_\eff) + \delta_{m n} \delta_{j \ell},
  \end{align}
-and both $n$ and $m$ are sum over $-N, -N +1, \ldots N$.
+and $n, m = -N, -N +1, \ldots N$.
 
-The strategy to solve these equations is to: find $k_\eff$ such that the determnant in~\eqref{eqn:secular} is zero and find the eigenvector $\mathbb A$ of $(\vec M_{j \ell})$ with zero as its eignvalue; use Snell's law~\eqref{eqn:Snells} to find $\theta_\eff$ \eqref{eqn:effective_amplitude}; finally use~\eqref{eqn:effective_amplitude} to find the magnitude of $\mathbb A$.   
+The strategy to solve these equations is to: find $k_\eff$ such that the determnant in~\eqref{eqn:secular} is zero and then find the eigenvector $\mathbb A$ of $(\vec M_{j \ell})$ with the smallest eignvalue; use Snell's law~\eqref{eqn:Snells} to find $\theta_\eff$; finally use~\eqref{eqn:AmInc} to determine the magnitude of $\mathbb A$.
+
+One concern, is that the solutions $k_\eff$ to \eqref{eqn:secular} are not unique.
+
+\subsubsection{Reflection coefficient}
+
+Borrowing equation (88) from~\cite{gower_reflection_2017}, the average reflection from a halfspace is
+\begin{align}
+  &\ensem{u_\mathrm{ref}(x,y)} = \ee^{\ii k( - x \cos \theta_\inc + y \sin \theta_\inc)} R,
+  \\
+  & R =  \frac{2 \ii }{\alpha (\alpha + \alpha_\eff)} \sum_{\ell = 1}^S \sum_{n=-\infty}^\infty \ee^{\ii n \theta_\mathrm{ref}} \nfrac \ell \A n_\ell \scatZ^n_\ell,
+\end{align}
+with $\theta_\mathrm{ref} = \pi - \theta_\inc - \theta_\eff$.
 
 
 \section{Spherical species}
