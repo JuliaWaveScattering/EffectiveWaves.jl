@@ -1,7 +1,7 @@
 # Loads all files
 module EffectiveWaves
 
-using BlackBoxOptim, Memoize
+using BlackBoxOptim, Memoize, NLsolve
 
 export  Specie, Medium, volume_fraction, Zn, p_speed,
         multispecies_wavenumber, wavenumber_very_low_volfrac, wavenumber_challis, one_species_low_wavenumber,
