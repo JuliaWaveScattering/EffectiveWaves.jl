@@ -24,14 +24,14 @@ rhoeff =  medium.ρ*(medium.ρ + sp1.ρ - vol*(medium.ρ - sp1.ρ))/
 # rhoeff =  medium.ρ*(1.0-vol) + vol*sp1.ρ
 # rhoeff =  medium.ρ*(1 + volfrac)/(1 - volfrac)
 
-kTs = [ multispecies_wavenumber(ω, medium, [sp1,sp2]) for ω in ωs]
+kTs = [ wavenumber_low_volfrac(ω, medium, [sp1,sp2]) for ω in ωs]
 kTaprx =[ two_species_approx_wavenumber(ω, medium, [sp1,sp2]) for ω in ωs]
 
-kTSs =[ multispecies_wavenumber(ω, medium, [sp1]) for ω in ωs]
+kTSs =[ wavenumber_low_volfrac(ω, medium, [sp1]) for ω in ωs]
 kTLs = [
   begin
     mS = Medium(ρ=rhoeff, c= ωs[i]/kTSs[i])
-    multispecies_wavenumber(ωs[i], mS, [sp2])
+    wavenumber_low_volfrac(ωs[i], mS, [sp2])
   end
 for i in eachindex(ωs)];
 

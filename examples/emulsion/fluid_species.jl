@@ -36,7 +36,7 @@ mediumname = "water"
   sp2 = Specie(ρ=inclusion2.ρ, r=r2, c=inclusion2.c, volfrac = volfrac-vol1)
 
   # True wavenumber
-  kTs  = multispecies_wavenumber(ωs, medium, [sp1,sp2]);
+  kTs  = wavenumber_low_volfrac(ωs, medium, [sp1,sp2]);
   # Approximate wavenumber
   kTLSs = two_species_approx_wavenumber(ωs, medium, [sp1,sp2]);
   # Approximate Challis wavenumber
@@ -73,7 +73,7 @@ mediumname = "water"
   # True wavenumber
   kTs = map(r1s) do r1
     sp1 = Specie(ρ=inclusion1.ρ ,r=r1, c=inclusion1.c, volfrac = vol1)
-    multispecies_wavenumber(ω, medium, [sp1,sp2])
+    wavenumber_low_volfrac(ω, medium, [sp1,sp2])
   end
   # Approximate wavenumber
   kTLSs = map(r1s) do r1

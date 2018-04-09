@@ -38,7 +38,7 @@ function transmitted_planewave{T<:Number}(ω::T, medium::Medium{T}, species::Arr
     , ((2ho+1)*S, (2ho+1)*S))
     detMM2(k::Array{T}) = map(x -> real(x*conj(x)), det(MM(k[1]+im*k[2])))
 
-    initial_k_eff = multispecies_wavenumber(ω, medium, species);
+    initial_k_eff = wavenumber_low_volfrac(ω, medium, species);
     initial_k_eff = [real(initial_k_eff), imag(initial_k_eff)]
     lower = [0.,-1.]
     upper = [1.0, 1.0]*100.0*ω/minimum(map(s -> real(s.c), species))
@@ -88,7 +88,7 @@ hankel_order = 3
 radius_multiplier = 1.005
 
 # effective_wavenumber(ω, medium, species)
-kef0 = map(x -> [abs(real(x)),abs(imag(x))], multispecies_wavenumber(ω, medium, species))
+kef0 = map(x -> [abs(real(x)),abs(imag(x))], wavenumber_low_volfrac(ω, medium, species))
 
 
 "Derivative of Hankel function of the first kind"

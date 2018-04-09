@@ -10,19 +10,19 @@ function one_species_low_wavenumber(ωs, medium, sp)
   (ωs./medium.c).*(1 - (φ/2)*(P+2*Q)-(φ^2/8)*(2*P^2-(P+2*Q)^2))
 end
 
-multispecies_wavenumber(ω::Number, medium::Medium, specie::Specie; kws...) =
-  multispecies_wavenumber(ω, medium, [specie]; kws...)
+wavenumber_low_volfrac(ω::Number, medium::Medium, specie::Specie; kws...) =
+  wavenumber_low_volfrac(ω, medium, [specie]; kws...)
 
-multispecies_wavenumber{T<:Number}(ωs::AbstractArray,medium::Medium, species::Array{Specie{T}}; kws...) =
-  [multispecies_wavenumber(ω, medium, species; kws...) for ω in ωs]
+wavenumber_low_volfrac{T<:Number}(ωs::AbstractArray,medium::Medium, species::Array{Specie{T}}; kws...) =
+  [wavenumber_low_volfrac(ω, medium, species; kws...) for ω in ωs]
 
-multispecies_wavenumber(ωs::AbstractArray,medium::Medium, specie::Specie; kws...) =
-  [multispecies_wavenumber(ω, medium, [specie]; kws...) for ω in ωs]
+wavenumber_low_volfrac(ωs::AbstractArray,medium::Medium, specie::Specie; kws...) =
+  [wavenumber_low_volfrac(ω, medium, [specie]; kws...) for ω in ωs]
 
 # test{T<:Number}(x,species::Array{Specie{T}}) = println(species)
 # test2(x,species::Array{Specie{T}}) where {T<:Number} = prinlnt(species)
 
-function multispecies_wavenumber{T<:Number}(ω::Number, medium::Medium, species::Array{Specie{T}};
+function wavenumber_low_volfrac{T<:Number}(ω::Number, medium::Medium, species::Array{Specie{T}};
     rel_tol=2e-5, radius_multiplier = 1.005, verbose = false)
   # rel_tol=0.004; radius_multiplier = 1.005
   # a12 = radius_multiplier(a1+a2)
@@ -67,7 +67,7 @@ function multispecies_wavenumber{T<:Number}(ω::Number, medium::Medium, species:
   return sqrt(kT2)
 end
 
-function multispecies_wavenumber_low_volfrac{T<:Number}(ω::Number, medium::Medium, species::Array{Specie{T}};
+function wavenumber_very_low_volfrac{T<:Number}(ω::Number, medium::Medium, species::Array{Specie{T}};
     rel_tol=0.0002, radius_multiplier = 1.005, verbose = false)
 
   volume_fraction = sum(pi*sp.r^2.0*sp.num_density for sp in species)
@@ -91,7 +91,7 @@ function multispecies_wavenumber_low_volfrac{T<:Number}(ω::Number, medium::Medi
   return sqrt(kT2)
 end
 
-function multispecies_low_wavenumber{T}(ω::Complex{T}, medium::Medium{T}, species::Array{Specie{T}};
+function wavenumber_far_field_low_volfrac{T}(ω::Complex{T}, medium::Medium{T}, species::Array{Specie{T}};
     rel_tol=0.0002, radius_multiplier = 1.005, verbose = false)
   # rel_tol=0.004; radius_multiplier = 1.005
   # a12 = radius_multiplier(a1+a2)

@@ -29,7 +29,7 @@ species = optimal_species(f_obj, medium, ωs;
 # To choose other methods see variable: opt_methods. To auto select a method, just omit the method option, or equivalently use method = :choose_method.  
 
 kTs_arr =[
-  multispecies_wavenumber(ωs, medium, sps)
+  wavenumber_low_volfrac(ωs, medium, sps)
 for sps in [[species[1]], [species[2]], species] ]
 
 speed_arr = [ ωs./real(kTs) for kTs in kTs_arr]

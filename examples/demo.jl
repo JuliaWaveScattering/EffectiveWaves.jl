@@ -11,7 +11,7 @@ background = Glycerol # for other materials, see materials.jl
 
 # angular frequencies
 ωs = linspace(0.01,1.0,60)*30.0e6
-wavenumbers = multispecies_wavenumber(ωs, background, species)
+wavenumbers = wavenumber_low_volfrac(ωs, background, species)
 
 speeds = ωs./real(wavenumbers)
 attenuations = imag(wavenumbers)
@@ -43,7 +43,7 @@ kTs_arr = [
   begin
     sp1 = Specie(0.0, r1; volfrac=vols[i])
     sp2 = Specie(Inf, r1; volfrac=volfrac-vols[i])
-    [ multispecies_wavenumber(ω, background, [sp1,sp2]) for ω in ωs]
+    [ wavenumber_low_volfrac(ω, background, [sp1,sp2]) for ω in ωs]
   end
 for i = 1:N];
 

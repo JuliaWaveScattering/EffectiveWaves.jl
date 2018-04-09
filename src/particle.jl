@@ -32,7 +32,6 @@ Medium(;ρ=1.0, c=1.0+0.0im) = Medium{typeof(ρ)}(ρ,Complex{typeof(ρ)}(c))
 
 Zn{T}(ω::T, p::Specie{T}, med::Medium{T},  m::Int) = Zn(Complex{T}(ω), p, med, m)
 
-
 "Returns a ratio used in multiple scattering which reflects the material properties of the particles"
 function Zn{T}(ω::Complex{T}, p::Specie{T}, med::Medium{T},  m::Int)
     m = T(abs(m))

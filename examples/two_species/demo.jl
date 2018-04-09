@@ -1,4 +1,4 @@
-include("multi-species.jl")
+include("low_volfrac.jl")
 
 
 #  Specie(ρ,r; volfrac=0.1), where ρ = density and r = radius.
@@ -11,10 +11,10 @@ sp = Specie(ρ=2200,r=30e-6,c=8433.,volfrac = 0.1)
 # 2pi*2250.0/(ω*30e-6)
 
 medium = Medium(ρ=2329.0,c = 2250.0)
-kT = sqrt(multispecies_wavenumber(ω, medium, sp; verbose=true, rel_tol=0.00002))
+kT = sqrt(wavenumber_low_volfrac(ω, medium, sp; verbose=true, rel_tol=0.00002))
 
 ωs = linspace(0.01,1.0,60)*30.0e6
-kTs = sqrt(multispecies_wavenumber(ωs, medium, sp))
+kTs = sqrt(wavenumber_low_volfrac(ωs, medium, sp))
 
 speed_arr = ωs./real(kTs)
 atten_arr = imag(kTs)
@@ -46,7 +46,7 @@ kTs_arr = [
   begin
     sp1 = Specie(0.0, r1; volfrac=vols[i])
     sp2 = Specie(Inf, r1; volfrac=volfrac-vols[i])
-    [ sqrt(multispecies_wavenumber(ω, medium, [sp1,sp2])) for ω in ωs]
+    [ sqrt(wavenumber_low_volfrac(ω, medium, [sp1,sp2])) for ω in ωs]
   end
 for i = 1:N];
 

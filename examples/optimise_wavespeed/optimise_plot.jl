@@ -1,4 +1,4 @@
-include("multi-species.jl")
+include("low_volfrac.jl")
 
 using JLD
 using Plots
@@ -11,7 +11,7 @@ species = load("data/$f.jld")["species"]
 medium = load("data/$f.jld")["medium"]
 
 kTs_arr = [
-    [ sqrt(multispecies_wavenumber(ω,medium, sps)) for ω in ωs]
+    [ sqrt(wavenumber_low_volfrac(ω,medium, sps)) for ω in ωs]
 for sps in [[species[1]],[species[2]],species]];
 
 speed_arr = [ ωs./real(kTs) for kTs in kTs_arr]

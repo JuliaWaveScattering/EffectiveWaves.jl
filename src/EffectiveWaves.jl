@@ -4,7 +4,7 @@ module EffectiveWaves
 using BlackBoxOptim, Memoize
 
 export  Specie, Medium, volume_fraction, Zn, p_speed,
-        multispecies_wavenumber, multispecies_wavenumber_low_volfrac, multispecies_challis, one_species_low_wavenumber,
+        multispecies_wavenumber, wavenumber_very_low_volfrac, multispecies_challis, one_species_low_wavenumber,
         two_species_approx_wavenumber,
         opt_methods, optimal_species,
         gray_square!, gray_square,
@@ -23,10 +23,10 @@ try import BlackBoxOptim end
 # push!(LOAD_PATH,"$(homedir())/.julia/v0.6/EffectiveWaves/examples/")
 
 include("plot/graphics.jl")
-include("specie.jl")
+include("particle.jl")
 include("optimise_wavenumber.jl")
-include("multi-species.jl")
-include("multi-species_challis.jl")
+include("low_volfrac.jl")
+include("wavenumber_challis.jl")
 include("two_species_approximate.jl")
 include("../examples/materials.jl")
 

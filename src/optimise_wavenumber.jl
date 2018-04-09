@@ -19,8 +19,8 @@ function optimal_species(optf, medium, ωs;
   function F(; ρ=[0.,Inf], r=[0.5,0.5], c=[1.0+0.0im,1.0+0.0im], volfrac=[0.1,0.1])
     N = num_species
     sps = [Specie(ρ[i], r[i], c[i]; volfrac=volfrac[i]) for i=1:N]
-    kTs = multispecies_wavenumber(ωs, medium, sps)
-    # kTs = [multispecies_wavenumber(ω, medium, sps) for ω in ωs]
+    kTs = wavenumber_low_volfrac(ωs, medium, sps)
+    # kTs = [wavenumber_low_volfrac(ω, medium, sps) for ω in ωs]
     optf(sps, medium, ωs, kTs)
   end
   function optF(x)
