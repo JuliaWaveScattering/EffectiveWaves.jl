@@ -4,7 +4,7 @@ module EffectiveWaves
 using BlackBoxOptim, Memoize
 
 export  Specie, Medium, volume_fraction, Zn, p_speed,
-        multispecies_wavenumber, wavenumber_very_low_volfrac, multispecies_challis, one_species_low_wavenumber,
+        multispecies_wavenumber, wavenumber_very_low_volfrac, wavenumber_challis, one_species_low_wavenumber,
         two_species_approx_wavenumber,
         opt_methods, optimal_species,
         gray_square!, gray_square,

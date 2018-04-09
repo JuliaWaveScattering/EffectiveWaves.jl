@@ -1,8 +1,8 @@
-multispecies_challis{T<:Number}(ωs::AbstractArray,medium::Medium, species::Array{Specie{T}}; kws...) = [multispecies_challis(ω, medium, species; kws...) for ω in ωs]
+wavenumber_challis{T<:Number}(ωs::AbstractArray,medium::Medium, species::Array{Specie{T}}; kws...) = [wavenumber_challis(ω, medium, species; kws...) for ω in ωs]
 
 
 # will sum Hankel orders only up to n =2 as in the paper "Ultrasound techniques for characterizing colloidal dispersions"
-function multispecies_challis{T}(ω::Number, medium::Medium{T}, species::Array{Specie{T}};
+function wavenumber_challis{T}(ω::Number, medium::Medium{T}, species::Array{Specie{T}};
     radius_multiplier = 1.005, verbose = false, hankel_order=2)
   # rel_tol=0.004; radius_multiplier = 1.005
   # a12 = radius_multiplier(a1+a2)

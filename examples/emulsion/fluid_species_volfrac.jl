@@ -50,7 +50,7 @@ mediumname = "water"
   kTCs = map(vols) do v
     sp1 = Specie(ρ=inclusion1.ρ ,r=r1, c=inclusion1.c, volfrac = v*vol_prop)
     sp2 = Specie(ρ=inclusion2.ρ ,r=r2, c=inclusion2.c, volfrac = v*(1.0 - vol_prop))
-    multispecies_challis(ω, medium, [sp1,sp2])
+    wavenumber_challis(ω, medium, [sp1,sp2])
   end
 
   kTs_arr = [kTs,kT2s, kTLSs,kTCs];

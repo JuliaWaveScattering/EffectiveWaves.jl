@@ -23,7 +23,7 @@ using LaTeXStrings
   # Approximate wavenumber
   kTLSs = two_species_approx_wavenumber(ωs, medium, [sp1,sp2]);
   # Approximate challis
-  kTCs = multispecies_challis(ωs, medium, [sp1,sp2]);
+  kTCs = wavenumber_challis(ωs, medium, [sp1,sp2]);
 
   kTs_arr = [kTs,kTLSs,kTCs];
   speed_arr = [ ωs./real(ks) for ks in kTs_arr];
@@ -67,7 +67,7 @@ using LaTeXStrings
   m = length(ωs);
   kTs  = wavenumber_low_volfrac(ωs, medium, [sp1,sp2]);
   kTLSs = two_species_approx_wavenumber(ωs, medium, [sp1,sp2]);
-  kTCs  = multispecies_challis(ωs, medium, [sp1,sp2]);
+  kTCs  = wavenumber_challis(ωs, medium, [sp1,sp2]);
 
   kTs_arr = [kTs,kTLSs,kTCs];
   speed_arr = [ ωs./real(ks) for ks in kTs_arr];

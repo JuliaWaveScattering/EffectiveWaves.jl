@@ -40,7 +40,7 @@ mediumname = "water"
   # Approximate wavenumber
   kTLSs = two_species_approx_wavenumber(ωs, medium, [sp1,sp2]);
   # Approximate Challis wavenumber
-  kTCs = multispecies_challis(ωs, medium, [sp1,sp2]);
+  kTCs = wavenumber_challis(ωs, medium, [sp1,sp2]);
 
   speed_arr = [ ωs./real(kTs), ωs./real(kTLSs), ωs./real(kTCs), 0.*ωs + real(medium.c)]
   atten_arr = imag([kTs,kTLSs,kTCs])
@@ -83,7 +83,7 @@ mediumname = "water"
   # Approximate Challis wavenumber
   kTCs = map(r1s) do r1
     sp1 = Specie(ρ=inclusion1.ρ ,r=r1, c=inclusion1.c, volfrac = vol1)
-    multispecies_challis(ω, medium, [sp1,sp2])
+    wavenumber_challis(ω, medium, [sp1,sp2])
   end
 
   speed_arr = [ ω./real(kTs), ω./real(kTLSs), ω./real(kTCs), 0.*real(kTLSs) + real(medium.c)]
