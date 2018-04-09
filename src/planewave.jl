@@ -2,7 +2,7 @@
 
 Nn(n,x,y) = x*diffhankelh1(n,x)*besselj(n,y) - y*hankelh1(n,x)*diffbesselj(n,y)
 
-function effective_reflection_coefficient{T<:Number}(ω::T, medium::Medium{T}, species::Array{Specie{T}}; θ_inc::T = 0.0, kws...)
+function reflection_coefficient{T<:Number}(ω::T, medium::Medium{T}, species::Array{Specie{T}}; θ_inc::T = 0.0, kws...)
     (k_eff,θ_eff,As) = effective_planewave(ω, medium, species; θ_inc=θ_inc, kws...)
     θ_ref = pi - θ_eff - θ_inc
     k = ω/medium.c
@@ -14,7 +14,8 @@ function effective_reflection_coefficient{T<:Number}(ω::T, medium::Medium{T}, s
     for n=-ho:ho, l=1:S)
     return R
 end
-function effective_planewave{T<:Number}(ω::T, medium::Medium{T}, species::Array{Specie{T}}; hankel_order = :auto, max_hankel_order = 10,
+
+function transmitted_planewave{T<:Number}(ω::T, medium::Medium{T}, species::Array{Specie{T}}; hankel_order = :auto, max_hankel_order = 10,
         radius_multiplier = 1.005,
         MaxTime=100., tol = 1e-6, θ_inc::T = 0.0,
         kws...)
