@@ -3,12 +3,16 @@ function effective_material_properties{T<:Number}(medium::Medium{T}, species::Ar
         kws...)
     # total number density
     η = sum(s.num_density for s in species)
+
     # total volume fraction
-    φ = sum(s.num_density*(s.r^2)*pi for s in species)
-    β = medium.ρ*medium.c^2
+    φ = sum(volfrac.(species))
+
+    # calculate effective properties
+    β = medium.ρ*medium.c^2 # medium bulk modulus
     β_eff = real( (1-φ)/β + (φ/η)*sum(s.num_density/(s.ρ*s.c^2) for s in species) )^(-1.0)
     ρ_frac = (φ/η)*sum(s.num_density*(medium.ρ - s.ρ)/(medium.ρ + s.ρ) for s in species)
     ρ_eff = medium.ρ*(1 - ρ_frac)/(1 + ρ_frac)
+
     return (β_eff, ρ_eff)
 end
 

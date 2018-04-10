@@ -10,8 +10,9 @@ function reflection_coefficient{T<:Number}(ω::T, medium::Medium{T}, species::Ar
 
     R = 2.0im/(k*cos(θ_inc)*(k*cos(θ_inc) + k_eff*cos(θ_eff)))
     R = R*sum(
-            exp(im*n*θ_ref)*species[l].num_density*As[n+ho+1,l]*Zn(ω,species[l],medium,n)
+        exp(im*n*θ_ref)*species[l].num_density*As[n+ho+1,l]*Zn(ω,species[l],medium,n)
     for n=-ho:ho, l=1:S)
+
     return R
 end
 
@@ -48,7 +49,7 @@ function transmitted_planewave{T<:Number}(ω::T, medium::Medium{T}, species::Arr
     k_eff = result.minimizer[1] + im*result.minimizer[2]
     MM_svd = svd(MM(k_eff))
     if last(MM_svd[2]) > tol
-        warn("Local optimisation was unsucessful at finding an effective wavenumber ( $(last(MM_svd[2])) was the smallest singular value of the effective wavenumber matrix equation ).")
+        warn("Local optimisation was unsucessful at finding an effective wavenumber: ( $(last(MM_svd[2])) was the smallest eigenvalue value of the effective wavenumber matrix equation ).")
         println("Note that there is not a unique effective wavenumber. BlackBoxOptim (global minimization package) often picks out another root that leads to strange transmission angles and large amplitudes");
         # result = bboptimize(detMM2; MaxTime = min(100.0,MaxTime), SearchRange = [(0., upper[1]), (-1.0, upper[1])], NumDimensions=2, TargetFitness = 1e-10)
         # k_eff = best_candidate(result)[1] + im*best_candidate(result)[2]
@@ -72,7 +73,7 @@ function transmitted_planewave{T<:Number}(ω::T, medium::Medium{T}, species::Arr
 end
 
 
-using EffectiveWaves, Memoize, SpecialFunctions, Optim, BlackBoxOptim
+using EffectiveWaves, Memoize, SpecialFunctions, Optim, BlackBoxOptim, NLsolve
 
 Maxtime=100.
 T=Float64

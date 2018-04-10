@@ -1,3 +1,4 @@
+"A circular or spherical species of particles with homogenious material properties"
 type Specie{T<:Real}
   ρ::T # density
   r::T # radius
@@ -5,7 +6,8 @@ type Specie{T<:Real}
   num_density::T # number density
 end
 
-volume_fraction(sp::Specie) = sp.r^2*sp.num_density*pi
+"Returns the volume fraction of the specie"
+volfrac(sp::Specie) = sp.r^2*sp.num_density*pi
 
 function Specie{T}(ρ::T, r::T, c=one(Complex{T}); volfrac::T=0.1*one(T))
   Specie{T}(ρ,r,c,volfrac/(T(pi)*r^2.0))
