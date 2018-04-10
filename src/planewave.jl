@@ -44,26 +44,33 @@ function transmitted_planewave{T<:Number}(ω::T, medium::Medium{T}, species::Arr
     function detMM!(F,x)
         F[1] = abs(det(MM(x[1]+im*x[2])))
     end
-
-    # use low frequency effective wavenumber as an initial guess
-    (β_eff,ρ_eff) = effective_material_properties(medium, species)
-    k0 = ω*sqrt(ρ_eff/β_eff)
-    initial_k0 = [0.001*k0, 100.0*eps(T)]
+    r = maximum(s.r for s in species)
+    if abs(r*k) > 0.2
+        # use low volume fraction effective wavenumber as an initial guess
+        k0 = wavenumber_low_volfrac(ω, medium, species)
+    else
+        # use low frequency effective wavenumber as an initial guess
+        (β_eff,ρ_eff) = effective_material_properties(medium, species)
+        k0 = ω*sqrt(ρ_eff/β_eff)
+    end
+    initial_k0 = 0.9*[real(k0), imag(k0)]
     # initial_k0 = k0.*rand(2)
 
     # Alternative solvers
     # res = nlsolve(detMM!,initial_k_eff; iterations = 10000, factor=2.0)
     # k_eff_nl = res.zero[1] + im*res.zero[2]
-    # result = optimize(detMM2, initial_k0; g_tol= tol^2.0)
+    # lower = [0.,0.]; upper = [T(2)*k0,k0]
+    # result = optimize(detMM2, initial_k0, lower, upper; g_tol = tol^2.0, f_tol = tol^4.0)
 
     #Note that there is not a unique effective wavenumber. The root closest to k_eff = 0.0 + 0.0im seems to be the right one, the others lead to strange transmission angles and large amplitudes As.
-    lower = [0.,0.]; upper = 2*[k0,k0]
-    result = optimize(detMM2, initial_k0, lower, upper; g_tol = tol^2.0, f_tol = tol^4.0)
+    result = optimize(detMM2, initial_k0;  g_tol = tol^2.0, f_tol = tol^4.0)
 
     # Check result
     k_eff = result.minimizer[1] + im*result.minimizer[2]
+    # in case wave travelling opposite direction was found
+    if imag(k_eff) < zero(T) k_eff = - k_eff end
     MM_svd = svd(MM(k_eff))
-    if last(MM_svd[2]) > tol
+    if last(MM_svd[2]) > T(2)*tol
         warn("Local optimisation was unsucessful at finding an effective wavenumber: $(last(MM_svd[2])) was the smallest eigenvalue value (should be zero) of the effective wavenumber matrix equation.")
     end
 
