@@ -7,7 +7,7 @@ type Specie{T<:Real}
 end
 
 "Returns the volume fraction of the specie"
-volfrac(sp::Specie) = sp.r^2*sp.num_density*pi
+volume_fraction(sp::Specie) = sp.r^2*sp.num_density*pi
 
 function Specie{T}(ρ::T, r::T, c=one(Complex{T}); volfrac::T=0.1*one(T))
   Specie{T}(ρ,r,c,volfrac/(T(pi)*r^2.0))

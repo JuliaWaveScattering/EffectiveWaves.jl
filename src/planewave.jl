@@ -3,7 +3,7 @@
 Nn(n,x,y) = x*diffhankelh1(n,x)*besselj(n,y) - y*hankelh1(n,x)*diffbesselj(n,y)
 
 function reflection_coefficient{T<:Number}(ω::T, medium::Medium{T}, species::Array{Specie{T}}; θ_inc::T = 0.0, kws...)
-    (k_eff,θ_eff,As) = effective_planewave(ω, medium, species; θ_inc=θ_inc, kws...)
+    (k_eff,θ_eff,As) = transmitted_planewave(ω, medium, species; θ_inc=θ_inc, kws...)
     θ_ref = pi - θ_eff - θ_inc
     k = ω/medium.c
     S = length(species); ho = Int((size(As,1)-1)/2)
@@ -18,15 +18,17 @@ end
 
 function transmitted_planewave{T<:Number}(ω::T, medium::Medium{T}, species::Array{Specie{T}}; hankel_order = :auto, max_hankel_order = 10,
         radius_multiplier = 1.005,
-        MaxTime=100., tol = 1e-6, θ_inc::T = 0.0,
+        MaxTime=100., tol = 1e-8, θ_inc::T = 0.0,
         kws...)
     k = ω/medium.c
     S = length(species)
     @memoize Z_l_n(l,n) = Zn(ω,species[l],medium,n)
 
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
-    M(keff,j,l,m,n) = (n==m ? 1.0+im*0.0:0.0+im*0.0)*(j==l ? 1.0+im*0.0:0.0+im*0.0) + 2.0pi*species[l].num_density*Z_l_n(l,n)*
+    function M(keff,j,l,m,n)
+        (n==m ? 1.0+im*0.0:0.0+im*0.0)*(j==l ? 1.0+im*0.0:0.0+im*0.0) + 2.0pi*species[l].num_density*Z_l_n(l,n)*
             Nn(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
+    end
 
     if hankel_order == :auto
         ho = -1 + sum([ tol .< norm([M(0.9*k + 0.1im,j,l,1,n) for j = 1:S, l = 1:S]) for n=0:max_hankel_order ])
@@ -34,30 +36,40 @@ function transmitted_planewave{T<:Number}(ω::T, medium::Medium{T}, species::Arr
     end
 
     # this matrix is needed to calculate the eigenvectors
-    MM(k::Complex{T}) = reshape(
-        [M(k,j,l,m,n) for m in -ho:ho, j = 1:S, n in -ho:ho, l = 1:S]
+    MM(keff::Complex{T}) = reshape(
+        [M(keff,j,l,m,n) for m in -ho:ho, j = 1:S, n in -ho:ho, l = 1:S]
     , ((2ho+1)*S, (2ho+1)*S))
-    detMM2(k::Array{T}) = map(x -> real(x*conj(x)), det(MM(k[1]+im*k[2])))
+    detMM2(keff_vec::Array{T}) = map(x -> real(x*conj(x)), det(MM(keff_vec[1]+im*keff_vec[2])))
 
-    initial_k_eff = wavenumber_low_volfrac(ω, medium, species);
-    initial_k_eff = [real(initial_k_eff), imag(initial_k_eff)]
-    lower = [0.,-1.]
-    upper = [1.0, 1.0]*100.0*ω/minimum(map(s -> real(s.c), species))
-    result = optimize(detMM2, initial_k_eff, lower, upper)
+    function detMM!(F,x)
+        F[1] = abs(det(MM(x[1]+im*x[2])))
+    end
+
+    # use low frequency effective wavenumber as an initial guess
+    (β_eff,ρ_eff) = effective_material_properties(medium, species)
+    k0 = ω*sqrt(ρ_eff/β_eff)
+    initial_k0 = [0.001*k0, 100.0*eps(T)]
+    # initial_k0 = k0.*rand(2)
+
+    # Alternative solvers
+    # res = nlsolve(detMM!,initial_k_eff; iterations = 10000, factor=2.0)
+    # k_eff_nl = res.zero[1] + im*res.zero[2]
+    # result = optimize(detMM2, initial_k0; g_tol= tol^2.0)
+
+    #Note that there is not a unique effective wavenumber. The root closest to k_eff = 0.0 + 0.0im seems to be the right one, the others lead to strange transmission angles and large amplitudes As.
+    lower = [0.,0.]; upper = 2*[k0,k0]
+    result = optimize(detMM2, initial_k0, lower, upper; g_tol = tol^2.0, f_tol = tol^4.0)
 
     # Check result
     k_eff = result.minimizer[1] + im*result.minimizer[2]
     MM_svd = svd(MM(k_eff))
     if last(MM_svd[2]) > tol
-        warn("Local optimisation was unsucessful at finding an effective wavenumber: ( $(last(MM_svd[2])) was the smallest eigenvalue value of the effective wavenumber matrix equation ).")
-        println("Note that there is not a unique effective wavenumber. BlackBoxOptim (global minimization package) often picks out another root that leads to strange transmission angles and large amplitudes");
-        # result = bboptimize(detMM2; MaxTime = min(100.0,MaxTime), SearchRange = [(0., upper[1]), (-1.0, upper[1])], NumDimensions=2, TargetFitness = 1e-10)
-        # k_eff = best_candidate(result)[1] + im*best_candidate(result)[2]
+        warn("Local optimisation was unsucessful at finding an effective wavenumber: $(last(MM_svd[2])) was the smallest eigenvalue value (should be zero) of the effective wavenumber matrix equation.")
     end
 
     # calculate effective transmission angle
     snell(θ::Array{T}) = norm(k*sin(θ_inc) - k_eff*sin(θ[1] + im*θ[2]))
-    result = optimize(snell, [θ_inc,0.], NelderMead())
+    result = optimize(snell, [θ_inc,0.]; g_tol= tol^2.0)
     θ_eff = result.minimizer[1] + im*result.minimizer[2]
 
     # calculate effective amplitudes
@@ -70,42 +82,4 @@ function transmitted_planewave{T<:Number}(ω::T, medium::Medium{T}, species::Arr
     x = im*k*cos(θ_inc)*(k_eff*cos(θ_eff) - k*cos(θ_inc))/sumAs
 
     (k_eff,θ_eff,A_null*x)
-end
-
-
-using EffectiveWaves, Memoize, SpecialFunctions, Optim, BlackBoxOptim, NLsolve
-
-Maxtime=100.
-T=Float64
-ωs = collect(linspace(0.01,1.0,60))
-ω = 0.9
-species = [
-    Specie(ρ=10.,r=0.1, c=12., volfrac=0.1),
-    Specie(ρ=3., r=0.2, c=2.0, volfrac=0.3)
-]
-# background medium
-medium = Medium(1.0,1.0+0.0im)
-hankel_order = 3
-radius_multiplier = 1.005
-
-# effective_wavenumber(ω, medium, species)
-kef0 = map(x -> [abs(real(x)),abs(imag(x))], wavenumber_low_volfrac(ω, medium, species))
-
-
-"Derivative of Hankel function of the first kind"
-function diffhankelh1(n,z)
-  if n!=0
-    0.5*(hankelh1(-1 + n, z) - hankelh1(1 + n, z))
-  else
-    - hankelh1(1, z)
-  end
-end
-
-"Derivative of Bessel function of first kind"
-function diffbesselj(n,z)
-  if n!=0
-    0.5*(besselj(-1 + n, z) - besselj(1 + n, z))
-  else
-    - besselj(1, z)
-  end
 end
