@@ -37,8 +37,8 @@ incident_medium = medium
 k = ω/incident_medium.c
 ωs = collect(linspace(ω,40.0,40))
 
-(β_eff,ρ_eff) = effective_material_properties(incident_medium, species)
-k_eff_lows = ωs.*sqrt(ρ_eff/β_eff)
+eff_medium = effective_medium(incident_medium, species)
+k_eff_lows = ωs./eff_medium.c
 
 # effective_wavenumber(ω, medium, species)
 k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
@@ -61,8 +61,8 @@ species = [
     Specie(ρ=0.2, r=0.2, c=0.1, volfrac=0.1)
 ]
 
-(β_eff,ρ_eff) = effective_material_properties(incident_medium, species)
-k_eff_lows = ωs.*sqrt(ρ_eff/β_eff)
+eff_medium = effective_medium(incident_medium, species)
+k_eff_lows = ωs./eff_medium.c
 
 k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
 k_effs = [wavenumber(ω, incident_medium, species) for ω in ωs]

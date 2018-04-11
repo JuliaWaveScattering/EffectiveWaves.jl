@@ -21,8 +21,9 @@ medium = Medium(1.0,1.0+0.0im)
             Specie(ρ=3., r=0.2, c=2.0, volfrac=0.1)
         ]
 
-        (β_eff,ρ_eff) = effective_material_properties(medium, species)
-        k_eff_lows = ωs.*sqrt(ρ_eff/β_eff)
+        eff_medium = effective_medium(medium, species)
+        k_eff_lows = ωs./eff_medium.c
+
         k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
         k_effs = [wavenumber(ω, medium, species) for ω in ωs]
 
@@ -30,14 +31,14 @@ medium = Medium(1.0,1.0+0.0im)
         @test norm(k_effs - k_eff_lows) < 0.06*norm(k_effs)
         @test norm(k_effs[1] - k_eff_lows[1]) < 0.02*norm(k_effs[1])
 
+        end
+
+        @testset "high frequency" begin
         # Large weak scatterers with low volume fraciton
         species = [
             Specie(ρ=10.,r=1.9, c=12., volfrac=0.04),
             Specie(ρ=3., r=0.7, c=2.0, volfrac=0.02)
         ]
-        end
-
-        @testset "high frequency" begin
 
         k_eff_φs = wavenumber_low_volfrac(ωs2, medium, species)
         k_effs = [wavenumber(ω, medium, species) for ω in ωs2]
@@ -54,8 +55,8 @@ medium = Medium(1.0,1.0+0.0im)
             Specie(ρ=0.3, r=0.002, c=0.4, volfrac=0.3)
         ]
 
-        (β_eff,ρ_eff) = effective_material_properties(medium, species)
-        k_eff_lows = ωs.*sqrt(ρ_eff/β_eff)
+        eff_medium = effective_medium(medium, species)
+        k_eff_lows = ωs./eff_medium.c
         k_effs = [wavenumber(ω, medium, species) for ω in ωs]
 
         @test norm(k_effs - k_eff_lows) < 0.02*norm(k_effs)

@@ -3,7 +3,7 @@ module EffectiveWaves
 
 export  Specie, Medium, volume_fraction, Zn, p_speed,
         wavenumber, reflection_coefficient, transmission_angle, transmission_scattering_coefficients,
-        effective_material_properties, reflection_coefficient_halfspace,
+        effective_medium, reflection_coefficient_halfspace,
         wavenumber_low_volfrac, wavenumber_very_low_volfrac, wavenumber_challis, one_species_low_wavenumber,
         two_species_approx_wavenumber,
         opt_methods, optimal_species,
@@ -16,9 +16,9 @@ export  Specie, Medium, volume_fraction, Zn, p_speed,
 import Base.isequal, Base.(==)
 import SpecialFunctions: besselj, hankelh1
 
-try import BlackBoxOptim end
-import Memoize
-import Optim
+try using BlackBoxOptim end
+using Memoize
+using Optim
 
 # using RecipesBase # Have not really needed yet
 

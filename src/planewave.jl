@@ -93,8 +93,8 @@ function wavenumber{T<:Number}(ω::T, medium::Medium{T}, species::Array{Specie{T
         k0 = wavenumber_low_volfrac(ω, medium, species)
     else
         # use low frequency (valid for any φ) effective wavenumber as an initial guess
-        (β_eff,ρ_eff) = effective_material_properties(medium, species)
-        k0 = ω*sqrt(ρ_eff/β_eff)
+        eff_medium = effective_medium(medium, species)
+        k0 = ω/eff_medium.c
     end
     initial_k0 = 0.99*[real(k0), imag(k0)]
 
@@ -166,8 +166,8 @@ function transmitted_planewave{T<:Number}(ω::T, medium::Medium{T}, species::Arr
         k0 = wavenumber_low_volfrac(ω, medium, species)
     else
         # use low frequency (valid for any φ) effective wavenumber as an initial guess
-        (β_eff,ρ_eff) = effective_material_properties(medium, species)
-        k0 = ω*sqrt(ρ_eff/β_eff)
+        eff_medium = effective_medium(medium, species)
+        k0 = ω/eff_medium.c
     end
     initial_k0 = 0.99*[real(k0), imag(k0)]
 
