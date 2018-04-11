@@ -1,8 +1,6 @@
 # Loads all files
 module EffectiveWaves
 
-using BlackBoxOptim, Memoize, Optim
-
 export  Specie, Medium, volume_fraction, Zn, p_speed,
         wavenumber, reflection_coefficient, transmission_angle, transmission_scattering_coefficients,
         effective_material_properties, reflection_coefficient_halfspace,
@@ -15,10 +13,12 @@ export  Specie, Medium, volume_fraction, Zn, p_speed,
         Nitrobenzene, OliveOil, SodiumNitrate, AirDry,
         LimeStone, Clay, Calcite, SilicaQuartz
 
-
 import Base.isequal, Base.(==)
 import SpecialFunctions: besselj, hankelh1
+
 try import BlackBoxOptim end
+import Memoize
+import Optim
 
 # using RecipesBase # Have not really needed yet
 
