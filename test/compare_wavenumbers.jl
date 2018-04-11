@@ -29,14 +29,13 @@ species = [
 ]
 # background medium
 medium = Medium(1.0,1.0+0.0im)
-hankel_order = 3
+hankel_order = :auto
 radius_multiplier = 1.005
 
 incident_medium = medium
-θ_inc = 0.2
 ω = 0.01
 k = ω/incident_medium.c
-ωs = collect(linspace(ω,40.0,60))
+ωs = collect(linspace(ω,40.0,40))
 
 (β_eff,ρ_eff) = effective_material_properties(incident_medium, species)
 k_eff_lows = ωs.*sqrt(ρ_eff/β_eff)
@@ -45,15 +44,12 @@ k_eff_lows = ωs.*sqrt(ρ_eff/β_eff)
 k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
 
 # (k_eff,θ_eff,As) = transmitted_planewave(ω, incident_medium, species; θ_inc = θ_inc)
-planewaves = [transmitted_planewave(ω, incident_medium, species; θ_inc = θ_inc) for ω in ωs]
-k_effs = [w[1] for w in planewaves];
-θ_effs = [w[2] for w in planewaves];
-As_vec = [w[3] for w in planewaves];
-
+# k_effs = [w[1] for w in planewaves];
+k_effs = [wavenumber(ω, incident_medium, species) for ω in ωs];
 r = mean(s.r for s in species)
 
 plot(r.*ωs./real.(medium.c), [real.(k_effs), imag.(k_effs), k_eff_lows, real(k_eff_φs), imag(k_eff_φs)],
-    xlab = "ak",
+    xlab = "ak", title = "weak scatterers",
     labels = ["Re k*" "Im k*" "k low ω" "Re k low φ" "Im k low φ"],
     linewidth=2,
     line =(2,[:solid :solid :dash :dot :dot])
@@ -61,34 +57,41 @@ plot(r.*ωs./real.(medium.c), [real.(k_effs), imag.(k_effs), k_eff_lows, real(k_
 
 ## Strong scatterers
 species = [
-    Specie(ρ=0.8,r=0.1, c=0.2, volfrac=0.1),
+    Specie(ρ=0.8, r=0.1, c=0.2, volfrac=0.1),
     Specie(ρ=0.2, r=0.2, c=0.1, volfrac=0.1)
 ]
-
-ωs = collect(linspace(ω,40.0,60))
 
 (β_eff,ρ_eff) = effective_material_properties(incident_medium, species)
 k_eff_lows = ωs.*sqrt(ρ_eff/β_eff)
 
-# effective_wavenumber(ω, medium, species)
 k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
-
-# (k_eff,θ_eff,As) = transmitted_planewave(ω, incident_medium, species; θ_inc = θ_inc)
-planewaves = [transmitted_planewave(ω, incident_medium, species; θ_inc = θ_inc) for ω in ωs]
-k_effs = [w[1] for w in planewaves];
-θ_effs = [w[2] for w in planewaves];
-As_vec = [w[3] for w in planewaves];
-
+k_effs = [wavenumber(ω, incident_medium, species) for ω in ωs]
 r = mean(s.r for s in species)
 
 plot(r.*ωs./real.(medium.c), [real.(k_effs), imag.(k_effs), k_eff_lows, real(k_eff_φs), imag(k_eff_φs)],
-    xlab = "ak",
+    xlab = "ak", title = "strong scatterers",
     labels = ["Re k*" "Im k*" "k low ω" "Re k low φ" "Im k low φ"],
     linewidth=2,
     line =(2,[:solid :solid :dash :dot :dot])
 )
 
+# This example does not work..
 
-reflect_medium = Medium(ρ=ρ_eff, c=sqrt(β_eff/ρ_eff))
-R_low_ω = reflection_coefficient_halfspace(incident_medium, reflect_medium; θ_inc = θ_inc)
-Rs = [reflection_coefficient(ω, incident_medium, species; θ_inc = θ_inc)
+## Super strong scatterers
+species = [
+    Specie(ρ=0.08, r=0.001, c=0.002, volfrac=0.1),
+    Specie(ρ=0.02, r=0.2, c=0.01, volfrac=0.1)
+]
+
+k_eff_φs = wavenumber_low_volfrac(ωs, medium, species);
+k_effs = [wavenumber(ω, incident_medium, species) for ω in ωs];
+
+r = mean(s.r for s in species)
+
+plot(r.*ωs./real.(medium.c), [real.(k_effs), imag.(k_effs), real(k_eff_φs), imag(k_eff_φs)],
+    xlab = "ak", title = "super strong scatterers",
+    labels = ["Re k*" "Im k*" "Re k low φ" "Im k low φ"],
+    # ylims = (-0.1,k_eff_lows),
+    linewidth=2,
+    line =(2,[:solid :solid :dash :dot :dot])
+)

@@ -4,6 +4,8 @@ module EffectiveWaves
 using BlackBoxOptim, Memoize, Optim
 
 export  Specie, Medium, volume_fraction, Zn, p_speed,
+        wavenumber, reflection_coefficient, transmission_angle, transmission_scattering_coefficients,
+        effective_material_properties, reflection_coefficient_halfspace,
         wavenumber_low_volfrac, wavenumber_very_low_volfrac, wavenumber_challis, one_species_low_wavenumber,
         two_species_approx_wavenumber,
         opt_methods, optimal_species,
@@ -25,6 +27,8 @@ try import BlackBoxOptim end
 include("plot/graphics.jl")
 include("particle.jl")
 include("optimise_wavenumber.jl")
+include("planewave.jl")
+include("low_frequency.jl")
 include("low_volfrac.jl")
 include("wavenumber_challis.jl")
 include("two_species_approximate.jl")

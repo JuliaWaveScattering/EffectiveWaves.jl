@@ -77,3 +77,14 @@ Y = repmat(y,1,length(x))
 Z = map( (x,y) -> (z = detMM2([x,y]); (abs(z)> 0.04) ? NaN: z),X,Y)
 
 contour(x,y,Z,fill=true, xlab = "Re k*", ylab = "Im k*", title="Roots of secular det M")
+
+x = linspace(180.,220.,220)
+y = linspace(20.1,26.,30)
+
+X = repmat(x',length(y),1)
+Y = repmat(y,1,length(x))
+Z = map( (x,y) -> (z = detMM2([x,y]); (abs(z)> 1.) ? NaN: z),X,Y)
+# Z = map( (x,y) -> detMM2([x,y]),X,Y)
+
+# contour(x,y,Z,fill=true, xlab = "Re k*", ylab = "Im k*", title="Roots of secular det M")
+heatmap(x,y,Z, xlab = "Re k*", ylab = "Im k*", title="det M - high ω and almost dirichlet")
