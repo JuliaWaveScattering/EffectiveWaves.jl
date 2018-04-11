@@ -11,11 +11,11 @@ end
 function reflection_coefficient{T<:Number}(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Array{Specie{T}};
         θ_inc::T = 0.0, tol = 1e-8, kws...)
 
+    k = ω/medium.c
     θ_eff = transmission_angle(k, k_eff, θ_inc; tol = tol)
     As = transmission_scattering_coefficients(ω, k_eff, medium, species; tol = tol, θ_inc = θ_inc, kws...)
 
     θ_ref = pi - θ_eff - θ_inc
-    k = ω/medium.c
     S = length(species); ho = Int((size(As,1)-1)/2)
 
     R = 2.0im/(k*cos(θ_inc)*(k*cos(θ_inc) + k_eff*cos(θ_eff)))
@@ -24,13 +24,6 @@ function reflection_coefficient{T<:Number}(ω::T, k_eff::Complex{T}, medium::Med
     for n=-ho:ho, l=1:S)
 
     return R
-end
-
-"calculate effective transmission angle"
-function transmission_angle{T<:Number}(k::Complex{T}, k_eff::Complex{T}, θ_inc; tol = 1e-8)
-    snell(θ::Array{T}) = norm(k*sin(θ_inc) - k_eff*sin(θ[1] + im*θ[2]))
-    result = optimize(snell, [θ_inc,0.]; g_tol= tol^2.0)
-    θ_eff = result.minimizer[1] + im*result.minimizer[2]
 end
 
 "The average transmitted scattering coefficients for a given effective wavenumber k_eff. Assumes there exists only one k_eff."
@@ -42,6 +35,7 @@ function transmission_scattering_coefficients{T<:Number}(ω::T, k_eff::Complex{T
 
         k = ω/medium.c
         ho = hankel_order
+        S = length(species)
         θ_eff = transmission_angle(k, k_eff, θ_inc; tol = tol)
 
         as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
@@ -50,13 +44,14 @@ function transmission_scattering_coefficients{T<:Number}(ω::T, k_eff::Complex{T
                 Nn(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
         end
 
-        # this matrix is needed to calculate the eigenvectors
-        MM(keff::Complex{T}) = reshape(
-            [M(keff,j,l,m,n) for m in -ho:ho, j = 1:S, n in -ho:ho, l = 1:S]
-        , ((2ho+1)*S, (2ho+1)*S))
-
         # calculate effective amplitudes
-        A_null = MM_svd[3][:,(2ho+1)*S] # norm(MM(kef)*A_null) ~ 0
+        MM_svd = svd(
+            reshape(
+                [M(k_eff,j,l,m,n) for m in -ho:ho, j in 1:S, n in -ho:ho, l in 1:S]
+            , ((2ho+1)*S, (2ho+1)*S))
+        )
+
+        A_null = MM_svd[3][:,(2ho+1)*S] # eignvector of smallest eigenvalue
         A_null = reshape(A_null, (2*ho+1,S)) # A_null[:,j] = [A[-ho,j],A[-ho+1,j],...,A[ho,j]]
 
         sumAs = 2*sum(
@@ -71,6 +66,7 @@ function wavenumber{T<:Number}(ω::T, medium::Medium{T}, species::Array{Specie{T
         hankel_order = :auto, max_hankel_order = 10,
         radius_multiplier = 1.005, tol = 1e-8,
         kws...)
+
     k = ω/medium.c
     S = length(species)
     @memoize Z_l_n(l,n) = Zn(ω,species[l],medium,n)
