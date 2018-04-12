@@ -45,5 +45,5 @@ For a list of possible materials go to [examples/materials.jl](examples/material
 For more examples and details go to [examples/](examples/).
 
 ## Acknowledgements and contributing
-This library was originally written by Artur L Gower.
+This library was originally written by [Artur L Gower](https://arturgower.github.io/).
 Please contribute, if nothing else, criticism is welcome, as I am relatively new to Julia.
