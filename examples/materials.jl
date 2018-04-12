@@ -1,9 +1,8 @@
 # The material below are explicity exported with the package EffectiveWaves.jl, so no need to include this file.
 
-## functions for matieral properties
-  p_speed(ρ,β,μ) = sqrt(β+4*μ/3)/sqrt(ρ)
-
 ## possible materials
+
+# note that many of these materials below are automatically loaded, see "src/EffectiveWaves.jl". 
 
 # http://www.rfcafe.com/references/general/velocity-sound-media.htm
   Brick        = Medium(ρ=1.80*1000, c = 3650.0)
@@ -15,14 +14,14 @@
   ClayRock     = Medium(ρ=2.2*1000,  c = 3480.0)
 
 # Fluids # http://www.rshydro.co.uk/sound-speeds/
-  WaterDistilled= Medium(ρ=0.998*1000,  c = 1496.0)
-  Glycerol      = Medium(ρ=1.26*1000 ,  c = 1904.0)
-  Hexadecane    = Medium(ρ=0.773*1000 ,  c = 1338.0)
-  Acetone       = Medium(ρ=0.791*1000 ,  c = 1174.0)
-  Benzene       = Medium(ρ=0.87*1000 ,  c = 1295.0)
-  Nitrobenzene  = Medium(ρ=1.204*1000 ,  c = 1415.0)
-  OliveOil      = Medium(ρ=0.912*1000 ,  c = 1431)
-  SodiumNitrate = Medium(ρ=1.8*1000 ,  c = 1760.)
+  WaterDistilled= Medium(ρ=0.998*1000, c = 1496.0)
+  Glycerol      = Medium(ρ=1.26*1000,  c = 1904.0)
+  Hexadecane    = Medium(ρ=0.773*1000, c = 1338.0)
+  Acetone       = Medium(ρ=0.791*1000, c = 1174.0)
+  Benzene       = Medium(ρ=0.87*1000,  c = 1295.0)
+  Nitrobenzene  = Medium(ρ=1.204*1000, c = 1415.0)
+  OliveOil      = Medium(ρ=0.912*1000, c = 1431.0)
+  SodiumNitrate = Medium(ρ=1.8*1000,   c = 1760.)
 # gases
   AirDry       = Medium(ρ=1.293,     c = 331.4)
 

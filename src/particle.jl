@@ -9,6 +9,9 @@ end
 "Returns the volume fraction of the specie"
 volume_fraction(sp::Specie) = sp.r^2*sp.num_density*pi
 
+"Returns pressure wave speed, when β is the adiabatic bulk modulus"
+p_speed(ρ,β,μ) = sqrt(β+4*μ/3)/sqrt(ρ)
+
 function Specie{T}(ρ::T, r::T, c=one(Complex{T}); volfrac::T=0.1*one(T))
   Specie{T}(ρ,r,c,volfrac/(T(pi)*r^2.0))
 end
