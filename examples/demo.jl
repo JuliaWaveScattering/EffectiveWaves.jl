@@ -19,8 +19,8 @@ attenuations = imag(wavenumbers)
 using Plots
 pyplot()
 
-p1 = plot(ωs./real(background.c), speeds,  ylabel="wave speed", xlabel="k");
-p2 = plot(ωs./real(background.c), attenuations, ylabel="attenuation", xlabel="k");
+p1 = plot(ωs./real(background.c), speeds,  ylabel="wave speed (m/s)", xlabel="k (1/m)");
+p2 = plot(ωs./real(background.c), attenuations, ylabel="attenuation (1/m)", xlabel="k (1/m)");
 plot(p1,p2)
 
 ## An example where we vary the species
@@ -51,8 +51,8 @@ speeds = [ ωs./real(kTs) for kTs in kTs_arr]
 attenuations = imag(kTs_arr)
 
 labs = reshape( map(v -> "void vol = $(Int(round(100*v)))%",vols),1, length(vols));
-p1 = plot(ωs./real(background.c), speeds, labels=labs, ylabel="wave speed" ,xlabel="k");
-p2 = plot(ωs./real(background.c), attenuations, labels=labs, xlabel="k", ylabel="attenuation");
+p1 = plot(ωs./real(background.c), speeds, labels=labs, ylabel="wave speed (m/s)" ,xlabel="k (1/m)");
+p2 = plot(ωs./real(background.c), attenuations, labels=labs, xlabel="k (1/m)", ylabel="attenuation (1/m)");
 
 plot(p1,p2)
 
