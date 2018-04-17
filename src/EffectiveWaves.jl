@@ -27,10 +27,11 @@ using Optim
 include("plot/graphics.jl")
 include("particle.jl")
 include("optimise_wavenumber.jl")
-include("planewave.jl")
+include("wavenumbers.jl")
+include("reflection_transmission.jl")
 include("low_frequency.jl")
 include("low_volfrac.jl")
-include("wavenumber_challis.jl")
+include("alternative_wavenumbers.jl")
 include("two_species_approximate.jl")
 include("../examples/materials.jl")
 
