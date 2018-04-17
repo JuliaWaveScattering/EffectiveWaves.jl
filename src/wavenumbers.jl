@@ -16,7 +16,7 @@ end
 
 function wavenumber(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol = 1e-8,
         wavenumber_initial_guess = :auto,
-        hankel_order = maximum_hankel_order(ω, medium, species; tol=1000*tol),
+        hankel_order = maximum_hankel_order(ω, medium, species; tol=100*tol),
         radius_multiplier = 1.005,
         kws...) where T<:Number
 
@@ -51,7 +51,7 @@ function wavenumber(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol = 
     MM(keff::Complex{T}) = reshape(
         [M(keff,j,l,m,n) for m in -ho:ho, j = 1:S, n in -ho:ho, l = 1:S]
     , ((2ho+1)*S, (2ho+1)*S))
-    
+
     constraint(keff_vec::Array{T}) = ( (keff_vec[2] < zero(T)) ? one(T):zero(T))*(-1 + exp(-T(100.0)*keff_vec[2]))
     detMM2(keff_vec::Array{T}) =  constraint(keff_vec) + map(x -> real(x*conj(x)), det(MM(keff_vec[1]+im*keff_vec[2])))
 

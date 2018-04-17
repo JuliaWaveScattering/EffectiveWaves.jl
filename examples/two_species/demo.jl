@@ -1,9 +1,3 @@
-include("low_volfrac.jl")
-
-
-#  Specie(ρ,r; volfrac=0.1), where ρ = density and r = radius.
-#  Specie(ρ,r,c,num_den)
-# sps = [ Specie(ρ=2200.,r=30.e-6,c=8433.,volfrac=0.1), Specie(ρ=Inf,r=100.0e-6,c=2.0,volfrac=0.2)]
 sp = Specie(ρ=2200.,r=30.e-6,c=8433.,volfrac = 0.1)
 sp = Specie(ρ=2200,r=30e-6,c=8433.,volfrac = 0.1)
 
