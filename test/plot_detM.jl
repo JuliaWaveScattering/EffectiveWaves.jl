@@ -40,7 +40,7 @@ species = [
 ]
 
 S = length(species)
-@memoize Z_l_n(l,n) = Zn(ω,species[l],medium,n)
+# @memoize Z_l_n(l,n) = Zn(ω,species[l],medium,n)
 
 as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
 function M(keff,j,l,m,n)

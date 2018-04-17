@@ -1,11 +1,12 @@
 # Loads all files
 module EffectiveWaves
 
-export  Specie, Medium, volume_fraction, Zn, p_speed,
-        maximum_hankel_order, far_field_pattern, pair_field_pattern,
+export  Specie, Medium, volume_fraction, Zn, p_speed, maximum_hankel_order,
+        far_field_pattern, pair_field_pattern, diff_far_field_pattern,
         wavenumber, reflection_coefficient, transmission_angle, transmission_scattering_coefficients,
         effective_medium, reflection_coefficient_halfspace,
-        wavenumber_low_volfrac, wavenumber_very_low_volfrac, wavenumber_challis, one_species_low_wavenumber,
+        reflection_coefficient_low_volfrac, wavenumber_low_volfrac, wavenumber_very_low_volfrac,
+        wavenumber_challis, one_species_low_wavenumber,
         two_species_approx_wavenumber,
         opt_methods, optimal_species,
         gray_square!, gray_square,
@@ -18,7 +19,6 @@ import Base.isequal, Base.(==)
 import SpecialFunctions: besselj, hankelh1
 
 try using BlackBoxOptim end
-using Memoize
 using Optim
 using OffsetArrays
 

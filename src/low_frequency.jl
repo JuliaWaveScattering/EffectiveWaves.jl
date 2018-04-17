@@ -15,7 +15,7 @@ function effective_medium{T<:Number}(medium::Medium{T}, species::Array{Specie{T}
 end
 
 "calculate effective transmission angle"
-function transmission_angle{T<:Number}(k::Complex{T}, k_eff::Complex{T}, θ_inc; tol = 1e-8)
+function transmission_angle(k::Complex{T}, k_eff::Complex{T}, θ_inc; tol = 1e-8) where T<:Number
     snell(θ::Array{T}) = norm(k*sin(θ_inc) - k_eff*sin(θ[1] + im*θ[2]))
     result = optimize(snell, [θ_inc,0.]; g_tol= tol^2.0)
     θ_eff = result.minimizer[1] + im*result.minimizer[2]
