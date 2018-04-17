@@ -78,8 +78,8 @@ Z = map( (x,y) -> (z = detMM2([x,y]); (abs(z)> 0.04) ? NaN: z),X,Y)
 
 contour(x,y,Z,fill=true, xlab = "Re k*", ylab = "Im k*", title="Roots of secular det M")
 
-x = linspace(180.,220.,220)
-y = linspace(20.1,26.,30)
+x = linspace(3.,6.,40)
+y = linspace(-1.5,14.,40)
 
 X = repmat(x',length(y),1)
 Y = repmat(y,1,length(x))

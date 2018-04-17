@@ -7,7 +7,7 @@ medium = Medium(1.0,1.0+0.0im)
 
 # angular frequencies
 ωs = [0.01,5.,20.,40.]
-ωs2 = [60.,80.,120.]
+ωs2 = [40., 60.,80.,120.]
 
 @testset "Summary" begin
 
@@ -17,19 +17,19 @@ medium = Medium(1.0,1.0+0.0im)
 
         # Weak scatterers
         species = [
-            Specie(ρ=10.,r=0.1, c=12., volfrac=0.1),
-            Specie(ρ=3., r=0.2, c=2.0, volfrac=0.1)
+            Specie(ρ=10.,r=0.1, c=12., volfrac=0.05),
+            Specie(ρ=3., r=0.2, c=2.0, volfrac=0.04)
         ]
 
         eff_medium = effective_medium(medium, species)
         k_eff_lows = ωs./eff_medium.c
 
         k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
-        k_effs = [wavenumber(ω, medium, species) for ω in ωs]
+        k_effs = wavenumber(ωs, medium, species)
 
-        @test norm(k_effs - k_eff_φs) < 0.002*norm(k_effs)
+        @test norm(k_effs - k_eff_φs) < 0.0002*norm(k_effs)
         @test norm(k_effs - k_eff_lows) < 0.06*norm(k_effs)
-        @test norm(k_effs[1] - k_eff_lows[1]) < 0.02*norm(k_effs[1])
+        @test norm(k_effs[1] - k_eff_lows[1]) < 0.01*norm(k_effs[1])
 
         end
 
@@ -41,7 +41,7 @@ medium = Medium(1.0,1.0+0.0im)
         ]
 
         k_eff_φs = wavenumber_low_volfrac(ωs2, medium, species)
-        k_effs = [wavenumber(ω, medium, species) for ω in ωs2]
+        k_effs = wavenumber(ωs2, medium, species)
 
         @test norm(k_effs - k_eff_φs) < 1e-4*norm(k_effs)
 
@@ -57,7 +57,7 @@ medium = Medium(1.0,1.0+0.0im)
 
         eff_medium = effective_medium(medium, species)
         k_eff_lows = ωs./eff_medium.c
-        k_effs = [wavenumber(ω, medium, species) for ω in ωs]
+        k_effs = wavenumber(ωs, medium, species)
 
         @test norm(k_effs - k_eff_lows) < 0.02*norm(k_effs)
         @test norm(k_effs[1] - k_eff_lows[1]) < 0.01*norm(k_effs)
