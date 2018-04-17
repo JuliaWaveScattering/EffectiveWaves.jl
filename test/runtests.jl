@@ -27,11 +27,9 @@ medium = Medium(1.0,1.0+0.0im)
         k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
         k_effs = wavenumber(ωs, medium, species)
 
-        @test norm(k_effs - k_eff_φs) < 0.0002*norm(k_effs)
-        @test norm(k_effs - k_eff_lows) < 0.06*norm(k_effs)
-        @test norm(k_effs[1] - k_eff_lows[1]) < 0.01*norm(k_effs[1])
-
-        
+        @test norm(k_effs - k_eff_φs)/norm(k_effs) < 0.0002
+        @test norm(k_effs - k_eff_lows)/norm(k_effs) < 0.03
+        @test norm(k_effs[1] - k_eff_lows[1])/norm(k_effs[1]) < 0.01
 
         end
 
@@ -45,7 +43,7 @@ medium = Medium(1.0,1.0+0.0im)
         k_eff_φs = wavenumber_low_volfrac(ωs2, medium, species)
         k_effs = wavenumber(ωs2, medium, species)
 
-        @test norm(k_effs - k_eff_φs) < 1e-4*norm(k_effs)
+        @test norm(k_effs - k_eff_φs)/norm(k_effs) < 1e-4
 
         end
 

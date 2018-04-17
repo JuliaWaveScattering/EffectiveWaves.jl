@@ -35,10 +35,36 @@ end
 
 Medium(;ρ=1.0, c=1.0+0.0im) = Medium{typeof(ρ)}(ρ,Complex{typeof(ρ)}(c))
 
-Zn{T}(ω::T, p::Specie{T}, med::Medium{T},  m::Int) = Zn(Complex{T}(ω), p, med, m)
+function maximum_hankel_order(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
+        tol=1e-6, verbose = false) where T <: Number
+
+    f0 = ω^(2.0)/(medium.c^2)
+    next_order = 2*sum(sp.num_density*Zn(ω,sp,medium,0) for sp in species)
+
+    # increase hankel order until the relative error < tol
+    hankel_order=1
+    while abs(next_order/f0) > tol
+        next_order = 2*sum(sp.num_density*Zn(ω,sp,medium,hankel_order) for sp in species)
+        hankel_order +=1
+    end
+
+    return hankel_order
+end
+
+"pre-calculate a matrix of Zn's"
+function Zn_matrix(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; hankel_order = 3) where T <: Number
+    Zs = OffsetArray{Complex{Float64}}(1:length(species), -hankel_order:hankel_order)
+    for i = 1:length(species), n = 0:hankel_order
+        Zs[i,n] = Zn(ω,species[i],medium,n)
+        Zs[i,-n] = Zs[i,n]
+    end
+    return Zs
+end
+
+Zn(ω::T, p::Specie{T}, med::Medium{T}, m::Int) where T<: Number = Zn(Complex{T}(ω), p, med, m)
 
 "Returns a ratio used in multiple scattering which reflects the material properties of the particles"
-function Zn{T}(ω::Complex{T}, p::Specie{T}, med::Medium{T},  m::Int)
+function Zn(ω::Complex{T}, p::Specie{T}, med::Medium{T},  m::Int) where T<: Number
     m = T(abs(m))
     ak = p.r*ω/med.c
     # check for material properties that don't make sense or haven't been implemented

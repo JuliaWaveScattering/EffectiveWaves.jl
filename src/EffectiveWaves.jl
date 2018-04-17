@@ -2,6 +2,7 @@
 module EffectiveWaves
 
 export  Specie, Medium, volume_fraction, Zn, p_speed,
+        maximum_hankel_order, far_field_pattern, pair_field_pattern,
         wavenumber, reflection_coefficient, transmission_angle, transmission_scattering_coefficients,
         effective_medium, reflection_coefficient_halfspace,
         wavenumber_low_volfrac, wavenumber_very_low_volfrac, wavenumber_challis, one_species_low_wavenumber,
@@ -19,6 +20,7 @@ import SpecialFunctions: besselj, hankelh1
 try using BlackBoxOptim end
 using Memoize
 using Optim
+using OffsetArrays
 
 # using RecipesBase # Have not really needed yet
 
@@ -26,13 +28,18 @@ using Optim
 
 include("plot/graphics.jl")
 include("particle.jl")
-include("optimise_wavenumber.jl")
+include("far_fields.jl")
+
 include("wavenumbers.jl")
-include("reflection_transmission.jl")
 include("low_frequency.jl")
 include("low_volfrac.jl")
 include("alternative_wavenumbers.jl")
 include("two_species_approximate.jl")
+
+include("optimise_wavenumber.jl")
+
+include("reflection_transmission.jl")
+
 include("../examples/materials.jl")
 
 end # module

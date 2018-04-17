@@ -20,6 +20,8 @@ species = [
     Specie(ρ=3., r=0.2, c=0.01, volfrac=0.04)
 ]
 
+ω=ωs[1]
+
 eff_medium = effective_medium(medium, species)
 k_eff_lows = ωs./eff_medium.c
 

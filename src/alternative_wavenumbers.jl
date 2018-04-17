@@ -4,7 +4,7 @@ wavenumber_challis{T<:Number}(ωs::AbstractArray,medium::Medium, species::Array{
 # will sum Hankel orders only up to n =2 as in the paper "Ultrasound techniques for characterizing colloidal dispersions"
 function wavenumber_challis{T}(ω::Number, medium::Medium{T}, species::Array{Specie{T}};
     radius_multiplier = 1.005, verbose = false, hankel_order=2)
-  # rel_tol=0.004; radius_multiplier = 1.005
+  # tol=0.004; radius_multiplier = 1.005
   # a12 = radius_multiplier(a1+a2)
 
   volume_fraction = sum(pi*sp.r^2.0*sp.num_density for sp in species)
@@ -36,8 +36,8 @@ function one_species_low_wavenumber(ωs, medium, sp)
 end
 
 function wavenumber_far_field_low_volfrac{T}(ω::Complex{T}, medium::Medium{T}, species::Array{Specie{T}};
-    rel_tol=0.0002, radius_multiplier = 1.005, verbose = false)
-  # rel_tol=0.004; radius_multiplier = 1.005
+    tol=0.0002, radius_multiplier = 1.005, verbose = false)
+  # tol=0.004; radius_multiplier = 1.005
   # a12 = radius_multiplier(a1+a2)
 
   volume_fraction = sum(pi*sp.r^2.0*sp.num_density for sp in species)
@@ -48,8 +48,8 @@ function wavenumber_far_field_low_volfrac{T}(ω::Complex{T}, medium::Medium{T}, 
   next_order = 4.0im*sum(sp.num_density*Zn(ω,sp,medium,0) for sp in species)
   hankel_order=1
 
-  # sum more hankel orders until the relative error < rel_tol
-  while abs(next_order/kT2) > rel_tol
+  # sum more hankel orders until the relative error < tol
+  while abs(next_order/kT2) > tol
     kT2 += next_order
     hankel_order +=1
     next_order = 4.0im*sum(sp.num_density*Zn(ω,sp,medium,m) for sp in species, m in (-hankel_order,hankel_order))

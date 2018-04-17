@@ -14,26 +14,20 @@ function wavenumber(ωs::AbstractVector{T}, medium::Medium{T}, species::Vector{S
     return ks
 end
 
-function wavenumber(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
+function wavenumber(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol = 1e-8,
         wavenumber_initial_guess = :auto,
-        hankel_order = :auto,
-        max_hankel_order = 10,
-        radius_multiplier = 1.005, tol = 1e-8,
+        hankel_order = maximum_hankel_order(ω, medium, species; tol=1000*tol),
+        radius_multiplier = 1.005,
         kws...) where T<:Number
 
     k = ω/medium.c
     S = length(species)
-    @memoize Z_l_n(l,n) = Zn(ω,species[l],medium,n)
 
+    Z_l_n = Zn_matrix(ω, medium, species; hankel_order = hankel_order)
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
     function M(keff,j,l,m,n)
-        (n==m ? 1.0:0.0)*(j==l ? 1.0:0.0) + 2.0pi*species[l].num_density*Z_l_n(l,n)*
+        (n==m ? 1.0:0.0)*(j==l ? 1.0:0.0) + 2.0pi*species[l].num_density*Z_l_n[l,n]*
             Nn(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
-    end
-
-    if hankel_order == :auto
-        ho = -1 + sum([ tol .< norm([M(0.9*k + 0.1im,j,l,1,n) for j = 1:S, l = 1:S]) for n=0:max_hankel_order ])
-    else ho = hankel_order
     end
 
     r = maximum(s.r for s in species)
@@ -52,10 +46,12 @@ function wavenumber(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
     end
     initial_k0 = [real(k0), 0.95*imag(k0)]
 
+    ho = hankel_order
     # this matrix is needed to calculate the eigenvectors
     MM(keff::Complex{T}) = reshape(
         [M(keff,j,l,m,n) for m in -ho:ho, j = 1:S, n in -ho:ho, l = 1:S]
     , ((2ho+1)*S, (2ho+1)*S))
+    
     constraint(keff_vec::Array{T}) = ( (keff_vec[2] < zero(T)) ? one(T):zero(T))*(-1 + exp(-T(100.0)*keff_vec[2]))
     detMM2(keff_vec::Array{T}) =  constraint(keff_vec) + map(x -> real(x*conj(x)), det(MM(keff_vec[1]+im*keff_vec[2])))
 
