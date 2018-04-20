@@ -26,7 +26,10 @@ function wavenumber_low_volfrac(ω::T, medium::Medium{T}, species::Vector{Specie
   return sqrt(kT2)
 end
 
-function reflection_coefficient_low_volfrac(ω::Number, medium::Medium, species::Array{Specie{T}};
+reflection_coefficient_low_volfrac(ωs::AbstractVector{T}, medium::Medium{T}, species::Vector{Specie{T}}; kws... ) where T<:Number =
+    [reflection_coefficient_low_volfrac(ω, medium, species; kws... ) for ω in ωs]
+
+function reflection_coefficient_low_volfrac(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
         θ_inc::T = zero(T), kws... ) where T<:Number
 
     θ_ref = T(π) - T(2)*θ_inc

@@ -72,7 +72,7 @@ medium = Medium(1.0,1.0+0.0im)
     k_effs = wavenumber(ωs, medium, species)
 
     @test norm(k_effs - k_eff_lows)/norm(k_effs) < 0.02
-    @test norm(k_effs[1] - k_eff_lows[1])/norm((k_eff_lows[1]) < 0.01
+    @test norm(k_effs[1] - k_eff_lows[1])/norm(k_eff_lows[1]) < 0.01
 
     end
 
