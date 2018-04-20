@@ -18,11 +18,10 @@ function wavenumber_low_volfrac(ω::T, medium::Medium{T}, species::Vector{Specie
   # Add incident wavenumber
   kT2 = (ω/medium.c)^2.0
   # Add far-field contribution
-  kT2 += - 4.0im*num_density*far_field_pattern(ω, medium, species;
-      tol=tol, hankel_order=hankel_order)(0.0)
+  kT2 += - 4.0im*num_density*far_field_pattern(ω, medium, species; hankel_order=hankel_order)(0.0)
   # Add pair-field contribution
   kT2 += - 4.0im*num_density^(2.0)*pair_field_pattern(ω, medium, species;
-      tol=tol, radius_multiplier=radius_multiplier, hankel_order=hankel_order)(0.0)
+      radius_multiplier=radius_multiplier, hankel_order=hankel_order)(0.0)
 
   return sqrt(kT2)
 end
@@ -47,7 +46,7 @@ function reflection_coefficient_low_volfrac(ω::Number, medium::Medium, species:
 end
 
 function wavenumber_very_low_volfrac(ω::Number, medium::Medium, species::Array{Specie{T}};
-    tol=0.0002, radius_multiplier = 1.005, verbose = false)  where T<:Number
+    tol=1e-6, radius_multiplier = 1.005, verbose = false)  where T<:Number
 
   volume_fraction = sum(pi*sp.r^2.0*sp.num_density for sp in species)
   if volume_fraction >= 0.4
