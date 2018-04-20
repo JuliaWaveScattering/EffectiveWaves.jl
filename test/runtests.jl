@@ -2,16 +2,8 @@ import Base.Test: @testset, @test, @test_throws
 
 using EffectiveWaves
 
-# background medium
-medium = Medium(1.0,1.0+0.0im)
 
-# angular frequencies
-ωs = [0.001, 1.0, 5.,20.,40.]
-ωs2 = [40., 60.,80.,120.]
-
-@testset "Summary" begin
-
-    @testset "Examples from: Reflection from multi-species.., Proc.R.Soc.(2018)" begin
+@testset "Examples from: Reflection from multi-species.., Proc.R.Soc.(2018)" begin
 
     include("../examples/concrete/concrete_species.jl")
     include("../examples/concrete/concrete_species_volfrac.jl")
@@ -23,9 +15,14 @@ medium = Medium(1.0,1.0+0.0im)
     # include("../examples/emulsion/fluid_species_large-freq.jl") # takes longer
 
     @test true
-    end
+end
 
-    @testset "weak scatterers" begin
+@testset "weak scatterers" begin
+    # background medium
+    medium = Medium(1.0,1.0+0.0im)
+
+    # angular frequencies
+    ωs = 0.001:5.0:21.
 
     # Weak scatterers
     species = [
@@ -33,6 +30,7 @@ medium = Medium(1.0,1.0+0.0im)
         Specie(ρ=3., r=0.2, c=2.0, volfrac=0.04)
     ]
 
+    # wavenumbers
     eff_medium = effective_medium(medium, species)
     k_eff_lows = ωs./eff_medium.c
 
@@ -43,47 +41,93 @@ medium = Medium(1.0,1.0+0.0im)
     @test norm(k_effs - k_eff_lows)/norm(k_effs) < 0.03
     @test norm(k_effs[1] - k_eff_lows[1])/norm(k_effs[1]) < 0.01
 
-    end
+    # reflection coefficient
+    Rs2 = reflection_coefficient(ωs, medium, species)
+    # if the wavenumber k_effs are already calculated, the below is faster
+    Rs = reflection_coefficient(ωs, k_effs, medium, species)
 
-    @testset "high frequency" begin
+    @test norm(Rs - Rs2)/norm(Rs) ≈ 0.0
+
+    # Direct incidence
+    R_low = reflection_coefficient_halfspace(medium, eff_medium)
+    Rs_φs = reflection_coefficient(ωs, k_eff_φs, medium, species)
+    # the below takes a low-volfrac expansion for both the wavenumber and reflection coefficient
+    Rs_φs2 = reflection_coefficient_low_volfrac(ωs, medium, species)
+
+    len = length(ωs)
+    @test norm(Rs_φs - Rs)/len < 1e-4 # already relative to incident wave amplitude = 1
+    @test norm(Rs_φs2 - Rs)/len < 1e-4
+    @test abs(R_low - Rs[1]) < 1e-2
+
+
+    # Vary angle of incidence θ_inc
+    θs = 0.1:0.3:(π/2)
+    R_low = [reflection_coefficient_halfspace(medium, eff_medium; θ_inc = θ) for θ in θs]
+    Rs = [reflection_coefficient(ωs, k_effs, medium, species; θ_inc = θ, hankel_order =7) for θ in θs];
+    # Rs_φs = [reflection_coefficient(ωs, k_eff_φs, medium, species; θ_inc = θ, hankel_order =7) for θ in θs];
+    Rs_φs = [reflection_coefficient_low_volfrac(ωs, medium, species; θ_inc = θ, hankel_order =7) for θ in θs];
+
+    @test maximum(norm(R_low - Rs[i])/len for i in 1:length(R_low)) < 0.06
+    @test maximum(norm(R)/len for R in (Rs_φs - Rs)) < 0.006
+
+end
+
+
+
+@testset "high frequency" begin
     # Large weak scatterers with low volume fraciton
     species = [
         Specie(ρ=10.,r=1.9, c=12., volfrac=0.04),
         Specie(ρ=3., r=0.7, c=2.0, volfrac=0.02)
     ]
+    ωs2 = 20.:30.:121
 
     k_eff_φs = wavenumber_low_volfrac(ωs2, medium, species; tol=1e-5)
     k_effs = wavenumber(ωs2, medium, species; tol=1e-7) # lowering tol to speed up calculation
 
     @test norm(k_effs - k_eff_φs)/norm(k_effs) < 1e-4
 
-    end
+    Rs = reflection_coefficient(ωs2, k_effs, medium, species)
+    Rs_φs = reflection_coefficient(ωs2, k_eff_φs, medium, species)
+    Rs_φs2 = reflection_coefficient_low_volfrac(ωs2, medium, species)
 
-    @testset "large volume fraction and low frequency" begin
+    @test norm(Rs_φs - Rs)/norm(Rs) < 0.002
+    @test norm(Rs_φs2 - Rs) < 1e-4 # the incident wave has amplitude 1, so this is a tiny difference
+end
 
-    # large volume fraction scatterers,  small size amd on strong scatterer. This is a problamatic case.
+@testset "large volume fraction and low frequency" begin
+# large volume fraction scatterers,  small size amd on strong scatterer. This is a problamatic case.
     species = [
         Specie(ρ=5.,r=0.004, c=1.2, volfrac=0.4),
         Specie(ρ=0.3, r=0.002, c=0.4, volfrac=0.3)
     ]
+    # angular frequencies
+    ωs = 0.001:5.0:21.
 
     eff_medium = effective_medium(medium, species)
     k_eff_lows = ωs./eff_medium.c
     k_effs = wavenumber(ωs, medium, species)
 
-    @test norm(k_effs - k_eff_lows)/norm(k_effs) < 0.02
+    @test norm(k_effs - k_eff_lows)/norm(k_effs) < 0.01
     @test norm(k_effs[1] - k_eff_lows[1])/norm(k_eff_lows[1]) < 0.01
 
-    end
+    Rs = reflection_coefficient(ωs, k_effs, medium, species)
+    R_low = reflection_coefficient_halfspace(medium, eff_medium)
+    R_low2 = reflection_coefficient(ωs, k_eff_lows, medium, species)
+
+    @test norm(R_low - Rs[1]) < 0.0015
+    @test norm(R_low2 - Rs) < 0.005
+end
 
     # This case is numerically challenging, because wavenumber() has many roots close together. Make sure spacing in ωs is small to help the optimisation method
-    @testset "strong scatterers and low frequency" begin
+@testset "strong scatterers and low frequency" begin
 
     species = [
         Specie(ρ=5.,r=0.004, c=0.002, volfrac=0.2),
         Specie(ρ=0.3, r=0.002, c=0.01, volfrac=0.1)
     ]
-    ωs = 0.001:0.001:0.01
+
+    ωs = 0.001:0.002:0.01
     eff_medium = effective_medium(medium, species)
     k_eff_lows = ωs./eff_medium.c
 
@@ -92,6 +136,11 @@ medium = Medium(1.0,1.0+0.0im)
 
     @test norm(k_effs - k_eff_lows)/norm(k_effs) < 0.2
     @test norm(k_effs - k_eff_φs)/norm(k_effs) < 0.01
-    end
 
+    # Analytically we know the mono-pole hankel function will dominate, so we get better results by restricting:
+    k_eff_φs = wavenumber_low_volfrac(ωs, medium, species; hankel_order=0)
+    k_effs = wavenumber(ωs, medium, species; hankel_order=0)
+
+    @test norm(k_effs - k_eff_lows)/norm(k_effs) < 0.11
+    @test norm(k_effs - k_eff_φs)/norm(k_effs) < 0.001
 end

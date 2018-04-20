@@ -26,6 +26,6 @@ function reflection_coefficient_halfspace{T<:Number}(incident_medium::Medium{T},
         θ_inc::T = zero(T), tol = 1e-6)
 
     q = real(reflect_medium.c*reflect_medium.ρ/(incident_medium.c*incident_medium.ρ))
-    θ_trans = transmission_angle(reflect_medium.c, incident_medium.c,θ_inc; tol=tol)
+    θ_trans = transmission_angle(reflect_medium.c, incident_medium.c, θ_inc; tol=tol)
     R = (q*cos(θ_inc) - cos(θ_trans))/(q*cos(θ_inc) + cos(θ_trans))
 end
