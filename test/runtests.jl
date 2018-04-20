@@ -52,8 +52,8 @@ medium = Medium(1.0,1.0+0.0im)
         Specie(ρ=3., r=0.7, c=2.0, volfrac=0.02)
     ]
 
-    k_eff_φs = wavenumber_low_volfrac(ωs2, medium, species)
-    k_effs = wavenumber(ωs2, medium, species)
+    k_eff_φs = wavenumber_low_volfrac(ωs2, medium, species; tol=1e-5)
+    k_effs = wavenumber(ωs2, medium, species; tol=1e-7) # lowering tol to speed up calculation
 
     @test norm(k_effs - k_eff_φs)/norm(k_effs) < 1e-4
 
@@ -71,12 +71,12 @@ medium = Medium(1.0,1.0+0.0im)
     k_eff_lows = ωs./eff_medium.c
     k_effs = wavenumber(ωs, medium, species)
 
-    @test norm(k_effs - k_eff_lows) < 0.02*norm(k_effs)
-    @test norm(k_effs[1] - k_eff_lows[1]) < 0.01*norm(k_effs)
+    @test norm(k_effs - k_eff_lows)/norm(k_effs) < 0.02
+    @test norm(k_effs[1] - k_eff_lows[1])/norm((k_eff_lows[1]) < 0.01
 
     end
 
-    # This case is numerically challenging, as wavenumber() has many roots close together. Make sure spacing in ωs is small to help the optimisation method
+    # This case is numerically challenging, because wavenumber() has many roots close together. Make sure spacing in ωs is small to help the optimisation method
     @testset "strong scatterers and low frequency" begin
 
     species = [
@@ -86,9 +86,12 @@ medium = Medium(1.0,1.0+0.0im)
     ωs = 0.001:0.001:0.01
     eff_medium = effective_medium(medium, species)
     k_eff_lows = ωs./eff_medium.c
+
+    k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
     k_effs = wavenumber(ωs, medium, species)
 
-    @test norm(k_effs - k_eff_lows) < 0.2*norm(k_effs)
+    @test norm(k_effs - k_eff_lows)/norm(k_effs) < 0.2
+    @test norm(k_effs - k_eff_φs)/norm(k_effs) < 0.01
     end
 
 end
