@@ -10,7 +10,7 @@ function far_field_pattern(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
         println("$hankel_order was the largest hankel order used for the far field pattern")
     end
     Zs = Zn_matrix(ω, medium, species; hankel_order = hankel_order)
-    num_density_inv = sum(sp.num_density for sp in species)^(-1.0)
+    num_density_inv = one(T)/sum(sp.num_density for sp in species)
 
     far_field(θ::T) where T <: Number = -num_density_inv*sum(
         species[i].num_density*Zs[i,n]*exp(im*θ*n)
@@ -27,7 +27,7 @@ function diff_far_field_pattern(ω::T, medium::Medium{T}, species::Vector{Specie
         println("$hankel_order was the largest hankel order used for the far field pattern")
     end
     Zs = Zn_matrix(ω, medium, species; hankel_order = hankel_order)
-    num_density_inv = sum(sp.num_density for sp in species)^(-1.0)
+    num_density_inv = one(T)/sum(sp.num_density for sp in species)
 
     far_field(θ::T) where T <: Number = -num_density_inv*sum(
         species[i].num_density*Zs[i,n]*im*n*exp(im*θ*n)
@@ -42,13 +42,12 @@ function pair_field_pattern(ω::T, medium::Medium{T}, species::Vector{Specie{T}}
         verbose = false, kws...) where T<:Number
 
     Zs = Zn_matrix(ω, medium, species; hankel_order = hankel_order)
-    num_density_inv = sum(sp.num_density for sp in species)^(-1.0)
+    num_density_inv = one(T)/sum(sp.num_density for sp in species)
 
     pair_field(θ::T) where T <: Number = -T(π)*num_density_inv^(2.0)*sum(
         begin
             a12 = radius_multiplier*(species[i].r + species[j].r)
-            species[i].num_density*species[j].num_density*a12^2.0*d(ω/medium.c*a12,m-n)*
-            Zs[i,n]*Zs[j,m]*exp(im*m*θ)
+            species[i].num_density*species[j].num_density*a12^2.0*d(a12*ω/medium.c,m-n)*Zs[i,n]*Zs[j,m]*exp(im*m*θ)
         end
     for i=1:length(species), j=1:length(species),
     n = -hankel_order:hankel_order, m = -hankel_order:hankel_order)

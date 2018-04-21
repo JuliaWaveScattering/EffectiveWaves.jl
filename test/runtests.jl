@@ -10,8 +10,8 @@ using EffectiveWaves
     # include("../examples/concrete/concrete_species_large-freq.jl") # takes longer
 
     # Takes too long
-    # include("../examples/emulsion/fluid_species.jl")
-    # include("../examples/emulsion/fluid_species_volfrac.jl")
+    include("../examples/emulsion/fluid_species.jl")
+    include("../examples/emulsion/fluid_species_volfrac.jl")
     # include("../examples/emulsion/fluid_species_large-freq.jl") # takes longer
 
     @test true
@@ -25,21 +25,26 @@ end
     ωs = 0.001:5.0:21.
 
     # Weak scatterers
+    # species = [
+    #     Specie(ρ=10.,r=0.1, c=12., volfrac=0.05),
+    #     Specie(ρ=3., r=0.2, c=2.0, volfrac=0.04)
+    # ]
     species = [
-        Specie(ρ=10.,r=0.1, c=12., volfrac=0.05),
+        Specie(ρ=10.,r=0.01, c=12., volfrac=0.05),
         Specie(ρ=3., r=0.2, c=2.0, volfrac=0.04)
     ]
 
     # wavenumbers
     eff_medium = effective_medium(medium, species)
-    k_eff_lows = ωs./eff_medium.c
 
+    k_eff_lows = ωs./eff_medium.c
     k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
+
     k_effs = wavenumber(ωs, medium, species)
 
     @test norm(k_effs - k_eff_φs)/norm(k_effs) < 0.0002
-    @test norm(k_effs - k_eff_lows)/norm(k_effs) < 0.03
-    @test norm(k_effs[1] - k_eff_lows[1])/norm(k_effs[1]) < 0.01
+    @test norm(k_effs - k_eff_lows)/norm(k_effs) < 0.01
+    @test norm(k_effs[1] - k_eff_lows[1])/norm(k_effs[1]) < 1e-7
 
     # reflection coefficient
     Rs2 = reflection_coefficient(ωs, medium, species)
@@ -55,10 +60,9 @@ end
     Rs_φs2 = reflection_coefficient_low_volfrac(ωs, medium, species)
 
     len = length(ωs)
-    @test norm(Rs_φs - Rs)/len < 1e-4 # already relative to incident wave amplitude = 1
+    @test norm(Rs_φs - Rs)/len < 1e-5 # already relative to incident wave amplitude = 1
     @test norm(Rs_φs2 - Rs)/len < 1e-4
-    @test abs(R_low - Rs[1]) < 1e-2
-
+    @test abs(R_low - Rs[1]) < 1e-7
 
     # Vary angle of incidence θ_inc
     θs = 0.1:0.3:(π/2)
@@ -67,8 +71,8 @@ end
     # Rs_φs = [reflection_coefficient(ωs, k_eff_φs, medium, species; θ_inc = θ, hankel_order =7) for θ in θs];
     Rs_φs = [reflection_coefficient_low_volfrac(ωs, medium, species; θ_inc = θ, hankel_order =7) for θ in θs];
 
-    @test maximum(norm(R_low - Rs[i])/len for i in 1:length(R_low)) < 0.06
-    @test maximum(norm(R)/len for R in (Rs_φs - Rs)) < 0.006
+    @test maximum(abs(R_low[i] - Rs[i][1]) for i in 1:length(R_low)) < 1e-7
+    @test maximum(norm(R)/len for R in (Rs_φs - Rs)) < 0.01
 
 end
 
@@ -91,8 +95,9 @@ end
     Rs_φs = reflection_coefficient(ωs2, k_eff_φs, medium, species)
     Rs_φs2 = reflection_coefficient_low_volfrac(ωs2, medium, species)
 
-    @test norm(Rs_φs - Rs)/norm(Rs) < 0.002
-    @test norm(Rs_φs2 - Rs) < 1e-4 # the incident wave has amplitude 1, so this is a tiny difference
+    len = length(ωs2)
+    @test norm(Rs_φs - Rs)/len < 2e-7
+    @test norm(Rs_φs2 - Rs)/len < 1e-5 # the incident wave has amplitude 1, so this is a tiny difference
 end
 
 @testset "large volume fraction and low frequency" begin
@@ -109,13 +114,14 @@ end
     k_effs = wavenumber(ωs, medium, species)
 
     @test norm(k_effs - k_eff_lows)/norm(k_effs) < 0.01
-    @test norm(k_effs[1] - k_eff_lows[1])/norm(k_eff_lows[1]) < 0.01
+    @test norm(k_effs[1] - k_eff_lows[1])/norm(k_eff_lows[1]) < 1e-7
 
     Rs = reflection_coefficient(ωs, k_effs, medium, species)
     R_low = reflection_coefficient_halfspace(medium, eff_medium)
     R_low2 = reflection_coefficient(ωs, k_eff_lows, medium, species)
 
-    @test norm(R_low - Rs[1]) < 0.0015
+    @test norm(R_low - Rs[1]) < 1e-7
+    @test norm(R_low2[1] - Rs[1]) < 1e-7
     @test norm(R_low2 - Rs) < 0.005
 end
 
@@ -134,13 +140,7 @@ end
     k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
     k_effs = wavenumber(ωs, medium, species)
 
-    @test norm(k_effs - k_eff_lows)/norm(k_effs) < 0.2
+    @test norm(k_effs - k_eff_lows)/norm(k_effs) < 1e-5
+    @test norm(k_effs[1] - k_eff_lows[1])/norm(k_effs[1]) < 1e-8
     @test norm(k_effs - k_eff_φs)/norm(k_effs) < 0.01
-
-    # Analytically we know the mono-pole hankel function will dominate, so we get better results by restricting:
-    k_eff_φs = wavenumber_low_volfrac(ωs, medium, species; hankel_order=0)
-    k_effs = wavenumber(ωs, medium, species; hankel_order=0)
-
-    @test norm(k_effs - k_eff_lows)/norm(k_effs) < 0.11
-    @test norm(k_effs - k_eff_φs)/norm(k_effs) < 0.001
 end

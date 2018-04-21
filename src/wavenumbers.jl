@@ -34,10 +34,10 @@ function wavenumber(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol = 
     φ = sum(volume_fraction.(species))
     if wavenumber_initial_guess == :auto
         if abs(r*k) > 0.2 && φ < 0.4
-            # use low volume fraction (valid for any ω) effective wavenumber as an initial guess
+            # use low volume fraction (valid for any ω) effective wavenumber
             k0 = wavenumber_low_volfrac(ω, medium, species)
         else
-            # use low frequency (valid for any φ) effective wavenumber as an initial guess
+            # use low frequency (valid for any φ) effective wavenumber
             eff_medium = effective_medium(medium, species)
             k0 = ω/eff_medium.c
         end

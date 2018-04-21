@@ -1,14 +1,11 @@
 "the effective low frequency bulk modulus and density of a material filled with particles"
 function effective_medium{T<:Number}(medium::Medium{T}, species::Array{Specie{T}})
-    # total number density
-    η = sum(s.num_density for s in species)
-
     φ = sum(volume_fraction.(species))
 
     # calculate effective properties
     β = medium.ρ*medium.c^2 # medium bulk modulus
-    β_eff = real( (1-φ)/β + (φ/η)*sum(s.num_density/(s.ρ*s.c^2) for s in species) )^(-1.0)
-    ρ_frac = (φ/η)*sum(s.num_density*(medium.ρ - s.ρ)/(medium.ρ + s.ρ) for s in species)
+    β_eff = one(T)/((1-φ)/β + sum(volume_fraction(s)/(s.ρ*s.c^2) for s in species))
+    ρ_frac = sum(volume_fraction(s)*(medium.ρ - s.ρ)/(medium.ρ + s.ρ) for s in species)
     ρ_eff = medium.ρ*(1 - ρ_frac)/(1 + ρ_frac)
 
     return Medium(ρ=ρ_eff, c=sqrt(β_eff/ρ_eff))

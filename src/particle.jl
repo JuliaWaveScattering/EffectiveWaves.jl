@@ -6,6 +6,11 @@ type Specie{T<:Real}
   num_density::T # number density
 end
 
+type Medium{T}
+  ρ::T # density
+  c::Complex{T} # sound speed
+end
+
 "Returns the volume fraction of the specie"
 volume_fraction(sp::Specie) = sp.r^2*sp.num_density*pi
 
@@ -28,10 +33,6 @@ end
 #   Specie{Float64}(Float64(ρ),Float64(r),c,Float64(volfrac/(Float64(pi)*r^2.0)))
 # end
 
-type Medium{T}
-  ρ::T # density
-  c::Complex{T} # sound speed
-end
 
 Medium(;ρ=1.0, c=1.0+0.0im) = Medium{typeof(ρ)}(ρ,Complex{typeof(ρ)}(c))
 
