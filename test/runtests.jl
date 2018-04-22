@@ -2,6 +2,7 @@ import Base.Test: @testset, @test, @test_throws
 
 using EffectiveWaves
 
+@testset "Summary" begin
 
 @testset "Examples from: Reflection from multi-species.., Proc.R.Soc.(2018)" begin
 
@@ -17,6 +18,24 @@ using EffectiveWaves
     @test true
 end
 
+@testset "Particle types and constructors" begin
+    ω=0.4
+    medium = Medium(ρ=10.,c=2.0+3.0im)
+    p_dirichlet = Specie(0.0,0.1) # ρ=0.0, r =0.1
+    p_neumann = Specie(Inf,0.1) # ρ=0.0, r =0.1
+    Z_dirichlet = Zn(ω, p_dirichlet, medium, 0)
+    Z_neumann   = Zn(ω, p_neumann, medium, 0)
+    @test Z_dirichlet == besselj(0, 0.1*ω/medium.c)/hankelh1(0, 0.1*ω/medium.c)
+    @test Z_neumann == besselj(1, 0.1*ω/medium.c)/hankelh1(1, 0.1*ω/medium.c)
+
+    medium = Medium(ρ=0.,c=2.0+3.0im)
+    @test_throws ErrorException Zn(ω, p_dirichlet, medium, 0)
+    @test Z_neumann == Zn(ω, p_neumann, medium, 0)
+
+    f_tmp(x,y; kws...) = 0.0
+    @test gray_square(rand(10),rand(10), f_tmp) == 0.0
+end
+
 @testset "weak scatterers" begin
     # background medium
     medium = Medium(1.0,1.0+0.0im)
@@ -24,11 +43,6 @@ end
     # angular frequencies
     ωs = 0.001:5.0:21.
 
-    # Weak scatterers
-    # species = [
-    #     Specie(ρ=10.,r=0.1, c=12., volfrac=0.05),
-    #     Specie(ρ=3., r=0.2, c=2.0, volfrac=0.04)
-    # ]
     species = [
         Specie(ρ=10.,r=0.01, c=12., volfrac=0.05),
         Specie(ρ=3., r=0.2, c=2.0, volfrac=0.04)
@@ -68,15 +82,12 @@ end
     θs = 0.1:0.3:(π/2)
     R_low = [reflection_coefficient_halfspace(medium, eff_medium; θ_inc = θ) for θ in θs]
     Rs = [reflection_coefficient(ωs, k_effs, medium, species; θ_inc = θ, hankel_order =7) for θ in θs];
-    # Rs_φs = [reflection_coefficient(ωs, k_eff_φs, medium, species; θ_inc = θ, hankel_order =7) for θ in θs];
     Rs_φs = [reflection_coefficient_low_volfrac(ωs, medium, species; θ_inc = θ, hankel_order =7) for θ in θs];
 
     @test maximum(abs(R_low[i] - Rs[i][1]) for i in 1:length(R_low)) < 1e-7
     @test maximum(norm(R)/len for R in (Rs_φs - Rs)) < 0.01
 
 end
-
-
 
 @testset "high frequency" begin
     # Large weak scatterers with low volume fraciton
@@ -125,7 +136,7 @@ end
     @test norm(R_low2 - Rs) < 0.005
 end
 
-    # This case is numerically challenging, because wavenumber() has many roots close together. Make sure spacing in ωs is small to help the optimisation method
+# This case is numerically challenging, because wavenumber() has many roots close together. Make sure spacing in ωs is small to help the optimisation method
 @testset "strong scatterers and low frequency" begin
 
     species = [
@@ -143,4 +154,6 @@ end
     @test norm(k_effs - k_eff_lows)/norm(k_effs) < 1e-5
     @test norm(k_effs[1] - k_eff_lows[1])/norm(k_effs[1]) < 1e-8
     @test norm(k_effs - k_eff_φs)/norm(k_effs) < 0.01
+end
+
 end
