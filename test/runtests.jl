@@ -90,6 +90,7 @@ end
 end
 
 @testset "high frequency" begin
+    medium = Medium(1.0,1.0+0.0im)
     # Large weak scatterers with low volume fraciton
     species = [
         Specie(ρ=10.,r=1.9, c=12., volfrac=0.04),
@@ -111,8 +112,9 @@ end
     @test norm(Rs_φs2 - Rs)/len < 1e-5 # the incident wave has amplitude 1, so this is a tiny difference
 end
 
-@testset "large volume fraction and low frequency" begin
 # large volume fraction scatterers,  small size amd on strong scatterer. This is a problamatic case.
+@testset "large volume fraction and low frequency" begin
+    medium = Medium(1.0,1.0+0.0im)
     species = [
         Specie(ρ=5.,r=0.004, c=1.2, volfrac=0.4),
         Specie(ρ=0.3, r=0.002, c=0.4, volfrac=0.3)
@@ -138,7 +140,7 @@ end
 
 # This case is numerically challenging, because wavenumber() has many roots close together. Make sure spacing in ωs is small to help the optimisation method
 @testset "strong scatterers and low frequency" begin
-
+    medium = Medium(1.0,1.0+0.0im)
     species = [
         Specie(ρ=5.,r=0.004, c=0.002, volfrac=0.2),
         Specie(ρ=0.3, r=0.002, c=0.01, volfrac=0.1)

@@ -34,8 +34,8 @@ end
 # end
 
 
-# Medium(;ρ=1.0, c=1.0+0.0im) = Medium{typeof(ρ)}(ρ,Complex{typeof(ρ)}(c))
-Medium(;ρ::T=1.0, c::Complex{T}=1.0+0.0im) where T<:Number = Medium(ρ,Complex{T}(c))
+Medium(;ρ=1.0, c=1.0+0.0im) = Medium{typeof(ρ)}(ρ,Complex{typeof(ρ)}(c))
+# Medium(;ρ::T = 1.0, c::Union{R,Complex{T}} = 1.0+0.0im) = Medium(ρ,Complex{T}(c))
 
 function maximum_hankel_order(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
         tol=1e-6, verbose = false) where T <: Number
@@ -86,8 +86,8 @@ function Zn(ω::Complex{T}, p::Specie{T}, med::Medium{T},  m::Int) where T<: Num
         denom = diffhankelh1(m, ak)
     elseif abs(med.ρ) == zero(T)
         # γ = med.c/p.c #speed ratio
-        numer = diffbesselj(m, ak)
-        denom = diffhankelh1(m, ak)
+        numer = diffbesselj(m, ak)# * besselj(m, γ * ak)
+        denom = diffhankelh1(m, ak)# * besselj(m, γ * ak)
     else
         q = (p.c*p.ρ)/(med.c*med.ρ) #the impedance
         if q == zero(T)
