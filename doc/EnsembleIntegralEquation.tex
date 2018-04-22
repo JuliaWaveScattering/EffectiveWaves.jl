@@ -1,0 +1,153 @@
+\pdfoutput=1
+
+\documentclass[12pt, a4paper]{article}
+\usepackage[utf8]{inputenc}
+
+\usepackage[style= bwl-FU, backend = biber, maxbibnames=99, maxcitenames=2,uniquelist=minyear, firstinits=true]{biblatex}
+
+% \AtEveryBibitem{\clearfield{number}}
+% \AtEveryBibitem{\clearfield{doi}}
+\AtEveryBibitem{\clearfield{note}}
+\AtEveryBibitem{\clearfield{urldate}}
+\AtEveryBibitem{\clearfield{issn}}
+\AtEveryBibitem{\clearfield{isbn}}
+%
+\addbibresource{Library.bib}
+
+\usepackage{authblk}
+\usepackage{color,graphicx,tikz}
+\usetikzlibrary{positioning,arrows}
+% The amssymb package provides various useful mathematical symbols
+\usepackage{mathtools,amssymb,amsmath,mathdots,amsfonts}
+\usepackage[mathscr]{eucal} %just for the font \mathscr
+\usepackage{enumerate}
+%\usepackage{amsthm}
+%\usepackage{mathaccents}
+\usepackage{setspace}
+\newtheorem{remark}{Remark} [section]
+\usepackage{hyperref}
+
+\input{mst-macros}
+\input{macros}
+
+% \graphicspath{{../images/}}
+%\graphicspath{{Media/}}
+
+\doublespacing
+% \setlength{\topmargin}{0cm} \addtolength{\textheight}{2cm}
+\evensidemargin=0cm \oddsidemargin=0cm \setlength{\textwidth}{16cm}
+
+\begin{document}
+
+\title{Numerically solving integral equations of wave ensembles}
+
+% \author{
+% Artur L. Gower$^{a}$, Michael J. A. Smith$^{a}$, \\ William Parnell$^{a}$ and David Abrahams$^{a,b}$ \\[12pt]
+% \footnotesize{$^{a}$ School of Mathematics, University of Manchester, Oxford Road, Manchester, M13 9PL, UK}\\
+% \footnotesize{$^{b}$ Isaac Newton Institute for Mathematical Sciences, 20 Clarkson Rd, Cambridge CB3 0EH, UK}
+% }
+
+\author[$\dagger$]{Artur L.\ Gower}
+
+\affil[$\dagger$]{School of Mathematics, University of Manchester, Oxford Road, Manchester M13 9PL, UK}
+
+\date{\today}
+\maketitle
+
+\begin{abstract}
+Allows for a broad frequency range, and to easily test different statistical assumptions. Assumptions such as the pair-correlation and QCA.
+\end{abstract}
+
+\noindent
+{\textit{Keywords:} polydisperse, multiple scattering, Fredholm Integral equations, multi-species, effective waves, quasicrystalline approximation, statistical methods}
+
+
+\section{Effective waves for uniformly distributed species}
+\label{sec:results}
+
+We consider a halfspace $x>0$ filled with $S$ types of inclusions (species) that are uniformly distributed. The fields are governed by the scalar wave equation:
+\begin{align}
+  &\nabla^2 u + k^2 u = 0, \quad \text{(in the background material)} \\
+  &\nabla^2 u + k^2_j u = 0, \quad \text{(inside the $j$-th scatterer)},
+\end{align}
+ The background and species material properties are summarised in Table~\ref{tab:properties}.
+The goal is to calculate how a medium with these scatterers, randomly uniformly distributed, reflects and transmits waves in an
+\href{https://en.wikipedia.org/wiki/Ensemble_average_(statistical_mechanics)}{ensemble average sense}.
+
+For simplicity we will consider that all particles are cylindrical, though it is easy to extend the results to any smooth particle by using Waterman's T-matrix\cite{waterman_symmetry_1971,varadan_multiple_1978,mishchenko_t-matrix_1996}.
+
+\input{table_properties.tex}
+
+\section{Cylindrical species}
+
+We consider an incident wave
+\begin{gather}
+  u_\inc =  \ee^{\ii \mathbf k \cdot \mathbf x} \quad \text{with} \quad \mathbf k \cdot \mathbf x = k x \cos \theta_\inc  + k y \sin \theta_\inc,
+%   u_\inc(x,y) = \ee^{\ii \mathbf k \cdot \mathbf x}, \quad \text{with} \quad \mathbf k \cdot \mathbf x = \alpha  x  + \beta y,
+% \notag \\
+%   \text{where} \qquad  \alpha = k \cos \theta_\inc, \quad \beta = k \sin \theta_\inc,
+  \label{eqns:incident}
+\end{gather}
+and angle of incidence $\theta_\inc$ from the $x$-axis, exciting a material occupying the halfspace $x>0$.
+
+Combining equations (3.6) and then quasicrystalline approximation (3.10) from \parencite{gower_reflection_2018}, we arrive at
+\begin{multline}
+\nfrac {} \sum_{n=-\infty}^\infty \int_\regS \int_{\stackrel{x_2 > 0 }{\|\mathbf x_1 - \mathbf x_2 \| > a_{21}}}  \A n (\mathbf x_2, \s_2) F_{n-m}(k\mathbf x_1 - k \mathbf x_2,k)  d \mathbf x_2 d\s_2^n
+\\
++  \A m (\mathbf x_1, \s_1) + \ee^{\ii \mathbf x_1 \cdot \mathbf k } \ee^{\ii m ( \pi/2 - \theta_\inc )}
+   = 0, \quad \text{for} \quad x_1 >0,
+  \label{eqn:ensemAsystem}
+\end{multline}
+where
+\begin{equation}
+  F_{n-m}(k\mathbf x_1 - k \mathbf x_2,k) = \ee^{\ii (n-m) \Theta_{21}} H_{n-m}(k R_{21})g(\mathbf x_1 - \mathbf x_2| \s_1,\s_2),
+  \label{eqn:integral_kernel}
+\end{equation}
+$p(\s_1)$ is the probability density function of picking a species in $\regS$ and we assumed statistical independence $p(\s_1, \s_2) = p(\s_1)p(\s_2)$. The function $g(\mathbf x_1 - \mathbf x_2| \s_1,\s_2)$ is the pair-correlation, assuming the particle centred at $\mathbf x_1$ ($\mathbf x_2$) is of type $\s_1$ ($\s_2$). If we were to use whole correction, then $g(\mathbf x_1 - \mathbf x_2| \s_1,\s_2) = 1$.
+
+In terms of the notation from \parencite{gower_reflection_2018}:
+\begin{multline}
+  |\reg| p(\Lam 2 | \Lam 1) = |\reg|^2 \frac{p(\Lam 1, \Lam 2)}{p(\s_1)} = |\reg|^2 p(\s_2) p(\mathbf x_1, \mathbf x_2 | \s_1,\s_2) = p(\s_2) g(\mathbf x_1 - \mathbf x_2 | \s_1,\s_2).
+\end{multline}
+
+We also borrow equation (4.1) from \parencite{gower_reflection_2018} to substitute
+\[
+\A m (x_1, y_1, \s_1) = \A m (x_1, \s_1) \ee^{\ii y_1 k \sin\theta_\inc},
+\]
+which is a result of the symmetry present in~\eqref{eqn:ensemAsystem}. substituting the above into~\eqref{eqn:ensemAsystem} results in
+
+\begin{multline}
+  \int_{\stackrel{x_2 > 0 }{\|\mathbf x_2-\mathbf x_1 \| > a_{21}}}
+  \A n (x_2, \s_2) \ee^{\ii y_2 k \sin\theta_\inc}
+  F_{n-m}(k\mathbf x_1 - k \mathbf x_2,k) d \mathbf x_2 =
+  \\
+  \int_{x_2 > 0}
+  \A n (x_2, \s_2)\int_{y \not \in B} \ee^{\ii y_2 k \sin\theta_\inc}
+  F_{n-m}(k\mathbf x_1 - k \mathbf x_2,k) d y_2 d x_2,
+\end{multline}
+where $B$ is the interval
+\[
+B =
+\begin{cases}
+  [y_1 - \sqrt{a_{21}^2-(x_2-x_1)^2}, y_1 + \sqrt{a_{21}^2-(x_2-x_1)^2}], &  |x_2-x_1| \leq a_{21}  \\
+  [0,0], &  |x_2-x_1| > a_{21}.
+\end{cases}
+\]
+
+
+\begin{multline}
+\nfrac {} \sum_{n=-\infty}^\infty \int_\regS \int_{\stackrel{x_2 > 0 }{\|\mathbf x_2-\mathbf x_1 \| > a_{21}}}
+\A n (x_2, \s_2) \ee^{\ii y_2 k \sin\theta_\inc}
+F_{n-m}(k\mathbf x_1 - k \mathbf x_2,k) d \mathbf x_2 d\s_2^n
+\\
++  \A m (x_1, \s_1) \ee^{\ii y_1 k \sin\theta_\inc} + \ee^{\ii \mathbf x_1 \cdot \mathbf k } \ee^{\ii m ( \pi/2 - \theta_\inc )}
+   = 0, \quad \text{for} \quad x_1 >0,
+  \label{eqn:ensemAsystem2}
+\end{multline}
+% where $\mathbf X = \mathbf x_2 - \mathbf x_1$
+\printbibliography
+
+% \bibliographystyle{RS}
+% \bibliography{../Library2}
+
+\end{document}
