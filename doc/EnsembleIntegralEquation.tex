@@ -90,9 +90,9 @@ We consider an incident wave
 \end{gather}
 and angle of incidence $\theta_\inc$ from the $x$-axis, exciting a material occupying the halfspace $x>0$.
 
-Combining equations (3.6) and then quasicrystalline approximation (3.10) from \parencite{gower_reflection_2018}, we arrive at
+Combining equations (3.6) and the quasicrystalline approximation (3.10) from \parencite{gower_reflection_2018}, we arrive at
 \begin{multline}
-\nfrac {} \sum_{n=-\infty}^\infty \int_\regS \int_{\stackrel{x_2 > 0 }{\|\mathbf x_1 - \mathbf x_2 \| > a_{21}}}  \A n (\mathbf x_2, \s_2) F_{n-m}(k\mathbf x_1 - k \mathbf x_2,k)  d \mathbf x_2 d\s_2^n
+\nfrac {} \sum_{n=-\infty}^\infty \int_\regS \int_{\stackrel{x_2 > 0 }{\|\mathbf x_1 - \mathbf x_2 \| > a_{12}}}  \A n (\mathbf x_2, \s_2) F_{n-m}(k\mathbf x_2 - k \mathbf x_1,k)  d \mathbf x_2 d\s_2^n
 \\
 +  \A m (\mathbf x_1, \s_1) + \ee^{\ii \mathbf x_1 \cdot \mathbf k } \ee^{\ii m ( \pi/2 - \theta_\inc )}
    = 0, \quad \text{for} \quad x_1 >0,
@@ -100,51 +100,102 @@ Combining equations (3.6) and then quasicrystalline approximation (3.10) from \p
 \end{multline}
 where
 \begin{equation}
-  F_{n-m}(k\mathbf x_1 - k \mathbf x_2,k) = \ee^{\ii (n-m) \Theta_{21}} H_{n-m}(k R_{21})g(\mathbf x_1 - \mathbf x_2| \s_1,\s_2),
+  F_{n}(\mathbf X,k) = (-1)^{n}\ee^{\ii n \Theta} H_{n}(R)( 1 + g(R/k;  \s_1,\s_2)),
   \label{eqn:integral_kernel}
 \end{equation}
-$p(\s_1)$ is the probability density function of picking a species in $\regS$ and we assumed statistical independence $p(\s_1, \s_2) = p(\s_1)p(\s_2)$. The function $g(\mathbf x_1 - \mathbf x_2| \s_1,\s_2)$ is the pair-correlation, assuming the particle centred at $\mathbf x_1$ ($\mathbf x_2$) is of type $\s_1$ ($\s_2$). If we were to use whole correction, then $g(\mathbf x_1 - \mathbf x_2| \s_1,\s_2) = 1$.
-
+with $(R,\Theta)$ being the polar coordinates of $\mathbf X = (X,Y)$,
+$p(\s_1)$ is the probability density function of picking a species in $\regS$ and we assumed statistical independence $p(\s_1, \s_2) = p(\s_1)p(\s_2)$. The function $g(R; \s_1,\s_2)$ is the pair-correlation, assuming $R$ is the distance between two particles, one centred of type $\s_1$ and another of type $\s_2$. If we were to use whole correction, then $g(R; \s_1,\s_2) = 0$.
+For most random systems we expect that rapidly $g(R; \s_1,\s_2) \to 0$ as $R \to \infty$, so we will assume
+\begin{equation}
+  g(R; \s_1,\s_2) = 0, \quad \text{ for } \; R > \bar a_{12}.
+  \label{eqn:pair_correlation}
+\end{equation}
 In terms of the notation from \parencite{gower_reflection_2018}:
 \begin{multline}
-  |\reg| p(\Lam 2 | \Lam 1) = |\reg|^2 \frac{p(\Lam 1, \Lam 2)}{p(\s_1)} = |\reg|^2 p(\s_2) p(\mathbf x_1, \mathbf x_2 | \s_1,\s_2) = p(\s_2) g(\mathbf x_1 - \mathbf x_2 | \s_1,\s_2).
+  |\reg| p(\Lam 2 | \Lam 1) = |\reg|^2 \frac{p(\Lam 1, \Lam 2)}{p(\s_1)} = |\reg|^2 p(\s_2) p(\mathbf x_1, \mathbf x_2 | \s_1,\s_2)
+  \\ = p(\s_2)(1 + g(\|\mathbf x_1 - \mathbf x_2\|;  \s_1,\s_2)).
 \end{multline}
 
+For computational efficiency, we will change variables to
+\begin{align}
+& X = k\mathbf x_2 - k\mathbf x_1, \quad (x,y) = (kx_1,ky_1),
+% \\
+% & b = a_{12}}, \quad  \bar b = \bar a_{12}}, \quad  \s_2 = \s_2, \quad  \s_1 = \s_{},
+\end{align}
+% where the last line is just to have a consistent notation.
 We also borrow equation (4.1) from \parencite{gower_reflection_2018} to substitute
 \[
-\A m (x_1, y_1, \s_1) = \A m (x_1, \s_1) \ee^{\ii y_1 k \sin\theta_\inc},
+\A m (x, y, \s) = \A m (x, \s) \ee^{\ii y k \sin\theta_\inc},
 \]
-which is a result of the symmetry present in~\eqref{eqn:ensemAsystem}. substituting the above into~\eqref{eqn:ensemAsystem} results in
-
-\begin{multline}
-  \int_{\stackrel{x_2 > 0 }{\|\mathbf x_2-\mathbf x_1 \| > a_{21}}}
-  \A n (x_2, \s_2) \ee^{\ii y_2 k \sin\theta_\inc}
-  F_{n-m}(k\mathbf x_1 - k \mathbf x_2,k) d \mathbf x_2 =
+which is due to the symmetry of~\eqref{eqn:ensemAsystem}. Substituting the above into~\eqref{eqn:ensemAsystem}, we can rewrite the integrated term:
+\begin{align*}
+   \frac{k^2}{\ee^{\ii y \sin\theta_\inc}} & \int_{\stackrel{x_2 > 0 }{\|\mathbf x_2-\mathbf x_1 \| > a_{12}}} \A n (x_2, \s_2) \ee^{\ii y_2 k \sin\theta_\inc} F_{n-m}(k\mathbf x_2 - k \mathbf x_1,k) d \mathbf x_2
   \\
-  \int_{x_2 > 0}
-  \A n (x_2, \s_2)\int_{y \not \in B} \ee^{\ii y_2 k \sin\theta_\inc}
-  F_{n-m}(k\mathbf x_1 - k \mathbf x_2,k) d y_2 d x_2,
-\end{multline}
-where $B$ is the interval
-\[
-B =
-\begin{cases}
-  [y_1 - \sqrt{a_{21}^2-(x_2-x_1)^2}, y_1 + \sqrt{a_{21}^2-(x_2-x_1)^2}], &  |x_2-x_1| \leq a_{21}  \\
-  [0,0], &  |x_2-x_1| > a_{21}.
-\end{cases}
-\]
-
-
+  &=\int_{X> -x} \A n (X/k + x/k, \s_2) \int_{Y^2 > k^2 a_{12}^2 - X^2}
+   \ee^{\ii Y \sin\theta_\inc} F_{n-m}(\mathbf X,k) d Y d X,
+\end{align*}
+By spliting the integral on the right we can write
+\begin{align*}
+  &\int_{Y^2 > k^2 a_{12}^2 - X^2} \ee^{\ii Y \sin\theta_\inc} F_{n-m}(\mathbf X,k) d Y
+ = \chi_{\{ |X|< k a_{12}\}} \int_{-\infty}^{\infty} \chi_{\{ Y^2> k^2 a_{12}^2 - X^2\}} \ee^{\ii Y \sin\theta_\inc}
+  F_{n-m}(\mathbf X,k) d Y
+  \\
+  & +  \chi_{\{ |X|> k a_{12}\}} \int_{-\infty}^\infty \ee^{\ii Y \sin\theta_\inc}
+  F_{n-m}(\mathbf X,k) d Y,
+\end{align*}
+then we have that
+\begin{equation}
+  \int_{-\infty}^\infty \ee^{\ii Y \sin\theta_\inc}
+  F_{n-m}(\mathbf X,k) d Y = \frac{2 \ii^{n-m} \ee^{-\ii(n-m) \theta_\inc}}{\cos \theta_\inc} \ee^{\ii X \cos \theta_\inc }
+  % \int_{-\infty}^\infty \ee^{\ii y_2 k \sin\theta_\inc} \ee^{\ii (n-m) \Theta_{12}} H_{n-m}(k R_{12})d y_2
+  % \\
+  % + (-1)^{n-m} \int_{y_2 \in B(\bar a_{12}})} \ee^{\ii y_2 k \sin\theta_\inc} \ee^{\ii (n-m) \Theta_{12}} H_{n-m}(k R_{12})g(\|\mathbf x_1 - \mathbf x_2\|;  \s_1,\s_2) d y_2
+  + G_{n-m}(X, k),
+\end{equation}
+by using~\eqref{eqn:pair_correlation}, equation (B.3) from \cite{gower_reflection_2018}, and defining
 \begin{multline}
-\nfrac {} \sum_{n=-\infty}^\infty \int_\regS \int_{\stackrel{x_2 > 0 }{\|\mathbf x_2-\mathbf x_1 \| > a_{21}}}
-\A n (x_2, \s_2) \ee^{\ii y_2 k \sin\theta_\inc}
-F_{n-m}(k\mathbf x_1 - k \mathbf x_2,k) d \mathbf x_2 d\s_2^n
+G_n(X, k) = (-1)^{n} \int_{-\sqrt{k^2 \bar a_{12}^2 - X^2}}^{\sqrt{k^2\bar a_{12}^2 - X^2}} \ee^{\ii Y \sin\theta_\inc}
+  \ee^{\ii n \Theta} H_{n}(R)g(R/k;  \s_1,\s_2) d Y
+  \\ = 2 (-1)^{n} \int_{0}^{\sqrt{k^2\bar a_{12}^2 - X^2}} \cos\left(Y \sin\theta_\inc + n \Theta\right) H_{n}(R)g(R/k;  \s_1,\s_2) d Y
+\end{multline}
+Before combining all the pieces, we also define
+\begin{multline}
+  B_n(X,k) = \int_{-\infty}^{\infty} \chi_{\{ Y^2> k^2 a_{12}^2 - X^2\}} \ee^{\ii Y \sin\theta_\inc}
+   F_{n}(\mathbf X,k) d Y
+  \\
+  = 2(-1)^{n} \int_{\sqrt{k^2 a_{12}^2 - X^2}}^\infty \cos \left( Y \sin\theta_\inc +  n \Theta\right) H_{n}(R)( 1 + g(R/k;  \s_1,\s_2)) d Y.
+\end{multline}
+
+Written in full the governing equation~\eqref{eqn:ensemAsystem} now becomes
+\begin{multline}
+ \nfrac {} \sum_{n=-\infty}^\infty \int_\regS
+  \int_{X> -x} \A n (X/k + x/k, \s_2) K(X,k) dX
+  d\s_2^n
 \\
-+  \A m (x_1, \s_1) \ee^{\ii y_1 k \sin\theta_\inc} + \ee^{\ii \mathbf x_1 \cdot \mathbf k } \ee^{\ii m ( \pi/2 - \theta_\inc )}
++  k^2 \A m (x/k, \s_1)   + k^2  \ee^{\ii x \cos \theta_\inc} \ee^{\ii m ( \pi/2 - \theta_\inc )}
    = 0, \quad \text{for} \quad x_1 >0,
   \label{eqn:ensemAsystem2}
 \end{multline}
-% where $\mathbf X = \mathbf x_2 - \mathbf x_1$
+% Uncomment to see in full
+% \begin{align*}
+%    \frac{k^2}{\ee^{\ii y \sin\theta_\inc}} & \int_{\stackrel{x_2 > 0 }{\|\mathbf x_2-\mathbf x_1 \| > a_{12}}} \A n (x_2, \s_2) \ee^{\ii y_2 k \sin\theta_\inc} F_{n-m}(k\mathbf x_2 - k \mathbf x_1,k) d \mathbf x_2
+%   \\
+%   &=\int_{X> -x} \A n (X/k + x/k, \s_2)
+%   \chi_{\{ |X|< k a_{12}\}}   B_{n-m}(X,k)
+%    d X,
+%   \\
+%   & +\int_{X> -x} \A n (X/k + x/k, \s_2)
+%   \chi_{\{ |X|> k a_{12}\}} \left [G_{n-m}(X, k) + \frac{2 \ii^{n-m} \ee^{-\ii(n-m) \theta_\inc}}{\cos \theta_\inc} \ee^{\ii X \cos \theta_\inc } \right ]
+%    d X,
+% \end{align*}
+where
+\begin{multline}
+K(X,k) =   \chi_{\{ |X|> k a_{12}\}} \left [G_{n-m}(X, k) + \frac{2 \ii^{n-m} \ee^{-\ii(n-m) \theta_\inc}}{\cos \theta_\inc} \ee^{\ii X \cos \theta_\inc } \right ]
+\\ + \chi_{\{ |X|< k a_{12}\}}   B_{n-m}(X,k)
+\label{eqn:kernel}
+\end{multline}
+
+
 \printbibliography
 
 % \bibliographystyle{RS}
