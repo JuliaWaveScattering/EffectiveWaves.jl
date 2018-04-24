@@ -134,7 +134,7 @@ which is due to the symmetry of~\eqref{eqn:ensemAsystem}. Substituting the above
   &=\int_{X> -x} \A n (X/k + x/k, \s_2) \int_{Y^2 > k^2 a_{12}^2 - X^2}
    \ee^{\ii Y \sin\theta_\inc} F_{n-m}(\mathbf X,k) d Y d X,
 \end{align*}
-By spliting the integral on the right we can write
+then we split the integral on the right in the form
 \begin{align*}
   &\int_{Y^2 > k^2 a_{12}^2 - X^2} \ee^{\ii Y \sin\theta_\inc} F_{n-m}(\mathbf X,k) d Y
  = \chi_{\{ |X|< k a_{12}\}} \int_{-\infty}^{\infty} \chi_{\{ Y^2> k^2 a_{12}^2 - X^2\}} \ee^{\ii Y \sin\theta_\inc}
@@ -143,7 +143,7 @@ By spliting the integral on the right we can write
   & +  \chi_{\{ |X|> k a_{12}\}} \int_{-\infty}^\infty \ee^{\ii Y \sin\theta_\inc}
   F_{n-m}(\mathbf X,k) d Y,
 \end{align*}
-then we have that
+which leads to
 \begin{equation}
   \int_{-\infty}^\infty \ee^{\ii Y \sin\theta_\inc}
   F_{n-m}(\mathbf X,k) d Y = \frac{2 \ii^{n-m} \ee^{-\ii(n-m) \theta_\inc}}{\cos \theta_\inc} \ee^{\ii X \cos \theta_\inc }
@@ -158,13 +158,18 @@ G_n(X, k) = (-1)^{n} \int_{-\sqrt{k^2 \bar a_{12}^2 - X^2}}^{\sqrt{k^2\bar a_{12
   \ee^{\ii n \Theta} H_{n}(R)g(R/k;  \s_1,\s_2) d Y
   \\ = 2 (-1)^{n} \int_{0}^{\sqrt{k^2\bar a_{12}^2 - X^2}} \cos\left(Y \sin\theta_\inc + n \Theta\right) H_{n}(R)g(R/k;  \s_1,\s_2) d Y
 \end{multline}
-Before combining all the pieces, we also define
+We also need the integral
 \begin{multline}
   B_n(X,k) = \int_{-\infty}^{\infty} \chi_{\{ Y^2> k^2 a_{12}^2 - X^2\}} \ee^{\ii Y \sin\theta_\inc}
    F_{n}(\mathbf X,k) d Y
   \\
   = 2(-1)^{n} \int_{\sqrt{k^2 a_{12}^2 - X^2}}^\infty \cos \left( Y \sin\theta_\inc +  n \Theta\right) H_{n}(R)( 1 + g(R/k;  \s_1,\s_2)) d Y.
 \end{multline}
+It is difficult to numerically integrate the above because the integrand tends to zero very slowly as $Y$ increases. To numerically integrate the above we use
+\begin{multline}
+  \cos \left( Y \sin\theta_\inc +  n \Theta\right) \sim \cos((n \pi)/2 + Y \sin(\theta_\inc))
+\end{multline}
+
 
 Written in full the governing equation~\eqref{eqn:ensemAsystem} now becomes
 \begin{multline}
