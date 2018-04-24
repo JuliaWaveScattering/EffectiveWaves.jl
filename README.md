@@ -47,3 +47,8 @@ For more examples and details go to [examples/](examples/).
 ## Acknowledgements and contributing
 This library was originally written by [Artur L Gower](https://arturgower.github.io/).
 Please contribute, if nothing else, criticism is welcome, as I am relatively new to Julia.
+
+## References
+[[1]](http://rspa.royalsocietypublishing.org/content/474/2212/20170864) Gower AL, Smith MJ, Parnell WJ, Abrahams ID. Reflection from a multi-species material and its transmitted effective wavenumber. Proc. R. Soc. A. 2018 Apr 1;474(2212):20170864.
+
+[[2]](https://arxiv.org/abs/1712.05427) Gower AL, Smith MJ, Parnell WJ, Abrahams ID. Reflection from a multi-species material and its transmitted effective wavenumber. arXiv preprint arXiv:1712.05427. 2017 Dec.
