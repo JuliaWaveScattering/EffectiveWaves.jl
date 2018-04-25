@@ -2,13 +2,9 @@ using ApproxFun
 using HCubature
 
 
-a12 =1.0
 
-n=1
-k=1.
-X = 0.2
 
-function Bfull(n::Int,X; Y0= sqrt(k^2*a12^2-X^2), Y1 =1000000 ,θin = 0.0)
+function Bfull(n::Int,X; Y0= sqrt(k^2*a12^2-X^2), Y1 =1000000 , θin = 0.0)
     K(Y) = cos(Y*sin(θin) + n*atan2(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
     return 2.0*(-1.0)^n*sum(Fun(K,Y0..Y1))
 end
@@ -22,10 +18,16 @@ function B(n::Int,X; Y0= sqrt(k^2*a12^2-X^2), θin = 0.0)
     return Binf + Bfull(n, X ;Y0=Y0, Y1=Y1, θin=θin)
 end
 
+
+θin = 0.1
+a12 =1.0
+n=1
+k=1.
+X = 0.2
 K(Y) = cos(Y*sin(θin) + n*atan2(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
 
 interval = sqrt(k^2*a12^2-X^2)..1000000
-interval1 = interval.left..1000.5
+interval1 = interval.left..1000.7
 interval2 = interval1.right..interval.right
 Ys = Fun(identity,interval)
 Y1s = Fun(identity,interval1)
@@ -33,15 +35,29 @@ Y2s = Fun(identity,interval2)
 Ks = K.(Ys)
 
 
+interval1 = 0.0..1.0
+B_app =  Fun(x -> B(0,x),interval1)
+
 sum(Ks) - sum(K.(Y1s)) - sum(K.(Y2s))
 @time 2.0*(-1.0)^n*sum(Ks)
 @time 2.0*(-1.0)^n.*hcubature(Y -> K(Y[1]), (interval.left,), (interval.right,))
-
 
 Σ = DefiniteIntegral(Chebyshev(interval))
 @time sum(Σ[i]*Ks.coefficients[i] for i in eachindex(Ks.coefficients))
 
 
+# Solving fredholm https://github.com/JuliaApproximation/ApproxFun.jl/issues/570
+d = Interval(0.0, 2.0)
+K2 = Fun((x,y) -> exp(-(x-y)), d^2)
+V = DefiniteIntegral(Chebyshev(d))[LowRankFun(K2,d^2)]
+one = Fun(x->1.0, d)
+u = (I - V)\one
+
+# Test
+x = Fun(d)
+u(0.1)-cumsum(exp(-(0.1-x))*u)(2.0) # ≈ 1
+
+# Solving simple fredholm http://juliaapproximation.github.io/ApproxFun.jl/latest/usage/equations.html#Linear-equations-1
 interval = 0.0..10.0
 α=1.0
 x = Fun(interval)

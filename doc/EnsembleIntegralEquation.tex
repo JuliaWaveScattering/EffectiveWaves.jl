@@ -140,17 +140,16 @@ then we split the integral on the right in the form
  = \chi_{\{ |X|< k a_{12}\}} \int_{-\infty}^{\infty} \chi_{\{ Y^2> k^2 a_{12}^2 - X^2\}} \ee^{\ii Y \sin\theta_\inc}
   F_{n-m}(\mathbf X,k) d Y
   \\
-  & +  \chi_{\{ |X|> k a_{12}\}} \int_{-\infty}^\infty \ee^{\ii Y \sin\theta_\inc}
-  F_{n-m}(\mathbf X,k) d Y,
+  & +  \chi_{\{ |X|> k a_{12}\}}S_{n-m}(X,k),
 \end{align*}
-which leads to
+where
 \begin{equation}
-  \int_{-\infty}^\infty \ee^{\ii Y \sin\theta_\inc}
-  F_{n-m}(\mathbf X,k) d Y = \frac{2 \ii^{n-m} \ee^{-\ii(n-m) \theta_\inc}}{\cos \theta_\inc} \ee^{\ii X \cos \theta_\inc }
+  S_n(X,k) =  \int_{-\infty}^\infty \ee^{\ii Y \sin\theta_\inc}
+  F_{n}(\mathbf X,k) d Y = \frac{2 \ii^{n} \ee^{-\ii n \theta_\inc}}{\cos \theta_\inc} \ee^{\ii X \cos \theta_\inc }
   % \int_{-\infty}^\infty \ee^{\ii y_2 k \sin\theta_\inc} \ee^{\ii (n-m) \Theta_{12}} H_{n-m}(k R_{12})d y_2
   % \\
   % + (-1)^{n-m} \int_{y_2 \in B(\bar a_{12}})} \ee^{\ii y_2 k \sin\theta_\inc} \ee^{\ii (n-m) \Theta_{12}} H_{n-m}(k R_{12})g(\|\mathbf x_1 - \mathbf x_2\|;  \s_1,\s_2) d y_2
-  + G_{n-m}(X, k),
+  + G_{n}(X, k),
 \end{equation}
 by using~\eqref{eqn:pair_correlation}, equation (B.3) from \cite{gower_reflection_2018}, and defining
 \begin{multline}
@@ -166,21 +165,30 @@ We also need the integral
   = 2(-1)^{n} \int_{\sqrt{k^2 a_{12}^2 - X^2}}^\infty \cos \left( Y \sin\theta_\inc +  n \Theta\right) H_{n}(R)( 1 + g(R/k;  \s_1,\s_2)) d Y.
 \end{multline}
 It is difficult to numerically integrate the above because the integrand tends to zero very slowly as $Y$ increases. To numerically integrate the above we use
+\begin{align}
+  & \cos \left( Y \sin\theta_\inc +  n \Theta\right) = \cos((n \pi)/2 + Y \sin(\theta_\inc)) + \mathcal O(X/Y),
+  \\
+  & H_{n}(R) =  -(-1)^{3/4} \ee^{-\ii n \pi /2} \sqrt{\frac{2}{\pi Y}} + \mathcal O(X^{3/2}/Y^{3/2}),
+\end{align}
+which we use to rewrite
 \begin{multline}
-  \cos \left( Y \sin\theta_\inc +  n \Theta\right) \sim \cos((n \pi)/2 + Y \sin(\theta_\inc))
+  B_n(X,k) = 2(-1)^{n} \int_{\sqrt{k^2 a_{12}^2 - X^2}}^{Y_1} \cos \left( Y \sin\theta_\inc +  n \Theta\right) H_{n}(R)( 1 + g(R/k;  \s_1,\s_2)) d Y
+  \\ + \frac{1 + \ii}{\sqrt{\pi Y_1} \cos(\theta_\inc)^2} \ee^{\ii  Y_1 (1 - \sin(\theta_\inc))}
+  \left[ 1 + (-1)^n \ee^{2 \ii Y_1 \sin(\theta_\inc)} (1 - \sin(\theta_\inc)) + \sin(\theta_\inc) \right] + \mathcal O(X/Y),
 \end{multline}
-
+where we assumed that $g(R/k;  \s_1,\s_2) =0$ for $Y>Y_1$.
 
 Written in full the governing equation~\eqref{eqn:ensemAsystem} now becomes
 \begin{multline}
  \nfrac {} \sum_{n=-\infty}^\infty \int_\regS
-  \int_{X> -x} \A n (X/k + x/k, \s_2) K(X,k) dX
+  \int_{X> 0} \A n (X/k, \s_2) K(X - x,k) dX
   d\s_2^n
 \\
 +  k^2 \A m (x/k, \s_1)   + k^2  \ee^{\ii x \cos \theta_\inc} \ee^{\ii m ( \pi/2 - \theta_\inc )}
    = 0, \quad \text{for} \quad x_1 >0,
   \label{eqn:ensemAsystem2}
 \end{multline}
+where I swapped the integration variable $X \to X - x$.
 % Uncomment to see in full
 % \begin{align*}
 %    \frac{k^2}{\ee^{\ii y \sin\theta_\inc}} & \int_{\stackrel{x_2 > 0 }{\|\mathbf x_2-\mathbf x_1 \| > a_{12}}} \A n (x_2, \s_2) \ee^{\ii y_2 k \sin\theta_\inc} F_{n-m}(k\mathbf x_2 - k \mathbf x_1,k) d \mathbf x_2
@@ -195,11 +203,81 @@ Written in full the governing equation~\eqref{eqn:ensemAsystem} now becomes
 % \end{align*}
 where
 \begin{multline}
-K(X,k) =   \chi_{\{ |X|> k a_{12}\}} \left [G_{n-m}(X, k) + \frac{2 \ii^{n-m} \ee^{-\ii(n-m) \theta_\inc}}{\cos \theta_\inc} \ee^{\ii X \cos \theta_\inc } \right ]
-\\ + \chi_{\{ |X|< k a_{12}\}}   B_{n-m}(X,k)
+K(X-x,k) =   \chi_{\{ |X-x|> k a_{12}\}}  S_{n-m}(X-x,k)
+% \left [G_{n-m}(X-x, k) + \frac{2 \ii^{n-m} \ee^{-\ii(n-m) \theta_\inc}}{\cos \theta_\inc} \ee^{\ii (X - x) \cos \theta_\inc } \right ]
+% \\
+ + \chi_{\{ |X - x|< k a_{12}\}}   B_{n-m}(X- x,k).
 \label{eqn:kernel}
 \end{multline}
+Numerically it is better to substitute in the above to reach
+\begin{multline}
+ 2 \nfrac {}\frac{ \ee^{-\ii x \cos \theta_\inc } }{ \cos \theta_\inc} \sum_{n=-\infty}^\infty \int_\regS
+  \int_{\stackrel{|X-x|> k a_{12}}{X>0}} \A n (X/k, \s_2)  \ii^{n-m} \ee^{-\ii(n-m) \theta_\inc} \ee^{\ii X \cos \theta_\inc } dX
+  d\s_2^n
+  \\
+ + \nfrac {} \sum_{n=-\infty}^\infty \int_\regS
+  \int_{\stackrel{|X-x|> k a_{12}}{X>0}} \A n (X/k, \s_2) G_{n-m}(X-x, k) dX
+  d\s_2^n
+  \\
+  +  \nfrac {} \sum_{n=-\infty}^\infty \int_\regS
+    \int_{\stackrel{|X-x| < k a_{12}}{X>0}} \A n (X/k, \s_2) B_{n-m}(X- x,k) dX
+    d\s_2^n
+\\
++  k^2 \A m (x/k, \s_1)   + k^2  \ee^{\ii x \cos \theta_\inc} \ee^{\ii m ( \pi/2 - \theta_\inc )}
+   = 0, \quad \text{for} \quad x_1 >0,
+  \label{eqn:ensemAsystem3}
+\end{multline}
 
+
+To start, by solving the single species and consider only whole correction pair-correlation. After trying methods based on Chebyshev and function approximation, I've decided they are too computationally intense. For this reason I'm going with a simpler discretization: let $\A n^j = \A n (X_j/k)$ where $X_j/k = j h$ for $j=0,\ldots,N$. A regular spaced mesh is best because of the convolution.
+Then I define:
+\begin{equation}
+  \boldsymbol \Ab_n = \begin{bmatrix}
+    \A n^0
+    \\
+    \A n^1
+    \\
+    \vdots
+    \\
+    \A n^J
+\end{bmatrix}, \quad
+\boldsymbol \Ab_n = \begin{bmatrix}
+  \A n^0
+  \\
+  \A n^1
+  \\
+  \vdots
+  \\
+  \A n^J
+\end{bmatrix},
+\end{equation}
+
+\begin{multline}
+  \nfrac {}\ee^{-\ii x \cos \theta_\inc } \sum_{n=-\infty}^\infty
+  \int_{X>0} \A n (X/k) S_{n-m}(X) dX
+  d\s_2^n
+  \\
+  +  \nfrac {} \sum_{n=-\infty}^\infty
+    \int_{\stackrel{|X-x| < k a_{12}}{X>0}} \A n (X/k) (B_{n-m}(X- x,k) - S_{n-m}(X-x) )dX
+    d\s_2^n
+\\
++  k^2 \A m (x/k)   + k^2  \ee^{\ii x \cos \theta_\inc} \ee^{\ii m ( \pi/2 - \theta_\inc )}
+   = 0, \quad \text{for} \quad x_1 >0,
+  \label{eqn:ensemAsystem4}
+\end{multline}
+\begin{multline}
+  \nfrac {}\ee^{-\ii x \cos \theta_\inc } \sum_{n=-\infty}^\infty
+  \int_{X>0} \scatZ_n \A n (X/k) S_{n-m}(X) dX
+  \\
+  +  \nfrac {} \sum_{n=-\infty}^\infty
+    \int_{\stackrel{|X-x| < k a_{12}}{X>0}} \scatZ_n \A n (X/k) (B_{n-m}(X- x,k) - S_{n-m}(X-x) )dX
+    d\s_2^n
+\\
++  k^2 \A m (x/k)   + k^2  \ee^{\ii x \cos \theta_\inc} \ee^{\ii m ( \pi/2 - \theta_\inc )}
+   = 0, \quad \text{for} \quad x_1 >0,
+  \label{eqn:ensemAsystem4}
+\end{multline}
+then we define the operators
 
 \printbibliography
 
