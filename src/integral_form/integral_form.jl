@@ -1,4 +1,6 @@
 using ApproxFun
+using OffsetArrays
+using EffectiveWaves
 
 function integrate_B_full(n::Int,X, Y0; Y1 =1000000, θin = 0.0)
     K(Y) = cos(Y*sin(θin) + n*atan2(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
@@ -6,9 +8,9 @@ function integrate_B_full(n::Int,X, Y0; Y1 =1000000, θin = 0.0)
     return 2.0*(-1.0)^n*sum(Fun(K,Y0..Y1))
 end
 
-# assuming for now whole-correction
-function S(n::Int,X; θin = 0.0)
-    2.0*(im)^n*exp(-im*n*θin)*exp(im*X*cos(θin))/cos(θin)
+# for only whole-correction, this doesn't involve an integral
+function integrate_S(n::Int,X; θin = 0.0)
+    2.0*(im^Float64(n))*exp(-im*n*θin)*exp(im*X*cos(θin))/cos(θin)
 end
 
 # Y0 = sqrt(k^a12^2 - X^2)
@@ -21,78 +23,78 @@ function integrate_B(n::Int,X, Y0; θin = 0.0)
     return Binf + integrate_B_full(n, X, Y0; Y1=Y1, θin=θin)
 end
 
+
+# "pre-calculate a matrix of Zn's"
+# function Zn_matrix(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; hankel_order = 3) where T <: Number
+#     Zs = OffsetArray{Complex{Float64}}(1:length(species), -hankel_order:hankel_order)
+#     for i = 1:length(species), n = 0:hankel_order
+#         Zs[i,n] = Zn(ω,species[i],medium,n)
+#         Zs[i,-n] = Zs[i,n]
+#     end
+#     return Zs
+# end
+
 function integral_form(ks)
 
-    a =1.0
-    θin = 0.1
-    n=1
-    k=1.
-    X = 0.2
+    medium = Medium(1.0,1.0+0.0im)
+    specie = Specie(ρ=0.5,r=0.4, c=0.8, volfrac=0.2)
 
-    θin = 0.3
+    M = 3;
+    J = 200; # choose an even number for Integration schemes
+    k=1.0;
+    ω = real(k*medium.c)
+    a=0.2;
+    θin = 0.0
+    h = a*k/10.0;
 
-    d = Interval(0.0, 10.0)
-    xs = Fun(d)
-    test_fun = exp(-xs)
-    S_fun = S(0,xs; θin = 0.3)
-    sum(S_fun*test_fun) ≈ 2*(exp(10.*(im*cos(θin)-1))-1.0)/(cos(θin)*(im*cos(θin)-1.0))
+    p = Int(floor(a*k/h))
+    x = OffsetArray{Float64}(0:J)
+    x[0:J] = (0:J)*h
+    X = OffsetArray{Float64}(-J:J)
+    X[-J:J] = (-J:J)*h
 
-    Sop = DefiniteIntegral(Chebyshev(d))[S_fun]
-    Sop*test_fun ≈ 2*(exp(10.*(im*cos(θin)-1))-1.0)/(cos(θin)*(im*cos(θin)-1.0))
+    σ = OffsetArray{Complex{Float64}}(0:J)
+    # Simpson's integration
+    for j = 0:J
+        # σ[j] = isodd(j) ? 4.0 : 2.0
+        σ[j] = 1.0
+    end
+    # σ[0] = σ[J] = 1.0
+    # σ = σ*h/3.0
+    σ = σ*h
 
-    x1 = Fun(Interval(0.0, 1.0))
-    @time f1 = Fun( x-> exp(-x), 0.0..1.0)
-    @time f3 = Fun( x-> (x>1.0) ? 0.0 : exp(-x), 0.0..10.0)
-    f2 = exp(-xs)
+    Z = OffsetArray{Complex{Float64}}(-M:M)
+    for m = 0:M
+        Z[m] = Zn(ω,specie,medium,m)
+        Z[-m] = Z[m]
+    end
 
-    f4 = f1+f2
+    B = OffsetArray{Complex{Float64}}(-p:p, -2M:2M)
+    for j = -p:p, m = -2M:2M
+        B[j,m] = integrate_B(m, X[j], sqrt(a^2*k^2 -X[j]^2); θin = θin)
+    end
+    S = OffsetArray{Complex{Float64}}(-p:J, -2M:2M)
+    for j = -p:J, m = -2M:2M
+        S[j,m] = integrate_S(m, X[j]; θin = θin)
+    end
 
-    f1(0.3)+f2(0.3)
-    2*f4(0.3)
+    function MM(l,j,m,n)
+        P = exp(-im*x[l]*cos(θin))*σ[j]*S[j,n-m]
+        Q = (abs(j-l)<=p) ? σ[j]*(B[j-l,n-m] - S[j-l,n-m]) : 0.0+0.0im
+        specie.num_density*Z[n]*(P + Q) + k^2*( (m==n && j==l) ? 1.0+0.0im : 0.0+0.0im)
+    end
 
-    f1(1.3)+f2(1.3)
-    f4(1.3)
+    MM_mat = [MM(l,j,m,n) for  j=0:J, m=-M:M, l=0:J, n=-M:M]
+    len = (J + 1) * (2M + 1)
+    MM_mat = reshape(MM_mat, (len, len))
 
-    dd_fun = Fun((x,X) -> (abs(X-x) < 1.0) ? S_fun(0,X-x) :0.0+0.0im, d^2,10)
+    b = [ -k^2*exp(im*X[j]*cos(θin)*exp(im*m*(pi/2.0 - θin))) for j = 0:J, m = -M:M]
+    b = reshape(b, (len))
 
-    dd_fun = Fun((x,X) -> S_fun(X), d^2,10)
+    A = MM_mat\b
+    A = reshape(A, (J + 1, 2M+1))
 
-    d1 = 0.0..1.0
-    B_fun = Fun(x -> integrate_B(0,x, sqrt(1.0 - x^2)), d1,40)#450)
-    S_fun = S(0,xs)
-
-    BS_lowfun = LowRankFun((x,X) -> (abs(X-x) < 1.0) ? B_fun(X-x) - S_fun(X-x) : 0.0+0.0im, d^2)
-    BS_lowfun = LowRankFun((x,X) -> (abs(X-x) < 1.0) ? B_fun(X-x) - S_fun(X-x) : 0.0+0.0im, d^2)
-    BS_fun = Fun((x,X) -> (abs(X-x) < 1.0) ? B_fun(X-x) - S_fun(X-x) : 0.0+0.0im, d^2,100000)
-
-    # r1 = 10.0*rand(10);
-    # r2 = 10.0*rand(10);
-    #
-    # m = mean( abs((abs(X-x) < 1.0) ? B_fun(X-x) - S_fun(X-x) : 0.0+0.0im)  for x in r1, X in r2)
-    # [ abs( BS_fun(x,X) - ((abs(X-x) < 1.0) ? B_fun(X-x) - S_fun(X-x) : 0.0+0.0im))  for x in r1, X in r2]
-    # [BS_fun(x,X) for x in r1, X in r2]
-
-    # Y0 = sqrt(k^a12^2 - (X-x)^2)
-    BS_op = DefiniteIntegral(Legendre(d))[
-        BS_fun
-    ]
-    # Y0 = sqrt(k^a12^2 - (X-x)^2)
-    BS_op = DefiniteIntegral(Chebyshev(d))[
-        LowRankFun((x,X) -> (abs(X-x) < 1.0) ? B_fun(X-x) - S_fun(X-x) : 0.0+0.0im, d^2)
-    ]
-    BS_op = DefiniteIntegral(Legendre(d))[
-        LowRankFun((x,X) -> (abs(X-x) < 1.0) ? cos(pi*(X-x)/2.0): 0.0+0.0im, d^2)
-    ]
-    BS_op = DefiniteIntegral(Legendre(d))[
-        Fun((x,X) -> cos(pi*(X-x)/2.0), d^2,100)
-    ]
-
-
-    one = Fun(x->1.0, d)
-    u = (I - V)\one
-
-    # Test
-    x = Fun(d)
-    u(0.1)-cumsum(exp(-(0.1-x))*u)(2.0) # ≈ 1
-
+    using Plots; pyplot()
+    plot(collect(x),[real(A[:,M+1]),imag(A[:,M+1])])
+    plot(collect(x),abs.(A[:,M+1]))
 end

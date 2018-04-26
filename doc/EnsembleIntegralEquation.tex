@@ -92,17 +92,19 @@ and angle of incidence $\theta_\inc$ from the $x$-axis, exciting a material occu
 
 Combining equations (3.6) and the quasicrystalline approximation (3.10) from \parencite{gower_reflection_2018}, we arrive at
 \begin{multline}
-\nfrac {} \sum_{n=-\infty}^\infty \int_\regS \int_{\stackrel{x_2 > 0 }{\|\mathbf x_1 - \mathbf x_2 \| > a_{12}}}  \A n (\mathbf x_2, \s_2) F_{n-m}(k\mathbf x_2 - k \mathbf x_1,k)  d \mathbf x_2 d\s_2^n
+ \sum_{n=-\infty}^\infty \int_\regS \int_{\stackrel{x_2 > 0 }{\|\mathbf x_1 - \mathbf x_2 \| > a_{12}}}  \A n (\mathbf x_2, \s_2) F_{n-m}(k\mathbf x_2 - k \mathbf x_1,k)  d \mathbf x_2 d\s_2^n
 \\
 +  \A m (\mathbf x_1, \s_1) + \ee^{\ii \mathbf x_1 \cdot \mathbf k } \ee^{\ii m ( \pi/2 - \theta_\inc )}
    = 0, \quad \text{for} \quad x_1 >0,
   \label{eqn:ensemAsystem}
 \end{multline}
 where
-\begin{equation}
-  F_{n}(\mathbf X,k) = (-1)^{n}\ee^{\ii n \Theta} H_{n}(R)( 1 + g(R/k;  \s_1,\s_2)),
+\begin{align}
+  & d\s_2^n = \nfrac {} \scatZ_n (\s_2) p(\s_2) d\s_2,
+  \\
+  & F_{n}(\mathbf X,k) = (-1)^{n}\ee^{\ii n \Theta} H_{n}(R)( 1 + g(R/k;  \s_1,\s_2)),
   \label{eqn:integral_kernel}
-\end{equation}
+\end{align}
 with $(R,\Theta)$ being the polar coordinates of $\mathbf X = (X,Y)$,
 $p(\s_1)$ is the probability density function of picking a species in $\regS$ and we assumed statistical independence $p(\s_1, \s_2) = p(\s_1)p(\s_2)$. The function $g(R; \s_1,\s_2)$ is the pair-correlation, assuming $R$ is the distance between two particles, one centred of type $\s_1$ and another of type $\s_2$. If we were to use whole correction, then $g(R; \s_1,\s_2) = 0$.
 For most random systems we expect that rapidly $g(R; \s_1,\s_2) \to 0$ as $R \to \infty$, so we will assume
@@ -180,7 +182,7 @@ where we assumed that $g(R/k;  \s_1,\s_2) =0$ for $Y>Y_1$.
 
 Written in full the governing equation~\eqref{eqn:ensemAsystem} now becomes
 \begin{multline}
- \nfrac {} \sum_{n=-\infty}^\infty \int_\regS
+ \sum_{n=-\infty}^\infty \int_\regS
   \int_{X> 0} \A n (X/k, \s_2) K(X - x,k) dX
   d\s_2^n
 \\
@@ -211,15 +213,15 @@ K(X-x,k) =   \chi_{\{ |X-x|> k a_{12}\}}  S_{n-m}(X-x,k)
 \end{multline}
 Numerically it is better to substitute in the above to reach
 \begin{multline}
- 2 \nfrac {}\frac{ \ee^{-\ii x \cos \theta_\inc } }{ \cos \theta_\inc} \sum_{n=-\infty}^\infty \int_\regS
+ 2 \frac{ \ee^{-\ii x \cos \theta_\inc } }{ \cos \theta_\inc} \sum_{n=-\infty}^\infty \int_\regS
   \int_{\stackrel{|X-x|> k a_{12}}{X>0}} \A n (X/k, \s_2)  \ii^{n-m} \ee^{-\ii(n-m) \theta_\inc} \ee^{\ii X \cos \theta_\inc } dX
   d\s_2^n
   \\
- + \nfrac {} \sum_{n=-\infty}^\infty \int_\regS
+ +  \sum_{n=-\infty}^\infty \int_\regS
   \int_{\stackrel{|X-x|> k a_{12}}{X>0}} \A n (X/k, \s_2) G_{n-m}(X-x, k) dX
   d\s_2^n
   \\
-  +  \nfrac {} \sum_{n=-\infty}^\infty \int_\regS
+  +  \sum_{n=-\infty}^\infty \int_\regS
     \int_{\stackrel{|X-x| < k a_{12}}{X>0}} \A n (X/k, \s_2) B_{n-m}(X- x,k) dX
     d\s_2^n
 \\
@@ -229,35 +231,18 @@ Numerically it is better to substitute in the above to reach
 \end{multline}
 
 
-To start, by solving the single species and consider only whole correction pair-correlation. After trying methods based on Chebyshev and function approximation, I've decided they are too computationally intense. For this reason I'm going with a simpler discretization: let $\A n^j = \A n (X_j/k)$ where $X_j/k = j h$ for $j=0,\ldots,N$. A regular spaced mesh is best because of the convolution.
-Then I define:
+To start, by solving the single species and consider only whole correction pair-correlation. After trying methods based on Chebyshev and function approximation, I've decided they are too computationally intense. For this reason I'm going with a simpler discretization: let $\A n^j = \A n (X_j/k)$ where $X_j = j h$ for $j=0,\ldots,N$. A regular spaced mesh is best because of the convolution. For the other fields we use, for example, $S_n^j = S_n(j h)$. Then we will use the vectors:
 \begin{equation}
-  \boldsymbol \Ab_n = \begin{bmatrix}
-    \A n^0
-    \\
-    \A n^1
-    \\
-    \vdots
-    \\
-    \A n^J
-\end{bmatrix}, \quad
-\boldsymbol \Ab_n = \begin{bmatrix}
-  \A n^0
-  \\
-  \A n^1
-  \\
-  \vdots
-  \\
-  \A n^J
-\end{bmatrix},
+  \vec \Ab_n = (\Ab_n^j)_j, \quad \vec S_n = (S_n^j)_j, \quad \vec B_n = (B_n^j)_j, \quad \vec b_n = - k^2(\ee^{ \ii j h \cos \theta_\inc} \ee^{\ii n ( \pi/2 - \theta_\inc )})_j.
 \end{equation}
 
+
 \begin{multline}
-  \nfrac {}\ee^{-\ii x \cos \theta_\inc } \sum_{n=-\infty}^\infty
+  \ee^{-\ii x \cos \theta_\inc } \sum_{n=-\infty}^\infty
   \int_{X>0} \A n (X/k) S_{n-m}(X) dX
   d\s_2^n
   \\
-  +  \nfrac {} \sum_{n=-\infty}^\infty
+  +  \sum_{n=-\infty}^\infty
     \int_{\stackrel{|X-x| < k a_{12}}{X>0}} \A n (X/k) (B_{n-m}(X- x,k) - S_{n-m}(X-x) )dX
     d\s_2^n
 \\
@@ -266,18 +251,32 @@ Then I define:
   \label{eqn:ensemAsystem4}
 \end{multline}
 \begin{multline}
-  \nfrac {}\ee^{-\ii x \cos \theta_\inc } \sum_{n=-\infty}^\infty
-  \int_{X>0} \scatZ_n \A n (X/k) S_{n-m}(X) dX
+  \nfrac {} \ee^{-\ii x_\ell \cos \theta_\inc } \sum_{n,j \geq 0}  \scatZ_n  \sigma_j \Ab_n^j S_{n-m}^j
   \\
-  +  \nfrac {} \sum_{n=-\infty}^\infty
-    \int_{\stackrel{|X-x| < k a_{12}}{X>0}} \scatZ_n \A n (X/k) (B_{n-m}(X- x,k) - S_{n-m}(X-x) )dX
-    d\s_2^n
-\\
-+  k^2 \A m (x/k)   + k^2  \ee^{\ii x \cos \theta_\inc} \ee^{\ii m ( \pi/2 - \theta_\inc )}
-   = 0, \quad \text{for} \quad x_1 >0,
-  \label{eqn:ensemAsystem4}
+  +  \nfrac {}  \sum_{n, j \geq 0, |j-\ell|\leq p} \scatZ_n  \sigma_j \Ab_n^j (B_{n-m}^{j-\ell} - S_{n-m}^{j -\ell} )
++  k^2  \Ab_m^\ell
+   =  b_m^\ell,
+  \label{eqn:ensemAsystemN}
 \end{multline}
-then we define the operators
+for $\ell >0$, where $p = \lfloor k a_{12}/h \rfloor$, and $\sigma_j$ repesents the discrete integral. In matrix form,
+\begin{equation}
+  \nfrac {} \sum_{n}  \scatZ_n ( \vec P_{n-m} + \vec Q_{n-m}) \vec \Ab_n
++  k^2 \vec I \vec \Ab_m  =  \vec b_m,
+  \label{eqn:ensemAsystemN2}
+\end{equation}
+where we used the matrices:
+\begin{equation}
+  P_{n-m}^{\ell j} =  \ee^{-\ii x_\ell \cos \theta_\inc } \sigma_j S_{n-m}^j, \quad Q_{n-m}^{\ell j} = \sigma_j (B_{n-m}^{j-\ell} - S_{n-m}^{j -\ell} ) \chi_{\{|j-\ell| \leq p\}},
+\end{equation}
+where $j,\ell = 0,1, \ldots, N$. Finally in block-matrix form: $\vec M \vec \Ab  =  \vec b$, where
+\begin{align}
+&\vec M_{mn} = \nfrac {} \scatZ_n ( \vec P_{n-m} + \vec Q_{n-m})+  k^2 \delta_{mn} \vec I,
+\\
+& \vec \Ab = [ \vec \Ab_{-M}, \vec \Ab_{1-M}, \cdots, \vec \Ab_{M-1}, \vec \Ab_{M}]^T,
+\\
+& \vec b = [ \vec b_{-M}, \vec b_{1-M}, \cdots, \vec b_{M-1}, \vec b_{M}]^T.
+  \label{eqn:ensemAsystemB}
+\end{align}
 
 \printbibliography
 
