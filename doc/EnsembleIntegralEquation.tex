@@ -142,16 +142,21 @@ then we split the integral on the right in the form
  = \chi_{\{ |X|< k a_{12}\}} B_{n-m}(X,k)
    +  \chi_{\{ |X|> k a_{12}\}}S_{n-m}(X,k),
 \end{align*}
-where
+where by using~\eqref{eqn:pair_correlation}, equation (B.3) from \cite{gower_reflection_2018},
 \begin{equation}
   S_n(X,k) =  \int_{-\infty}^\infty \ee^{\ii Y \sin\theta_\inc}
-  F_{n}(\mathbf X,k) d Y = \frac{2 \ii^{n} \ee^{-\ii n \theta_\inc}}{\cos \theta_\inc} \ee^{\ii X \cos \theta_\inc }
+  F_{n}(\mathbf X,k) d Y =
+G_{n}(X, k) +
+\frac{2}{\cos \theta_\inc}
+\begin{cases}
+  \ii^{n} \ee^{-\ii n \theta_\inc} \ee^{\ii X \cos \theta_\inc } & X \geq 0,\\
+  (-\ii)^{n} \ee^{\ii n \theta_\inc} \ee^{-\ii X \cos \theta_\inc } & X < 0,
+\end{cases}
   % \int_{-\infty}^\infty \ee^{\ii y_2 k \sin\theta_\inc} \ee^{\ii (n-m) \Theta_{12}} H_{n-m}(k R_{12})d y_2
   % \\
   % + (-1)^{n-m} \int_{y_2 \in B(\bar a_{12}})} \ee^{\ii y_2 k \sin\theta_\inc} \ee^{\ii (n-m) \Theta_{12}} H_{n-m}(k R_{12})g(\|\mathbf x_1 - \mathbf x_2\|;  \s_1,\s_2) d y_2
-  + G_{n}(X, k),
 \end{equation}
-by using~\eqref{eqn:pair_correlation}, equation (B.3) from \cite{gower_reflection_2018}, and defining
+ with
 \begin{multline}
 G_n(X, k) = (-1)^{n} \int_{-\sqrt{k^2 \bar a_{12}^2 - X^2}}^{\sqrt{k^2\bar a_{12}^2 - X^2}} \ee^{\ii Y \sin\theta_\inc}
   \ee^{\ii n \Theta} H_{n}(R)g(R/k;  \s_1,\s_2) d Y
@@ -210,24 +215,19 @@ K(X-x,k) =   \chi_{\{ |X-x|> k a_{12}\}}  S_{n-m}(X-x,k)
 \label{eqn:kernel}
 \end{equation}
 Numerically it is better to substitute in the above to reach
-\begin{multline}
- 2 \frac{ \ee^{-\ii x \cos \theta_\inc } }{ \cos \theta_\inc} \sum_{n=-\infty}^\infty \int_\regS
-  \int_{\stackrel{|X-x|> k a_{12}}{X>0}} \A n (X/k, \s_2)  \ii^{n-m} \ee^{-\ii(n-m) \theta_\inc} \ee^{\ii X \cos \theta_\inc } dX
-  d\s_2^n
-  \\
- +  \sum_{n=-\infty}^\infty \int_\regS
-  \int_{\stackrel{|X-x|> k a_{12}}{X>0}} \A n (X/k, \s_2) G_{n-m}(X-x, k) dX
-  d\s_2^n
-  \\
-  +  \sum_{n=-\infty}^\infty \int_\regS
-    \int_{\stackrel{|X-x| < k a_{12}}{X>0}} \A n (X/k, \s_2) B_{n-m}(X- x,k) dX
-    d\s_2^n
-\\
-+  k^2 \A m (x/k, \s_1)   + k^2  \ee^{\ii x \cos \theta_\inc} \ee^{\ii m ( \pi/2 - \theta_\inc )}
-   = 0, \quad \text{for} \quad x_1 >0,
-  \label{eqn:ensemAsystem3}
-\end{multline}
-
+% \begin{multline}
+%   \sum_{n=-\infty}^\infty \int_\regS
+%   \int_{\stackrel{|X-x|> k a_{12}}{X>0}} \A n (X/k, \s_2) S_{n-m}(X-x, k) dX
+%   d\s_2^n
+%   \\
+%   +  \sum_{n=-\infty}^\infty \int_\regS
+%     \int_{\stackrel{|X-x| < k a_{12}}{X>0}} \A n (X/k, \s_2) B_{n-m}(X- x,k) dX
+%     d\s_2^n
+% \\
+% +  k^2 \A m (x/k, \s_1)   + k^2  \ee^{\ii x \cos \theta_\inc} \ee^{\ii m ( \pi/2 - \theta_\inc )}
+%    = 0, \quad \text{for} \quad x_1 >0,
+%   \label{eqn:ensemAsystem3}
+% \end{multline}
 
 To start, by solving the single species and consider only whole correction pair-correlation. After trying methods based on Chebyshev and function approximation, I've decided they are too computationally intense. For this reason I'm going with a simpler discretization: let $\A n^j = \A n (x_j/k)$ where $x_j = j h$ for $j=0,\ldots,N$. A regular spaced mesh is best because of the convolution. For the other fields we use, for example, $S_n^j = S_n(j h)$. Then we will use the vectors:
 \begin{equation}
@@ -236,8 +236,8 @@ To start, by solving the single species and consider only whole correction pair-
 
 
 \begin{multline}
-  \ee^{-\ii x \cos \theta_\inc } \sum_{n=-\infty}^\infty
-  \int_{X>0} \A n (X/k) S_{n-m}(X) dX
+  \sum_{n=-\infty}^\infty
+  \int_{X>0} \A n (X/k) S_{n-m}(X-x) dX
   d\s_2^n
   \\
   +  \sum_{n=-\infty}^\infty
@@ -249,7 +249,7 @@ To start, by solving the single species and consider only whole correction pair-
   \label{eqn:ensemAsystem4}
 \end{multline}
 \begin{equation}
-  \nfrac {} \sum_{n,j \geq 0}  \scatZ_n  \sigma_j  \left ( \ee^{-\ii x_\ell \cos \theta_\inc } S_{n-m}^j
+  \nfrac {} \sum_{n,j \geq 0}  \scatZ_n  \sigma_j  \left ( S_{n-m}^{j-\ell}
   +  (B_{n-m}^{j-\ell} - S_{n-m}^{j -\ell} ) \chi_{\{|j-\ell|\leq p\}} \right) \Ab_n^j+  k^2  \Ab_m^\ell  =  b_m^\ell,
   \label{eqn:ensemAsystemN}
 \end{equation}
@@ -261,7 +261,7 @@ for $\ell >0$, where $p = \lfloor k a_{12}/h \rfloor$, and $\sigma_j$ repesents 
 \end{equation}
 where we used the matrices:
 \begin{equation}
-  P_{n}^{\ell j} =  \ee^{-\ii x_\ell \cos \theta_\inc } \sigma_j S_{n}^j, \quad Q_{n}^{\ell j} = \sigma_j (B_{n}^{j-\ell} - S_{n}^{j -\ell} ) \chi_{\{|j-\ell| \leq p\}},
+  P_{n}^{\ell j} =  \sigma_j S_{n}^{j-\ell} , \quad Q_{n}^{\ell j} = \sigma_j (B_{n}^{j-\ell} - S_{n}^{j -\ell} ) \chi_{\{|j-\ell| \leq p\}},
 \end{equation}
 where $j,\ell = 0,1, \ldots, N$. Finally in block-matrix form: $\vec M \vec \Ab  =  \vec b$, where
 \begin{align}
