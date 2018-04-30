@@ -2,15 +2,22 @@
 module EffectiveWaves
 
 export  Specie, Medium, volume_fraction, Zn, p_speed, maximum_hankel_order,
-        far_field_pattern, pair_field_pattern, diff_far_field_pattern,
-        wavenumber, reflection_coefficient, transmission_angle, transmission_scattering_coefficients,
-        effective_medium, reflection_coefficient_halfspace,
-        reflection_coefficient_low_volfrac, wavenumber_low_volfrac, wavenumber_very_low_volfrac,
-        wavenumber_challis, one_species_low_wavenumber,
-        two_species_approx_wavenumber,
-        opt_methods, optimal_species,
-        gray_square!, gray_square,
-        Brick, IronArmco, LeadAnnealed, RubberGum, FusedSilica, GlassPyrex,
+        far_field_pattern, pair_field_pattern, diff_far_field_pattern
+
+export  trap_scheme, simpson_scheme
+
+export  wavenumber, reflection_coefficient, transmission_angle,
+        transmission_scattering_coefficients, transmission_scattering_coefficients_field
+
+export  effective_medium, reflection_coefficient_halfspace,
+        reflection_coefficient_low_volfrac, wavenumber_low_volfrac, wavenumber_very_low_volfrac
+
+export  wavenumber_challis, one_species_low_wavenumber,
+        two_species_approx_wavenumber
+
+export  opt_methods, optimal_species, gray_square!, gray_square
+
+export  Brick, IronArmco, LeadAnnealed, RubberGum, FusedSilica, GlassPyrex,
         ClayRock, WaterDistilled, Glycerol, Hexadecane, Acetone, Benzene,
         Nitrobenzene, OliveOil, SodiumNitrate, AirDry,
         LimeStone, Clay, Calcite, SilicaQuartz
@@ -19,8 +26,10 @@ import Base.isequal, Base.(==)
 import SpecialFunctions: besselj, hankelh1
 
 try using BlackBoxOptim end
+
 using Optim
 using OffsetArrays
+using ApproxFun
 
 # using RecipesBase # Have not really needed yet
 
@@ -29,6 +38,8 @@ using OffsetArrays
 include("plot/graphics.jl")
 include("particle.jl")
 include("far_fields.jl")
+
+include("integral_form/numerical_integration.jl")
 
 include("wavenumbers.jl")
 include("low_frequency.jl")

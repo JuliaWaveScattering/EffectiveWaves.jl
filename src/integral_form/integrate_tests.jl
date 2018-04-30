@@ -1,63 +1,68 @@
 # tests the values of the integrand against results from the Mathematica file integrate_hankels.nb, which used no approximations.
 function test_integrad()
 
-    # math was produced by Mathematica
-    math00 = [172.31259187840652, 143.34097100449316, 172.31259187840536]
-
     h=0.02; max_x=2.0;
     i1 = Int(round(1/h)) # for x1 = 1
     i2 = Int(round(2/h)) # for x1 = 2
 
     θin=0.; M=0; n=0;
-    (x, integrand_quad) = check_integrand(θin,M; max_x = max_x, h = h)
-    julia00 = [sum(abs.(integrand_quad[i,M+1,:,M+1+n])) for i in [1,1+i1,1+i2]]
-    maximum(1.0 .- julia00./math00) < 1e-6
+    J = Int(round(max_x/h)) # choose an even number for Integration schemes
+    x = OffsetArray((0:J).*h, 0:J)
+
+    # math was produced by Mathematica
+    math00 = [172.31259187840652, 143.34097100449316, 172.31259187840536]
+    intergrand_quad = intergrand_kernel(x; θin=θin, M=M, num_coefs = 5000);
+    julia00 = [sum(abs.(intergrand_quad[i,M+1,:,M+1+n])) for i in [1,1+i1,1+i2]];
+    maximum(abs.(1.0 .- julia00./math00)) < 1e-6
 
 
     math0p50 = [192.61985415285892, 155.98244729650008, 192.61985415285886]
     θin=0.5;
-    (x, integrand_quad) = check_integrand(θin,M; max_x = max_x, h = h)
-    julia0p50 = [sum(abs.(integrand_quad[i,M+1,:,M+1+n])) for i in [1,1+i1,1+i2]]
-    maximum(1.0 .- julia0p50./math0p50) < 3e-6
+    intergrand_quad = intergrand_kernel(x; θin=θin, M=M, num_coefs = 10000);
+    julia0p50 = [sum(abs.(intergrand_quad[i,M+1,:,M+1+n])) for i in [1,1+i1,1+i2]];
+    maximum(abs.(1.0 .- julia0p50./math0p50)) < 3e-6
 
     math0p32 = [241.5144625759003, 211.13367934660897, 181.54133990599098]
     θin=0.3; M=2; n=2;
-    (x, integrand_quad) = check_integrand(θin,M; max_x = max_x, h = h)
-    julia0p32 = [sum(abs.(integrand_quad[i,M+1,:,M+1+n])) for i in [1,1+i1,1+i2]]
-    maximum(1.0 .- julia0p32./math0p32) < 3e-6
+    intergrand_quad = intergrand_kernel(x; θin=θin, M=M, num_coefs = 5000);
+    julia0p32 = [sum(abs.(intergrand_quad[i,M+1,:,M+1+n])) for i in [1,1+i1,1+i2]];
+    maximum(abs.(1.0 .- julia0p32./math0p32)) < 4e-6
 
 end
 
+# ints = [ check_integration(1.0+1.0im; h = 1./n) for n=10:30:310]
 
-# calculates the values of the integrand
-function check_integrand(θin::Float64,M::Int; max_x = 2.0, h = 0.02)
-    k=1.0; a=1.0;
+function test_check_integration()
+#from Mathematics, had several errors when running
+math = [
+        [65.0544 - 146.891im, 24.1498 - 8.37225im, -5.10012 + 3.74221im
+            , 0.940428 - 3.4201im, 7.25312 - 0.0534466im, 22.9058 + 38.434im, -49.5574 + 92.4377im]
+        ,[-32.7224 + 1.52201im, -12.033 - 16.2499im, 5.93884 - 10.8663im
+            , 8.51838 + 3.68509im, -4.94285 + 9.32462im, -12.0994 - 5.48456im, 3.6755 - 13.9906im]
+        ,[-9.82076 - 18.6418im, 10.2188 - 12.2782im, 11.8699 + 5.34705im
+            , -2.698 + 12.0431im, -13.1158 - 0.218682im, -2.92199 - 13.8296im, 12.9993 - 6.4169im]
+     ]
+#from julia
+using JLD
+using Plots; pyplot()
+ints =  first(values(load("integrated_As.jld")))
+data = [ [ints[i][j][k] for i in eachindex(ints)] for j=1:3, k=1:7];
+# i=2;j=3;k=5; ints[i][j][k] == data[j,k][i]
+# x = 0. => j = 1
+M = 3;
 
-    # discretization parameters
-    J = Int(round(max_x/h)) # choose an even number for Integration schemes
+hs =  [ 1./n for n=10:30:310]
+j = 3
+ plot()
+ for k=1:7
+     plot!(hs[4:end], abs.(data[j,k][4:end]), label = "m = $(k - M - 1)")
+     scatter!([hs[end]], [abs(math[j][k])])
+ end
+  gui()
 
-    p = min(Int(floor(a*k/h)),J)
-    x = OffsetArray{Float64}(0:J)
-    x[0:J] = (0:J)*h
-    X = OffsetArray{Float64}(-J:J)
-    X[-J:J] = (-J:J)*h
-
-    B = OffsetArray{Complex{Float64}}(-p:p, -2M:2M);
-    for j = -p:p, m = -2M:2M
-        if a^2*k^2 -X[j]^2 < -h^2 error("evaluating B in the wrong domain") end
-        B[j,m] = integrate_B(m, X[j], sqrt(abs(a^2*k^2 -X[j]^2)); θin = θin, num_coefs = 20000)
-    end
-    S = OffsetArray{Complex{Float64}}(-J:J, -2M:2M);
-    for j = -J:J, m = -2M:2M
-        S[j,m] = integrate_S(m, X[j]; θin = θin)
-    end
-    function PQ_integrand(l,j,m,n)
-        P = S[j-l,n-m]
-        Q = (abs(j-l)<= p) ? (B[j-l,n-m] - S[j-l,n-m]) : 0.0+0.0im
-        P + Q
-    end
-
-    PQ_quad = [PQ_integrand(l,j,m,n) for  l=0:J, m=-M:M, j=0:J, n=-M:M]
-
-    return (x, PQ_quad)
+ plot()
+ for k=1:7
+     plot!(hs[4:end], 1 - abs.(data[j,k][4:end])./abs(data[j,k][end]), label = "m = $(k - M - 1)")
+ end
+  gui()
 end

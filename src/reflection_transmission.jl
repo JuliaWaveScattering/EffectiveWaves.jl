@@ -29,7 +29,24 @@ function reflection_coefficient(ω::T, k_eff::Complex{T}, medium::Medium{T}, spe
     return R
 end
 
-"The average transmitted scattering coefficients for a given effective wavenumber k_eff. Assumes there exists only one k_eff."
+function transmission_scattering_coefficients_field(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vector{Specie{T}};
+        max_hankel_order=3, θ_inc=0.0, kws...) where T<:Number
+
+    As = transmission_scattering_coefficients(ω, k_eff, medium, species;
+            θ_inc=θ_inc, hankel_order=max_hankel_order, kws...)
+    k = ω/medium.c
+    ho = max_hankel_order
+    S = length(species)
+    θ_eff = transmission_angle(k, k_eff, θ_inc)
+    AA(x) = [im^Float64(m)*exp(-im*m*θ_eff)*As[m+ho+1,s]*exp(im*k_eff*cos(θ_eff)*x) for m=-ho:ho, s=1:S]
+
+    return AA
+end
+
+"The average transmitted scattering coefficients for a given effective wavenumber k_eff. Assumes there exists only one k_eff.
+The function returns an array A, where
+AA(x,y,m,s) = im^m*exp(-im*m*θ_eff)*A[m + max_hankel_order +1,s]*exp(im*k_eff*(cos(θ_eff)*x + sin(θ_inc)*y))
+where (x,y) are coordinates in the halfspace, m-th hankel order, s-th species,  and AA is the ensemble average scattering coefficient."
 function transmission_scattering_coefficients(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vector{Specie{T}};
             hankel_order = :auto,
             max_hankel_order = 10,
