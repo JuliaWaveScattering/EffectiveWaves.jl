@@ -126,9 +126,10 @@ For computational efficiency, we will change variables to
 \end{align}
 % where the last line is just to have a consistent notation.
 We also borrow equation (4.1) from \parencite{gower_reflection_2018} to substitute
-\[
-\A m (k x_1, k y_1, \s) = \A m (k x_1, \s) \ee^{\ii k y_1 \sin\theta_\inc},
-\]
+\begin{equation}
+  \A m (k x_1, k y_1, \s) = \A m (k x_1, \s) \ee^{\ii k y_1 \sin\theta_\inc},
+  \label{eqn:A_symmetry}
+\end{equation}
 which is due to the symmetry of~\eqref{eqn:ensemAsystem}. Substituting the above into~\eqref{eqn:ensemAsystem}, we can rewrite the integrated term:
 \begin{multline*}
      \int_{\stackrel{x_2 > 0 }{\|\mathbf x_2-\mathbf x_1 \| > a_{12}}} \A n (k x_2, \s_2) \ee^{\ii y_2 k \sin\theta_\inc} F_{n-m}(k\mathbf x_2 - k \mathbf x_1,k) d \mathbf x_2 =
@@ -155,6 +156,7 @@ G_{n}(X, k) +
   % \int_{-\infty}^\infty \ee^{\ii y_2 k \sin\theta_\inc} \ee^{\ii (n-m) \Theta_{12}} H_{n-m}(k R_{12})d y_2
   % \\
   % + (-1)^{n-m} \int_{y_2 \in B(\bar a_{12}})} \ee^{\ii y_2 k \sin\theta_\inc} \ee^{\ii (n-m) \Theta_{12}} H_{n-m}(k R_{12})g(\|\mathbf x_1 - \mathbf x_2\|;  \s_1,\s_2) d y_2
+  \label{eqn:Sn}
 \end{equation}
  with
 \begin{multline}
@@ -273,6 +275,23 @@ where $j,\ell = 0,1, \ldots, N$. Finally in block-matrix form: $\vec M \vec \Ab 
   \label{eqn:ensemAsystemB}
 \end{align}
 
+\section{Reflection}
+
+Using equations (3.7-3.8) from \cite{gower_reflection_2018}, we have that the averaged reflected wave is
+\begin{equation}
+  u_R(kx,ky) = \nfrac {} \sum_{m=-\infty}^\infty Z_m \int \A m(kx_1,ky_1) F_m(k\mathbf x_1 - k\mathbf x,k) dy_1 dx_1,
+\end{equation}
+which can be rewritten by using~\eqref{eqn:A_symmetry} and $\mathbf X = k\mathbf x_1 - k\mathbf x$ (assuming $k>0$) to arrive at
+\begin{align}
+  u_R(kx,ky) &= \nfrac {} \sum_{m=-\infty}^\infty Z_m \frac{\ee^{ \ii k y \sin \theta_\inc}}{k} \int_{0}^\infty \A m(kx_1) \int_{-\infty}^\infty \ee^{ \ii Y \sin \theta_\inc} F_m(\mathbf X,k) dY dx_1,
+  \\ \notag
+   =  \frac{\nfrac {}}{k} \ee^{ \ii k y \sin \theta_\inc} \sum_{m=-\infty}^\infty &Z_m \int_{0}^\infty \A m(kx_1) \left [ G_n(kx_1 - k x, k) + \frac{2 \ii^m \ee^{-\ii m \theta_\inc} \ee^{\ii (kx_1 - k x) \cos \theta_\inc}}{\cos \theta_\inc} \right] d x_1,
+\end{align}
+where we used~\eqref{eqn:Sn} and that $kx_1 - k x > 0$, because $x_1$ is in the halfspace $x_1 >0$ and the receiver position $x$ satisfies $x<0$. If we use whole correction, then $G_n = 0$, which leads to
+\begin{equation}
+  u_R(kx,ky) =   \ee^{ \ii k ( - x \cos \theta_\inc + y \sin \theta_\inc )} \frac{\nfrac {}}{k} \sum_{m=-\infty}^\infty & \frac{2 \ii^m \ee^{-\ii m \theta_\inc}}{\cos \theta_\inc} Z_m  \int_{0}^\infty \A m(kx_1) \ee^{\ii k x_1 \cos \theta_\inc}  d x_1.
+\end{equation}
+The above matches exactly equation (7.12) from \cite{gower_reflection_2018}, when using their ansatz~(4.3). 
 \printbibliography
 
 % \bibliographystyle{RS}

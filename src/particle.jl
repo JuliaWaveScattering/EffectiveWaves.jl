@@ -37,17 +37,17 @@ end
 Medium(;ρ=1.0, c=1.0+0.0im) = Medium{typeof(ρ)}(ρ,Complex{typeof(ρ)}(c))
 # Medium(;ρ::T = 1.0, c::Union{R,Complex{T}} = 1.0+0.0im) = Medium(ρ,Complex{T}(c))
 
-function maximum_hankel_order(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
+function maximum_hankel_order(ω::Union{T,Complex{T}}, medium::Medium{T}, species::Vector{Specie{T}};
         tol=1e-6, verbose = false) where T <: Number
 
     f0 = ω^(2.0)/(medium.c^2)
-    next_order = 2*sum(sp.num_density*Zn(ω,sp,medium,0) for sp in species)
+    hankel_order = 0
+    next_order = 2*sum(sp.num_density*Zn(ω,sp,medium,hankel_order) for sp in species)
 
     # increase hankel order until the relative error < tol
-    hankel_order=1
     while abs(next_order/f0) > tol
+        hankel_order += 1
         next_order = 2*sum(sp.num_density*Zn(ω,sp,medium,hankel_order) for sp in species)
-        hankel_order +=1
     end
 
     return hankel_order

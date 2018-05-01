@@ -4,7 +4,7 @@ module EffectiveWaves
 export  Specie, Medium, volume_fraction, Zn, p_speed, maximum_hankel_order,
         far_field_pattern, pair_field_pattern, diff_far_field_pattern
 
-export  trap_scheme, simpson_scheme, intergrand_kernel
+export  trap_scheme, simpson_scheme, intergrand_kernel, integral_form
 
 export  wavenumber, reflection_coefficient, transmission_angle,
         effective_scattering_coefficients, transmission_scattering_coefficients_field

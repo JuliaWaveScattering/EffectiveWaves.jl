@@ -1,8 +1,6 @@
-using ApproxFun
-using OffsetArrays
-using EffectiveWaves
-using Plots; pyplot()
-plot(1:10)
+# using ApproxFun
+# using OffsetArrays
+# using EffectiveWaves
 
 function integrate_B_full(n::Int,X, Y0; Y1 =1000000, θin = 0.0, num_coefs = 10000)
     K(Y) = cos(Y*sin(θin) + n*atan2(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
@@ -27,70 +25,61 @@ function integrate_S(n::Int,X; θin = 0.0)
     S
 end
 
-function integral_form()
-
-    medium = Medium(1.0,1.0+0.0im)
-    specie = Specie(ρ=0.1,r=0.5, c=0.1, volfrac=0.15)
-    specie2 = Specie(ρ=0.0,r=1.0, c=0.0, volfrac=0.15)
-
-    k=1.;
-    a=specie.r;
-    ω = real(k*medium.c)
-    k_eff = wavenumber_low_volfrac(ω, medium, [specie])
-    # k_eff2 = wavenumber_low_volfrac(ω, medium, [specie2])
-    k_eff2 = wavenumber(ω, medium, [specie2])
+function test_integral_form()
 
     # physical parameters
     θin = 0.0
-    max_x = 10.0*k/imag(k_eff) # at this A ≈ exp(-10) ≈ 4.5e-5
+    k=1.;
+    medium = Medium(1.0,1.0+0.0im)
+    ω = real(k*medium.c)
+    specie = Specie(ρ=0.1,r=0.5, c=0.1, volfrac=0.15)
+    specie2 = Specie(ρ=0.0,r=1.0, c=0.0, volfrac=0.15)
+
+    (x, (MM_quad,b_mat)) = integral_form(k, medium, specie; θin = θin, mesh_points = 501);
 
     # discretization parameters
-    M = 2;
-    h = a*k/20.0;
-    J = Int(round(max_x/h)) # choose an even number for Integration schemes
-    x = OffsetArray((0:J)*h, 0:J)
+    M = Int( (size(b_mat,2) - 1)/2 )
+    J = length(collect(x)) - 1
 
+    # From effective wave theory
+    k_eff0 = wavenumber_low_volfrac(ω, medium, [specie])
+    k_eff = wavenumber(ω, medium, [specie])
+    k_eff2 = wavenumber(ω, medium, [specie2])
+
+    As0_fun = transmission_scattering_coefficients_field(ω, k_eff0, medium, [specie];
+            max_hankel_order=M, θin=θin)
     As_fun = transmission_scattering_coefficients_field(ω, k_eff, medium, [specie];
             max_hankel_order=M, θin=θin)
     As2_fun = transmission_scattering_coefficients_field(ω, k_eff2, medium, [specie2];
             max_hankel_order=M, θin=θin)
 
-    Z = OffsetArray{Complex{Float64}}(-M:M);
-    for m = 0:M
-        Z[m] = Zn(ω,specie,medium,m)
-        Z[-m] = Z[m]
-    end
-
-    # integration scheme: trapezoidal
-    σ =  OffsetArray(trap_scheme(collect(x); xn=max_x), 0:J)
-
-    PQ_quad = intergrand_kernel(x; ak = a*k, θin = θin, M = M);
-
-    MM_quad = [
-        specie.num_density*Z[n]*σ[j]*PQ_quad[l+1,m+M+1,j+1,n+M+1] + k^2*( (m==n && j==l) ? 1.0+0.0im : 0.0+0.0im)
-    for  l=0:J, m=-M:M, j=0:J, n=-M:M];
-
     len = (J + 1) * (2M + 1)
-    MM_mat = reshape(MM_quad, (len, len))
+    MM_mat = reshape(MM_quad, (len, len));
+    b = reshape(b_mat, (len));
 
-    b_mat = [ -k^2*exp(im*x[l]*cos(θin))*exp(im*m*(pi/2.0 - θin)) for l = 0:J, m = -M:M]
-    b = reshape(b_mat, (len))
+    As = MM_mat\b;
 
     As_eff_mat = transpose(hcat(As_fun.(x)...))
     As_eff = reshape(As_eff_mat, (len))
+    As0_eff_mat = transpose(hcat(As0_fun.(x)...))
+    As0_eff = reshape(As_eff_mat, (len))
+
     As2_eff_mat = transpose(hcat(As2_fun.(x)...))
     As2_eff = reshape(As2_eff_mat, (len))
 
+    error0_eff = reshape( abs.((MM_mat*As0_eff)./b .- 1.0+0.0im), (J+1, 2M+1))
     error_eff = reshape( abs.((MM_mat*As_eff)./b .- 1.0+0.0im), (J+1, 2M+1))
     error2_eff = reshape( abs.((MM_mat*As2_eff)./b .- 1.0+0.0im), (J+1, 2M+1))
-    plot(collect(x),error_eff)
 
     As = MM_mat\b
-    # b ≈ [ sum(MM_mat[a,b]*A[b] for b=1:len) for a=1:len]
+    error = reshape( abs.((MM_mat*As)./b .- 1.0+0.0im), (J+1, 2M+1))
 
-    #
-    # error = reshape( abs.((MM_mat*As)./b .- 1.0+0.0im), (J+1, 2M+1))
-    # plot!(collect(x),error, ylims=(-0.1,0.4))
+    using Plots; pyplot(linewidth=2)
+    plot(xlabel = "depth (1 wavelength = 2π )", ylabel = "error %", ylims=(-0.1,1.5), title="Transmitted wave errors")
+    plot!(collect(x),error_eff[:,M+1], label = "Eff. error")
+    plot!(collect(x),error0_eff[:,M+1], linestyle=:dash, label = "Eff. low φ error")
+    plot!(collect(x),error2_eff[:,M+1], linestyle=:dot, label = "Eff. wrong k_eff error")
+    plot!(collect(x),error[:,M+1], linestyle=:dashdot, label = "Integral method error")
 
     As_mat = reshape(As, (J+1, 2M+1))
 
@@ -104,12 +93,86 @@ function integral_form()
     return x, As_mat
 end
 
+function integral_form_scattering_coefficients(ω::T,medium::Medium{T},specie::Specie{T};
+        θin = 0.0)
 
-function intergrand_kernel(dx::Float64, max_x::Float64; ak::Float64 = 1.0, θin::Float64 = 0.0, M::Int = 2, num_coefs::Int = 10000)
+    # physical parameters
 
-    J = Int(round(max_x/dx))
-    x = OffsetArray((0:J)*dx, 0:J)
+    k=1.;
+    medium = Medium(1.0,1.0+0.0im)
+    k = ω/medium.c
+    (x, (MM_quad,b_mat)) = integral_form(k, medium, specie; θin = θin, mesh_points = 501);
 
+    # discretization parameters
+    M = Int( (size(b_mat,2) - 1)/2 )
+    J = length(collect(x)) - 1
+
+    len = (J + 1) * (2M + 1)
+    MM_mat = reshape(MM_quad, (len, len));
+    b = reshape(b_mat, (len));
+
+    As = MM_mat\b
+    As_mat = reshape(As, (J+1, 2M+1))
+
+    return x, As_mat
+end
+
+function reflection_coefficient_integrated(ω::T, medium::Medium, specie::Specie; A_mat::Array{Complex{T},2} = ) where T <: Number
+
+As_mat = reshape(As, (J+1, 2M+1))
+
+end
+
+function integral_form(k::Float64, medium::Medium, specie::Specie;
+        θin::Float64 = 0.0,
+        x::AbstractVector = [0.], mesh_points::Int = 501,
+        hankel_order = maximum_hankel_order(k*medium.c, medium, [specie]; tol=1e-3))
+
+    ak = k*specie.r;
+    ω = real(k*medium.c)
+    M = hankel_order;
+
+    # estimate a large enough mesh
+    if x == [0.]
+        k_eff = wavenumber_low_volfrac(ω, medium, [specie])
+        max_x = 10.0*k/imag(k_eff) # at this A ≈ exp(-10) ≈ 4.5e-5
+        J = mesh_points - 1
+        h = ak/Int(round(J*ak/max_x));
+        x = OffsetArray((0:J)*h, 0:J)
+    else
+        J = length(collect(x)) - 1
+        h = x[2] - x[1]
+    end
+
+    Z = OffsetArray{Complex{Float64}}(-M:M);
+    for m = 0:M
+        Z[m] = Zn(ω,specie,medium,m)
+        Z[-m] = Z[m]
+    end
+
+    # integration scheme: trapezoidal
+    σ =  OffsetArray(trap_scheme(collect(x)), 0:J)
+    PQ_quad = intergrand_kernel(x; ak = ak, θin = θin, M = M);
+
+    MM_quad = [
+        specie.num_density*Z[n]*σ[j]*PQ_quad[l+1,m+M+1,j+1,n+M+1] + k^2*( (m==n && j==l) ? 1.0+0.0im : 0.0+0.0im)
+    for  l=0:J, m=-M:M, j=0:J, n=-M:M];
+
+    b_mat = [ -k^2*exp(im*x[l]*cos(θin))*exp(im*m*(pi/2.0 - θin)) for l = 0:J, m = -M:M]
+
+    return (x, (MM_quad,b_mat))
+end
+
+function intergrand_kernel(x::AbstractVector; ak::Float64 = 1.0, θin::Float64 = 0.0,
+        M::Int = 2, num_coefs::Int = 10000)
+
+    dx = x[2] - x[1]
+    J = length(collect(x)) -1
+
+    if !(typeof(x) <: OffsetArray)
+        if J*dx != x[end] warn("Unexpected x = $x.") end
+        x = OffsetArray((0:J)*dx, 0:J)
+    end
     if !(Int(floor(ak/dx)) ≈ ak/dx)
         warn("There are no mesh points exactly on-top of the intergrands kinks. This could lead to poor accuracy.")
     end
