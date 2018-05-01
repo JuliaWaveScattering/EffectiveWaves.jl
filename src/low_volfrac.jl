@@ -30,18 +30,18 @@ reflection_coefficient_low_volfrac(ωs::AbstractVector{T}, medium::Medium{T}, sp
     [reflection_coefficient_low_volfrac(ω, medium, species; kws... ) for ω in ωs]
 
 function reflection_coefficient_low_volfrac(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
-        θ_inc::T = zero(T), kws... ) where T<:Number
+        θin::T = zero(T), kws... ) where T<:Number
 
-    θ_ref = T(π) - T(2)*θ_inc
+    θ_ref = T(π) - T(2)*θin
     fo = far_field_pattern(ω, medium, species; kws...)
     dfo = diff_far_field_pattern(ω, medium, species; kws...)
     foo = pair_field_pattern(ω, medium, species; kws...)
 
     k = ω/medium.c
-    α = k*cos(θ_inc)
+    α = k*cos(θin)
     R1 = im*fo(θ_ref)
     R2 = 2.0*fo(zero(T))/(α^2.0)
-    R2 = im*foo(θ_ref) + R2*(sin(θ_inc)*cos(θ_inc)*dfo(θ_ref) - fo(θ_ref))
+    R2 = im*foo(θ_ref) + R2*(sin(θin)*cos(θin)*dfo(θ_ref) - fo(θ_ref))
 
     num_density = sum(s.num_density for s in species)
     R = (R1 + num_density*R2)*num_density/(α^2.0)

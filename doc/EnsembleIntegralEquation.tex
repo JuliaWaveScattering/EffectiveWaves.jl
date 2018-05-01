@@ -92,9 +92,9 @@ and angle of incidence $\theta_\inc$ from the $x$-axis, exciting a material occu
 
 Combining equations (3.6) and the quasicrystalline approximation (3.10) from \parencite{gower_reflection_2018}, we arrive at
 \begin{multline}
- \sum_{n=-\infty}^\infty \int_\regS \int_{\stackrel{x_2 > 0 }{\|\mathbf x_1 - \mathbf x_2 \| > a_{12}}}  \A n (\mathbf x_2, \s_2) F_{n-m}(k\mathbf x_2 - k \mathbf x_1,k)  d \mathbf x_2 d\s_2^n
+ \sum_{n=-\infty}^\infty \int_\regS \int_{\stackrel{x_2 > 0 }{\|\mathbf x_1 - \mathbf x_2 \| > a_{12}}}  \A n (k \mathbf x_2, \s_2) F_{n-m}(k\mathbf x_2 - k \mathbf x_1,k)  d \mathbf x_2 d\s_2^n
 \\
-+  \A m (\mathbf x_1, \s_1) + \ee^{\ii \mathbf x_1 \cdot \mathbf k } \ee^{\ii m ( \pi/2 - \theta_\inc )}
++  \A m (k\mathbf x_1, \s_1) + \ee^{\ii \mathbf x_1 \cdot \mathbf k } \ee^{\ii m ( \pi/2 - \theta_\inc )}
    = 0, \quad \text{for} \quad x_1 >0,
   \label{eqn:ensemAsystem}
 \end{multline}
@@ -106,7 +106,7 @@ where
   \label{eqn:integral_kernel}
 \end{align}
 with $(R,\Theta)$ being the polar coordinates of $\mathbf X = (X,Y)$,
-$p(\s_1)$ is the probability density function of picking a species in $\regS$ and we assumed statistical independence $p(\s_1, \s_2) = p(\s_1)p(\s_2)$. The function $g(R; \s_1,\s_2)$ is the pair-correlation, assuming $R$ is the distance between two particles, one centred of type $\s_1$ and another of type $\s_2$. If we were to use whole correction, then $g(R; \s_1,\s_2) = 0$.
+$p(\s_1)$ is the probability density function of picking a species in $\regS$ and we assumed statistical independence $p(\s_1, \s_2) = p(\s_1)p(\s_2)$. Note we included $k$ in the argument of $\A m$ for convenience, as later we will non-dimensionalise. The function $g(R; \s_1,\s_2)$ is the pair-correlation, assuming $R$ is the distance between two particles, one centred of type $\s_1$ and another of type $\s_2$. If we were to use whole correction, then $g(R; \s_1,\s_2) = 0$.
 For most random systems we expect that rapidly $g(R; \s_1,\s_2) \to 0$ as $R \to \infty$, so we will assume
 \begin{equation}
   g(R; \s_1,\s_2) = 0, \quad \text{ for } \; R > \bar a_{12}.
@@ -127,13 +127,13 @@ For computational efficiency, we will change variables to
 % where the last line is just to have a consistent notation.
 We also borrow equation (4.1) from \parencite{gower_reflection_2018} to substitute
 \[
-\A m (x, y, \s) = \A m (x, \s) \ee^{\ii y k \sin\theta_\inc},
+\A m (k x_1, k y_1, \s) = \A m (k x_1, \s) \ee^{\ii k y_1 \sin\theta_\inc},
 \]
 which is due to the symmetry of~\eqref{eqn:ensemAsystem}. Substituting the above into~\eqref{eqn:ensemAsystem}, we can rewrite the integrated term:
 \begin{multline*}
-     \int_{\stackrel{x_2 > 0 }{\|\mathbf x_2-\mathbf x_1 \| > a_{12}}} \A n (x_2, \s_2) \ee^{\ii y_2 k \sin\theta_\inc} F_{n-m}(k\mathbf x_2 - k \mathbf x_1,k) d \mathbf x_2 =
+     \int_{\stackrel{x_2 > 0 }{\|\mathbf x_2-\mathbf x_1 \| > a_{12}}} \A n (k x_2, \s_2) \ee^{\ii y_2 k \sin\theta_\inc} F_{n-m}(k\mathbf x_2 - k \mathbf x_1,k) d \mathbf x_2 =
   \\
-   \frac{\ee^{\ii y \sin\theta_\inc}}{k^2} \int_{X> -x} \A n (X/k + x/k, \s_2) \int_{Y^2 > k^2 a_{12}^2 - X^2}
+   \frac{\ee^{\ii y \sin\theta_\inc}}{k^2} \int_{X> -x} \A n (X + x, \s_2) \int_{Y^2 > k^2 a_{12}^2 - X^2}
    \ee^{\ii Y \sin\theta_\inc} F_{n-m}(\mathbf X,k) d Y d X,
 \end{multline*}
 then we split the integral on the right in the form
@@ -186,10 +186,10 @@ where we assumed that $g(R/k;  \s_1,\s_2) =0$ for $Y>Y_1$.
 Written in full the governing equation~\eqref{eqn:ensemAsystem} now becomes
 \begin{multline}
  \sum_{n=-\infty}^\infty \int_\regS
-  \int_{X> 0} \A n (X/k, \s_2) K(X - x,k) dX
+  \int_{X> 0} \A n (X, \s_2) K(X - x,k) dX
   d\s_2^n
 \\
-+  k^2 \A m (x/k, \s_1)   + k^2  \ee^{\ii x \cos \theta_\inc} \ee^{\ii m ( \pi/2 - \theta_\inc )}
++  k^2 \A m (x, \s_1)   + k^2  \ee^{\ii x \cos \theta_\inc} \ee^{\ii m ( \pi/2 - \theta_\inc )}
    = 0, \quad \text{for} \quad x_1 >0,
   \label{eqn:ensemAsystem2}
 \end{multline}
@@ -229,22 +229,22 @@ Numerically it is better to substitute in the above to reach
 %   \label{eqn:ensemAsystem3}
 % \end{multline}
 
-To start, by solving the single species and consider only whole correction pair-correlation. After trying methods based on Chebyshev and function approximation, I've decided they are too computationally intense. For this reason I'm going with a simpler discretization: let $\A n^j = \A n (x_j/k)$ where $x_j = j h$ for $j=0,\ldots,N$. A regular spaced mesh is best because of the convolution. For the other fields we use, for example, $S_n^j = S_n(j h)$. Then we will use the vectors:
+To start, by solving the single species and consider only whole correction pair-correlation. After trying methods based on Chebyshev and function approximation, I've decided they are too computationally intense. For this reason I'm going with a simpler discretisation: let $\A n^j = \A n (x^j)$ where $x^j = j h$ for $j=0,\ldots,N$. A regular spaced mesh is best because of the convolution. With analogous notation for the other fields, let the vectors:
 \begin{equation}
-  \vec \Ab_n = (\Ab_n^j)_j, \quad \vec S_n = (S_n^j)_j, \quad \vec B_n = (B_n^j)_j, \quad \vec b_n = - k^2(\ee^{ \ii x_j \cos \theta_\inc} \ee^{\ii n ( \pi/2 - \theta_\inc )})_j.
+  \vec \Ab_n = (\Ab_n^j)_j, \quad \vec S_n = (S_n^j)_j, \quad \vec B_n = (B_n^j)_j, \quad \vec b_n = - k^2(\ee^{ \ii x^j \cos \theta_\inc} \ee^{\ii n ( \pi/2 - \theta_\inc )})_j.
 \end{equation}
 
 
 \begin{multline}
   \sum_{n=-\infty}^\infty
-  \int_{X>0} \A n (X/k) S_{n-m}(X-x) dX
+  \int_{X>0} \A n (X) S_{n-m}(X-x) dX
   d\s_2^n
   \\
   +  \sum_{n=-\infty}^\infty
-    \int_{\stackrel{|X-x| < k a_{12}}{X>0}} \A n (X/k) (B_{n-m}(X- x,k) - S_{n-m}(X-x) )dX
+    \int_{\stackrel{|X-x| < k a_{12}}{X>0}} \A n (X) (B_{n-m}(X- x,k) - S_{n-m}(X-x) )dX
     d\s_2^n
 \\
-+  k^2 \A m (x/k)   + k^2  \ee^{\ii x \cos \theta_\inc} \ee^{\ii m ( \pi/2 - \theta_\inc )}
++  k^2 \A m (x)   + k^2  \ee^{\ii x \cos \theta_\inc} \ee^{\ii m ( \pi/2 - \theta_\inc )}
    = 0, \quad \text{for} \quad x_1 >0,
   \label{eqn:ensemAsystem4}
 \end{multline}

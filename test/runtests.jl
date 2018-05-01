@@ -18,6 +18,12 @@ using EffectiveWaves
     @test true
 end
 
+@testset "Tests for the integral form" begin
+    include("integral_form_tests.jl")
+    test_integrand()
+
+end
+
 @testset "Particle types and constructors" begin
     ω=0.4
     medium = Medium(ρ=10.,c=2.0+3.0im)
@@ -78,11 +84,11 @@ end
     @test norm(Rs_φs2 - Rs)/len < 1e-4
     @test abs(R_low - Rs[1]) < 1e-7
 
-    # Vary angle of incidence θ_inc
+    # Vary angle of incidence θin
     θs = 0.1:0.3:(π/2)
-    R_low = [reflection_coefficient_halfspace(medium, eff_medium; θ_inc = θ) for θ in θs]
-    Rs = [reflection_coefficient(ωs, k_effs, medium, species; θ_inc = θ, hankel_order =7) for θ in θs];
-    Rs_φs = [reflection_coefficient_low_volfrac(ωs, medium, species; θ_inc = θ, hankel_order =7) for θ in θs];
+    R_low = [reflection_coefficient_halfspace(medium, eff_medium; θin = θ) for θ in θs]
+    Rs = [reflection_coefficient(ωs, k_effs, medium, species; θin = θ, hankel_order =7) for θ in θs];
+    Rs_φs = [reflection_coefficient_low_volfrac(ωs, medium, species; θin = θ, hankel_order =7) for θ in θs];
 
     @test maximum(abs(R_low[i] - Rs[i][1]) for i in 1:length(R_low)) < 1e-7
     @test maximum(norm(R)/len for R in (Rs_φs - Rs)) < 0.01

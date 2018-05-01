@@ -43,7 +43,7 @@ k_eff_lows = ωs./eff_medium.c
 # effective_wavenumber(ω, medium, species)
 k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
 
-# (k_eff,θ_eff,As) = transmitted_planewave(ω, incident_medium, species; θ_inc = θ_inc)
+# (k_eff,θ_eff,As) = transmitted_planewave(ω, incident_medium, species; θin = θin)
 # k_effs = [w[1] for w in planewaves];
 k_effs = [wavenumber(ω, incident_medium, species) for ω in ωs];
 r = mean(s.r for s in species)

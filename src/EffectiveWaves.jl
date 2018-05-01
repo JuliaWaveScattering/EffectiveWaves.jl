@@ -4,10 +4,10 @@ module EffectiveWaves
 export  Specie, Medium, volume_fraction, Zn, p_speed, maximum_hankel_order,
         far_field_pattern, pair_field_pattern, diff_far_field_pattern
 
-export  trap_scheme, simpson_scheme
+export  trap_scheme, simpson_scheme, intergrand_kernel
 
 export  wavenumber, reflection_coefficient, transmission_angle,
-        transmission_scattering_coefficients, transmission_scattering_coefficients_field
+        effective_scattering_coefficients, transmission_scattering_coefficients_field
 
 export  effective_medium, reflection_coefficient_halfspace,
         reflection_coefficient_low_volfrac, wavenumber_low_volfrac, wavenumber_very_low_volfrac
@@ -25,7 +25,7 @@ export  Brick, IronArmco, LeadAnnealed, RubberGum, FusedSilica, GlassPyrex,
 import Base.isequal, Base.(==)
 import SpecialFunctions: besselj, hankelh1
 
-try using BlackBoxOptim end
+# try using BlackBoxOptim end
 
 using Optim
 using OffsetArrays
@@ -40,6 +40,7 @@ include("particle.jl")
 include("far_fields.jl")
 
 include("integral_form/numerical_integration.jl")
+include("integral_form/integral_form.jl")
 
 include("wavenumbers.jl")
 include("low_frequency.jl")

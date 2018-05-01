@@ -29,7 +29,7 @@ radius_multiplier = 1.005
 max_hankel_order=15
 
 incident_medium = medium
-θ_inc = 0.2
+θin = 0.2
 ω = 15.
 k = ω/incident_medium.c
 
