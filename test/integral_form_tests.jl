@@ -6,8 +6,8 @@ function test_integral_form()
     k=1.;
     medium = Medium(1.0,1.0+0.0im)
     ω = real(k*medium.c)
-    # specie = Specie(ρ=0.1,r=0.1, c=0.5, volfrac=0.1)
-    specie = Specie(ρ=0.6,r=0.1, c=0.4, volfrac=0.15)
+    specie = Specie(ρ=0.1,r=0.1, c=0.5, volfrac=0.1)
+    # specie = Specie(ρ=0.6,r=0.1, c=0.4, volfrac=0.15)
     specie2 = Specie(ρ=0.0,r=1.0, c=0.0, volfrac=0.15)
 
     # From effective wave theory
@@ -17,7 +17,7 @@ function test_integral_form()
     ω/eff_medium.c
     k_eff2 = wavenumber(ω, medium, [specie2])
 
-    (x, (MM_quad,b_mat)) = integral_form(ω, medium, specie; θin = θin, mesh_points = 5201);
+    (x, (MM_quad,b_mat)) = integral_form(ω, medium, specie; θin = θin, mesh_points = 501);
 
     # discretization parameters
     M = Int( (size(b_mat,2) - 1)/2 )
