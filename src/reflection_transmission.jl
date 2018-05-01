@@ -15,7 +15,7 @@ function reflection_coefficient(ω::T, k_eff::Complex{T}, medium::Medium{T}, spe
 
     k = ω/medium.c
     θ_eff = transmission_angle(k, k_eff, θin; tol = tol)
-    As = effective_scattering_coefficients(ω, k_eff, medium, species; tol = tol, θin = θin, kws...)
+    As = effective_scattering_amplitudes(ω, k_eff, medium, species; tol = tol, θin = θin, kws...)
 
     θ_ref = pi - θ_eff - θin
     S = length(species)
@@ -29,27 +29,27 @@ function reflection_coefficient(ω::T, k_eff::Complex{T}, medium::Medium{T}, spe
     return R
 end
 
-"returns a function As, where As(x) is a an array of the ensemble average scattering coefficients at depth x inside a halfspace. As(x)[m + M + 1,s] is the m-th hankel order and s-th species average scattering coefficient."
-function transmission_scattering_coefficients_field(ω::T, k_eff::Complex{Float64}, medium::Medium{T}, species::Vector{Specie{T}};
+"returns a function As, where As(k x) is a an array of the ensemble average scattering amplitudes at depth x inside a halfspace. As(k x)[m + M + 1,s] is the m-th hankel order and s-th species average scattering coefficient."
+function scattering_amplitudes_field(ω::T, k_eff::Complex{Float64}, medium::Medium{T}, species::Vector{Specie{T}};
         max_hankel_order=3, θin=0.0, kws...) where T<:Number
 
-    As_eff = effective_scattering_coefficients(ω, k_eff, medium, species;
+    As_eff = effective_scattering_amplitudes(ω, k_eff, medium, species;
             θin=θin, hankel_order=max_hankel_order, kws...)
 
     k = ω/medium.c
     ho = max_hankel_order
     S = length(species)
     θ_eff = transmission_angle(k, k_eff, θin)
-    As(x) = [im^Float64(m)*exp(-im*m*θ_eff)*As_eff[m+ho+1,s]*exp(im*k_eff*cos(θ_eff)*x) for m=-ho:ho, s=1:S]
+    As(x) = [im^Float64(m)*exp(-im*m*θ_eff)*As_eff[m+ho+1,s]*exp(im*k_eff*cos(θ_eff)*x/k) for m=-ho:ho, s=1:S]
 
     return As
 end
 
-"The average effective transmitted scattering coefficients for a given effective wavenumber k_eff. Assumes there exists only one k_eff.
+"The average effective transmitted scattering amplitudes for a given effective wavenumber k_eff. Assumes there exists only one k_eff.
 The function returns an array A, where
 AA(x,y,m,s) = im^m*exp(-im*m*θ_eff)*A[m + max_hankel_order +1,s]*exp(im*k_eff*(cos(θ_eff)*x + sin(θin)*y))
 where (x,y) are coordinates in the halfspace, m-th hankel order, s-th species,  and AA is the ensemble average scattering coefficient."
-function effective_scattering_coefficients(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vector{Specie{T}};
+function effective_scattering_amplitudes(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vector{Specie{T}};
             hankel_order = :auto,
             max_hankel_order = 10,
             radius_multiplier = 1.005,

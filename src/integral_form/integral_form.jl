@@ -1,6 +1,12 @@
-# using ApproxFun
-# using OffsetArrays
-# using EffectiveWaves
+type Scattering_Amplitudes{T<:Real}
+  hankel_order::Int # largest hankel order
+  x::Vector{T} # spatial mesh
+  A_mat::Matrix{Complex{T}} # a matrix of the scattering amplitudes, size(A_mat) = (length(x), 2hankel_order +1)
+end
+
+function Scattering_Amplitudes(x::AbstractVector{T}, A_mat::AbstractMatrix{Complex{T}}) where T<:Number
+    Scattering_Amplitudes(Int((size(A_mat,2)-1)/2), x, A_mat)
+end
 
 function integrate_B_full(n::Int,X, Y0; Y1 =1000000, θin = 0.0, num_coefs = 10000)
     K(Y) = cos(Y*sin(θin) + n*atan2(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
@@ -25,85 +31,11 @@ function integrate_S(n::Int,X; θin = 0.0)
     S
 end
 
-function test_integral_form()
+function scattering_amplitudes_integral_form(ω::T,medium::Medium{T},specie::Specie{T}; kws...) where T<:Number
 
-    # physical parameters
-    θin = 0.0
-    k=1.;
-    medium = Medium(1.0,1.0+0.0im)
-    ω = real(k*medium.c)
-    specie = Specie(ρ=0.1,r=0.5, c=0.1, volfrac=0.15)
-    specie2 = Specie(ρ=0.0,r=1.0, c=0.0, volfrac=0.15)
-
-    (x, (MM_quad,b_mat)) = integral_form(k, medium, specie; θin = θin, mesh_points = 501);
-
-    # discretization parameters
-    M = Int( (size(b_mat,2) - 1)/2 )
-    J = length(collect(x)) - 1
-
-    # From effective wave theory
-    k_eff0 = wavenumber_low_volfrac(ω, medium, [specie])
-    k_eff = wavenumber(ω, medium, [specie])
-    k_eff2 = wavenumber(ω, medium, [specie2])
-
-    As0_fun = transmission_scattering_coefficients_field(ω, k_eff0, medium, [specie];
-            max_hankel_order=M, θin=θin)
-    As_fun = transmission_scattering_coefficients_field(ω, k_eff, medium, [specie];
-            max_hankel_order=M, θin=θin)
-    As2_fun = transmission_scattering_coefficients_field(ω, k_eff2, medium, [specie2];
-            max_hankel_order=M, θin=θin)
-
-    len = (J + 1) * (2M + 1)
-    MM_mat = reshape(MM_quad, (len, len));
-    b = reshape(b_mat, (len));
-
-    As = MM_mat\b;
-
-    As_eff_mat = transpose(hcat(As_fun.(x)...))
-    As_eff = reshape(As_eff_mat, (len))
-    As0_eff_mat = transpose(hcat(As0_fun.(x)...))
-    As0_eff = reshape(As_eff_mat, (len))
-
-    As2_eff_mat = transpose(hcat(As2_fun.(x)...))
-    As2_eff = reshape(As2_eff_mat, (len))
-
-    error0_eff = reshape( abs.((MM_mat*As0_eff)./b .- 1.0+0.0im), (J+1, 2M+1))
-    error_eff = reshape( abs.((MM_mat*As_eff)./b .- 1.0+0.0im), (J+1, 2M+1))
-    error2_eff = reshape( abs.((MM_mat*As2_eff)./b .- 1.0+0.0im), (J+1, 2M+1))
-
-    As = MM_mat\b
-    error = reshape( abs.((MM_mat*As)./b .- 1.0+0.0im), (J+1, 2M+1))
-
-    using Plots; pyplot(linewidth=2)
-    plot(xlabel = "depth (1 wavelength = 2π )", ylabel = "error %", ylims=(-0.1,1.5), title="Transmitted wave errors")
-    plot!(collect(x),error_eff[:,M+1], label = "Eff. error")
-    plot!(collect(x),error0_eff[:,M+1], linestyle=:dash, label = "Eff. low φ error")
-    plot!(collect(x),error2_eff[:,M+1], linestyle=:dot, label = "Eff. wrong k_eff error")
-    plot!(collect(x),error[:,M+1], linestyle=:dashdot, label = "Integral method error")
-
-    As_mat = reshape(As, (J+1, 2M+1))
-
-    plot(collect(x), [real.(As_mat[:,M+1]),imag.(As_mat[:,M+1])], labels = ["real sol." "imag sol."])
-    plot!(collect(x), [real.(As_eff_mat[:,M+1]),imag.(As_eff_mat[:,M+1])], labels = ["real eff." "imag eff."])
-    is = 250:(length(collect(x))-1)
-    plot(collect(x[is]), log.(abs.(As_mat[is,M+1])), labels = "abs sol.")
-    plot!(collect(x[is]), log.(abs.(As_eff_mat[is,M+1])), labels = "abs eff.")
-    # b_mat ≈ [ sum(MM_quad[l,m,j,n]*A_mat[j,n] for j=1:(J+1), n=1:(2M+1)) for l=1:(J+1), m=1:(2M+1)]
-
-    return x, As_mat
-end
-
-function integral_form_scattering_coefficients(ω::T,medium::Medium{T},specie::Specie{T};
-        θin = 0.0)
-
-    # physical parameters
-
-    k=1.;
-    medium = Medium(1.0,1.0+0.0im)
     k = ω/medium.c
-    (x, (MM_quad,b_mat)) = integral_form(k, medium, specie; θin = θin, mesh_points = 501);
+    (x, (MM_quad,b_mat)) = integral_form(ω, medium, specie;  kws...);
 
-    # discretization parameters
     M = Int( (size(b_mat,2) - 1)/2 )
     J = length(collect(x)) - 1
 
@@ -114,22 +46,33 @@ function integral_form_scattering_coefficients(ω::T,medium::Medium{T},specie::S
     As = MM_mat\b
     As_mat = reshape(As, (J+1, 2M+1))
 
-    return x, As_mat
+    return Scattering_Amplitudes(M, collect(x), As_mat)
 end
 
-function reflection_coefficient_integrated(ω::T, medium::Medium, specie::Specie; A_mat::Array{Complex{T},2} = ) where T <: Number
+function reflection_coefficient_integrated(ω::T, medium::Medium, specie::Specie,
+        amps::Scattering_Amplitudes{T} = scattering_amplitudes_integral_form(ω,medium,specie);
+        θin::T = 0.0) where T <: Number
 
-As_mat = reshape(As, (J+1, 2M+1))
+    M = amps.hankel_order
+    σ =  trap_scheme(amps.x)
+    Z = Array{Complex{Float64}}(2M+1);
+    for m = 0:M
+        Z[m+M+1] = Zn(ω,specie,medium,m)
+        Z[M+1-m] = Z[m+M+1]
+    end
+    R = T(2)*specie.num_density/(cos(θin)*k^2)*sum( im^T(m)*exp(-im*θin*m)*Z[m+M+1]*amps.A_mat[j,m+M+1]*exp(im*amps.x[j]*cos(θin))*σ[j]
+    for m=-M:M, j in eachindex(amps.x))
 
+    return R
 end
 
-function integral_form(k::Float64, medium::Medium, specie::Specie;
+function integral_form(ω::Float64, medium::Medium, specie::Specie;
         θin::Float64 = 0.0,
-        x::AbstractVector = [0.], mesh_points::Int = 501,
-        hankel_order = maximum_hankel_order(k*medium.c, medium, [specie]; tol=1e-3))
+        x::AbstractVector = [0.], mesh_points::Int = 201,
+        hankel_order = maximum_hankel_order(ω, medium, [specie]; tol=1e-3))
 
-    ak = k*specie.r;
-    ω = real(k*medium.c)
+    k = ω/medium.c
+    ak = real(k*specie.r);
     M = hankel_order;
 
     # estimate a large enough mesh
