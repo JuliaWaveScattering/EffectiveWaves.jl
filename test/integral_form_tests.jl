@@ -6,65 +6,60 @@ function test_integral_form()
     k=1.;
     medium = Medium(1.0,1.0+0.0im)
     ω = real(k*medium.c)
-    specie = Specie(ρ=0.1,r=0.5, c=0.1, volfrac=0.15)
+    # specie = Specie(ρ=0.1,r=0.1, c=0.5, volfrac=0.1)
+    specie = Specie(ρ=0.6,r=0.1, c=0.4, volfrac=0.15)
     specie2 = Specie(ρ=0.0,r=1.0, c=0.0, volfrac=0.15)
-
-    (x, (MM_quad,b_mat)) = integral_form(ω, medium, specie; θin = θin, mesh_points = 501);
-
-    # discretization parameters
-    M = Int( (size(b_mat,2) - 1)/2 )
-    J = length(collect(x)) - 1
 
     # From effective wave theory
     k_eff0 = wavenumber_low_volfrac(ω, medium, [specie])
     k_eff = wavenumber(ω, medium, [specie])
+    eff_medium = effective_medium(medium, [specie])
+    ω/eff_medium.c
     k_eff2 = wavenumber(ω, medium, [specie2])
 
-    As0_fun = scattering_amplitudes_field(ω, k_eff0, medium, [specie];
-            max_hankel_order=M, θin=θin)
-    As_fun = scattering_amplitudes_field(ω, k_eff, medium, [specie];
-            max_hankel_order=M, θin=θin)
-    As2_fun = scattering_amplitudes_field(ω, k_eff2, medium, [specie2];
-            max_hankel_order=M, θin=θin)
+    (x, (MM_quad,b_mat)) = integral_form(ω, medium, specie; θin = θin, mesh_points = 5201);
+
+    # discretization parameters
+    M = Int( (size(b_mat,2) - 1)/2 )
+    J = length(collect(x)) - 1
 
     len = (J + 1) * (2M + 1)
     MM_mat = reshape(MM_quad, (len, len));
     b = reshape(b_mat, (len));
 
     As = MM_mat\b;
+    As_mat = reshape(As, (J+1, 2M+1));
 
-    As_eff_mat = transpose(hcat(As_fun.(x)...))
-    As_eff = reshape(As_eff_mat, (len))
-    As0_eff_mat = transpose(hcat(As0_fun.(x)...))
-    As0_eff = reshape(As_eff_mat, (len))
+    amps0_eff = scattering_amplitudes_effective(ω, x, medium, [specie];
+    k_eff = k_eff0, max_hankel_order=M, θin=θin)
+    amps_eff = scattering_amplitudes_effective(ω, x, medium, [specie];
+    k_eff = k_eff, max_hankel_order=M, θin=θin)
+    amps2_eff = scattering_amplitudes_effective(ω, x, medium, [specie2];
+    k_eff = k_eff2, max_hankel_order=M, θin=θin)
 
-    As2_eff_mat = transpose(hcat(As2_fun.(x)...))
-    As2_eff = reshape(As2_eff_mat, (len))
+    error0_eff = reshape( abs.((MM_mat*amps0_eff.amplitudes[:])./b .- 1.0+0.0im), (J+1, 2M+1))
+    error_eff = reshape( abs.((MM_mat*amps_eff.amplitudes[:])./b .- 1.0+0.0im), (J+1, 2M+1))
+    error2_eff = reshape( abs.((MM_mat*amps2_eff.amplitudes[:])./b .- 1.0+0.0im), (J+1, 2M+1))
 
-    error0_eff = reshape( abs.((MM_mat*As0_eff)./b .- 1.0+0.0im), (J+1, 2M+1))
-    error_eff = reshape( abs.((MM_mat*As_eff)./b .- 1.0+0.0im), (J+1, 2M+1))
-    error2_eff = reshape( abs.((MM_mat*As2_eff)./b .- 1.0+0.0im), (J+1, 2M+1))
-
-    As = MM_mat\b
     error = reshape( abs.((MM_mat*As)./b .- 1.0+0.0im), (J+1, 2M+1))
 
     using Plots; pyplot(linewidth=2)
     plot(xlabel = "depth (1 wavelength = 2π )", ylabel = "error %", ylims=(-0.1,1.5), title="Transmitted wave errors")
-    plot!(collect(x),error_eff[:,M+1], label = "Eff. error")
-    plot!(collect(x),error0_eff[:,M+1], linestyle=:dash, label = "Eff. low φ error")
-    plot!(collect(x),error2_eff[:,M+1], linestyle=:dot, label = "Eff. wrong k_eff error")
-    plot!(collect(x),error[:,M+1], linestyle=:dashdot, label = "Integral method error")
+    plot!(x,error_eff[:,M+1], label = "Eff. error")
+    plot!(x,error0_eff[:,M+1], linestyle=:dash, label = "Eff. low φ error")
+    plot!(x,error2_eff[:,M+1], linestyle=:dot, label = "Eff. wrong k_eff error")
+    plot!(x,error[:,M+1], linestyle=:dashdot, label = "Integral method error")
 
-    As_mat = reshape(As, (J+1, 2M+1))
+    plot(x, [real.(As_mat[:,M+1]),imag.(As_mat[:,M+1])], labels = ["real sol." "imag sol."])
+    plot!(x, [real.(amps_eff.amplitudes[:,M+1]),imag.(amps_eff.amplitudes[:,M+1])],
+        labels = ["real eff." "imag eff."], linestyle=:dash)
+    plot!(x, [real.(amps0_eff.amplitudes[:,M+1]),imag.(amps0_eff.amplitudes[:,M+1])],
+        labels = ["real φ eff." "imag φ eff."], linestyle=:dot)
 
-    plot(collect(x), [real.(As_mat[:,M+1]),imag.(As_mat[:,M+1])], labels = ["real sol." "imag sol."])
-    plot!(collect(x), [real.(As_eff_mat[:,M+1]),imag.(As_eff_mat[:,M+1])], labels = ["real eff." "imag eff."])
     is = 250:(length(collect(x))-1)
-    plot(collect(x[is]), log.(abs.(As_mat[is,M+1])), labels = "abs sol.")
-    plot!(collect(x[is]), log.(abs.(As_eff_mat[is,M+1])), labels = "abs eff.")
+    plot(x[is], log.(abs.(As_mat[is,M+1])), labels = "abs sol.")
+    plot!(x[is], log.(abs.(As_eff_mat[is,M+1])), labels = "abs eff.")
     # b_mat ≈ [ sum(MM_quad[l,m,j,n]*A_mat[j,n] for j=1:(J+1), n=1:(2M+1)) for l=1:(J+1), m=1:(2M+1)]
-
-    return x, As_mat
 end
 
 "tests the values of the integrand against results from the Mathematica file integrate_hankels.nb, which used no approximations."

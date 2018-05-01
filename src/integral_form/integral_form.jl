@@ -1,7 +1,7 @@
 type Scattering_Amplitudes{T<:Real}
   hankel_order::Int # largest hankel order
   x::Vector{T} # spatial mesh
-  A_mat::Matrix{Complex{T}} # a matrix of the scattering amplitudes, size(A_mat) = (length(x), 2hankel_order +1)
+  amplitudes::Array{Complex{T}} # a matrix of the scattering amplitudes, size(A_mat) = (length(x), 2hankel_order +1)
 end
 
 function Scattering_Amplitudes(x::AbstractVector{T}, A_mat::AbstractMatrix{Complex{T}}) where T<:Number
@@ -31,7 +31,7 @@ function integrate_S(n::Int,X; θin = 0.0)
     S
 end
 
-function scattering_amplitudes_integral_form(ω::T,medium::Medium{T},specie::Specie{T}; kws...) where T<:Number
+function scattering_amplitudes_integral_form(ω::T, medium::Medium{T},specie::Specie{T}; kws...) where T<:Number
 
     k = ω/medium.c
     (x, (MM_quad,b_mat)) = integral_form(ω, medium, specie;  kws...);
@@ -44,7 +44,7 @@ function scattering_amplitudes_integral_form(ω::T,medium::Medium{T},specie::Spe
     b = reshape(b_mat, (len));
 
     As = MM_mat\b
-    As_mat = reshape(As, (J+1, 2M+1))
+    As_mat = reshape(As, (J+1, 2M+1, 1))
 
     return Scattering_Amplitudes(M, collect(x), As_mat)
 end
@@ -55,12 +55,12 @@ function reflection_coefficient_integrated(ω::T, medium::Medium, specie::Specie
 
     M = amps.hankel_order
     σ =  trap_scheme(amps.x)
-    Z = Array{Complex{Float64}}(2M+1);
+    Z = OffsetArray{Complex{Float64}}(-M:M);
     for m = 0:M
-        Z[m+M+1] = Zn(ω,specie,medium,m)
-        Z[M+1-m] = Z[m+M+1]
+        Z[m] = Zn(ω,specie,medium,m)
+        Z[-m] = Z[m]
     end
-    R = T(2)*specie.num_density/(cos(θin)*k^2)*sum( im^T(m)*exp(-im*θin*m)*Z[m+M+1]*amps.A_mat[j,m+M+1]*exp(im*amps.x[j]*cos(θin))*σ[j]
+    R = T(2)*specie.num_density/(cos(θin)*k^2)*sum( im^T(m)*exp(-im*θin*m)*Z[m]*amps.amplitudes[j,m+M+1,1]*exp(im*amps.x[j]*cos(θin))*σ[j]
     for m=-M:M, j in eachindex(amps.x))
 
     return R
@@ -71,16 +71,16 @@ function integral_form(ω::Float64, medium::Medium, specie::Specie;
         x::AbstractVector = [0.], mesh_points::Int = 201,
         hankel_order = maximum_hankel_order(ω, medium, [specie]; tol=1e-3))
 
-    k = ω/medium.c
+    k = real(ω/medium.c)
     ak = real(k*specie.r);
     M = hankel_order;
 
     # estimate a large enough mesh
     if x == [0.]
         k_eff = wavenumber_low_volfrac(ω, medium, [specie])
-        max_x = 10.0*k/imag(k_eff) # at this A ≈ exp(-10) ≈ 4.5e-5
+        max_x = 10.0*k/abs(imag(k_eff)) # at this A ≈ exp(-10) ≈ 4.5e-5
         J = mesh_points - 1
-        h = ak/Int(round(J*ak/max_x));
+        h = ak/Int(ceil(J*ak/max_x));
         x = OffsetArray((0:J)*h, 0:J)
     else
         J = length(collect(x)) - 1
@@ -93,8 +93,7 @@ function integral_form(ω::Float64, medium::Medium, specie::Specie;
         Z[-m] = Z[m]
     end
 
-    # integration scheme: trapezoidal
-    σ =  OffsetArray(trap_scheme(collect(x)), 0:J)
+    σ =  trap_scheme(x) # integration scheme: trapezoidal
     PQ_quad = intergrand_kernel(x; ak = ak, θin = θin, M = M);
 
     MM_quad = [
@@ -103,7 +102,7 @@ function integral_form(ω::Float64, medium::Medium, specie::Specie;
 
     b_mat = [ -k^2*exp(im*x[l]*cos(θin))*exp(im*m*(pi/2.0 - θin)) for l = 0:J, m = -M:M]
 
-    return (x, (MM_quad,b_mat))
+    return (collect(x), (MM_quad,b_mat))
 end
 
 function intergrand_kernel(x::AbstractVector; ak::Float64 = 1.0, θin::Float64 = 0.0,
