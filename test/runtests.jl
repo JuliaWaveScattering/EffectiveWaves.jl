@@ -18,11 +18,11 @@ using EffectiveWaves
     @test true
 end
 
-@testset "Tests for the integral form" begin
-    include("integral_form_tests.jl")
-    test_integrand()
+# @testset "Tests for the integral form" begin
+    # include("integral_form_tests.jl")
+    # test_integrand()
 
-end
+# end
 
 @testset "Particle types and constructors" begin
     ω=0.4

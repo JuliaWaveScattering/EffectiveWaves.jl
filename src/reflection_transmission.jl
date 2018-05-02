@@ -15,7 +15,7 @@ function reflection_coefficient(ω::T, k_eff::Complex{T}, medium::Medium{T}, spe
 
     k = ω/medium.c
     θ_eff = transmission_angle(k, k_eff, θin; tol = tol)
-    As = effective_scattering_amplitudes(ω, k_eff, medium, species; tol = tol, θin = θin, kws...)
+    As = reduced_amplitudes_effective(ω, k_eff, medium, species; tol = tol, θin = θin, kws...)
 
     θ_ref = pi - θ_eff - θin
     S = length(species)
@@ -32,13 +32,13 @@ end
 "returns a function As, where As(k x) is a an array of the ensemble average scattering amplitudes at depth x inside a halfspace. As(k x)[m + M + 1,s] is the m-th hankel order and s-th species average scattering coefficient."
 function scattering_amplitudes_effective(ω::T, xs::AbstractVector{T}, medium::Medium{T}, species::Vector{Specie{T}};
         k_eff::Complex{Float64} = wavenumber_low_volfrac(ω, medium, species),
-        max_hankel_order=3, θin=0.0, kws...) where T<:Number
+        θin=0.0, kws...) where T<:Number
 
-    As_eff = effective_scattering_amplitudes(ω, k_eff, medium, species;
-            θin=θin, hankel_order=max_hankel_order, kws...)
+    As_eff = reduced_amplitudes_effective(ω, k_eff, medium, species;
+            θin=θin, kws...)
 
     k = ω/medium.c
-    ho = max_hankel_order
+    ho = Int(round(size(As_eff,1)/2-1/2))
     S = length(species)
     θ_eff = transmission_angle(k, k_eff, θin)
     As = [
@@ -52,7 +52,7 @@ end
 The function returns an array A, where
 AA(x,y,m,s) = im^m*exp(-im*m*θ_eff)*A[m + max_hankel_order +1,s]*exp(im*k_eff*(cos(θ_eff)*x + sin(θin)*y))
 where (x,y) are coordinates in the halfspace, m-th hankel order, s-th species,  and AA is the ensemble average scattering coefficient."
-function effective_scattering_amplitudes(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vector{Specie{T}};
+function reduced_amplitudes_effective(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vector{Specie{T}};
             hankel_order = :auto,
             max_hankel_order = 10,
             radius_multiplier = 1.005,
@@ -71,7 +71,7 @@ function effective_scattering_amplitudes(ω::T, k_eff::Complex{T}, medium::Mediu
         end
 
         if hankel_order == :auto
-            ho = -1 + sum([ tol .< norm([M(0.9*k + 0.1im,j,l,1,n) for j = 1:S, l = 1:S]) for n=0:max_hankel_order ])
+            ho = -1 + sum(tol .< norm([M(0.9*k + 0.1im,j,l,1,n) for j = 1:S, l = 1:S]) for n=0:max_hankel_order)
         else ho = hankel_order
         end
 

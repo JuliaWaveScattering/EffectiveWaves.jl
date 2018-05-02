@@ -2,12 +2,11 @@
 module EffectiveWaves
 
 export  Specie, Medium, volume_fraction, Zn, p_speed, maximum_hankel_order,
-        far_field_pattern, pair_field_pattern, diff_far_field_pattern
+        far_field_pattern, pair_field_pattern, diff_far_field_pattern, Scattering_Amplitudes
 
-export  trap_scheme, simpson_scheme, intergrand_kernel, integral_form
+export  trap_scheme, simpson_scheme #,intergrand_kernel, integral_form
 
-export  wavenumber, reflection_coefficient, transmission_angle,
-        effective_scattering_amplitudes, scattering_amplitudes_effective
+export  wavenumber, reflection_coefficient, transmission_angle, reduced_amplitudes_effective, scattering_amplitudes_effective
 
 export  effective_medium, reflection_coefficient_halfspace,
         reflection_coefficient_low_volfrac, wavenumber_low_volfrac, wavenumber_very_low_volfrac
@@ -38,9 +37,10 @@ using ApproxFun
 include("plot/graphics.jl")
 include("particle.jl")
 include("far_fields.jl")
+include("scattering_amplitudes.jl")
 
 include("integral_form/numerical_integration.jl")
-include("integral_form/integral_form.jl")
+# include("integral_form/integral_form.jl")
 
 include("wavenumbers.jl")
 include("low_frequency.jl")

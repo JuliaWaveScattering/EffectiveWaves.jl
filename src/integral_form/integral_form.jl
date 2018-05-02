@@ -1,13 +1,3 @@
-type Scattering_Amplitudes{T<:Real}
-  hankel_order::Int # largest hankel order
-  x::Vector{T} # spatial mesh
-  amplitudes::Array{Complex{T}} # a matrix of the scattering amplitudes, size(A_mat) = (length(x), 2hankel_order +1)
-end
-
-function Scattering_Amplitudes(x::AbstractVector{T}, A_mat::AbstractMatrix{Complex{T}}) where T<:Number
-    Scattering_Amplitudes(Int((size(A_mat,2)-1)/2), x, A_mat)
-end
-
 function integrate_B_full(n::Int,X, Y0; Y1 =1000000, θin = 0.0, num_coefs = 10000)
     K(Y) = cos(Y*sin(θin) + n*atan2(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
     # approximate function with Chebyshev polynomial (to high precision) then integrate from Y0 to Y1
@@ -49,9 +39,13 @@ function scattering_amplitudes_integral_form(ω::T, medium::Medium{T},specie::Sp
     return Scattering_Amplitudes(M, collect(x), As_mat)
 end
 
-function reflection_coefficient_integrated(ω::T, medium::Medium, specie::Specie,
-        amps::Scattering_Amplitudes{T} = scattering_amplitudes_integral_form(ω,medium,specie);
-        θin::T = 0.0) where T <: Number
+function reflection_coefficient_integrated(ω::T, medium::Medium, specie::Specie;
+        amps::Scattering_Amplitudes{T} = Scattering_Amplitudes(),
+        θin::T = 0.0, kws...) where T <: Number
+
+    if amps.x == Scattering_Amplitudes().x
+        amps = scattering_amplitudes_integral_form(ω,medium,specie; θin=θin, kws...)
+    end
 
     M = amps.hankel_order
     σ =  trap_scheme(amps.x)

@@ -1,4 +1,43 @@
 
+function test_reflection_coefficients()
+
+    # physical parameters
+    θin = 0.0
+    k=1.; M = 2
+    medium = Medium(1.0,1.0+0.0im)
+    ω = real(k*medium.c)
+    specie = Specie(ρ=0.1,r=0.1, c=0.5, volfrac=0.1)
+    specie2 = Specie(ρ=0.0,r=1.0, c=0.0, volfrac=0.15)
+
+    # From effective wave theory
+    k_eff0 = wavenumber_low_volfrac(ω, medium, [specie])
+    k_eff = wavenumber(ω, medium, [specie])
+    k_eff2 = wavenumber(ω, medium, [specie2])
+
+    max_x = 10.*k/imag(k_eff0)
+    x = 0.0:0.02:max_x
+
+    amps0_eff = scattering_amplitudes_effective(ω, x, medium, [specie];
+    k_eff = k_eff0, hankel_order=M, θin=θin)
+    amps_eff = scattering_amplitudes_effective(ω, x, medium, [specie];
+    k_eff = k_eff, hankel_order=M, θin=θin)
+    amps2_eff = scattering_amplitudes_effective(ω, x, medium, [specie2];
+    k_eff = k_eff2, hankel_order=M, θin=θin)
+
+    R = reflection_coefficient_integrated(ω, medium, specie; amps = amps0_eff, θin = θin)
+    R_eff = reflection_coefficient(ω, k_eff0, medium, [specie]; θin = θin)
+    abs(R-R_eff)/abs(R_eff) < 5e-4
+
+    R = reflection_coefficient_integrated(ω, medium, specie; amps = amps_eff, θin = θin)
+    R_eff = reflection_coefficient(ω, k_eff, medium, [specie]; θin = θin)
+    abs(R-R_eff)/abs(R_eff) < 5e-4
+
+    R = reflection_coefficient_integrated(ω, medium, specie2; amps = amps2_eff, θin = θin)
+    R_eff = reflection_coefficient(ω, k_eff2, medium, [specie2]; θin = θin)
+    abs(R-R_eff)/abs(R_eff) < 5e-3
+
+end
+
 function test_integral_form()
 
     # physical parameters
