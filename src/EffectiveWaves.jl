@@ -1,12 +1,12 @@
 # Loads all files
 module EffectiveWaves
 
-export  Specie, Medium, volume_fraction, Zn, p_speed, maximum_hankel_order,
+export  Specie, Medium, volume_fraction, Zn, Nn, p_speed, maximum_hankel_order,
         far_field_pattern, pair_field_pattern, diff_far_field_pattern, Scattering_Amplitudes
 
 export  trap_scheme, simpson_scheme #,intergrand_kernel, integral_form
 
-export  wavenumber, reflection_coefficient, transmission_angle, reduced_amplitudes_effective, scattering_amplitudes_effective
+export  wavenumbers, wavenumber, reflection_coefficient, transmission_angle, reduced_amplitudes_effective, scattering_amplitudes_effective
 
 export  effective_medium, reflection_coefficient_halfspace,
         reflection_coefficient_low_volfrac, wavenumber_low_volfrac, wavenumber_very_low_volfrac
@@ -27,6 +27,7 @@ import SpecialFunctions: besselj, hankelh1
 # try using BlackBoxOptim end
 
 using Optim
+using IterTools
 using OffsetArrays
 using ApproxFun
 

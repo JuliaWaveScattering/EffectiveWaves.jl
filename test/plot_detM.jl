@@ -72,9 +72,11 @@ contour(x,y,Z,fill=true, xlab = "Re k*", ylab = "Im k*", title="Roots of secular
 x = k0.*linspace(0.18,0.23,50)
 y = k0.*linspace(0.01,0.17,50)
 
+x = kx; y = ky;
+
 X = repmat(x',length(y),1)
 Y = repmat(y,1,length(x))
-Z = map( (x,y) -> (z = detMM2([x,y]); (abs(z)> 0.04) ? NaN: z),X,Y)
+Z = map( (x,y) -> (z = detMM2([x,y]); (abs(z)> 0.5) ? NaN: z),X,Y)
 
 contour(x,y,Z,fill=true, xlab = "Re k*", ylab = "Im k*", title="Roots of secular det M")
 
