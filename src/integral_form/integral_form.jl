@@ -1,11 +1,11 @@
-function integrate_B_full(n::Int,X, Y0; Y1 =1000000, θin = 0.0, num_coefs = 10000)
+function integrate_B_full(n::Int, X, Y0; Y1 =1000000, θin = 0.0, num_coefs = 10000)
     K(Y) = cos(Y*sin(θin) + n*atan2(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
     # approximate function with Chebyshev polynomial (to high precision) then integrate from Y0 to Y1
     return 2.0*(-1.0)^n*sum(Fun(K,Y0..Y1, num_coefs))
 end
 
 # Y0 = sqrt(k^a12^2 - X^2)
-function integrate_B(n::Int,X, Y0; θin = 0.0, num_coefs = 10000)
+function integrate_B(n::Int, X, Y0; θin = 0.0, num_coefs = 10000)
     Y1 = max(2000.0*X, 4000.0) # note Y1 is non-dimensional!
     # assymptotically approximate the integral from Y1 to Inf (tested in integrate_hankels.nb)
     Binf = (1.0+1.0im)*exp(im*Y1*(1.0 - sin(θin)))*
@@ -54,12 +54,14 @@ function reflection_coefficient_integrated(ω::T, medium::Medium, specie::Specie
         Z[m] = Zn(ω,specie,medium,m)
         Z[-m] = Z[m]
     end
-    R = T(2)*specie.num_density/(cos(θin)*k^2)*sum( im^T(m)*exp(-im*θin*m)*Z[m]*amps.amplitudes[j,m+M+1,1]*exp(im*amps.x[j]*cos(θin))*σ[j]
+    R = T(2)*specie.num_density/(cos(θin)*k^2)*sum(
+        im^T(m)*exp(-im*θin*m)*Z[m]*amps.amplitudes[j,m+M+1,1]*exp(im*amps.x[j]*cos(θin))*σ[j]
     for m=-M:M, j in eachindex(amps.x))
 
     return R
 end
 
+"note that this uses the non-dimensional x = k*depth"
 function integral_form(ω::Float64, medium::Medium, specie::Specie;
         θin::Float64 = 0.0,
         x::AbstractVector = [0.], mesh_points::Int = 201,

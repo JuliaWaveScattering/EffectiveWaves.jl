@@ -279,19 +279,25 @@ where $j,\ell = 0,1, \ldots, N$. Finally in block-matrix form: $\vec M \vec \Ab 
 
 Using equations (3.7-3.8) from \cite{gower_reflection_2018}, we have that the averaged reflected wave is
 \begin{equation}
-  u_R(kx,ky) = \nfrac {} \sum_{m=-\infty}^\infty Z_m \int \A m(kx_1,ky_1) F_m(k\mathbf x_1 - k\mathbf x,k) dy_1 dx_1,
+  u_R(kx_R,ky_R) = \nfrac {} \sum_{m=-\infty}^\infty Z_m \int \A m(kx_1,ky_1) F_m(k\mathbf x_1 - k\mathbf x_R,k) dy_1 dx_1,
 \end{equation}
-which can be rewritten by using~\eqref{eqn:A_symmetry} and $\mathbf X = k\mathbf x_1 - k\mathbf x$ (assuming $k>0$) to arrive at
+which can be rewritten by using~\eqref{eqn:A_symmetry} and $\mathbf X = k\mathbf x_1 - k\mathbf x_R$ (assuming $k>0$) to arrive at
 \begin{align}
-  u_R(kx,ky) &= \nfrac {} \sum_{m=-\infty}^\infty Z_m \frac{\ee^{ \ii k y \sin \theta_\inc}}{k} \int_{0}^\infty \A m(kx_1) \int_{-\infty}^\infty \ee^{ \ii Y \sin \theta_\inc} F_m(\mathbf X,k) dY dx_1,
+  u_R(kx_R,ky_R) &= \nfrac {} \sum_{m=-\infty}^\infty Z_m \frac{\ee^{ \ii k y_R \sin \theta_\inc}}{k} \int_{0}^\infty \A m(kx_1) \int_{-\infty}^\infty \ee^{ \ii Y \sin \theta_\inc} F_m(\mathbf X,k) dY dx_1,
   \\ \notag
-   =  \frac{\nfrac {}}{k} \ee^{ \ii k y \sin \theta_\inc} \sum_{m=-\infty}^\infty &Z_m \int_{0}^\infty \A m(kx_1) \left [ G_n(kx_1 - k x, k) + \frac{2 \ii^m \ee^{-\ii m \theta_\inc} \ee^{\ii (kx_1 - k x) \cos \theta_\inc}}{\cos \theta_\inc} \right] d x_1,
+   =  \frac{\nfrac {}}{k} \ee^{ \ii k y_R \sin \theta_\inc} \sum_{m=-\infty}^\infty &Z_m \int_{0}^\infty \A m(kx_1) \left [ G_n(kx_1 - k x_R, k) + \frac{2 \ii^m \ee^{-\ii m \theta_\inc} \ee^{\ii (kx_1 - k x_R) \cos \theta_\inc}}{\cos \theta_\inc} \right] d x_1,
 \end{align}
-where we used~\eqref{eqn:Sn} and that $kx_1 - k x > 0$, because $x_1$ is in the halfspace $x_1 >0$ and the receiver position $x$ satisfies $x<0$. If we use whole correction, then $G_n = 0$, which leads to
+where we used~\eqref{eqn:Sn} and that $kx_1 - k x_R > 0$, because $x_1$ is in the halfspace $x_1 >0$ and the receiver position $x_R$ satisfies $x_R<0$. If we use whole correction, then $G_n = 0$, which leads to
 \begin{equation}
-  u_R(kx,ky) =   \ee^{ \ii k ( - x \cos \theta_\inc + y \sin \theta_\inc )} \frac{\nfrac {}}{k} \sum_{m=-\infty}^\infty \frac{2 \ii^m \ee^{-\ii m \theta_\inc}}{\cos \theta_\inc} Z_m  \int_{0}^\infty \A m(kx_1) \ee^{\ii k x_1 \cos \theta_\inc}  d x_1.
+  u_R(kx_R,ky_R) =   \ee^{ \ii k ( - x_R \cos \theta_\inc + y_R \sin \theta_\inc )} \frac{\nfrac {}}{k} \sum_{m=-\infty}^\infty \frac{2 \ii^m \ee^{-\ii m \theta_\inc}}{\cos \theta_\inc} Z_m  \int_{0}^\infty \A m(kx_1) \ee^{\ii k x_1 \cos \theta_\inc}  d x_1.
 \end{equation}
 The above matches exactly equation (7.12) from \cite{gower_reflection_2018}, when using their ansatz~(4.3).
+
+To numerically evaluate the reflection coefficient above, we use $x = k x_1$ and discretise in the same way as before to get
+\begin{equation}
+  R =   \sum_{m=-\infty}^\infty \frac{2 \nfrac {} \ii^m \ee^{-\ii m \theta_\inc}}{k^2 \cos \theta_\inc} Z_m  \sum_{j} \sigma_j \A m^j \ee^{\ii x^j \cos \theta_\inc}.
+\end{equation}
+
 \printbibliography
 
 % \bibliographystyle{RS}

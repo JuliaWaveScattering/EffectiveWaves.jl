@@ -29,7 +29,9 @@ function reflection_coefficient(ω::T, k_eff::Complex{T}, medium::Medium{T}, spe
     return R
 end
 
-"returns a function As, where As(k x) is a an array of the ensemble average scattering amplitudes at depth x inside a halfspace. As(k x)[m + M + 1,s] is the m-th hankel order and s-th species average scattering coefficient."
+"returns a function As, where As(k x) is a an array of the ensemble average scattering amplitudes at depth x inside a halfspace.
+Note xs are assumed non-dimensional (just as the rest of the package).  
+As(k x)[m + M + 1,s] is the m-th hankel order and s-th species average scattering coefficient."
 function scattering_amplitudes_effective(ω::T, xs::AbstractVector{T}, medium::Medium{T}, species::Vector{Specie{T}};
         k_eff::Complex{Float64} = wavenumber_low_volfrac(ω, medium, species),
         θin=0.0, kws...) where T<:Number
@@ -42,7 +44,7 @@ function scattering_amplitudes_effective(ω::T, xs::AbstractVector{T}, medium::M
     S = length(species)
     θ_eff = transmission_angle(k, k_eff, θin)
     As = [
-        im^Float64(m)*exp(-im*m*θ_eff)*As_eff[m+ho+1,s]*exp(im*k_eff*cos(θ_eff)*x/k)
+        im^Float64(m)*exp(-im*m*θ_eff)*As_eff[m+ho+1,s]*exp(im*k_eff*cos(θ_eff)*x)
     for x in xs, m=-ho:ho, s=1:S]
 
     return Scattering_Amplitudes(ho,xs,As)
