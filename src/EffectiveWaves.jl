@@ -6,7 +6,8 @@ export  Specie, Medium, volume_fraction, Zn, Nn, p_speed, maximum_hankel_order,
 
 export  trap_scheme, simpson_scheme #,intergrand_kernel, integral_form
 
-export  wavenumbers, wavenumber, reflection_coefficient, transmission_angle, reduced_amplitudes_effective, scattering_amplitudes_effective
+export  wavenumbers, wavenumber, reflection_coefficient, transmission_angle,
+        reduced_amplitudes_effective, scattering_amplitudes_effective, scale_amplitudes_effective
 
 export  effective_medium, reflection_coefficient_halfspace,
         reflection_coefficient_low_volfrac, wavenumber_low_volfrac, wavenumber_very_low_volfrac

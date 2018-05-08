@@ -3,101 +3,155 @@ function test_reflection_coefficients()
 
     # physical parameters
     θin = 0.0
-    k=1.; M = 2
+    k=1.; ho = 2
     medium = Medium(1.0,1.0+0.0im)
     ω = real(k*medium.c)
     specie = Specie(ρ=0.1,r=0.1, c=0.5, volfrac=0.1)
-    specie2 = Specie(ρ=0.0,r=1.0, c=0.0, volfrac=0.15)
+    specie2 = Specie(ρ=2.0, r=1.0, c=0.1, volfrac=0.15)
 
     # From effective wave theory
-    k_eff0 = wavenumber_low_volfrac(ω, medium, [specie])
-    k_eff = wavenumber(ω, medium, [specie])
-    k_eff2 = wavenumber(ω, medium, [specie2])
+    k_eff0 = wavenumber_low_volfrac(ω, medium, [specie]; tol = 1e-12)
+    k_effs = wavenumbers(ω, medium, [specie]; mesh_points = 10, tol = 1e-8, hankel_order = ho)
+    k_effs = sort(k_effs, by=imag)
+
+    k_effs2 = wavenumbers(ω, medium, [specie2]; tol = 1e-8, hankel_order = ho)
+    k_effs2 = sort(k_effs2, by=imag)
 
     max_x = 10.*k/imag(k_eff0)
-    x = 0.0:0.02:max_x
+    x = 0.0:0.001:max_x
 
     amps0_eff = scattering_amplitudes_effective(ω, x, medium, [specie];
-    k_eff = k_eff0, hankel_order=M, θin=θin)
-    amps_eff = scattering_amplitudes_effective(ω, x, medium, [specie];
-    k_eff = k_eff, hankel_order=M, θin=θin)
+            k_eff = k_eff0, tol = 1e-12, θin=θin, hankel_order = ho)
+
+    amps_eff1 = scattering_amplitudes_effective(ω, x, medium, [specie];
+            k_eff = k_effs[1], hankel_order = ho, θin=θin, tol=1e-8)
+    amps_eff2 = scattering_amplitudes_effective(ω, x, medium, [specie];
+            k_eff = k_effs[2], hankel_order = ho, θin=θin, tol=1e-8)
+    amps_eff3 = scattering_amplitudes_effective(ω, x, medium, [specie];
+            k_eff = k_effs[end], hankel_order = ho, θin=θin, tol=1e-8)
     amps2_eff = scattering_amplitudes_effective(ω, x, medium, [specie2];
-    k_eff = k_eff2, hankel_order=M, θin=θin)
+            k_eff = k_effs2[1], hankel_order = ho, θin=θin, tol=1e-8)
 
-    R = reflection_coefficient_integrated(ω, medium, specie; amps = amps0_eff, θin = θin)
-    R_eff = reflection_coefficient(ω, k_eff0, medium, [specie]; θin = θin)
-    abs(R-R_eff)/abs(R_eff) < 5e-4
+    R = reflection_coefficient_integrated(ω, medium, specie; amps = amps0_eff, θin = θin, hankel_order = ho)
+    R_eff = reflection_coefficient(ω, k_eff0, medium, [specie]; θin = θin, hankel_order = ho)
+    abs(R-R_eff)/abs(R_eff) < 1e-4 #
 
-    R = reflection_coefficient_integrated(ω, medium, specie; amps = amps_eff, θin = θin)
-    R_eff = reflection_coefficient(ω, k_eff, medium, [specie]; θin = θin)
-    abs(R-R_eff)/abs(R_eff) < 5e-4
+    R = reflection_coefficient_integrated(ω, medium, specie; amps = amps_eff1, θin = θin, hankel_order = ho)
+    R_eff = reflection_coefficient(ω, k_effs[1], medium, [specie]; θin = θin, hankel_order = ho)
+    abs(R-R_eff)/abs(R_eff) < 1e-6
 
-    R = reflection_coefficient_integrated(ω, medium, specie2; amps = amps2_eff, θin = θin)
-    R_eff = reflection_coefficient(ω, k_eff2, medium, [specie2]; θin = θin)
-    abs(R-R_eff)/abs(R_eff) < 5e-3
+    R = reflection_coefficient_integrated(ω, medium, specie; amps = amps_eff2, θin = θin, hankel_order = ho)
+    R_eff = reflection_coefficient(ω, k_effs[2], medium, [specie]; θin = θin, hankel_order = ho)
+    abs(R-R_eff)/abs(R_eff) < 5e-5 # the larger the eff wavenumbers, the bigger the integral error
+
+    R = reflection_coefficient_integrated(ω, medium, specie; amps = amps_eff3, θin = θin, hankel_order = ho)
+    R_eff = reflection_coefficient(ω, k_effs[end], medium, [specie]; θin = θin, hankel_order = ho)
+    abs(R-R_eff)/abs(R_eff) < 2e-4
+
+    R = reflection_coefficient_integrated(ω, medium, specie2; amps = amps2_eff, θin = θin, hankel_order = ho)
+    R_eff = reflection_coefficient(ω, k_effs2[1], medium, [specie2]; θin = θin, hankel_order = ho)
+    abs(R-R_eff)/abs(R_eff) < 1e-5
 
 end
 
 function test_integral_form()
 
+    using EffectiveWaves
+
     # physical parameters
     θin = 0.0
     k=1.;
+    ho = 2;
+
     medium = Medium(1.0,1.0+0.0im)
     ω = real(k*medium.c)
-    specie = Specie(ρ=0.1,r=0.1, c=0.5, volfrac=0.1)
-    # specie = Specie(ρ=0.6,r=0.1, c=0.4, volfrac=0.15)
-    specie2 = Specie(ρ=0.0,r=1.0, c=0.0, volfrac=0.15)
+    # specie = Specie(ρ=0.1,r=1.0, c=0.5, volfrac=0.2)
+    specie = Specie(ρ=0.1,r=1.0, c=0.5, volfrac=0.1)
+    # specie = Specie(ρ=0.1,r=0.1, c=0.5, volfrac=0.1)
+    specie2 = Specie(ρ=2.0, r=1.0, c=0.1, volfrac=0.15)
 
     # From effective wave theory
-    k_eff0 = wavenumber_low_volfrac(ω, medium, [specie])
-    k_eff = wavenumber(ω, medium, [specie])
+    k_eff0 = wavenumber_low_volfrac(ω, medium, [specie]; hankel_order = ho)
+    k_effs = wavenumbers(ω, medium, [specie]; mesh_points = 10, tol = 1e-8, hankel_order = ho)
+    k_effs = sort(k_effs, by=imag)
+
     eff_medium = effective_medium(medium, [specie])
     ω/eff_medium.c
-    k_eff2 = wavenumber(ω, medium, [specie2])
+    k_effs2 = wavenumbers(ω, medium, [specie2]; tol = 1e-8, hankel_order = ho)
+    k_effs2 = sort(k_effs2, by=imag)
 
-    (x, (MM_quad,b_mat)) = integral_form(ω, medium, specie; θin = θin, mesh_points = 501);
+    using OffsetArrays, ApproxFun, IterTools
+    include("src/integral_form/integral_form.jl")
+
+    # (x, (MM_quad,b_mat)) = integral_form(ω, medium, specie; θin = θin, mesh_points = 501, hankel_order=ho);
+    (x, (MM_quad,b_mat)) = integral_form(ω, medium, specie; x= 0.0:0.025:30.0, θin = θin, hankel_order=ho);
 
     # discretization parameters
-    M = Int( (size(b_mat,2) - 1)/2 )
     J = length(collect(x)) - 1
 
-    len = (J + 1) * (2M + 1)
+    len = (J + 1) * (2ho + 1)
     MM_mat = reshape(MM_quad, (len, len));
     b = reshape(b_mat, (len));
 
     As = MM_mat\b;
-    As_mat = reshape(As, (J+1, 2M+1));
+    As_mat = reshape(As, (J+1, 2ho+1));
+
+    amps_eff1 = scattering_amplitudes_effective(ω, x, medium, [specie];
+            k_eff = k_effs[1], hankel_order = ho, θin=θin, tol=1e-8)
+    amps_eff2 = scattering_amplitudes_effective(ω, x, medium, [specie];
+            k_eff = k_effs[2], hankel_order = ho, θin=θin, tol=1e-8)
+    amps_eff3 = scattering_amplitudes_effective(ω, x, medium, [specie];
+            k_eff = k_effs[end], hankel_order = ho, θin=θin, tol=1e-8)
 
     amps0_eff = scattering_amplitudes_effective(ω, x, medium, [specie];
-    k_eff = k_eff0, max_hankel_order=M, θin=θin)
-    amps_eff = scattering_amplitudes_effective(ω, x, medium, [specie];
-    k_eff = k_eff, max_hankel_order=M, θin=θin)
+            k_eff = k_eff0, hankel_order = ho, θin=θin)
     amps2_eff = scattering_amplitudes_effective(ω, x, medium, [specie2];
-    k_eff = k_eff2, max_hankel_order=M, θin=θin)
+            k_eff = k_effs2[2], hankel_order = ho, θin=θin, tol=1e-8)
+    # sanity check: the abs of reflection coefficients should always be smaller than one.
+    reflection_coefficient_integrated(ω, medium, specie2; amps = amps2_eff, θin = θin)
+    reflection_coefficient_integrated(ω, medium, specie; amps = amps_eff2, θin = θin)
+    reflection_coefficient_integrated(ω, medium, specie; amps = amps_eff3, θin = θin)
+    reflection_coefficient_integrated(ω, medium, specie; amps = amps_eff1, θin = θin)
 
-    error0_eff = reshape( abs.((MM_mat*amps0_eff.amplitudes[:])./b .- 1.0+0.0im), (J+1, 2M+1))
-    error_eff = reshape( abs.((MM_mat*amps_eff.amplitudes[:])./b .- 1.0+0.0im), (J+1, 2M+1))
-    error2_eff = reshape( abs.((MM_mat*amps2_eff.amplitudes[:])./b .- 1.0+0.0im), (J+1, 2M+1))
+    error0_eff = reshape( abs.(MM_mat*amps0_eff.amplitudes[:] .- b), (J+1, 2ho+1))
+    error_eff1 = reshape( abs.(MM_mat*amps_eff1.amplitudes[:] .- b), (J+1, 2ho+1))
+    error_eff2 = reshape( abs.(MM_mat*amps_eff2.amplitudes[:] .- b), (J+1, 2ho+1))
+    error_eff3 = reshape( abs.(MM_mat*amps_eff3.amplitudes[:] .- b), (J+1, 2ho+1))
 
-    error = reshape( abs.((MM_mat*As)./b .- 1.0+0.0im), (J+1, 2M+1))
+    error2_eff = reshape( abs.(MM_mat*amps2_eff.amplitudes[:] .- b), (J+1, 2ho+1))
+    # With a completely wrong wavenumber I can still get a small error by just scalling the amplitudes
+    amps2_eff = scattering_amplitudes_effective(ω, x, medium, [specie];
+            k_eff = k_effs2[2], hankel_order = ho, θin=θin)
+    error2_eff = reshape( abs.(MM_mat*amps2_eff.amplitudes[:] .- b), (J+1, 2ho+1))
+    # scale_amplitudes_effective(ω, k_effs[1], amps2_eff.amplitudes, medium, [specie]; θin = θin)
+
+    error = reshape( abs.((MM_mat*As)./b .- 1.0+0.0im), (J+1, 2ho+1))
 
     using Plots; pyplot(linewidth=2)
-    plot(xlabel = "depth (1 wavelength = 2π )", ylabel = "error %", ylims=(-0.1,1.5), title="Transmitted wave errors")
-    plot!(x,error_eff[:,M+1], label = "Eff. error")
-    plot!(x,error0_eff[:,M+1], linestyle=:dash, label = "Eff. low φ error")
-    plot!(x,error2_eff[:,M+1], linestyle=:dot, label = "Eff. wrong k_eff error")
-    plot!(x,error[:,M+1], linestyle=:dashdot, label = "Integral method error")
+    plot(xlabel = "depth (1 wavelength = 2π )", ylabel = "error %", ylims=(-0.1,0.5), title="Transmitted wave errors")
+    plot!(x,error_eff1[:,ho+1], label = "Eff. error")
+    plot!(x,error0_eff[:,ho+1], linestyle=:dash, label = "Eff. low φ error")
+    plot!(x,error2_eff[:,ho+1], linestyle=:dot, label = "Eff. wrong k_eff error")
+    plot!(x,error[:,ho+1], linestyle=:dashdot, label = "Integral method error")
 
-    plot(x, [real.(As_mat[:,M+1]),imag.(As_mat[:,M+1])], labels = ["real sol." "imag sol."])
-    plot!(x, [real.(amps_eff.amplitudes[:,M+1]),imag.(amps_eff.amplitudes[:,M+1])],
-        labels = ["real eff." "imag eff."], linestyle=:dash)
-    plot!(x, [real.(amps0_eff.amplitudes[:,M+1]),imag.(amps0_eff.amplitudes[:,M+1])],
-        labels = ["real φ eff." "imag φ eff."], linestyle=:dot)
+    plot(x, [real.(As_mat[:,ho+1]),imag.(As_mat[:,ho+1])], labels = ["real sol." "imag sol."])
+    plot!(x, [real.(amps_eff1.amplitudes[:,ho+1]),imag.(amps_eff1.amplitudes[:,ho+1])],
+        labels = ["real eff. 1" "imag eff. 1"], linestyle=:dash)
+    plot!(x, [real.(amps_eff2.amplitudes[:,ho+1]),imag.(amps_eff2.amplitudes[:,ho+1])],
+        labels = ["real eff. 2" "imag eff. 2"], linestyle=:dash)
+
+    plot(x, [real.(As_mat[:,ho+2]),imag.(As_mat[:,ho+2])], labels = ["real sol." "imag sol."])
+    plot!(x, [real.(amps_eff1.amplitudes[:,ho+2]),imag.(amps_eff1.amplitudes[:,ho+2])],
+        labels = ["real eff. 1" "imag eff. 1"], linestyle=:dash)
+
+    # plot!(x, [real.(amps_eff3.amplitudes[:,ho+1]),imag.(amps_eff3.amplitudes[:,ho+1])],
+    #     labels = ["real eff. 3" "imag eff. 3"], linestyle=:dash)
+    # plot!(x, [real.(amps0_eff.amplitudes[:,ho+1]),imag.(amps0_eff.amplitudes[:,ho+1])],
+    #     labels = ["real φ eff." "imag φ eff."], linestyle=:dot)
 
     is = 250:(length(collect(x))-1)
-    plot(x[is], log.(abs.(As_mat[is,M+1])), labels = "abs sol.")
-    plot!(x[is], log.(abs.(As_eff_mat[is,M+1])), labels = "abs eff.")
+    plot(x[is], log.(abs.(As_mat[is,ho+1])), labels = "abs sol.")
+    plot!(x[is], log.(abs.(As_eff_mat[is,ho+1])), labels = "abs eff.")
     # b_mat ≈ [ sum(MM_quad[l,m,j,n]*A_mat[j,n] for j=1:(J+1), n=1:(2M+1)) for l=1:(J+1), m=1:(2M+1)]
 end
 

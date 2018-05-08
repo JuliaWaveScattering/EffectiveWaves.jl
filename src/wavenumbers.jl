@@ -109,6 +109,7 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol =
     kφ = wavenumber_low_volfrac(ω, medium, species; verbose = false)
     eff_medium = effective_medium(medium, species)
     k0 = ω/eff_medium.c
+    if isnan(k0) k0 = kφ end
 
     dk_x = min(real(k0),abs(real(kφ)))/2.0
     maxk_x = mesh_points/2*max(real(k0),abs(real(kφ)))

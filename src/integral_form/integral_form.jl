@@ -75,11 +75,11 @@ function integral_form(ω::Float64, medium::Medium, specie::Specie;
     if x == [0.]
         k_eff = wavenumber_low_volfrac(ω, medium, [specie])
         max_x = 10.0*k/abs(imag(k_eff)) # at this A ≈ exp(-10) ≈ 4.5e-5
-        J = mesh_points - 1
-        h = ak/Int(ceil(J*ak/max_x));
-        x = OffsetArray((0:J)*h, 0:J)
+        J = mesh_points
+        h = ak/Int(ceil((J-1)*ak/max_x));
+        x = (0:J)*h
     else
-        J = length(collect(x)) - 1
+        J = length(collect(x))
         h = x[2] - x[1]
     end
 
@@ -93,12 +93,12 @@ function integral_form(ω::Float64, medium::Medium, specie::Specie;
     PQ_quad = intergrand_kernel(x; ak = ak, θin = θin, M = M);
 
     MM_quad = [
-        specie.num_density*Z[n]*σ[j]*PQ_quad[l+1,m+M+1,j+1,n+M+1] + k^2*( (m==n && j==l) ? 1.0+0.0im : 0.0+0.0im)
-    for  l=0:J, m=-M:M, j=0:J, n=-M:M];
+        specie.num_density*Z[n]*σ[j]*PQ_quad[l,m+M+1,j,n+M+1] + k^2*( (m==n && j==l) ? 1.0+0.0im : 0.0+0.0im)
+    for  l=1:J, m=-M:M, j=1:J, n=-M:M];
 
-    b_mat = [ -k^2*exp(im*x[l]*cos(θin))*exp(im*m*(pi/2.0 - θin)) for l = 0:J, m = -M:M]
+    b_mat = [ -k^2*exp(im*x[l]*cos(θin))*exp(im*m*(pi/2.0 - θin)) for l = 1:J, m = -M:M]
 
-    return (collect(x), (MM_quad,b_mat))
+    return (x, (MM_quad,b_mat))
 end
 
 function intergrand_kernel(x::AbstractVector; ak::Float64 = 1.0, θin::Float64 = 0.0,
