@@ -8,10 +8,10 @@ wavenumber_low_volfrac(ωs::AbstractVector{T}, medium::Medium{T}, specie::Specie
 
 function wavenumber_low_volfrac(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol=1e-6,
     hankel_order = maximum_hankel_order(ω, medium, species; tol=tol),
-    radius_multiplier = 1.005, verbose = false) where T <: Number
+    radius_multiplier = 1.005, verbose = true) where T <: Number
 
   volume_fraction = sum(pi*sp.r^2.0*sp.num_density for sp in species)
-  if volume_fraction >= 0.4
+  if volume_fraction >= 0.4 && verbose
     warn("the volume fraction $(volume_fraction) is too high, expect a relative error of approximately $(volume_fraction^3.0)")
   end
   num_density = sum(sp.num_density for sp in species)

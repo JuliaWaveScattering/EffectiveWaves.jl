@@ -60,37 +60,41 @@ end
     k_eff_lows = ωs./eff_medium.c
     k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
 
-    k_effs = wavenumber(ωs, medium, species)
+    k_effs = [wavenumbers(ω, medium, species; tol = 1e-5) for ω in ωs]
+    # k_effs3 = wavenumber(ωs, medium, species; tol = 1e-5)
 
-    @test norm(k_effs - k_eff_φs)/norm(k_effs) < 0.0002
-    @test norm(k_effs - k_eff_lows)/norm(k_effs) < 0.01
-    @test norm(k_effs[1] - k_eff_lows[1])/norm(k_effs[1]) < 1e-7
+    inds = [indmin(abs.(k)) for k in (k_effs .- k_eff_φs)]
+    k_effs2 = [k_effs[i][inds[i]] for i in eachindex(inds)]
+
+    @test norm(k_effs2 - k_eff_φs) < 0.002*norm(k_eff_φs)
+    @test norm(k_effs2 - k_eff_lows)/norm(k_eff_lows) < 0.01
+    @test norm(k_effs[1] - k_eff_lows[1])/norm(k_effs[1]) < 4e-7
 
     # reflection coefficient
-    Rs2 = reflection_coefficient(ωs, medium, species)
+    Rs2 = reflection_coefficient(ωs, medium, species; tol=1e-5)
     # if the wavenumber k_effs are already calculated, the below is faster
-    Rs = reflection_coefficient(ωs, k_effs, medium, species)
+    Rs = reflection_coefficient(ωs, k_effs2, medium, species; tol=1e-5)
 
-    @test norm(Rs - Rs2)/norm(Rs) ≈ 0.0
+    @test norm(Rs - Rs2)/norm(Rs) < 5e-7
 
     # Direct incidence
     R_low = reflection_coefficient_halfspace(medium, eff_medium)
-    Rs_φs = reflection_coefficient(ωs, k_eff_φs, medium, species)
+    Rs_φs = reflection_coefficient(ωs, k_eff_φs, medium, species; tol=1e-5)
     # the below takes a low-volfrac expansion for both the wavenumber and reflection coefficient
     Rs_φs2 = reflection_coefficient_low_volfrac(ωs, medium, species)
 
     len = length(ωs)
-    @test norm(Rs_φs - Rs)/len < 1e-5 # already relative to incident wave amplitude = 1
+    @test norm(Rs_φs - Rs)/len < 3e-5 # already relative to incident wave amplitude = 1
     @test norm(Rs_φs2 - Rs)/len < 1e-4
     @test abs(R_low - Rs[1]) < 1e-7
 
     # Vary angle of incidence θin
     θs = 0.1:0.3:(π/2)
     R_low = [reflection_coefficient_halfspace(medium, eff_medium; θin = θ) for θ in θs]
-    Rs = [reflection_coefficient(ωs, k_effs, medium, species; θin = θ, hankel_order =7) for θ in θs];
+    Rs = [reflection_coefficient(ωs, k_effs2, medium, species; θin = θ, hankel_order =7) for θ in θs];
     Rs_φs = [reflection_coefficient_low_volfrac(ωs, medium, species; θin = θ, hankel_order =7) for θ in θs];
 
-    @test maximum(abs(R_low[i] - Rs[i][1]) for i in 1:length(R_low)) < 1e-7
+    @test maximum(abs(R_low[i] - Rs[i][1]) for i in 1:length(R_low)) < 2e-6
     @test maximum(norm(R)/len for R in (Rs_φs - Rs)) < 0.01
 
 end
@@ -104,18 +108,21 @@ end
     ]
     ωs2 = 20.:30.:121
 
-    k_eff_φs = wavenumber_low_volfrac(ωs2, medium, species; tol=1e-5)
-    k_effs = wavenumber(ωs2, medium, species; tol=1e-7) # lowering tol to speed up calculation
+    k_eff_φs = wavenumber_low_volfrac(ωs2, medium, species; tol=1e-5) # lowering tol to speed up calculation
+    k_effs = [wavenumbers(ω, medium, species; tol=1e-6) for ω in ωs2]
+    # k_effs = wavenumber(ωs2, medium, species; tol=1e-7) # lowering tol to speed up calculation
+    inds = [indmin(abs.(k)) for k in (k_effs .- k_eff_φs)]
+    k_effs2 = [k_effs[i][inds[i]] for i in eachindex(inds)]
 
-    @test norm(k_effs - k_eff_φs)/norm(k_effs) < 1e-4
+    @test norm(k_effs2 - k_eff_φs)/norm(k_effs) < 2e-4
 
-    Rs = reflection_coefficient(ωs2, k_effs, medium, species)
+    Rs = reflection_coefficient(ωs2, k_effs2, medium, species)
     Rs_φs = reflection_coefficient(ωs2, k_eff_φs, medium, species)
     Rs_φs2 = reflection_coefficient_low_volfrac(ωs2, medium, species)
 
     len = length(ωs2)
-    @test norm(Rs_φs - Rs)/len < 2e-7
-    @test norm(Rs_φs2 - Rs)/len < 1e-5 # the incident wave has amplitude 1, so this is a tiny difference
+    @test norm(Rs_φs - Rs)/len < 5e-5
+    @test norm(Rs_φs2 - Rs)/len < 5e-5 # the incident wave has amplitude 1, so this is a tiny difference
 end
 
 # large volume fraction scatterers,  small size amd on strong scatterer. This is a problamatic case.
@@ -130,17 +137,20 @@ end
 
     eff_medium = effective_medium(medium, species)
     k_eff_lows = ωs./eff_medium.c
-    k_effs = wavenumber(ωs, medium, species)
+    # k_effs = wavenumber(ωs, medium, species)
+    k_effs = [wavenumbers(ω, medium, species) for ω in ωs]
+    inds = [indmin(abs.(k)) for k in (k_effs .- k_eff_lows)]
+    k_effs2 = [k_effs[i][inds[i]] for i in eachindex(inds)]
 
-    @test norm(k_effs - k_eff_lows)/norm(k_effs) < 0.01
-    @test norm(k_effs[1] - k_eff_lows[1])/norm(k_eff_lows[1]) < 1e-7
+    @test norm(k_effs2 .- k_eff_lows)/norm(k_eff_lows) < 0.01
+    @test norm(k_effs2[1] - k_eff_lows[1])/norm(k_eff_lows[1]) < 2e-6
 
-    Rs = reflection_coefficient(ωs, k_effs, medium, species)
+    Rs = reflection_coefficient(ωs, k_effs2, medium, species)
     R_low = reflection_coefficient_halfspace(medium, eff_medium)
     R_low2 = reflection_coefficient(ωs, k_eff_lows, medium, species)
 
-    @test norm(R_low - Rs[1]) < 1e-7
-    @test norm(R_low2[1] - Rs[1]) < 1e-7
+    @test norm(R_low - Rs[1]) < 5e-7
+    @test norm(R_low2[1] - Rs[1]) < 5e-7
     @test norm(R_low2 - Rs) < 0.005
 end
 
@@ -152,16 +162,19 @@ end
         Specie(ρ=0.3, r=0.002, c=0.01, volfrac=0.1)
     ]
 
-    ωs = 0.001:0.002:0.01
+    ωs = 0.001:0.004:0.01
     eff_medium = effective_medium(medium, species)
     k_eff_lows = ωs./eff_medium.c
 
     k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
-    k_effs = wavenumber(ωs, medium, species)
+    k_effs = [wavenumbers(ω, medium, species; tol=1e-7) for ω in ωs]
+    inds = [indmin(abs.(k)) for k in (k_effs .- k_eff_φs)]
+    k_effs2 = [k_effs[i][inds[i]] for i in eachindex(inds)]
+    # k_effs = wavenumber(ωs, medium, species)
 
-    @test norm(k_effs - k_eff_lows)/norm(k_effs) < 1e-5
-    @test norm(k_effs[1] - k_eff_lows[1])/norm(k_effs[1]) < 1e-8
-    @test norm(k_effs - k_eff_φs)/norm(k_effs) < 0.01
+    @test norm(k_effs2 - k_eff_lows)/norm(k_effs2) < 1e-5
+    @test norm(k_effs2[1] - k_eff_lows[1])/norm(k_eff_lows[1]) < 1e-7
+    @test norm(k_effs2 - k_eff_φs)/norm(k_effs2) < 0.01
 end
 
 end
