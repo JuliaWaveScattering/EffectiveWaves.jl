@@ -84,7 +84,7 @@ function test_integral_form()
     include("src/integral_form/integral_form.jl")
 
     # (x, (MM_quad,b_mat)) = integral_form(ω, medium, specie; θin = θin, mesh_points = 501, hankel_order=ho);
-    (x, (MM_quad,b_mat)) = integral_form(ω, medium, specie; x= 0.0:0.025:30.0, θin = θin, hankel_order=ho);
+    (x, (MM_quad,b_mat)) = integral_form(ω, medium, specie; x= 0.0:0.005:30.0, θin = θin, hankel_order=ho);
 
     # discretization parameters
     J = length(collect(x)) - 1
@@ -127,7 +127,7 @@ function test_integral_form()
 
     error = reshape( abs.((MM_mat*As)./b .- 1.0+0.0im), (J+1, 2ho+1))
 
-    using Plots; pyplot(linewidth=2)
+    using Plots; pyplot(linewidth=2) # unicodeplots()
     plot(xlabel = "depth (1 wavelength = 2π )", ylabel = "error %", ylims=(-0.1,0.5), title="Transmitted wave errors")
     plot!(x,error_eff1[:,ho+1], label = "Eff. error")
     plot!(x,error0_eff[:,ho+1], linestyle=:dash, label = "Eff. low φ error")
@@ -139,6 +139,9 @@ function test_integral_form()
         labels = ["real eff. 1" "imag eff. 1"], linestyle=:dash)
     plot!(x, [real.(amps_eff2.amplitudes[:,ho+1]),imag.(amps_eff2.amplitudes[:,ho+1])],
         labels = ["real eff. 2" "imag eff. 2"], linestyle=:dash)
+
+    plot(x, [abs.(As_mat[:,ho+1] .- amps_eff1.amplitudes[:,ho+1])],
+            labels = ["diff abs eff. " "diff imag eff."])
 
     plot(x, [real.(As_mat[:,ho+2]),imag.(As_mat[:,ho+2])], labels = ["real sol." "imag sol."])
     plot!(x, [real.(amps_eff1.amplitudes[:,ho+2]),imag.(amps_eff1.amplitudes[:,ho+2])],
