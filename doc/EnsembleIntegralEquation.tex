@@ -239,23 +239,25 @@ To start, by solving the single species and consider only whole correction pair-
 
 \begin{multline}
   \sum_{n=-\infty}^\infty
-  \int_{X>0} \A n (X) S_{n-m}(X-x) dX
+  \int_\regS \int_{X>0} \A n (X) S_{n-m}(X-x) dX
   d\s_2^n
   \\
   +  \sum_{n=-\infty}^\infty
-    \int_{\stackrel{|X-x| < k a_{12}}{X>0}} \A n (X) (B_{n-m}(X- x,k) - S_{n-m}(X-x) )dX
+    \int_\regS \int_{\stackrel{|X-x| < k a_{12}}{X>0}} \A n (X) (B_{n-m}(X- x,k) - S_{n-m}(X-x) )dX
     d\s_2^n
 \\
 +  k^2 \A m (x)   + k^2  \ee^{\ii x \cos \theta_\inc} \ee^{\ii m ( \pi/2 - \theta_\inc )}
-   = 0, \quad \text{for} \quad x_1 >0,
+   = 0, \quad \text{for} \quad x_1 >0
   \label{eqn:ensemAsystem4}
 \end{multline}
+
+\art{as the integrals are convolutions, it may be possible to use a Fourier of Laplace transform to solve this.}
+Now considering only one species (to reduce the number of sums)
 \begin{equation}
   \nfrac {} \sum_{n,j \geq 0}  \scatZ_n  \sigma_j  \left ( S_{n-m}^{j-\ell}
   +  (B_{n-m}^{j-\ell} - S_{n-m}^{j -\ell} ) \chi_{\{|j-\ell|\leq p\}} \right) \Ab_n^j+  k^2  \Ab_m^\ell  =  b_m^\ell,
   \label{eqn:ensemAsystemN}
 \end{equation}
-\art{as the integrals are convolutions, it may be possible to use a Fourier of Laplace transform to solve this.}
 for $\ell >0$, where $p = \lfloor k a_{12}/h \rfloor$, and $\sigma_j$ represents the discrete integral. In matrix form,
 \begin{equation}
   % \nfrac {} \sum_{n}  \scatZ_n  \overset{\infty}{\vec P}_{n-m} \overset{\infty}{\vec \Ab}_n
@@ -264,46 +266,42 @@ for $\ell >0$, where $p = \lfloor k a_{12}/h \rfloor$, and $\sigma_j$ represents
 +  k^2 \vec I \vec \Ab_m  =  \vec b_m,
   \label{eqn:ensemAsystemN2}
 \end{equation}
-where we used the matrices:
+where the components of matrices are
 \begin{equation}
   P_{n}^{\ell j} =  \sigma_j S_{n}^{j-\ell}, \quad Q_{n}^{\ell j} = \sigma_j (B_{n}^{j-\ell} - S_{n}^{j -\ell} ) \chi_{\{|j-\ell| \leq p\}},
 \end{equation}
-where $j,\ell = 0,1, \ldots, N$
+with $j,\ell = 0,1, \ldots, N$
 % The $\infty$ over a symbol, such $(\overset{\infty}{\vec P}_{n})^{\ell j} = P_{n}^{\ell j}$ and $(\overset{\infty}{\vec \Ab}_{n})^{\ell j} = \Ab_{n}^{\ell j}$, indicate that $j,\ell = N+1,N+2, \ldots, \infty$
-, where
+, and
 \begin{equation}
-  E_{n,m}^\ell  = \int_{X>\bar x} \A n (X) S_{n-m}(X-x^\ell) dX  d\s_2^n.
+  E_{n,m}^\ell  = \nfrac {} Z^n \int_{X>\bar x} \A n (X) S_{n-m}(X-x^\ell) dX, \quad \text{with} \;\; \bar x = Nh.
   \label{eqn:E}
 \end{equation}
-If we do not include $E_{n,m}^\ell$, then the solution of \eqref{eqn:ensemAsystemN2} would give the response from the plate occupying the region $0 \leq x \leq \bar x$ and $\bar x = Nh$. If we wish to calculate the backscattering from the whole halfspace, then we can calculate $E_{n,m}^\ell$ by approximating $\Ab_n(x)$ as a sum of plane waves:
+If we do not include $E_{n,m}^\ell$, then the solution of \eqref{eqn:ensemAsystemN2} would be valid for a plate occupying the region $0 \leq x \leq \bar x$. If we wish to calculate the backscattering from the whole halfspace, then we can calculate $E_{n,m}^\ell$ by approximating $\Ab_n(x)$ as a sum of plane waves:
 \begin{equation}
-  \Ab_n(X) = \ii^n \sum_p \ee^{-\ii n \theta_p} A_{n}^p \ee^{\ii X k_p/k} \quad \text{for} \;\; X > \bar x ,
+  \Ab_n(X) = \ii^n \sum_p \ee^{-\ii n \theta_p} A_{n}^p \ee^{\ii X \frac{k_p}{k} \cos \theta_p } \quad \text{for} \;\; X > \bar x ,
 \label{eqn:effective_waves}
 \end{equation}
-where for each $k_p$ and $\theta_p$ needs to satisfy,
+where each $k_p$ and $\theta_p$ satisfies
 \begin{equation}
-  \mathcal D(k_p,k) =0, \quad  k_p \sin \theta_p = k \sin \theta_\inc, \quad \text{and} \quad \text{Im}  k_p > 0
+  \mathcal D(k_p,k) =0, \quad  k_p \sin \theta_p = k \sin \theta_\inc, \quad \text{and} \quad \text{Im} \;  k_p > 0,
 \end{equation}
-the first equation being the dispersion relation, and the second is Snell's law and the last ... Substituting~\eqref{eqn:effective_waves} into~\eqref{eqn:E} and using~\eqref{eqn:Sn} we arrive at
+the first equation being the dispersion relation, the second is Snell's law, and the last guarantees that the integral~\eqref{eqn:E} converges.
+ Substituting~\eqref{eqn:effective_waves} into~\eqref{eqn:E} and using~\eqref{eqn:Sn} we arrive at
 \begin{multline}
   % E_{n,m}^\ell  = \int_{X>\bar x} \A n (X) S_{n-m}(X-x^\ell) dX  d\s_2^n.
-  E_{n,m}^\ell  = \frac{2}{\cos \theta_\inc} (-1)^n \ii^{-m} \ee^{\ii (m-n) \theta_\inc}
-   \sum_p \ee^{-\ii n \theta_p} A_{n}^p \int_{X>\bar x} \ee^{\ii X k_p/k}
+  E_{n,m}^\ell  = \frac{2 \nfrac {} Z^n}{\cos \theta_\inc} (-1)^n \ii^{-m} \ee^{\ii (m-n) \theta_\inc}
+   \sum_p \ee^{-\ii n \theta_p} A_{n}^p \int_{X>\bar x} \ee^{\ii X \frac{k_p}{k} \cos \theta_p}
   \ee^{\ii (X-x^\ell) \cos \theta_\inc }
-   dX  d\s_2^n
+   dX
    \\
-   = \frac{2 (-1)^n \ii^{-m} }{\cos \theta_\inc} \ee^{\ii (m-n) \theta_\inc}
+   = \frac{2 \nfrac {} Z^n }{\cos \theta_\inc} (-1)^n \ii^{-m}\ee^{\ii (m-n) \theta_\inc}
     \sum_p \ee^{-\ii n \theta_p} A_{n}^p
-    \frac{\ii \ee^{\ii \bar x k_p/k + \ii (\bar x - x^\ell) \cos \theta_\inc}}{k_p/k + \cos \theta_\inc}
-    dX  d\s_2^n
+    \frac{\ii \ee^{\ii \bar x \frac{k_p}{k} \cos \theta_p + \ii (\bar x - x^\ell) \cos \theta_\inc}}{k_p/k \cos \theta_p + \cos \theta_\inc}
 \end{multline}
-noting that $ X -x^\ell > \bar x - x^\ell \geq 0 $ for $\ell \leq N$.
+noting that $ X -x^\ell > \bar x - x^\ell \geq 0 $ for $\ell \leq N$. Above we can see that the effective waves with the smallest Im $k_p$, and largest $A_n^p$, contribute the most to $E_{n,m}^\ell$.
 
-
-
-
-The average wave needs to also satisfy (extinction of the incident wave)
-
+The average wave also needs to satisfy (extinction of the incident wave)
 \begin{multline}
   \sum_{n=-\infty}^\infty \sum_{p} \nfrac {} Z^n  A_n^p \ee^{\ii n(\theta_\inc-\theta_p)}  \frac{\ee^{\ii (\cos \theta_p-\cos \theta_\inc){\bar x}}}{\cos \theta_p-\cos \theta_\inc}
  = \frac{\ii }{2} \cos \theta_\inc +
