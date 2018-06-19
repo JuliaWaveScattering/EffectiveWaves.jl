@@ -332,7 +332,7 @@ $\text{Im} \;  k_p > 0$ to guarantee that the integral~\eqref{eqn:E} converges, 
     \ii k^2,
     \label{eqn:extinction_vector}
  \end{align}
- where $x^L = h L = \bar x < x^J$ and
+ where $x^L = h L = \bar x \leq x^J$ and
  \begin{equation}
    W^p  = \sum_{n=-\infty}^\infty \frac{2 k \nfrac {} Z_n}{\cos \theta}
      \frac{\ee^{\ii n (\theta_\inc - \theta_p)} \ee^{- \ii \bar x  \cos \theta}}{k_p \cos \theta_p - k \cos \theta} a_n^p,  \quad
@@ -351,23 +351,17 @@ To determine the $\alpha^p$ we have so far only the scalar equation~\eqref{eqn:e
   \label{fig:connect_effective}
 \end{figure}
 
-Need to substitute:
-\[
-A^p_n \to  A^p_n \ee^{-\ii \bar x \frac{k_p}{k}\cos \theta_p}
-\]
-
-
  Substituting~\eqref{eqn:effective_waves} into~\eqref{eqn:E} and using~\eqref{eqn:Sn} we arrive at
 \begin{multline}
   % E_{n,m}^\ell  = \int_{X>x^J} \A n (X) S_{n-m}(X-x^\ell) dX  d\s_2^n.
   \mathcal E_{nm}^\ell  = \frac{2 \nfrac {} Z_n}{\cos \theta_\inc} (-1)^n \ii^{-m} \ee^{\ii (m-n) \theta_\inc}
-   \sum_p \ee^{-\ii n \theta_p} A_{n}^p \int_{X> x^J} \ee^{\ii \frac{X}{k} (k_p \cos \theta_p + k \cos \theta_\inc)}
+   \sum_p \ee^{-\ii n \theta_p} A_{n}^p \int_{X> x^J} \ee^{\ii (X - \bar x)\frac{k_p}{k} \cos \theta_p +  \ii X\cos \theta_\inc}
   \ee^{- \ii x^\ell\cos \theta_\inc}
    dX
    \\
    = \frac{2 k \nfrac {} Z_n }{\cos \theta_\inc} (-1)^n \ii^{-m}
     \sum_p A_{n}^p \ee^{\ii (m-n) \theta_\inc - \ii n \theta_p}
-    \frac{\ii \ee^{\ii  \frac{x^J}{k} (k_p \cos \theta_p  + k  \cos \theta_\inc) - \ii  x^\ell \cos \theta_\inc}}
+    \frac{\ii \ee^{  \ii (x^J - \bar x)\frac{k_p}{k}  \cos \theta_p  + \ii  (x^J - x^\ell) \cos \theta_\inc }}
     {k_p \cos \theta_p + k\cos \theta_\inc},
     \label{eqn:E_eff}
 \end{multline}
@@ -375,7 +369,7 @@ where we used $ X -x^\ell > x^J - x^\ell \geq 0$, for $\ell < J$, when substitut
 \begin{equation}
   \mathcal E_{nm}^\ell = 2 k \nfrac {} Z_n (-1)^n \ii^{-m}
     \sum_p A_{n}^p
-    \frac{\ii \ee^{\ii  \frac{x^J}{k} (k_p  + k ) - \ii  x^\ell}}{k_p + k}.
+    \frac{\ii  \ee^{  \ii (x^J - \bar x)\frac{k_p}{k}  + \ii  (x^J - x^\ell) }}{k_p + k}.
     \label{eqn:E_eff_direct}
 \end{equation}
 Using~\eqref{eqn:A_eigenvector}, we write~\eqref{eqn:E_eff} in the matrix form
