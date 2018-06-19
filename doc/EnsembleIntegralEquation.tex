@@ -291,24 +291,26 @@ the first equation being the dispersion relation, the second is Snell's law, and
 \begin{multline}
   % E_{n,m}^\ell  = \int_{X>\bar x} \A n (X) S_{n-m}(X-x^\ell) dX  d\s_2^n.
   E_{n,m}^\ell  = \frac{2 \nfrac {} Z^n}{\cos \theta_\inc} (-1)^n \ii^{-m} \ee^{\ii (m-n) \theta_\inc}
-   \sum_p \ee^{-\ii n \theta_p} A_{n}^p \int_{X>\bar x} \ee^{\ii X \frac{k_p}{k} \cos \theta_p}
-  \ee^{\ii (X-x^\ell) \cos \theta_\inc }
+   \sum_p \ee^{-\ii n \theta_p} A_{n}^p \int_{X>\bar x} \ee^{\ii \frac{X}{k} (k_p \cos \theta_p + k \cos \theta_\inc)}
+  \ee^{- \ii x^\ell\cos \theta_\inc}
    dX
    \\
-   = \frac{2 \nfrac {} Z^n }{\cos \theta_\inc} (-1)^n \ii^{-m}\ee^{\ii (m-n) \theta_\inc}
-    \sum_p \ee^{-\ii n \theta_p} A_{n}^p
-    \frac{\ii \ee^{\ii \bar x \frac{k_p}{k} \cos \theta_p + \ii (\bar x - x^\ell) \cos \theta_\inc}}{k_p/k \cos \theta_p + \cos \theta_\inc}
+   = \frac{2 k \nfrac {} Z^n }{\cos \theta_\inc} (-1)^n \ii^{-m}
+    \sum_p A_{n}^p \ee^{\ii (m-n) \theta_\inc - \ii n \theta_p}
+    \frac{\ii \ee^{\ii  \frac{\bar x}{k} (k_p \cos \theta_p  + k  \cos \theta_\inc) - \ii  x^\ell \cos \theta_\inc}}
+    {k_p \cos \theta_p + k\cos \theta_\inc}
 \end{multline}
 noting that $ X -x^\ell > \bar x - x^\ell \geq 0 $ for $\ell \leq N$. Above we can see that the effective waves with the smallest Im $k_p$, and largest $A_n^p$, contribute the most to $E_{n,m}^\ell$.
 
 The average wave also needs to satisfy (extinction of the incident wave)
 \begin{multline}
-  \sum_{n=-\infty}^\infty \sum_{p} \nfrac {} Z^n  A_n^p \ee^{\ii n(\theta_\inc-\theta_p)}  \frac{\ee^{\ii (\cos \theta_p-\cos \theta_\inc){\bar x}}}{\cos \theta_p-\cos \theta_\inc}
- = \frac{\ii }{2} \cos \theta_\inc +
- \\
-   (-\ii)^{n-1} \sum_{n=-\infty}^\infty \ee^{\ii n \theta_\inc} \nfrac {} Z^n
-  \int_{0}^{{\bar x}} \Ab_n(X)  \ee^{-\ii X \cos \theta_\inc }d X,
+\sum_{n=-\infty}^\infty 2 k \nfrac {} Z^n  \sum_{p}
+ A_n^p  \ee^{\ii n (\theta_\inc - \theta_p)} \frac{\ee^{\ii \frac{\bar x}{k} (k_p \cos \theta_p - k \cos \theta)}}{k_p \cos \theta_p - k \cos \theta}
+  = \ii k^2 \cos \theta \\
+  +2\nfrac {} \sum_{n=-\infty}^\infty (-\ii)^{n-1} \ee^{\ii n \theta_\inc}
+     \int_{0}^{{\bar x}} \A n(X) Z^n  \ee^{-\ii X \cos \theta_\inc}  d X ,
 \end{multline}
+
 which by discretising $\Ab_n(x)$ can be written in the form
 \begin{equation}
 \sum_n  \nfrac{ } Z^n ( \mathbf W_n \cdot \mathbf A_n - \vec{V}_n \cdot \vec \Ab_n )  = \frac{\ii }{2} \cos \theta_\inc.
