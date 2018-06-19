@@ -216,7 +216,7 @@ K(X-x,k) =   \chi_{\{ |X-x|> k a_{12}\}}  S_{n-m}(X-x,k)
  + \chi_{\{ |X - x|< k a_{12}\}}   B_{n-m}(X- x,k).
 \label{eqn:kernel}
 \end{equation}
-Numerically it is better to substitute in the above to reach
+% Numerically it is better to substitute in the above to reach
 % \begin{multline}
 %   \sum_{n=-\infty}^\infty \int_\regS
 %   \int_{\stackrel{|X-x|> k a_{12}}{X>0}} \A n (X/k, \s_2) S_{n-m}(X-x, k) dX
@@ -230,10 +230,13 @@ Numerically it is better to substitute in the above to reach
 %    = 0, \quad \text{for} \quad x_1 >0,
 %   \label{eqn:ensemAsystem3}
 % \end{multline}
+\subsection{Numerical solution}
+\label{sec:numerical}
 
-To start, by solving the single species and consider only whole correction pair-correlation. After trying methods based on Chebyshev and function approximation, I've decided they are too computationally intense. For this reason I'm going with a simpler discretisation: let $\A n^j = \A n (x^j)$ where $x^j = j h$ for $j=0,\ldots,N$. A regular spaced mesh is best because of the convolution. With analogous notation for the other fields, let the vectors:
+To start we consider only one single species and consider only whole correction pair-correlation. After trying methods based on Chebyshev and function approximation, I've decided they are too computationally intense. For this reason I'm going with the simple discretisation: $\A n^j = \A n (x^j)$ for $x^j = j h$ and $j=0,\ldots,J$. A regular spaced mesh is best for convolutions. With analogous notation for the other fields, let the vectors:
 \begin{equation}
   \vec \Ab_n = (\Ab_n^j)_j, \quad \vec S_n = (S_n^j)_j, \quad \vec B_n = (B_n^j)_j, \quad \vec b_n = - k^2(\ee^{ \ii x^j \cos \theta_\inc} \ee^{\ii n ( \pi/2 - \theta_\inc )})_j.
+  \label{eqns:discretisation}
 \end{equation}
 
 
@@ -258,10 +261,12 @@ Now considering only one species (to reduce the number of sums)
   +  (B_{n-m}^{j-\ell} - S_{n-m}^{j -\ell} ) \chi_{\{|j-\ell|\leq p\}} \right) \Ab_n^j+  k^2  \Ab_m^\ell  =  b_m^\ell,
   \label{eqn:ensemAsystemN}
 \end{equation}
+
+\art{the above discrete integrals have been checked against Mathematica brute force numerical evaluation.}
 for $\ell >0$, where $p = \lfloor k a_{12}/h \rfloor$, and $\sigma_j$ represents the discrete integral. In matrix form,
 \begin{equation}
   % \nfrac {} \sum_{n}  \scatZ_n  \overset{\infty}{\vec P}_{n-m} \overset{\infty}{\vec \Ab}_n
-  \sum_{n} \mathbf E_{n,m}
+  \sum_{n} \vec {\mathcal E}_{nm}
 + \nfrac {} \sum_{n}  \scatZ_n ( \vec P_{n-m} + \vec Q_{n-m}) \vec \Ab_n
 +  k^2 \vec I \vec \Ab_m  =  \vec b_m,
   \label{eqn:ensemAsystemN2}
@@ -270,53 +275,123 @@ where the components of matrices are
 \begin{equation}
   P_{n}^{\ell j} =  \sigma_j S_{n}^{j-\ell}, \quad Q_{n}^{\ell j} = \sigma_j (B_{n}^{j-\ell} - S_{n}^{j -\ell} ) \chi_{\{|j-\ell| \leq p\}},
 \end{equation}
-with $j,\ell = 0,1, \ldots, N$
-% The $\infty$ over a symbol, such $(\overset{\infty}{\vec P}_{n})^{\ell j} = P_{n}^{\ell j}$ and $(\overset{\infty}{\vec \Ab}_{n})^{\ell j} = \Ab_{n}^{\ell j}$, indicate that $j,\ell = N+1,N+2, \ldots, \infty$
+with $j,\ell = 0,1, \ldots, J$
+% The $\infty$ over a symbol, such $(\overset{\infty}{\vec P}_{n})^{\ell j} = P_{n}^{\ell j}$ and $(\overset{\infty}{\vec \Ab}_{n})^{\ell j} = \Ab_{n}^{\ell j}$, indicate that $j,\ell = J+1,J+2, \ldots, \infty$
 , and
 \begin{equation}
-  E_{n,m}^\ell  = \nfrac {} Z^n \int_{X>\bar x} \A n (X) S_{n-m}(X-x^\ell) dX, \quad \text{with} \;\; \bar x = Nh.
+  \mathcal E_{nm}^\ell  = \nfrac {} Z_n \int_{X> x^J} \A n (X) S_{n-m}(X-x^\ell) dX. %\quad \text{with} \;\; \bar x = Jh.
   \label{eqn:E}
 \end{equation}
-If we do not include $E_{n,m}^\ell$, then the solution of \eqref{eqn:ensemAsystemN2} would be valid for a plate occupying the region $0 \leq x \leq \bar x$. If we wish to calculate the backscattering from the whole halfspace, then we can calculate $E_{n,m}^\ell$ by approximating $\Ab_n(x)$ as a sum of plane waves:
+If we do not include $\mathcal E_{nm}^\ell$, then the solution of \eqref{eqn:ensemAsystemN2} would be valid for a plate occupying the region $0 \leq x \leq x^J$. If we wish to calculate the backscattering from the whole halfspace, then we can calculate $\mathcal E_{nm}^\ell$ by approximating $\Ab_n(x)$ as a sum of plane waves, shown below.
+
+\subsection{Effective waves}
+The average scattering coefficients can be approximated by a sum of plane waves:
 \begin{equation}
-  \Ab_n(X) = \ii^n \sum_p \ee^{-\ii n \theta_p} A_{n}^p \ee^{\ii X \frac{k_p}{k} \cos \theta_p } \quad \text{for} \;\; X > \bar x ,
+  \Ab_n(X) = \ii^n \sum_p \ee^{-\ii n \theta_p} A_{n}^p \ee^{\ii (X -\bar x) \frac{k_p}{k} \cos \theta_p } \quad \text{for} \;\; X > \bar x ,
 \label{eqn:effective_waves}
 \end{equation}
-where each $k_p$ and $\theta_p$ satisfies
+where $\bar x$ is for now undetermined, except $\bar x < x^J$, so that the above has a region of overlap with the discrete form~\eqref{eqns:discretisation}. For each $p$ the terms $A^p_n$ and $k_p$ satisfy the dispersion equation
 \begin{equation}
-  \mathcal D(k_p,k) =0, \quad  k_p \sin \theta_p = k \sin \theta_\inc, \quad \text{and} \quad \text{Im} \;  k_p > 0,
+  \sum_n D_{nm}(k_p) A^p_n =0,
+  \label{eqn:dispersion}
 \end{equation}
-the first equation being the dispersion relation, the second is Snell's law, and the last guarantees that the integral~\eqref{eqn:E} converges.
+for all $m$. We can then determine $k_p$ by solving $\det (D_{nm}(k_p)) =0$, where we require
+$\text{Im} \;  k_p > 0$ to guarantee that the integral~\eqref{eqn:E} converges, and to lead to a physically reasonable solution. The components $D_{nm}$ are given by... Once $k_p$ is determined,then~\eqref{eqn:dispersion} can be used to write the vector $ \mathbf A^p = [\ldots, A^p_{-n}, A^p_{1-n}, \ldots, A^p_{n-1}, A^p_{n}, \ldots]$ in the form
+\begin{equation}
+  \mathbf A^p = \alpha^p \mathbf a^p,
+  \label{eqn:A_eigenvector}
+\end{equation}
+ where $\mathbf a^p$ is determined from~\eqref{eqn:dispersion} and $\alpha^p$ is unknown. With $k_p$, we can also determine the angle $\theta_p$ by using Snell's law: $k_p \sin \theta_p = k \sin \theta_\inc$. From here onwards, we assume that $k_p$, $\theta_p$ and the $\mathbf a^p$ have been determined.
+
+ The average wave~\eqref{eqn:effective_waves} also needs to satisfy (extinction of the incident wave)
+ \begin{multline}
+ \sum_{n=-\infty}^\infty \frac{2 k \nfrac {} Z_n}{\cos \theta}  \sum_{p}
+  A_n^p  \frac{\ee^{\ii n (\theta_\inc - \theta_p)} \ee^{ - \ii \bar x  \cos \theta}}{k_p \cos \theta_p - k \cos \theta}
+   = \\
+ \ii k^2 +  \frac{2\ii \nfrac {}}{\cos \theta} \sum_{n=-\infty}^\infty \int_{0}^{{\bar x}}
+     \A n(X) Z_n (-\ii)^{n} \ee^{\ii n \theta_\inc} \ee^{-\ii X \cos \theta_\inc}  d X
+     \\
+   = \ii k^2 +
+   \ii \nfrac {} \sum_{n=-\infty}^\infty Z_n \int_{0}^{{\bar x}}
+     \A n(X) S_n(-X) d X.
+     \label{eqn:extinction}
+ \end{multline}
+ For direct backscattering, $\theta_\inc = \theta_p =0$, we reach a simpler form:
+ \begin{equation}
+ \sum_{n=-\infty}^\infty 2 k \nfrac {} Z_n  \sum_{p}
+  A_n^p  \frac{\ee^{- \ii \bar x}}{k_p  - k }
+   = \ii k^2 +
+   \ii \nfrac {} \sum_{n=-\infty}^\infty Z_n \int_{0}^{{\bar x}}
+     \A n(X) S_n(-X) d X.
+ \end{equation}
+ Using~\eqref{eqn:A_eigenvector}, the discrete version of~\eqref{eqn:extinction} becomes
+ \begin{align}
+   &   \sum_p   W^p  \alpha^p - \ii \nfrac {} \sum_n Z_n \sum_{j=0}^L \sigma_j S^{-j}_n \Ab_n^j  =
+   \ii k^2 \implies   \\ &
+    \mathbf W \cdot \vec \alpha - \sum_n \vec{V}_n \cdot \vec \Ab_n =
+    \ii k^2,
+    \label{eqn:extinction_vector}
+ \end{align}
+ where $x^L = h L = \bar x < x^J$ and
+ \begin{equation}
+   W^p  = \sum_{n=-\infty}^\infty \frac{2 k \nfrac {} Z_n}{\cos \theta}
+     \frac{\ee^{\ii n (\theta_\inc - \theta_p)} \ee^{- \ii \bar x  \cos \theta}}{k_p \cos \theta_p - k \cos \theta} a_n^p,  \quad
+    V_n^j =  \ii \nfrac {} Z_n \sum_{j=0}^L \sigma_j S^{-j}_n.
+    \label{eqn:extinction_matrix}
+ \end{equation}
+To determine the $\alpha^p$ we have so far only the scalar equation~\eqref{eqn:extinction_vector}. To completely determine the $\alpha^p$ (assuming there is more than one), we need to match the ansatz~\eqref{eqn:effective_waves} with the numerical solution introduced in Section~\ref{sec:numerical}.
+
+
+\subsection{Connecting the integral and ansatz approach}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=0.8\linewidth]{connect_effective.jpg}
+  \caption{Shows the overlap region of the numerical solution and the ansatz approach.}
+  \label{fig:connect_effective}
+\end{figure}
+
+Need to substitute:
+\[
+A^p_n \to  A^p_n \ee^{-\ii \bar x \frac{k_p}{k}\cos \theta_p}
+\]
+
+
  Substituting~\eqref{eqn:effective_waves} into~\eqref{eqn:E} and using~\eqref{eqn:Sn} we arrive at
 \begin{multline}
-  % E_{n,m}^\ell  = \int_{X>\bar x} \A n (X) S_{n-m}(X-x^\ell) dX  d\s_2^n.
-  E_{n,m}^\ell  = \frac{2 \nfrac {} Z^n}{\cos \theta_\inc} (-1)^n \ii^{-m} \ee^{\ii (m-n) \theta_\inc}
-   \sum_p \ee^{-\ii n \theta_p} A_{n}^p \int_{X>\bar x} \ee^{\ii \frac{X}{k} (k_p \cos \theta_p + k \cos \theta_\inc)}
+  % E_{n,m}^\ell  = \int_{X>x^J} \A n (X) S_{n-m}(X-x^\ell) dX  d\s_2^n.
+  \mathcal E_{nm}^\ell  = \frac{2 \nfrac {} Z_n}{\cos \theta_\inc} (-1)^n \ii^{-m} \ee^{\ii (m-n) \theta_\inc}
+   \sum_p \ee^{-\ii n \theta_p} A_{n}^p \int_{X> x^J} \ee^{\ii \frac{X}{k} (k_p \cos \theta_p + k \cos \theta_\inc)}
   \ee^{- \ii x^\ell\cos \theta_\inc}
    dX
    \\
-   = \frac{2 k \nfrac {} Z^n }{\cos \theta_\inc} (-1)^n \ii^{-m}
+   = \frac{2 k \nfrac {} Z_n }{\cos \theta_\inc} (-1)^n \ii^{-m}
     \sum_p A_{n}^p \ee^{\ii (m-n) \theta_\inc - \ii n \theta_p}
-    \frac{\ii \ee^{\ii  \frac{\bar x}{k} (k_p \cos \theta_p  + k  \cos \theta_\inc) - \ii  x^\ell \cos \theta_\inc}}
-    {k_p \cos \theta_p + k\cos \theta_\inc}
+    \frac{\ii \ee^{\ii  \frac{x^J}{k} (k_p \cos \theta_p  + k  \cos \theta_\inc) - \ii  x^\ell \cos \theta_\inc}}
+    {k_p \cos \theta_p + k\cos \theta_\inc},
+    \label{eqn:E_eff}
 \end{multline}
-noting that $ X -x^\ell > \bar x - x^\ell \geq 0 $ for $\ell \leq N$. Above we can see that the effective waves with the smallest Im $k_p$, and largest $A_n^p$, contribute the most to $E_{n,m}^\ell$.
-
-The average wave also needs to satisfy (extinction of the incident wave)
-\begin{multline}
-\sum_{n=-\infty}^\infty 2 k \nfrac {} Z^n  \sum_{p}
- A_n^p  \ee^{\ii n (\theta_\inc - \theta_p)} \frac{\ee^{\ii \frac{\bar x}{k} (k_p \cos \theta_p - k \cos \theta)}}{k_p \cos \theta_p - k \cos \theta}
-  = \ii k^2 \cos \theta \\
-  +2\nfrac {} \sum_{n=-\infty}^\infty (-\ii)^{n-1} \ee^{\ii n \theta_\inc}
-     \int_{0}^{{\bar x}} \A n(X) Z^n  \ee^{-\ii X \cos \theta_\inc}  d X ,
-\end{multline}
-
-which by discretising $\Ab_n(x)$ can be written in the form
+where we used $ X -x^\ell > x^J - x^\ell \geq 0$, for $\ell < J$, when substituting $S_{n-m}(X-x^\ell)$ with~\eqref{eqn:Sn}. Above we can see that the effective waves with the smallest Im $k_p$, and largest $A_n^p$, contribute the most to $E_{nm}^\ell$. The case of direct backscattering, $\theta_\inc = \theta_p =0$, leads to the simpler form
 \begin{equation}
-\sum_n  \nfrac{ } Z^n ( \mathbf W_n \cdot \mathbf A_n - \vec{V}_n \cdot \vec \Ab_n )  = \frac{\ii }{2} \cos \theta_\inc.
+  \mathcal E_{nm}^\ell = 2 k \nfrac {} Z_n (-1)^n \ii^{-m}
+    \sum_p A_{n}^p
+    \frac{\ii \ee^{\ii  \frac{x^J}{k} (k_p  + k ) - \ii  x^\ell}}{k_p + k}.
+    \label{eqn:E_eff_direct}
+\end{equation}
+Using~\eqref{eqn:A_eigenvector}, we write~\eqref{eqn:E_eff} in the matrix form
+\begin{equation}
+  \sum_n \mathcal E_{nm}^\ell =  \sum_n\sum_p  E_{nm}^{\ell p} a_{n}^p \alpha^p = (\mathbf E_m \vec \alpha)^\ell \quad \text{with} \quad
+  \vec \alpha = [\alpha^1, \alpha^2, \ldots].
+    \label{eqn:E_eff_matrix}
 \end{equation}
 
-
+Equation~\eqref{eqn:extinction_matrix}, together with~\eqref{eqn:ensemAsystemN2} and \eqref{eqn:E_eff_matrix} combined:
+\begin{align}
+  \mathbf E_{m} \vec \alpha
++ \nfrac {} \sum_{n}  \scatZ_n ( \vec P_{n-m} + \vec Q_{n-m}) \vec \Ab_n
++  k^2 \vec I \vec \Ab_m  =  \vec b_m,
+\end{align}
+ valid for all $m$, are the available equations to determine the unknowns $\Ab_n^j$ and $\alpha^p$. If the $\alpha^p$ were all known, then we could use the above to determine the $\vec {\mathcal A}_n$. However, there is only~\eqref{eqn:extinction_matrix}, one scalar equation, to determine the $\alpha^p$
 
 
 
