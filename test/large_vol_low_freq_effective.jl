@@ -18,9 +18,15 @@
     @test norm(k_effs2 .- k_eff_lows)/norm(k_eff_lows) < 0.01
     @test norm(k_effs2[1] - k_eff_lows[1])/norm(k_eff_lows[1]) < 2e-6
 
-    Rs = reflection_coefficient(ωs, k_effs2, medium, species)
+    Rs = map(eachindex(ωs)) do i
+        wave = EffectiveWave(ωs[i], k_effs2[i], medium, species)
+        reflection_coefficient(ωs[i], wave, medium, species)
+    end
+    R_low2 = map(eachindex(ωs)) do i
+        wave = EffectiveWave(ωs[i], k_eff_lows[i], medium, species)
+        reflection_coefficient(ωs[i], wave, medium, species)
+    end
     R_low = reflection_coefficient_halfspace(medium, eff_medium)
-    R_low2 = reflection_coefficient(ωs, k_eff_lows, medium, species)
 
     @test norm(R_low - Rs[1]) < 5e-7
     @test norm(R_low2[1] - Rs[1]) < 5e-7
