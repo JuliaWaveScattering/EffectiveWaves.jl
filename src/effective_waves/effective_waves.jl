@@ -11,12 +11,12 @@ function EffectiveWave(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vec
 
     k = ω/medium.c
     θ_eff = transmission_angle(k, k_eff, θin; tol = tol)
-    amps = reduced_amplitudes_effective(ω, k_eff, medium, species; tol = tol, θin = θin, kws...)
+    amps = reduced_amplitudes_effective(ω, k_eff, medium, species; tol = tol, kws...)
     hankel_order = Int(size(amps,1)/2-1/2)
     wave_eff = EffectiveWave(hankel_order, amps, k_eff, θ_eff)
 
     if extinction_rescale
-        amps = amps.*scale_amplitudes_effective(ω, wave_eff, medium, species; tol = tol, kws...)
+        amps = amps.*scale_amplitudes_effective(ω, wave_eff, medium, species; tol = tol, θin=θin)
     end
 
     return EffectiveWave(hankel_order, amps, k_eff, θ_eff)
@@ -30,8 +30,8 @@ where (x,y) are coordinates in the halfspace, m-th hankel order, s-th species,  
 function reduced_amplitudes_effective(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vector{Specie{T}};
             tol = 1e-5,
             radius_multiplier = 1.005,
-            hankel_order = maximum_hankel_order(ω, medium, species; tol=tol),
-            kws...) where T<:Number
+            hankel_order = maximum_hankel_order(ω, medium, species; tol=tol)
+            ) where T<:Number
 
         k = ω/medium.c
         S = length(species)

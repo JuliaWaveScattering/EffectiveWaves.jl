@@ -15,8 +15,14 @@
 
     @test norm(k_effs2 - k_eff_φs)/norm(k_effs) < 2e-4
 
-    Rs = reflection_coefficient(ωs2, k_effs2, medium, species)
-    Rs_φs = reflection_coefficient(ωs2, k_eff_φs, medium, species)
+    Rs = map(eachindex(ωs2)) do i
+        wave = EffectiveWave(ωs2[i], k_effs2[i], medium, species)
+        reflection_coefficient(ωs2[i], wave, medium, species)
+    end
+    Rs_φs = map(eachindex(ωs2)) do i
+        wave = EffectiveWave(ωs2[i], k_eff_φs[i], medium, species)
+        reflection_coefficient(ωs2[i], wave, medium, species)
+    end
     Rs_φs2 = reflection_coefficient_low_volfrac(ωs2, medium, species)
 
     len = length(ωs2)

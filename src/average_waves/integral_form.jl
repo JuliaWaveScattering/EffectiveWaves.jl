@@ -36,14 +36,14 @@ function scattering_amplitudes_integral_form(ω::T, medium::Medium{T},specie::Sp
     As = MM_mat\b
     As_mat = reshape(As, (J+1, 2M+1, 1))
 
-    return Scattering_Amplitudes(M, collect(x), As_mat)
+    return AverageWave(M, collect(x), As_mat)
 end
 
 function reflection_coefficient_integrated(ω::T, medium::Medium, specie::Specie;
-        amps::Scattering_Amplitudes{T} = Scattering_Amplitudes(),
+        amps::AverageWave{T} = AverageWave(),
         θin::T = 0.0, kws...) where T <: Number
 
-    if amps.x == Scattering_Amplitudes().x
+    if amps.x == AverageWave().x
         amps = scattering_amplitudes_integral_form(ω,medium,specie; θin=θin, kws...)
     end
 

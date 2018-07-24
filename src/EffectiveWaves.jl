@@ -1,7 +1,7 @@
 # Loads all files
 module EffectiveWaves
 
-export  EffectiveWave, AverageAmplitudes # the two main types
+export  EffectiveWave, AverageWave # the two main types
 
 export  Specie, Medium, volume_fraction, Zn, Nn, p_speed, maximum_hankel_order
 
