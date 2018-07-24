@@ -1,9 +1,6 @@
 using ApproxFun
 using HCubature
 
-
-
-
 function Bfull(n::Int,X; Y0= sqrt(k^2*a12^2-X^2), Y1 =1000000 , θin = 0.0)
     K(Y) = cos(Y*sin(θin) + n*atan2(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
     return 2.0*(-1.0)^n*sum(Fun(K,Y0..Y1))

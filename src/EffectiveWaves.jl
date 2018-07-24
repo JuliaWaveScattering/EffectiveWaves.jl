@@ -1,21 +1,14 @@
 # Loads all files
 module EffectiveWaves
 
-export  Specie, Medium, volume_fraction, Zn, Nn, p_speed, maximum_hankel_order,
-        far_field_pattern, pair_field_pattern, diff_far_field_pattern, Scattering_Amplitudes
+export  EffectiveWave, AverageAmplitudes # the two main types
 
-export  trap_scheme, simpson_scheme #,intergrand_kernel, integral_form
+export  Specie, Medium, volume_fraction, Zn, Nn, p_speed, maximum_hankel_order
 
 export  wavenumbers, wavenumber, reflection_coefficient, transmission_angle,
-        reduced_amplitudes_effective, scattering_amplitudes_effective, scale_amplitudes_effective
+        reduced_amplitudes_effective, scattering_amplitudes_average, scale_amplitudes_effective
 
-export  effective_medium, reflection_coefficient_halfspace,
-        reflection_coefficient_low_volfrac, wavenumber_low_volfrac, wavenumber_very_low_volfrac
-
-export  wavenumber_challis, one_species_low_wavenumber,
-        two_species_approx_wavenumber
-
-export  opt_methods, optimal_species, gray_square!, gray_square
+export  effective_medium, reflection_coefficient_halfspace
 
 export  Brick, IronArmco, LeadAnnealed, RubberGum, FusedSilica, GlassPyrex,
         ClayRock, WaterDistilled, Glycerol, Hexadecane, Acetone, Benzene,
@@ -38,21 +31,10 @@ using ApproxFun
 
 include("plot/graphics.jl")
 include("particle.jl")
-include("far_fields.jl")
-include("scattering_amplitudes.jl")
 
-include("integral_form/numerical_integration.jl")
-# include("integral_form/integral_form.jl")
+include("effective_waves/effective_waves_export.jl")
 
-include("wavenumbers.jl")
-include("low_frequency.jl")
-include("low_volfrac.jl")
-include("alternative_wavenumbers.jl")
-include("two_species_approximate.jl")
-
-include("optimise_wavenumber.jl")
-
-include("reflection_transmission.jl")
+include("average_waves/average_waves_export.jl")
 
 include("../examples/materials.jl")
 

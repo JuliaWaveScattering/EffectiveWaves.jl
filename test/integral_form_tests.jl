@@ -20,16 +20,16 @@ function test_reflection_coefficients()
     max_x = 10.*k/imag(k_eff0)
     x = 0.0:0.001:max_x
 
-    amps0_eff = scattering_amplitudes_effective(ω, x, medium, [specie];
+    amps0_eff = scattering_amplitudes_average(ω, x, medium, [specie];
             k_eff = k_eff0, tol = 1e-12, θin=θin, hankel_order = ho)
 
-    amps_eff1 = scattering_amplitudes_effective(ω, x, medium, [specie];
+    amps_eff1 = scattering_amplitudes_average(ω, x, medium, [specie];
             k_eff = k_effs[1], hankel_order = ho, θin=θin, tol=1e-8)
-    amps_eff2 = scattering_amplitudes_effective(ω, x, medium, [specie];
+    amps_eff2 = scattering_amplitudes_average(ω, x, medium, [specie];
             k_eff = k_effs[2], hankel_order = ho, θin=θin, tol=1e-8)
-    amps_eff3 = scattering_amplitudes_effective(ω, x, medium, [specie];
+    amps_eff3 = scattering_amplitudes_average(ω, x, medium, [specie];
             k_eff = k_effs[end], hankel_order = ho, θin=θin, tol=1e-8)
-    amps2_eff = scattering_amplitudes_effective(ω, x, medium, [specie2];
+    amps2_eff = scattering_amplitudes_average(ω, x, medium, [specie2];
             k_eff = k_effs2[1], hankel_order = ho, θin=θin, tol=1e-8)
 
     R = reflection_coefficient_integrated(ω, medium, specie; amps = amps0_eff, θin = θin, hankel_order = ho)
@@ -96,16 +96,16 @@ function test_integral_form()
     As = MM_mat\b;
     As_mat = reshape(As, (J+1, 2ho+1));
 
-    amps_eff1 = scattering_amplitudes_effective(ω, x, medium, [specie];
+    amps_eff1 = scattering_amplitudes_average(ω, x, medium, [specie];
             k_eff = k_effs[1], hankel_order = ho, θin=θin, tol=1e-8)
-    amps_eff2 = scattering_amplitudes_effective(ω, x, medium, [specie];
+    amps_eff2 = scattering_amplitudes_average(ω, x, medium, [specie];
             k_eff = k_effs[2], hankel_order = ho, θin=θin, tol=1e-8)
-    amps_eff3 = scattering_amplitudes_effective(ω, x, medium, [specie];
+    amps_eff3 = scattering_amplitudes_average(ω, x, medium, [specie];
             k_eff = k_effs[end], hankel_order = ho, θin=θin, tol=1e-8)
 
-    amps0_eff = scattering_amplitudes_effective(ω, x, medium, [specie];
+    amps0_eff = scattering_amplitudes_average(ω, x, medium, [specie];
             k_eff = k_eff0, hankel_order = ho, θin=θin)
-    amps2_eff = scattering_amplitudes_effective(ω, x, medium, [specie2];
+    amps2_eff = scattering_amplitudes_average(ω, x, medium, [specie2];
             k_eff = k_effs2[2], hankel_order = ho, θin=θin, tol=1e-8)
     # sanity check: the abs of reflection coefficients should always be smaller than one.
     reflection_coefficient_integrated(ω, medium, specie2; amps = amps2_eff, θin = θin)
@@ -120,7 +120,7 @@ function test_integral_form()
 
     error2_eff = reshape( abs.(MM_mat*amps2_eff.amplitudes[:] .- b), (J+1, 2ho+1))
     # With a completely wrong wavenumber I can still get a small error by just scalling the amplitudes
-    amps2_eff = scattering_amplitudes_effective(ω, x, medium, [specie];
+    amps2_eff = scattering_amplitudes_average(ω, x, medium, [specie];
             k_eff = k_effs2[2], hankel_order = ho, θin=θin)
     error2_eff = reshape( abs.(MM_mat*amps2_eff.amplitudes[:] .- b), (J+1, 2ho+1))
     # scale_amplitudes_effective(ω, k_effs[1], amps2_eff.amplitudes, medium, [specie]; θin = θin)
