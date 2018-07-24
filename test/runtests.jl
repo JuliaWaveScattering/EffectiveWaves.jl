@@ -26,14 +26,8 @@ end
 
 include("types_constructors.jl")
 
-species = [
-    Specie(ρ=10.,r=0.01, c=12., volfrac=0.05),
-    Specie(ρ=3., r=0.2, c=2.0, volfrac=0.04)
-]
-
 # # On Travis the below give some empty entries. This possibly due to time_limit not being stable accross different systems.
-k_eff = wavenumbers(21., Medium(1.0,1.0+0.0im), species; tol = 1e-6, time_limit=1.0)
-if !isempty(k_eff) include("weak_scatterers_effective.jl") end
+# include("weak_scatterers_effective.jl")
 
 include("high_frequency_effective.jl")
 include("large_vol_low_freq_effective.jl")

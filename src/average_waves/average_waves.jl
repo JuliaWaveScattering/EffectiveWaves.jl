@@ -16,24 +16,18 @@ end
 "returns a function As, where As(k x) is a an array of the ensemble average scattering amplitudes at depth x inside a halfspace.
 Note xs are assumed non-dimensional (just as the rest of the package).
 As(k x)[m + M + 1,s] is the m-th hankel order and s-th species average scattering coefficient."
-function AverageWave(ω::T, xs::AbstractVector{T}, medium::Medium{T}, species::Vector{Specie{T}};
-        tol = 1e-8,
-        k_eff::Complex{Float64} = wavenumber_low_volfrac(ω, medium, species; tol=tol),
-        θin=0.0, kws...) where T<:Number
-
-    As_eff = reduced_amplitudes_effective(ω, k_eff, medium, species; tol=tol, kws...)
+function AverageWave(ω::T, xs::AbstractVector{T}, wave_eff::EffectiveWave{T}, medium::Medium{T}, species::Vector{Specie{T}}) where T<:Number
 
     k = ω/medium.c
-    ho = Int(round(size(As_eff,1)/2-1/2))
+    amps = wave_eff.amplitudes
+    ho = wave_eff.hankel_order
+    θ_eff = wave_eff.θ_eff
+
     S = length(species)
-    θ_eff = transmission_angle(k, k_eff, θin; tol=tol)
 
-    wave_eff = EffectiveWave(ho, As_eff, k_eff, θ_eff)
-    As_eff = As_eff.*scale_amplitudes_effective(ω, wave_eff, medium, species; tol = tol, θin=θin)
-
-    As = [
-        im^Float64(m)*exp(-im*m*θ_eff)*As_eff[m+ho+1,s]*exp(im*k_eff*cos(θ_eff)*x)
+    average_amps = [
+        im^Float64(m)*exp(-im*m*θ_eff)*amps[m+ho+1,s]*exp(im*wave_eff.k_eff*cos(θ_eff)*x)
     for x in xs, m=-ho:ho, s=1:S]
 
-    return AverageWave(ho,xs,As)
+    return AverageWave(ho,xs,average_amps)
 end
