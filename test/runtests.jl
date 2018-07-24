@@ -60,9 +60,7 @@ end
     k_eff_lows = ωs./eff_medium.c
     k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
 
-    k_effs = [wavenumbers(ω, medium, species; tol = 1e-6) for ω in ωs]
-    # k_effs3 = wavenumber(ωs, medium, species; tol = 1e-5)
-
+    k_effs = [wavenumbers(ω, medium, species; tol = 1e-6, time_limit=1.5) for ω in ωs]
     inds = [indmin(abs.(k)) for k in (k_effs .- k_eff_φs)]
     k_effs2 = [k_effs[i][inds[i]] for i in eachindex(inds)]
 
