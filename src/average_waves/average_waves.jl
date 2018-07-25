@@ -30,7 +30,8 @@ function AverageWave(ω::T, xs::AbstractVector{T}, wave_eff::EffectiveWave{T}) w
 end
 
 "Numerically solved the integral equation governing the average wave. Optionally can use wave_eff to approximate the wave away from the boundary."
-function AverageWave(ω::T, medium::Medium{T},specie::Specie{T}, wave_eff::EffectiveWave{T} = zero(EffectiveWave{T}); kws...) where T<:Number
+function AverageWave(ω::T, medium::Medium{T},specie::Specie{T},
+        wave_eff::EffectiveWave{T} = zero(EffectiveWave{T}); kws...) where T<:Number
 
     k = ω/medium.c
     (x, (MM_quad,b_mat)) = average_wave_system(ω, medium, specie, wave_eff;  kws...);

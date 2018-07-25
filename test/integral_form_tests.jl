@@ -107,47 +107,52 @@ end
 
 function test_check_integration()
 #from Mathematics, had several errors when running
-math = [
-        [65.0544 - 146.891im, 24.1498 - 8.37225im, -5.10012 + 3.74221im
-            , 0.940428 - 3.4201im, 7.25312 - 0.0534466im, 22.9058 + 38.434im, -49.5574 + 92.4377im]
-        ,[-32.7224 + 1.52201im, -12.033 - 16.2499im, 5.93884 - 10.8663im
-            , 8.51838 + 3.68509im, -4.94285 + 9.32462im, -12.0994 - 5.48456im, 3.6755 - 13.9906im]
-        ,[-9.82076 - 18.6418im, 10.2188 - 12.2782im, 11.8699 + 5.34705im
-            , -2.698 + 12.0431im, -13.1158 - 0.218682im, -2.92199 - 13.8296im, 12.9993 - 6.4169im]
-     ];
-# result of ints = check_integration(h = 1/400., max_x = 8.0)
-julia = [
-        [64.9882-146.903im, 24.1561-8.37069im, -5.10105+3.74215im
-            , 0.940588-3.4198im, 7.25286-0.0526824im, 22.9026+38.4402im, -49.5882+92.5011im]
-        ,[-32.8359+1.66127im, -12.0424-16.2309im, 5.93782-10.8642im
-            , 8.51816+3.68541im, -4.94155+9.32627im, -12.1151-5.49728im, 3.77515-13.8555im]
-        ,[-9.88661-18.6492im, 10.2111-12.2772im, 11.8693+5.34716im
-            , -2.69806+12.0429im, -13.1162-0.21808im, -2.92135-13.8369im, 12.9773-6.359im]
-    ];
+    math = [
+            [65.0544 - 146.891im, 24.1498 - 8.37225im, -5.10012 + 3.74221im
+                , 0.940428 - 3.4201im, 7.25312 - 0.0534466im, 22.9058 + 38.434im, -49.5574 + 92.4377im]
+            ,[-32.7224 + 1.52201im, -12.033 - 16.2499im, 5.93884 - 10.8663im
+                , 8.51838 + 3.68509im, -4.94285 + 9.32462im, -12.0994 - 5.48456im, 3.6755 - 13.9906im]
+            ,[-9.82076 - 18.6418im, 10.2188 - 12.2782im, 11.8699 + 5.34705im
+                , -2.698 + 12.0431im, -13.1158 - 0.218682im, -2.92199 - 13.8296im, 12.9993 - 6.4169im]
+         ];
+    # result of ints = check_integration(h = 1/400., max_x = 8.0)
+    julia = [
+            [64.9882-146.903im, 24.1561-8.37069im, -5.10105+3.74215im
+                , 0.940588-3.4198im, 7.25286-0.0526824im, 22.9026+38.4402im, -49.5882+92.5011im]
+            ,[-32.8359+1.66127im, -12.0424-16.2309im, 5.93782-10.8642im
+                , 8.51816+3.68541im, -4.94155+9.32627im, -12.1151-5.49728im, 3.77515-13.8555im]
+            ,[-9.88661-18.6492im, 10.2111-12.2772im, 11.8693+5.34716im
+                , -2.69806+12.0429im, -13.1162-0.21808im, -2.92135-13.8369im, 12.9773-6.359im]
+        ];
+
+    using Plots; pyplot()
+
+    scatter(-3:3, abs.(julia[1]./math[1] .- 1), xlab = "hankel_order", ylab = "rel. error", lab ="", title="Mathematica vs Julia for x = 0.0")
+    scatter(-3:3, abs.(julia[2]./math[2] .- 1), xlab = "hankel_order", ylab = "rel. error", lab ="", title="Mathematica vs Julia for x = 1.0")
+    scatter(-3:3, abs.(julia[3]./math[3] .- 1), xlab = "hankel_order", ylab = "rel. error", lab ="", title="Mathematica vs Julia for x = 2.0")
 
 #from julia
-using JLD
-using Plots; pyplot()
-ints =  first(values(load("integrated_As.jld")))
-data = [ [ints[i][j][k] for i in eachindex(ints)] for j=1:3, k=1:7];
-# i=2;j=3;k=5; ints[i][j][k] == data[j,k][i]
-# x = 0. => j = 1
-M = 3;
-
-hs =  [ 1./n for n=10:30:310]
-j = 3
- plot()
- for k=1:7
-     plot!(hs[4:end], abs.(data[j,k][4:end]), label = "m = $(k - M - 1)")
-     scatter!([hs[end]], [abs(math[j][k])])
- end
-  gui()
-
- plot()
- for k=1:7
-     plot!(hs[4:end], 1 - abs.(data[j,k][4:end])./abs(data[j,k][end]), label = "m = $(k - M - 1)")
- end
-  gui()
+# using JLD
+# ints =  first(values(load("integrated_As.jld")))
+# data = [ [ints[i][j][k] for i in eachindex(ints)] for j=1:3, k=1:7];
+# # i=2;j=3;k=5; ints[i][j][k] == data[j,k][i]
+# # x = 0. => j = 1
+# M = 3;
+#
+# hs =  [ 1./n for n=10:30:310]
+# j = 3
+#  plot()
+#  for k=1:7
+#      plot!(hs[4:end], abs.(data[j,k][4:end]), label = "m = $(k - M - 1)", xlab = "mesh element size")
+#      scatter!([hs[end]], [abs(math[j][k])])
+#  end
+#   gui()
+#
+#  plot()
+#  for k=1:7
+#      plot!(hs[4:end], 1 - abs.(data[j,k][4:end])./abs(data[j,k][end]), label = "m = $(k - M - 1)")
+#  end
+#   gui()
 end
 
 # tests the integration scheme

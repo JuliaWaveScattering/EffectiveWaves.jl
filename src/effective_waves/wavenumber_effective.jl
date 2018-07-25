@@ -93,14 +93,14 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol =
     φ = sum(volume_fraction.(species))
 
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
-    function M(keff,j,l,m,n)
+    function M_component(keff,j,l,m,n)
         (n==m ? 1.0:0.0)*(j==l ? 1.0:0.0) + 2.0pi*species[l].num_density*Z_l_n[l,n]*
             Nn(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
     end
 
     # this matrix is needed to calculate the eigenvectors
     MM(keff::Complex{T}) = reshape(
-        [M(keff,j,l,m,n) for m in -ho:ho, j = 1:S, n in -ho:ho, l = 1:S]
+        [M_component(keff,j,l,m,n) for m in -ho:ho, j = 1:S, n in -ho:ho, l = 1:S]
     , ((2ho+1)*S, (2ho+1)*S))
 
     constraint(keff_vec::Array{T}) = ( (keff_vec[2] < zero(T)) ? one(T):zero(T))*(-1 + exp(-T(100.0)*keff_vec[2]))
@@ -122,13 +122,13 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol =
     #Note that there is not a unique effective wavenumber. The root closest to k_eff = 0.0 + 0.0im seems to be the right one, the others lead to strange transmission angles and large amplitudes As.
     k_vecs = map(kins) do kin
         result = optimize(detMM2, kin; time_limit = time_limit)
-        if result.minimum < 1e-4
+        if result.minimum < 100*tol
             result.minimizer
         else
             [0.,-1.0]
         end
     end
-    k_vecs = sort(k_vecs[:]; by=first, rev=true)
+    k_vecs = sort(k_vecs[:]; by = x -> x[2])
 
     digs = -3 - Int(round(log(10,tol))) # number of digits to round to check if equal
     k_vecs = map(groupby(k_vec -> round.(k_vec,digs), k_vecs)) do g
@@ -142,7 +142,7 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol =
         res.minimizer
     end
 
-    k_vecs = sort(k_vecs, by=first, rev=true)
+    k_vecs = sort(k_vecs[:]; by = x -> x[2])
     k_effs = map(groupby(k_vec -> round.(k_vec,digs), k_vecs)) do g
         res = mean(g)
         res[1] + res[2]*im
