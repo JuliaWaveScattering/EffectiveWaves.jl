@@ -78,6 +78,8 @@ function wavenumber(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol = 
 end
 
 " Returns all the transmitted effective wavenumbers"
+wavenumbers(ω::T, medium::Medium{T}, specie::Specie{T}; kws...) where T<:Number = wavenumbers(ω, medium, [specie]; kws...)
+
 function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol = 1e-5,
         hankel_order = maximum_hankel_order(ω, medium, species; tol=100*tol),
         radius_multiplier = 1.005, mesh_points = 5, time_limit = 1.0,
