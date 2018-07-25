@@ -28,8 +28,8 @@ function test_integral_form()
     using OffsetArrays, ApproxFun, IterTools
     include("src/integral_form/integral_form.jl")
 
-    # (x, (MM_quad,b_mat)) = integral_form(ω, medium, specie; θin = θin, mesh_points = 501, hankel_order=ho);
-    (x, (MM_quad,b_mat)) = integral_form(ω, medium, specie; x= 0.0:0.005:30.0, θin = θin, hankel_order=ho);
+    # (x, (MM_quad,b_mat)) = average_wave_system(ω, medium, specie; θin = θin, mesh_points = 501, hankel_order=ho);
+    (x, (MM_quad,b_mat)) = average_wave_system(ω, medium, specie; x= 0.0:0.005:30.0, θin = θin, hankel_order=ho);
 
     # discretization parameters
     J = length(collect(x)) - 1
@@ -101,38 +101,6 @@ function test_integral_form()
     plot(x[is], log.(abs.(As_mat[is,ho+1])), labels = "abs sol.")
     plot!(x[is], log.(abs.(As_eff_mat[is,ho+1])), labels = "abs eff.")
     # b_mat ≈ [ sum(MM_quad[l,m,j,n]*A_mat[j,n] for j=1:(J+1), n=1:(2M+1)) for l=1:(J+1), m=1:(2M+1)]
-end
-
-"tests the values of the integrand against results from the Mathematica file integrate_hankels.nb, which used no approximations."
-function test_integrand()
-
-    h=0.02; max_x=2.0;
-    J = Int(round(max_x/h))
-    x = (0:J).*h
-    i1 = 1 + Int(round(1/h)) # for x1 = 1
-    i2 = 1 + Int(round(2/h)) # for x1 = 2
-
-    θin=0.; M=0; n=0;
-
-    # math was produced by Mathematica
-    math00 = [172.31259187840652, 143.34097100449316, 172.31259187840536]
-    intergrand_quad = intergrand_kernel(x; θin=θin, M=M, num_coefs = 5000);
-    julia00 = [sum(abs.(intergrand_quad[i,M+1,:,M+1+n])) for i in [1,i1,i2]];
-    @test maximum(abs.(1.0 .- julia00./math00)) < 1e-6
-
-
-    math0p50 = [192.61985415285892, 155.98244729650008, 192.61985415285886]
-    θin=0.5;
-    intergrand_quad = intergrand_kernel(x; θin=θin, M=M, num_coefs = 10000);
-    julia0p50 = [sum(abs.(intergrand_quad[i,M+1,:,M+1+n])) for i in [1,i1,i2]];
-    @test maximum(abs.(1.0 .- julia0p50./math0p50)) < 3e-6
-
-    math0p32 = [241.5144625759003, 211.13367934660897, 181.54133990599098]
-    θin=0.3; M=2; n=2;
-    intergrand_quad = intergrand_kernel(x; θin=θin, M=M, num_coefs = 5000);
-    julia0p32 = [sum(abs.(intergrand_quad[i,M+1,:,M+1+n])) for i in [1,i1,i2]];
-    @test maximum(abs.(1.0 .- julia0p32./math0p32)) < 4e-6
-
 end
 
 # ints = [ check_integration(1.0+1.0im; h = 1./n) for n=10:30:310]

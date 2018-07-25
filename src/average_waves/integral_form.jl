@@ -21,29 +21,15 @@ function integrate_S(n::Int,X; θin = 0.0)
     S
 end
 
-function scattering_amplitudes_integral_form(ω::T, medium::Medium{T},specie::Specie{T}; kws...) where T<:Number
-
-    k = ω/medium.c
-    (x, (MM_quad,b_mat)) = integral_form(ω, medium, specie;  kws...);
-
-    M = Int( (size(b_mat,2) - 1)/2 )
-    J = length(collect(x)) - 1
-
-    len = (J + 1) * (2M + 1)
-    MM_mat = reshape(MM_quad, (len, len));
-    b = reshape(b_mat, (len));
-
-    As = MM_mat\b
-    As_mat = reshape(As, (J+1, 2M+1, 1))
-
-    return AverageWave(M, collect(x), As_mat)
-end
-
 "note that this uses the non-dimensional x = k*depth"
-function integral_form(ω::Float64, medium::Medium, specie::Specie;
+function average_wave_system(ω::T, medium::Medium{T}, specie::Specie{T}, wave_eff::EffectiveWave{T} = zero(EffectiveWave{T});
         θin::Float64 = 0.0,
-        x::AbstractVector = [0.], mesh_points::Int = 201,
-        hankel_order = maximum_hankel_order(ω, medium, [specie]; tol=1e-3))
+        x::AbstractVector{T} = [zero(T)], mesh_points::Int = 201,
+        hankel_order::Int = wave_eff.hankel_order) where T<:AbstractFloat
+
+    if hankel_order < 0 # which is the default for zero(EffectiveWave{T})
+        hankel_order = maximum_hankel_order(ω, medium, [specie]; tol=1e-3)
+    end
 
     k = real(ω/medium.c)
     ak = real(k*specie.r);
@@ -79,8 +65,8 @@ function integral_form(ω::Float64, medium::Medium, specie::Specie;
     return (x, (MM_quad,b_mat))
 end
 
-function intergrand_kernel(x::AbstractVector; ak::Float64 = 1.0, θin::Float64 = 0.0,
-        M::Int = 2, num_coefs::Int = 10000)
+function intergrand_kernel(x::AbstractVector{T}; ak::T = 1.0, θin::T = 0.0,
+        M::Int = 2, num_coefs::Int = 10000) where T<:AbstractFloat
 
     dx = x[2] - x[1]
     J = length(collect(x)) -1
@@ -114,7 +100,3 @@ function intergrand_kernel(x::AbstractVector; ak::Float64 = 1.0, θin::Float64 =
 
     return intergrand_quad
 end
-
-
-# plot(collect(x),[real(A_mat[:,M+1]),imag(A_mat[:,M+1])])
-# plot(collect(x),abs.(A_mat[:,M+1]))

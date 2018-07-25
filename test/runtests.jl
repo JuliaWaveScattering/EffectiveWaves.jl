@@ -34,5 +34,6 @@ include("large_vol_low_freq_effective.jl")
 include("strong_low_freq_effective.jl")
 
 include("integrated_reflection.jl")
+include("average_integrand_kernel.jl")
 
 end

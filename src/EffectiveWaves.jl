@@ -15,7 +15,7 @@ export  Brick, IronArmco, LeadAnnealed, RubberGum, FusedSilica, GlassPyrex,
         Nitrobenzene, OliveOil, SodiumNitrate, AirDry,
         LimeStone, Clay, Calcite, SilicaQuartz
 
-import Base.isequal, Base.(==)
+import Base.isequal, Base.(==), Base.zero
 import SpecialFunctions: besselj, hankelh1
 
 # try using BlackBoxOptim end
@@ -33,7 +33,6 @@ include("plot/graphics.jl")
 include("particle.jl")
 
 include("effective_waves/effective_waves_export.jl")
-
 include("average_waves/average_waves_export.jl")
 
 include("../examples/materials.jl")

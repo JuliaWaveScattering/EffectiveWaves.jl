@@ -1,10 +1,12 @@
 "A type for the effective wave ansatz."
-type EffectiveWave{T<:Real}
+type EffectiveWave{T<:AbstractFloat}
     hankel_order::Int
     amplitudes::Array{Complex{T}} # the effective ampliudes
     k_eff::Complex{T} # the effective wavenumber
     θ_eff::Complex{T} # the effective transmission angle
 end
+
+zero(W::Type{EffectiveWave{T}}) where {T<:AbstractFloat} = EffectiveWave(-1,[zero(Complex{T})],zero(Complex{T}),zero(Complex{T}))
 
 function EffectiveWave(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vector{Specie{T}};
         θin::T = 0.0, tol = 1e-8, extinction_rescale = true, kws...) where T<:AbstractFloat
