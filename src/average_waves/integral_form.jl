@@ -24,7 +24,7 @@ end
 "note that this uses the non-dimensional x = k*depth"
 function average_wave_system(ω::T, medium::Medium{T}, specie::Specie{T}, wave_eff::EffectiveWave{T} = zero(EffectiveWave{T});
         θin::Float64 = 0.0,
-        x::AbstractVector{T} = [zero(T)], mesh_points::Int = 201,
+        X::AbstractVector{T} = [zero(T)], mesh_points::Int = 201,
         hankel_order::Int = wave_eff.hankel_order) where T<:AbstractFloat
 
     if hankel_order < 0 # which is the default for zero(EffectiveWave{T})
@@ -36,15 +36,15 @@ function average_wave_system(ω::T, medium::Medium{T}, specie::Specie{T}, wave_e
     M = hankel_order;
 
     # estimate a large enough mesh
-    if x == [0.]
+    if X == [0.]
         k_eff = wavenumber_low_volfrac(ω, medium, [specie])
         max_x = 10.0*k/abs(imag(k_eff)) # at this A ≈ exp(-10) ≈ 4.5e-5
         J = mesh_points
         h = ak/Int(ceil((J-1)*ak/max_x));
-        x = (0:J)*h
+        X = (0:J)*h
     else
-        J = length(collect(x))
-        h = x[2] - x[1]
+        J = length(collect(X))
+        h = X[2] - X[1]
     end
 
     Z = OffsetArray{Complex{Float64}}(-M:M);
@@ -53,37 +53,37 @@ function average_wave_system(ω::T, medium::Medium{T}, specie::Specie{T}, wave_e
         Z[-m] = Z[m]
     end
 
-    σ =  trap_scheme(x) # integration scheme: trapezoidal
-    PQ_quad = intergrand_kernel(x; ak = ak, θin = θin, M = M);
+    σ =  trap_scheme(X) # integration scheme: trapezoidal
+    PQ_quad = intergrand_kernel(X; ak = ak, θin = θin, M = M);
 
     MM_quad = [
         specie.num_density*Z[n]*σ[j]*PQ_quad[l,m+M+1,j,n+M+1] + k^2*( (m==n && j==l) ? 1.0+0.0im : 0.0+0.0im)
     for  l=1:J, m=-M:M, j=1:J, n=-M:M];
 
-    b_mat = [ -k^2*exp(im*x[l]*cos(θin))*exp(im*m*(pi/2.0 - θin)) for l = 1:J, m = -M:M]
+    b_mat = [ -k^2*exp(im*X[l]*cos(θin))*exp(im*m*(pi/2.0 - θin)) for l = 1:J, m = -M:M]
 
-    return (x, (MM_quad,b_mat))
+    return (X, (MM_quad,b_mat))
 end
 
-function intergrand_kernel(x::AbstractVector{T}; ak::T = 1.0, θin::T = 0.0,
+function intergrand_kernel(X::AbstractVector{T}; ak::T = 1.0, θin::T = 0.0,
         M::Int = 2, num_coefs::Int = 10000) where T<:AbstractFloat
 
-    dx = x[2] - x[1]
-    J = length(collect(x)) -1
+    dX = X[2] - X[1]
+    J = length(collect(X)) -1
 
-    if !(typeof(x) <: OffsetArray)
-        if J*dx != x[end] warn("Unexpected x = $x.") end
-        x = OffsetArray((0:J)*dx, 0:J)
+    if !(typeof(X) <: OffsetArray)
+        if J*dX != X[end] warn("Unexpected X = $X.") end
+        X = OffsetArray((0:J)*dX, 0:J)
     end
-    if !(Int(floor(ak/dx)) ≈ ak/dx)
+    if !(Int(floor(ak/dX)) ≈ ak/dX)
         warn("There are no mesh points exactly on-top of the intergrands kinks. This could lead to poor accuracy.")
     end
-    p = min(Int(floor(ak/dx)),J)
-    X = OffsetArray((-J:J)*dx, -J:J)
+    p = min(Int(floor(ak/dX)),J)
+    X = OffsetArray((-J:J)*dX, -J:J)
 
     B = OffsetArray{Complex{Float64}}(-p:p, -2M:2M);
     for j = -p:p, m = -2M:2M
-        if ak^2 -X[j]^2 < -dx^2 error("evaluating B in the wrong domain") end
+        if ak^2 -X[j]^2 < -dX^2 error("evaluating B in the wrong domain") end
         B[j,m] = integrate_B(m, X[j], sqrt(abs(ak^2 -X[j]^2)); θin = θin, num_coefs=num_coefs)
     end
     S = OffsetArray{Complex{Float64}}(-J:J, -2M:2M);
