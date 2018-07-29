@@ -27,7 +27,7 @@ function overlap_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, X_match::T, 
         for w in wave_effs]
 
     q_arr = [
-        im * species[l].num_density * Z[m,l] * σ[j] * integrate_S(m, X[j]; θin = θin)
+        im * species[l].num_density * Z[m,l] * σ[j] * integrate_S(m, -X[j]; θin = θin)
     for j = 1:ind_match, m = -ho:ho, l = 1:S]
 
     return (w_vec, q_arr)
