@@ -41,7 +41,7 @@
     @test rel_errors[1] < 1e-6 && rel_errors[2] < 5e-5 && rel_errors[3] < 2e-4
 
     wave = EffectiveWave(ω, k_effs2[1], medium, [specie2]; θin = θin, hankel_order = ho)
-    wave_avg = AverageWave(k,wave, x)
+    wave_avg = AverageWave(k, wave, x)
     R = reflection_coefficient_integrated(ω, wave_avg, medium, specie2; θin = θin)
     R_eff = reflection_coefficient(ω, wave, medium, [specie2]; θin = θin)
     @test abs(R-R_eff)/abs(R_eff) < 1e-5

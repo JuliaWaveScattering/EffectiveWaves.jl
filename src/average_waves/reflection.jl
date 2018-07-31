@@ -4,15 +4,15 @@ function reflection_coefficient_integrated(ω::T, amps::AverageWave{T}, medium::
     k = ω/medium.c
 
     M = amps.hankel_order
-    σ = trap_scheme(amps.x)
+    σ = trap_scheme(amps.X)
     Z = OffsetArray{Complex{Float64}}(-M:M);
     for m = 0:M
         Z[m] = Zn(ω,specie,medium,m)
         Z[-m] = Z[m]
     end
     R = T(2)*specie.num_density/(cos(θin)*k^2)*sum(
-        im^T(m)*exp(-im*θin*m)*Z[m]*amps.amplitudes[j,m+M+1,1]*exp(im*amps.x[j]*cos(θin))*σ[j]
-    for m=-M:M, j in eachindex(amps.x))
+        im^T(m)*exp(-im*θin*m)*Z[m]*amps.amplitudes[j,m+M+1,1]*exp(im*amps.X[j]*cos(θin))*σ[j]
+    for m=-M:M, j in eachindex(amps.X))
 
     return R
 end
