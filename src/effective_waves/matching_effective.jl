@@ -4,6 +4,7 @@ medium = Medium(1.0,1.0+0.0im)
 # Large weak scatterers with low volume fraciton
 specie = Specie(ρ=0.5,r=0.5, c=0.2, volfrac=0.1)
 ω = 0.5
+k = real(ω/medium.c)
 hankel_order = 1
 tol = 1e-6
 
@@ -12,7 +13,7 @@ wave_effs = [EffectiveWave(ω, k_eff, medium, [specie]; tol = tol/10., extinctio
 
 # generate an averaged wave over x from these effective wave
 x = 0.:0.01:1.
-avg_wave_effs = [AverageWave(wave,x) for wave in wave_effs]
+avg_wave_effs = [AverageWave(k, wave,x) for wave in wave_effs]
 
 # calculate the numerical averaged wave over x
 avg_wave = AverageWave(ω, medium, specie; x = x, hankel_order=hankel_order)

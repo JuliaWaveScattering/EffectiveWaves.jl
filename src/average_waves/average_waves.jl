@@ -14,9 +14,7 @@ end
 
 
 "Calculates an AverageWave from one EffectiveWave"
-function AverageWave(wave_eff::EffectiveWave{T}, X::AbstractVector{T}, X_match::T = X[1]) where T<:Number
-
-    ind = findmin(abs.(X .- X_match))[2]
+function AverageWave(k::T, wave_eff::EffectiveWave{T}, X::AbstractVector{T}) where T<:Number
 
     amps = wave_eff.amplitudes
     ho = wave_eff.hankel_order
@@ -25,10 +23,10 @@ function AverageWave(wave_eff::EffectiveWave{T}, X::AbstractVector{T}, X_match::
     S = size(amps,2)
 
     average_amps = [
-        im^Float64(m)*exp(-im*m*θ_eff)*amps[m+ho+1,s]*exp(im*wave_eff.k_eff*cos(θ_eff)*(x-X_match))
-    for x in X[ind:end], m=-ho:ho, s=1:S]
+        im^T(m)*exp(-im*m*θ_eff)*amps[m+ho+1,s]*exp(im*wave_eff.k_eff*cos(θ_eff)*x/k)
+    for x in X, m=-ho:ho, s=1:S]
 
-    return AverageWave(ho,X[ind:end],average_amps)
+    return AverageWave(ho,X,average_amps)
 end
 
 "Numerically solved the integral equation governing the average wave. Optionally can use wave_eff to approximate the wave away from the boundary."

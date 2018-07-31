@@ -15,8 +15,8 @@ function integrate_B(n::Int, X, Y0; θin = 0.0, num_coefs = 10000)
 end
 
 # for only whole-correction, this doesn't involve an integral
-function integrate_S(n::Int,X; θin = 0.0)
-    S = 2.0*(im^Float64(n))*exp(-im*n*θin)*exp(im*X*cos(θin))/cos(θin)
+function integrate_S(n::Int, X::T; θin::T = 0.0) where T <: AbstractFloat
+    S = 2.0*(im^T(n))*exp(-im*n*θin)*exp(im*X*cos(θin))/cos(θin)
     if X<0 S = conj(S) end
     S
 end

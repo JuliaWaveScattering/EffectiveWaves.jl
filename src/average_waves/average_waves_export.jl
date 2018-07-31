@@ -2,7 +2,7 @@
 
 export reflection_coefficient_integrated
 export intergrand_kernel, average_wave_system
-export trap_scheme, simpson_scheme
+export integration_scheme, trap_scheme, simpson_scheme
 
 include("average_waves.jl")
 include("numerical_integration.jl")

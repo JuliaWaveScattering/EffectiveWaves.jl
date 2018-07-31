@@ -1,6 +1,8 @@
 using EffectiveWaves
 using OffsetArrays
 
+using Plots; pyplot()
+
 include("match_waves.jl")
 include("../average_waves/integral_form.jl")
 
@@ -16,27 +18,17 @@ ho = 1
 tol = 1e-7
 X = 0.0:0.05:8.
 
+
+function qA_eff(w::EffectiveWave, Xi)
+    (2*k*specie.num_density/cos(θin)) *
+    (exp(im*Xi*(w.k_eff*cos(w.θ_eff)/k - cos(θin))) - 1.)/(w.k_eff*cos(w.θ_eff) - k*cos(θin)) *
+    sum(
+        Zn(ω,specie,medium,n)*w.amplitudes[n+ho+1]*exp(im*n*(θin - w.θ_eff))
+    for n = -ho:ho)
+end
+
 # Calculate discretised average wave directly from governing equations
 avg_wave = AverageWave(ω, medium, specie; hankel_order=ho, X=X)
-
-T = Float64
-wave_eff0 = zero(EffectiveWave{Float64})
-wave_eff0.hankel_order = ho
-wave_eff0.amplitudes = repeat([zero(Complex{T})],inner = 2ho+1)
-
-# the as should tend to
-das = map(X) do x
-    ind_match = findmin(abs.(X .- x))[2]
-    extinc = overlap_arrays(ω, [wave_eff0], x, X, medium, [specie]; θin = θin)
-
-    q = extinc[2][:]
-    w = extinc[1][1]
-    [im*k^2, dot(q,avg_wave.amplitudes[1:ind_match,:,:][:])]
-end
-a1 = [abs(a[1]) for a in das];
-a2 = [abs(a[2]) for a in das];
-plot(X,[a1,a2])
-
 
 # From effective wave theory
 k_effs = wavenumbers(ω, medium, [specie]; mesh_points = 10, tol = tol, hankel_order = ho)
@@ -45,59 +37,57 @@ wave_effs = [
         hankel_order = ho, tol=tol*10, extinction_rescale = false
     )
 for k_eff in k_effs[2:end]]
-wave_effs = [EffectiveWave(ω, k_effs[1], medium, [specie]; hankel_order = ho, tol=tol*10); wave_effs]
+wave_effs = [
+    EffectiveWave(ω, k_effs[1], medium, [specie];
+        hankel_order = ho, extinction_rescale = true, tol=tol*10)
+; wave_effs]
 
 # Calculate the discretised wave from these effective wave
-avg_wave_effs = [AverageWave(wave, X) for wave in wave_effs]
+avg_wave_effs = [AverageWave(k, wave, X) for wave in wave_effs]
 
-using Plots; pyplot()
 
-plot(X, log.(abs.(avg_wave.amplitudes[:,2])), xlab = "depth X", lab = "avg. wave")
+# the as should tend to
+inds = Int.(round.(collect(linspace(1,length(X),10))))
+das = map(inds) do i
+    extinc = overlap_arrays(ω, [wave_effs[1]], X[i], X, medium, [specie]; θin = θin)
 
-map(eachindex(k_effs)) do i
-    plot!(X, log.(abs.(avg_wave_effs[i].amplitudes[:,2])), xlab = "depth X", lab = "eff. wave k_eff = $(k_effs[i])")
+    q = extinc[2]
+    w = extinc[1][1]
+    qA_eff1 = sum(q[ind]*avg_wave_effs[1].amplitudes[1:i,:,:][ind] for ind in eachindex(q))
+    qA = sum(q[ind]*avg_wave.amplitudes[1:i,:,:][ind] for ind in eachindex(q))
+
+    a = im*k^2 + qA
+    # a = im*k^2 +  qA_eff1
+    [im*k^2 + qA,  im*k^2 + qA_eff1, im*k^2 + qA_eff(wave_effs[1],X[i]), (a/w)]
+end
+dqA = [abs(a[1]) for a in das];
+dqA_eff1 = [abs(a[2]) for a in das];
+dqA_eff = [abs(a[3]) for a in das];
+αs = [a[4] for a in das];
+plot(X[inds], [dqA, dqA_eff1, dqA_eff, abs.(αs), abs.(exp.(im*wave_effs[1].k_eff.*X[inds]))],
+    lab = ["extinc Inc" "extinc Inc eff Num" "extinc Inc eff" "aw" "wave decay"], xlab = "X_bar"
+)
+
+wave_diffs = [
+    norm(avg_wave.amplitudes[inds[i]:end,:] - αs[i]*avg_wave_effs[1].amplitudes[inds[i]:end,:]) /
+    norm(avg_wave.amplitudes[inds[i]:end,:])
+for i in eachindex(αs)]
+
+plot(X[inds], wave_diffs,
+    xlab = "depth X", lab = "eff. wave[1] diff")
+
+n = 1
+plot(avg_wave.X, 0.0.*avg_wave.X, xlab = "depth X", lab = "abs avg wave ")
+map(eachindex(αs)) do i
+    plot!(X[inds[i]:end], abs.(avg_wave.amplitudes[inds[i]:end,n+1+ho] - αs[i]*avg_wave_effs[1].amplitudes[inds[i]:end,n+1+ho]),
+        xlab = "depth X", lab = "eff. wave α = $(round(100*αs[i])/100)")
 end
 gui()
 
-X_match = 0.;
-ind_match = findmin(abs.(X .- X_match))[2]
-extinc = overlap_arrays(ω, [wave_effs[1]], X_match, X, medium, [specie]; θin = θin)
+# Compare all effective waves
+plot(X, abs.(avg_wave.amplitudes[:,n+1+ho]), xlab = "depth X", lab = "avg. wave")
 
-q = extinc[2][:]
-w = extinc[1][1]
-a = im*k^2 + dot(q,avg_wave.amplitudes[1:ind_match,:,:][:])
-(a/w)
-# wave_effs[1].amplitudes = (a/w)*wave_effs[1].amplitudes
-
-X1 = 0.:0.1:5.
-αs = map(X1) do x
-    ind_match = findmin(abs.(X .- x))[2]
-    extinc = overlap_arrays(ω, [wave_effs[1]], x, X, medium, [specie]; θin = θin)
-
-    q = extinc[2][:]
-    w = extinc[1][1]
-    a = im*k^2 + dot(q,avg_wave.amplitudes[1:ind_match,:,:][:])
-    a
-end
-plot(X1,abs.(αs))
-
-plot(X, log.(abs.(avg_wave.amplitudes[:,2])), xlab = "depth X", lab = "avg. wave")
-plot!(X, log.(abs.(avg_wave_effs[1].amplitudes[:,2])), xlab = "depth X", lab = "eff. wave k_eff = $(k_effs[1])")
-
-# Calculate the discretised wave from these effective wave
-wave_eff = deepcopy(wave_effs[1])
-wave_eff.amplitudes = αs[end].*wave_eff.amplitudes
-avg_wave_eff = AverageWave(wave_eff, X, X1[end])
-plot!(avg_wave_eff.X, log.(abs.(avg_wave_eff.amplitudes[:,2])), xlab = "depth X", lab = "eff. wave k_eff = $(wave_eff.k_eff)")
-
-
-
-# Calculate the discretised wave from these effective wave
-avg_wave_effs = [AverageWave(wave, X, X_match) for wave in wave_effs]
-
-plot(X, abs.(avg_wave.amplitudes[:,2]), xlab = "depth X", lab = "avg. wave")
-
-map(eachindex(k_effs[1:1])) do i
-    plot!(avg_wave_effs[i].X, abs.(avg_wave_effs[i].amplitudes[:,2]), xlab = "depth X", lab = "eff. wave k_eff = $(k_effs[i])")
+map(eachindex(k_effs)) do i
+    plot!(avg_wave_effs[i].X, abs.(avg_wave_effs[i].amplitudes[:,n+1+ho]), xlab = "depth X", lab = "eff. wave k_eff = $(k_effs[i])")
 end
 gui()
