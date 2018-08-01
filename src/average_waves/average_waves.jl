@@ -14,7 +14,7 @@ end
 
 
 "Calculates an AverageWave from one EffectiveWave"
-function AverageWave(k::T, wave_eff::EffectiveWave{T}, X::AbstractVector{T}) where T<:Number
+function AverageWave(k::T, wave_eff::EffectiveWave{T}, X::AbstractVector{T}, X_match::T = zero(T)) where T<:Number
 
     amps = wave_eff.amplitudes
     ho = wave_eff.hankel_order
