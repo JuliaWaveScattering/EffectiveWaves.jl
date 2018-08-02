@@ -1,5 +1,5 @@
 "
-Returns (L, E, (im*k^2*inv_w).*invV*w_vec), which connect the effective and average wave through α = L*A + (im*k^2*inv_w).*invV*w_vec.
+Returns (L, E, (im*k^2*inv_w).*invV*conj(w_vec)), which connect the effective and average wave through α = L*A + (im*k^2*inv_w).*invV*conj(w_vec).
 The matching region is X[XL:end].
 "
 function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, XL::Int, X::AbstractVector{T}, medium::Medium{T}, species::Vector{Specie{T}}; θin::T = 0.0) where T<:Number
@@ -48,7 +48,7 @@ function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, XL::Int, X::Ab
         for j = 1:XJ, n = -ho:ho]...
     )
 
-    L_mat = invVY + invV * (w_vec.*inv_w) * (transpose(q_arr[:]) - transpose(w_vec)*invVY)
+    L_mat = invVY + invV * (conj(w_vec).*inv_w) * (transpose(q_arr[:]) - transpose(w_vec)*invVY)
 
     S_mat = OffsetArray{Complex{Float64}}(1:XJ, -2ho:2ho);
     for j = 1:XJ, m = -2ho:2ho
@@ -66,7 +66,7 @@ function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, XL::Int, X::Ab
     for m = -ho:ho]
     E_mat = vcat(Es...)
 
-    return (L_mat, E_mat, (im*k^2*inv_w).*invV*w_vec)
+    return (L_mat, E_mat, (im*k^2*inv_w).*invV*conj(w_vec))
 end
 
 "

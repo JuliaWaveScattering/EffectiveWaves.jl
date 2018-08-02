@@ -1,8 +1,6 @@
 using EffectiveWaves
 using OffsetArrays
 
-using Plots; pyplot()
-
 include("../average_waves/integral_form.jl")
 
 # physical parameters
@@ -16,12 +14,14 @@ k = 0.8;
 T = Float64
 tol = 1e-7
 # ho = 3
-ho = maximum_hankel_order(ω, medium, [specie]; tol=100*tol)
+ho = maximum_hankel_order(ω, medium, [specie]; tol=tol*1e4)
 
-X = 0.0:0.06:12.
+X = 0.0:0.05:12.
 # XJ = length(X)
 XJ = Int(round(length(X)/2 + length(X)/10))
 XL = Int(round(length(X)/2 - length(X)/10))
+XJ = Int(round(length(X)/2 + 20))
+XL = Int(round(length(X)/2 - 20))
 Xend =  Int(round(length(X)/2 + length(X)/4))
 X_match = X[XL:XJ]
 
@@ -34,6 +34,9 @@ k_effs = wavenumbers(ω, medium, [specie];
     mesh_size = 0.2, mesh_points = 20,
     tol = tol/10, hankel_order = ho
 )
+
+using Plots; pyplot()
+
 scatter(real.(k_effs),imag.(k_effs), title = "Effective wavenumbers", xlab = "Re k_eff", ylab = "Im k_eff")
 
 # If we assume the average wave is a sum of plane waves every where, then we can estimate which of these effectives waves will have decayed too much already, and therefore discard them
@@ -84,6 +87,16 @@ qA = sum(q_arr[ind] * avg_wave.amplitudes[ind] for ind in eachindex(avg_wave.amp
         plot!(avg_wave_effs[1].X, real.(avg_wave_effs[1].amplitudes[:,n+ho+1]), lab = "Wave eff 1", linewidth =2, linestyle=:dash)
     end
     plot(ps...)
+
+
+
+
+
+
+
+
+
+
 
     plot(xlab = "X", ylab = "Abs amplitude")
     for n = -ho:ho
