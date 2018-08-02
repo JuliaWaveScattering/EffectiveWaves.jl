@@ -4,6 +4,13 @@ type AverageWave{T<:Real}
     hankel_order::Int # largest hankel order
     X::Vector{T} # spatial mesh
     amplitudes::Array{Complex{T}} # a matrix of the scattering amplitudes, size(A_mat) = (length(x), 2hankel_order +1)
+    # Enforce that the dimensions are correct
+    function AverageWave{T}(hankel_order::Int,X::Vector{T},amplitudes::Array{Complex{T}}) where T <: AbstractFloat
+        if (length(X), 2*hankel_order+1) != size(amplitudes)[1:2]
+            error("The amplitudes of AverageWave does not satisfy size(amplitudes)[1:2] == (length(X), 2*hankel_order+1)")
+        end
+        new{T}(hankel_order,X,amplitudes)
+    end
 end
 
 AverageWave(M::Int=0, X::AbstractVector{T}=1.0:1.0, as::AbstractArray{Complex{T}}=[1.0+1.0im]) where T<:Number = AverageWave(M,collect(X),collect(as))

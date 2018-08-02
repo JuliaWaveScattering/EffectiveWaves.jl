@@ -1,6 +1,10 @@
-"returns (L, E, (im*k^2*inv_w).*invV*w_vec), which connect the effective and average wave through α = L*A + (im*k^2*inv_w).*invV*w_vec."
-function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, X_match::T, X::AbstractVector{T}, medium::Medium{T}, species::Vector{Specie{T}}; θin::T = 0.0) where T<:Number
+"
+Returns (L, E, (im*k^2*inv_w).*invV*w_vec), which connect the effective and average wave through α = L*A + (im*k^2*inv_w).*invV*w_vec.
+The matching region is X[XL:end].
+"
+function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, XL::Int, X::AbstractVector{T}, medium::Medium{T}, species::Vector{Specie{T}}; θin::T = 0.0) where T<:Number
 
+    XJ = length(X)
     k = ω/medium.c
     hos = union(w.hankel_order for w in wave_effs)
     if length(hos) > 1
@@ -15,7 +19,6 @@ function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, X_match::T, X:
         Z[-m,l] = Z[m,l]
     end
 
-    XL = findmin(abs.(X .- X_match))[2]
     σ = integration_scheme(X[1:XL]; scheme=:trapezoidal) # integration scheme: trapezoidal
 
     w_vec = (T(2)*k) .*
@@ -36,12 +39,12 @@ function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, X_match::T, X:
         [w.amplitudes[j,n+ho+1,1] for w in avg_wave_effs]
     for j = XL:XJ, n = -ho:ho]
 
-    invV = inv(sum(vs[inds] * transpose(vs[inds])  for inds in eachindex(vs)))
-    inv_w = one(T)/(transpose(w_vec)*invV*w_vec)
+    invV = inv(sum(conj(vs)[inds] * transpose(vs[inds])  for inds in eachindex(vs)))
+    inv_w = one(T)/(transpose(w_vec)*invV*conj(w_vec))
 
     invVY = hcat(
         [
-            invV * [(j < XL) ? zero(Complex{T}) : w.amplitudes[j,n+ho+1,1] for w in avg_wave_effs]
+            invV * [(j < XL) ? zero(Complex{T}) : conj(w.amplitudes[j,n+ho+1,1]) for w in avg_wave_effs]
         for j = 1:XJ, n = -ho:ho]...
     )
 
@@ -66,9 +69,12 @@ function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, X_match::T, X:
     return (L_mat, E_mat, (im*k^2*inv_w).*invV*w_vec)
 end
 
-"returns (w_vec, q_arr), which leads to the extinction equation  sum(w_vec.*α) = im*k^2 + sum(q_arr[:].*A_avg[:])"
+"
+returns (w_vec, q_arr), which leads to the extinction equation  sum(w_vec.*α) = im*k^2 + sum(q_arr[:].*A_avg[:]).
+The index XL indicates that X[XL] is the first point in the matching region.
+"
 function extinc_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}},
-        X_match::T, X::AbstractVector{T},
+        XL::Int, X::AbstractVector{T},
         medium::Medium{T}, species::Vector{Specie{T}};
         θin::T = 0.0) where T<:Number
 
@@ -87,7 +93,6 @@ function extinc_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}},
     end
 
     XJ = length(X)
-    XL = findmin(abs.(X .- X_match))[2]
     σ = integration_scheme(X[1:XL]; scheme=:trapezoidal) # integration scheme: trapezoidal
 
     w_vec = (T(2)*k) .*
