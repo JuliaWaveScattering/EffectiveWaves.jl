@@ -172,7 +172,7 @@ function check_integration(k_eff::Complex{Float64} = 1.0+1.0im; k=1.,a=1., h = a
     # trapezoidal
     σ =  OffsetArray(trap_scheme(collect(x); xn=max_x), 0:J)
 
-    PQ_quad = intergrand_kernel(x; ak = a*k, θin = θin, M = M)
+    PQ_quad = intergrand_kernel(x, a*k; θin = θin, M = M)
 
     # Apply integration scheme
     for j=0:J

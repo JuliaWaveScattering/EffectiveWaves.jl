@@ -23,7 +23,7 @@ function wavenumber_low_volfrac(ω::T, medium::Medium{T}, species::Vector{Specie
   kT2 += - 4.0im*num_density^(2.0)*pair_field_pattern(ω, medium, species;
       radius_multiplier=radius_multiplier, hankel_order=hankel_order)(0.0)
 
-  return sqrt(kT2)
+  return (imag(sqrt(kT2)) > zero(T)) ? sqrt(kT2) : -sqrt(kT2)
 end
 
 reflection_coefficient_low_volfrac(ωs::AbstractVector{T}, medium::Medium{T}, species::Vector{Specie{T}}; kws... ) where T<:Number =
