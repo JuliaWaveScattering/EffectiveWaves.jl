@@ -22,15 +22,12 @@ function integrate_S(n::Int, X::T; θin::T = 0.0) where T <: AbstractFloat
 end
 
 "note that this uses the non-dimensional x = k*depth"
-function average_wave_system(ω::T, medium::Medium{T}, specie::Specie{T}, wave_eff::EffectiveWave{T} = zero(EffectiveWave{T});
+function average_wave_system(ω::T, medium::Medium{T}, specie::Specie{T};
         θin::Float64 = 0.0,
         radius_multiplier::T = 1.005,
         X::AbstractVector{T} = [zero(T)], mesh_points::Int = 201,
-        hankel_order::Int = wave_eff.hankel_order) where T<:AbstractFloat
-
-    if hankel_order < 0 # which is the default for zero(EffectiveWave{T})
-        hankel_order = maximum_hankel_order(ω, medium, [specie]; tol=1e-3)
-    end
+        hankel_order::Int = maximum_hankel_order(ω, medium, [specie]; tol=1e-3)
+    ) where T<:AbstractFloat
 
     k = real(ω/medium.c)
     a12k = radius_multiplier*T(2)*real(k*specie.r);
