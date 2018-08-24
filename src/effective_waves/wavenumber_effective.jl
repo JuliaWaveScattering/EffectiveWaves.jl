@@ -8,10 +8,11 @@ include("wavenumber_single.jl")
 " Returns all the transmitted effective wavenumbers"
 wavenumbers(ω::T, medium::Medium{T}, specie::Specie{T}; kws...) where T<:Number = wavenumbers(ω, medium, [specie]; kws...)
 
-function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol = 1e-5,
-        hankel_order = maximum_hankel_order(ω, medium, species; tol=100*tol),
-        mesh_points = 5, mesh_size = 0.5, time_limit = 1.0,
-        radius_multiplier = 1.005,
+function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::T = 1e-5,
+        hankel_order::Int = maximum_hankel_order(ω, medium, species; tol=100*tol),
+        mesh_points::Int = 5, mesh_size::T = 0.5, max_Imk::T = 0.0, max_Rek::T == 0.0,
+        time_limit::T = 1.0,
+        radius_multiplier::T = 1.005
         kws...) where T<:Number
 
     k = ω/medium.c
@@ -42,13 +43,19 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol =
     k0 = ω/eff_medium.c
     if isnan(k0) k0 = kφ end
 
-    dk_x = min(real(k0),abs(real(kφ))) * mesh_size
-    maxk_x = mesh_points * max(real(k0),abs(real(kφ))) * mesh_size
-    dk_y = abs(imag(kφ)) * mesh_size
-    maxk_y = mesh_points * abs(imag(kφ)) * mesh_size
+    if max_Rek == 0.0
+        dk_x = max(real(k0),abs(real(kφ))) * mesh_size
+        max_Rek = mesh_points * dk_x
+    else dk_x = max_Rek/mesh_points
+    end
+    if max_Imk == 0.0
+        dk_y = abs(imag(kφ)) * mesh_size
+        max_Imk = mesh_points * dk_y
+    else dk_y = max_Imk/mesh_points
+    end
 
-    kx = -maxk_x:dk_x:maxk_x
-    ky = 0.0:dk_y:maxk_y
+    kx = -max_Rek:dk_x:max_Rek
+    ky = 0.0:dk_y:max_Imk
     kins = [[x,y] for x in kx, y in ky]
     #Note that there is not a unique effective wavenumber. The root closest to k_eff = 0.0 + 0.0im seems to be the right one, the others lead to strange transmission angles and large amplitudes As.
     k_vecs = map(kins) do kin

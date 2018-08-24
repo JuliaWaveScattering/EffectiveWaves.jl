@@ -23,8 +23,10 @@ ho = 2
 #  is between 6 and 8 is 0.05%
 X = 0.0:0.04:12.
 
+
 # Calculate discretised average wave directly from governing equations
 avg_wave_X = AverageWave(ω, medium, specie; hankel_order=ho, X=X, θin=θin, radius_multiplier = 1.005)
+# x = X./k
 
 using Plots; pyplot()
 scatter(avg_wave_X.X, real.(avg_wave_X.amplitudes[:,ho+1]), lab="Re Hankel 0")
@@ -40,7 +42,7 @@ i_max = findmin(abs.(X .- X_max))[2]
 
 # From effective wave theory
 k_effs_all = wavenumbers(ω, medium, [specie];
-    mesh_size = 0.4, mesh_points = 10,
+    mesh_size = 0.4, mesh_points = 10, max_Imk = - log(tol)*k/X[L],
     tol = tol/10, hankel_order = ho,
     radius_multiplier = radius_multiplier
 )
@@ -51,7 +53,7 @@ wave_effs_all = [
 for k_eff in k_effs_all]
 
 
-# If we assume the average wave is a sum of plane waves every where, then we can estimate which of these effectives waves will have decayed too much already, and therefore discard them
+# If we assume the average wave is a sum of plane waves everywhere, then we can estimate which of these effectives waves will have decayed too much already, and therefore discard them
 decay_effs = [ abs.(exp.((im*X[L]*cos(w.θ_eff)/k).*w.k_eff)) for w in wave_effs_all]
 eff_inds = find(decay_effs .> 1e-5)
 k_effs = k_effs_all[eff_inds]
