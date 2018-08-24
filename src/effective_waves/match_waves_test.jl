@@ -23,7 +23,6 @@ ho = 2
 #  is between 6 and 8 is 0.05%
 X = 0.0:0.04:12.
 
-
 # Calculate discretised average wave directly from governing equations
 avg_wave_X = AverageWave(ω, medium, specie; hankel_order=ho, X=X, θin=θin, radius_multiplier = 1.005)
 # x = X./k
