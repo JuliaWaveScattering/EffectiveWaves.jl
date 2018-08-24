@@ -1,3 +1,11 @@
+#  Without using ApproxFun
+# function integrate_B_full(n::Int, X, Y0; Y1 =1000000, θin = 0.0, num_coefs = 1000000)
+#     Ys = linspace(Y0,Y1,num_coefs);
+#     σs = integration_scheme(Ys; scheme = :trapezoidal)
+#     K(Y) = cos(Y*sin(θin) + n*atan2(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
+#     return 2.0*(-1.0)^n*sum(K.(Ys).*σs)
+# end
+
 function integrate_B_full(n::Int, X, Y0; Y1 =1000000, θin = 0.0, num_coefs = 10000)
     K(Y) = cos(Y*sin(θin) + n*atan2(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
     # approximate function with Chebyshev polynomial (to high precision) then integrate from Y0 to Y1
@@ -73,7 +81,7 @@ function intergrand_kernel(X::AbstractVector{T}, a12k::T; θin::T = 0.0,
         if J*dX != X[end] warn("Unexpected X = $X.") end
         X = OffsetArray((0:J)*dX, 0:J)
     end
-    if !( abs(Int(floor(a12k/dX)) - a12k/dX) > 1e-5 )
+    if ( abs(Int(floor(a12k/dX)) - a12k/dX) > 1e-5 )
         warn("There are no mesh points exactly on-top of the intergrands kinks. This could lead to poor accuracy.")
     end
     p = min(Int(floor(a12k/dX)),J)
