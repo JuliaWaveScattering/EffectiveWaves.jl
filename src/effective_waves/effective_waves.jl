@@ -8,8 +8,19 @@ end
 
 zero(W::Type{EffectiveWave{T}}) where {T<:AbstractFloat} = EffectiveWave(0,[zero(Complex{T})],zero(Complex{T}),zero(Complex{T}))
 
+function effective_waves(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::T = 1e-6, kws...) where T<:AbstractFloat
+
+    k_effs = wavenumbers(ω, medium, species; tol = tol, kws... )
+    wave_effs = [
+        EffectiveWave(ω, k_eff, medium, species; tol = tol, kws...)
+    for k_eff in k_effs]
+
+    return wave_effs
+end
+
 function EffectiveWave(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vector{Specie{T}};
-        θin::T = 0.0, tol = 1e-8, extinction_rescale = true, kws...) where T<:AbstractFloat
+        θin::T = 0.0, tol::T = 1e-8, extinction_rescale::Bool = true, kws...
+    ) where T<:AbstractFloat
 
     k = ω/medium.c
     θ_eff = transmission_angle(k, k_eff, θin; tol = tol)

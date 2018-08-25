@@ -29,7 +29,8 @@ function test_integral_form()
     include("src/integral_form/integral_form.jl")
 
     # (x, (MM_quad,b_mat)) = average_wave_system(ω, medium, specie; θin = θin, mesh_points = 501, hankel_order=ho);
-    (x, (MM_quad,b_mat)) = average_wave_system(ω, medium, specie; x= 0.0:0.005:30.0, θin = θin, hankel_order=ho);
+    X = 0.0:0.005:30.0
+    (MM_quad,b_mat) = average_wave_system(ω, X, medium, specie;θin = θin, hankel_order=ho);
 
     # discretization parameters
     J = length(collect(x)) - 1

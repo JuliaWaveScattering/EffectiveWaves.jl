@@ -1,153 +1,65 @@
-"
-Returns (L, E, (im*k^2*inv_w).*invV*conj(w_vec)), which connect the effective and average wave through α = L*A + (im*k^2*inv_w).*invV*conj(w_vec).
-The matching region is X[XL:end].
-"
-function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, XL::Int, X::AbstractVector{T}, medium::Medium{T}, species::Vector{Specie{T}}; θin::T = 0.0) where T<:Number
+include("match_arrays.jl")
 
-    XJ = length(X)
-    k = ω/medium.c
-    hos = union(w.hankel_order for w in wave_effs)
-    if length(hos) > 1
-        warn("Expected all effective waves to have the same hankel order!")
-    end
-    ho = minimum(hos)
-    s = length(species)
+"Numerically solved the integral equation governing the average wave. Optionally can use wave_eff to approximate the wave away from the boundary."
+function match_effective_waves(ω::T, medium::Medium{T}, specie::Specie{T};
+        radius_multiplier::T = 1.005,
+        tol::T = T(1e-5), θin::T = zero(T),
+        wave_effs::Vector{EffectiveWave{T}} = [zero(EffectiveWave{T})], kws...
+    ) where T<:Number
 
-    Z = OffsetArray{Complex{Float64}}(-ho:ho, 1:s);
-    for m = 0:ho, l = 1:s
-        Z[m,l] = Zn(ω,species[l],medium,m)
-        Z[-m,l] = Z[m,l]
+    k = real(ω/medium.c)
+    a12k = T(2)*radius_multiplier*specie.r
+
+    if maximum(abs(w.k_eff) for w in wave_effs) == zero(T)
+        wave_effs = effective_waves(real(ω/medium.c), medium, [specie];
+            radius_multiplier=radius_multiplier, tol=tol, θin=θin, kws...)
     end
 
-    σ = integration_scheme(X[1:XL]; scheme=:trapezoidal) # integration scheme: trapezoidal
+    L, X =  X_match_waves(k, wave_effs; a12k = a12k, tol = tol)
 
-    w_vec = (T(2)*k) .*
-        [
-            sum(
-                exp(im*m*(θin - w.θ_eff) + im*X[XL]*(w.k_eff*cos(w.θ_eff) - k*cos(θin))/k) *
-                species[l].num_density * Z[m,l] *  w.amplitudes[m+ho+1,l]
-            for m = -ho:ho, l = 1:s) / (cos(θin)*(w.k_eff*cos(w.θ_eff) - k*cos(θin)))
-        for w in wave_effs]
+    M = wave_effs[1].hankel_order
+    J = length(collect(X))
+    len = J  * (2M + 1)
 
-    q_arr = [
-        (j > XL) ? zero(Complex{T}) :
-            T(2) * (-im)^T(m-1) * species[l].num_density * exp(im*m*θin - im*X[j]*cos(θin)) * Z[m,l] * σ[j] / cos(θin)
-    for j = 1:XJ, m = -ho:ho, l = 1:s]
+    (MM_quad,b_mat) = average_wave_system(ω, X, medium, specie; tol=tol,
+        radius_multiplier=radius_multiplier, hankel_order=M, θin=θin,  kws...);
+    MM_mat = reshape(MM_quad, (len, len));
+    b = reshape(b_mat, (len));
 
-    avg_wave_effs = [AverageWave(real(k), wave, X) for wave in wave_effs]
-    vs = [
-        [w.amplitudes[j,n+ho+1,1] for w in avg_wave_effs]
-    for j = XL:XJ, n = -ho:ho]
+    (LT_mat, E_mat, b_eff) = match_arrays(ω, wave_effs, L, X, medium, [specie]; θin=θin);
 
-    invV = inv(sum(conj(vs)[inds] * transpose(vs[inds])  for inds in eachindex(vs)))
-    inv_w = one(T)/(transpose(w_vec)*invV*conj(w_vec))
+    E_mat*LT_mat + MM_mat # double check this E_mat for where l should run
 
-    invVY = hcat(
-        [
-            invV * [(j < XL) ? zero(Complex{T}) : conj(w.amplitudes[j,n+ho+1,1]) for w in avg_wave_effs]
-        for j = 1:XJ, n = -ho:ho]...
-    )
+    As = MM_mat\b
+    As_mat = reshape(As, (J, 2M+1, 1))
 
-    L_mat = invVY + invV * (conj(w_vec).*inv_w) * (transpose(q_arr[:]) - transpose(w_vec)*invVY)
-
-    S_mat = OffsetArray{Complex{Float64}}(1:XJ, -2ho:2ho);
-    for j = 1:XJ, m = -2ho:2ho
-        S_mat[j,m] = integrate_S(m, X[XJ] - X[j]; θin = θin)
-    end
-
-    Es = k *[
-        [
-            sum(
-                species[l].num_density * Z[n,l] * im^T(n+1) * S_mat[j,n-m] *
-                exp(im*X[XJ]*wave_effs[p].k_eff*cos(wave_effs[p].θ_eff)/k - im*n*wave_effs[p].θ_eff) *
-                 wave_effs[p].amplitudes[n+ho+1] / (wave_effs[p].k_eff*cos(wave_effs[p].θ_eff) + k*cos(θin))
-            for n = -ho:ho, l = 1:s)
-        for j = 1:XL, p in eachindex(wave_effs)]
-    for m = -ho:ho]
-    E_mat = vcat(Es...)
-
-    return (L_mat, E_mat, (im*k^2*inv_w).*invV*conj(w_vec))
+    return AverageWave(M, collect(X), As_mat)
 end
 
+"Returns (X,L), where X[L:end] is the mesh used to match with wave_effs."
+function X_match_waves(k::T, wave_effs::Vector{EffectiveWave{T}};
+        tol::T = T(1e-5),  a12k::T = zero(T),
+        min_X::T = (-log(tol))*k/abs(cos(wave_effs[end].θ_eff)*imag(wave_effs[end].k_eff)),
+        ) where T<:AbstractFloat
 
-"
-Returns inv(V)*Y, which connect the effective and average wave through α = inv(V)*Y*A.
-The matching region is X[XL:end].
-"
-function match_only_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, XL::Int, X::AbstractVector{T}, medium::Medium{T}, species::Vector{Specie{T}}; θin::T = 0.0) where T<:Number
+    #= The default options result in:
+        abs(exp(im*min_X*cos(θ_effs[end])*k_effs[end]/k)) < tol
+    =#
+    # Based on Simpsons error = d4f * dX^5/90
+    df = maximum(abs(w.k_eff * cos(w.θ_eff) / k) for w in wave_effs[1:2])
+    # Based on Simpson's rule
+        # dX  = (tol*90 / (df^4))^(1/5)
+    # Based on trapezoidal integration
+        dX  = (tol * 24 / (df^2))^(1/3)
 
-    XJ = length(X)
-    k = ω/medium.c
-    hos = union(w.hankel_order for w in wave_effs)
-    if length(hos) > 1
-        warn("Expected all effective waves to have the same hankel order!")
+    # if whole correct size a12k was given, then make dX/a12k = integer
+    if a12k  != zero(T)
+        n = ceil(a12k / dX)
+        dX = a12k/n
     end
-    ho = minimum(hos)
-    s = length(species)
+    max_X = min_X + 2*length(wave_effs)*dX # add points in matching region
+    X = 0:dX:max_X
+    L = findmin(abs.(X .- min_X))[2]
 
-    Z = OffsetArray{Complex{Float64}}(-ho:ho, 1:s);
-    for m = 0:ho, l = 1:s
-        Z[m,l] = Zn(ω,species[l],medium,m)
-        Z[-m,l] = Z[m,l]
-    end
-
-    σ = integration_scheme(X[1:XL]; scheme=:trapezoidal) # integration scheme: trapezoidal
-
-    avg_wave_effs = [AverageWave(real(k), wave, X) for wave in wave_effs]
-    vs = [
-        [w.amplitudes[j,n+ho+1,1] for w in avg_wave_effs]
-    for j = XL:XJ, n = -ho:ho]
-
-    invV = inv(sum(conj(vs)[inds] * transpose(vs[inds])  for inds in eachindex(vs)))
-
-    invVY = hcat(
-        [
-            invV * [(j < XL) ? zero(Complex{T}) : conj(w.amplitudes[j,n+ho+1,1]) for w in avg_wave_effs]
-        for j = 1:XJ, n = -ho:ho]...
-    )
-
-    return invVY
-end
-
-
-"
-returns (w_vec, q_arr), which leads to the extinction equation  sum(w_vec.*α) = im*k^2 + sum(q_arr[:].*A_avg[:]).
-The index XL indicates that X[XL] is the first point in the matching region.
-"
-function extinc_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}},
-        XL::Int, X::AbstractVector{T},
-        medium::Medium{T}, species::Vector{Specie{T}};
-        θin::T = 0.0) where T<:Number
-
-    k = ω/medium.c
-    hos = union(w.hankel_order for w in wave_effs)
-    if length(hos) > 1
-        warn("Expected all effective waves to have the same hankel order!")
-    end
-    ho = minimum(hos)
-    S = length(species)
-
-    Z = OffsetArray{Complex{Float64}}(-ho:ho, 1:S);
-    for m = 0:ho, l = 1:S
-        Z[m,l] = Zn(ω,species[l],medium,m)
-        Z[-m,l] = Z[m,l]
-    end
-
-    XJ = length(X)
-    σ = integration_scheme(X[1:XL]; scheme=:trapezoidal) # integration scheme: trapezoidal
-
-    w_vec = (T(2)*k) .*
-        [
-            sum(
-                exp(im*m*(θin - w.θ_eff) + im*X[XL]*(w.k_eff*cos(w.θ_eff) - k*cos(θin))/k) *
-                species[l].num_density * Z[m,l] *  w.amplitudes[m+ho+1,l]
-            for m = -ho:ho, l = 1:S) / (cos(θin)*(w.k_eff*cos(w.θ_eff) - k*cos(θin)))
-        for w in wave_effs]
-
-    q_arr = [
-        (j > XL) ? zero(Complex{T}) :
-            T(2) * (-im)^T(m-1) * species[l].num_density * exp(im*m*θin - im*X[j]*cos(θin)) * Z[m,l] * σ[j] / cos(θin)
-    for j = 1:XJ, m = -ho:ho, l = 1:S]
-
-    return (w_vec, q_arr)
+    return L, X
 end

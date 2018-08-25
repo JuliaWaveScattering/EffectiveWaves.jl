@@ -29,48 +29,6 @@ function integrate_S(n::Int, X::T; θin::T = 0.0) where T <: AbstractFloat
     S
 end
 
-"note that this uses the non-dimensional x = k*depth"
-function average_wave_system(ω::T, medium::Medium{T}, specie::Specie{T};
-        θin::Float64 = 0.0,
-        radius_multiplier::T = 1.005,
-        X::AbstractVector{T} = [zero(T)], mesh_points::Int = 201,
-        hankel_order::Int = maximum_hankel_order(ω, medium, [specie]; tol=1e-3)
-    ) where T<:AbstractFloat
-
-    k = real(ω/medium.c)
-    a12k = radius_multiplier*T(2)*real(k*specie.r);
-    M = hankel_order;
-
-    # estimate a large enough mesh
-    if X == [0.]
-        k_eff = wavenumber_low_volfrac(ω, medium, [specie])
-        max_x = 10.0*k/abs(imag(k_eff)) # at this A ≈ exp(-10) ≈ 4.5e-5
-        J = mesh_points
-        h = a12k/Int(ceil((J-1)*a12k/max_x));
-        X = (0:J)*h
-    else
-        J = length(collect(X))
-        h = X[2] - X[1]
-    end
-
-    Z = OffsetArray{Complex{Float64}}(-M:M);
-    for m = 0:M
-        Z[m] = Zn(ω,specie,medium,m)
-        Z[-m] = Z[m]
-    end
-
-    σ =  trap_scheme(X) # integration scheme: trapezoidal
-    PQ_quad = intergrand_kernel(X, a12k; θin = θin, M = M);
-
-    MM_quad = [
-        specie.num_density*Z[n]*σ[j]*PQ_quad[l,m+M+1,j,n+M+1] + k^2*( (m==n && j==l) ? 1.0+0.0im : 0.0+0.0im)
-    for  l=1:J, m=-M:M, j=1:J, n=-M:M];
-
-    b_mat = [ -k^2*exp(im*X[l]*cos(θin))*exp(im*m*(pi/2.0 - θin)) for l = 1:J, m = -M:M]
-
-    return (X, (MM_quad,b_mat))
-end
-
 function intergrand_kernel(X::AbstractVector{T}, a12k::T; θin::T = 0.0,
         M::Int = 2, num_coefs::Int = 10000) where T<:AbstractFloat
 
@@ -78,7 +36,7 @@ function intergrand_kernel(X::AbstractVector{T}, a12k::T; θin::T = 0.0,
     J = length(collect(X)) -1
 
     if !(typeof(X) <: OffsetArray)
-        if J*dX != X[end] warn("Unexpected X = $X.") end
+        if abs(J*dX - X[end])/X[end] > 1e-10  warn("Unexpected X = $X.") end
         X = OffsetArray((0:J)*dX, 0:J)
     end
     if ( abs(Int(floor(a12k/dX)) - a12k/dX) > 1e-5 )
@@ -89,7 +47,7 @@ function intergrand_kernel(X::AbstractVector{T}, a12k::T; θin::T = 0.0,
 
     B = OffsetArray{Complex{Float64}}(-p:p, -2M:2M);
     for j = -p:p, m = -2M:2M
-        if a12k^2 -X[j]^2 < -dX^2 error("evaluating B in the wrong domain") end
+        if a12k^2 - X[j]^2 < - dX^2 error("evaluating B in the wrong domain") end
         B[j,m] = integrate_B(m, X[j], sqrt(abs(a12k^2 -X[j]^2)); θin = θin, num_coefs=num_coefs)
     end
     S = OffsetArray{Complex{Float64}}(-J:J, -2M:2M);
