@@ -2,10 +2,10 @@
 
 export far_field_pattern, pair_field_pattern, diff_far_field_pattern
 
-export  wavenumber_challis, one_species_low_wavenumber,
+export wavenumber_challis, one_species_low_wavenumber,
         two_species_approx_wavenumber
 
-export  opt_methods, optimal_species, gray_square!, gray_square
+export opt_methods, optimal_species, gray_square!, gray_square
 
 export reflection_coefficient_low_volfrac, wavenumber_low_volfrac, wavenumber_very_low_volfrac
 

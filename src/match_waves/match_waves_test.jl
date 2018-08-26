@@ -35,27 +35,23 @@ avg_wave_X = AverageWave(ω, medium, specie; hankel_order=ho, θin=θin, X = X,
 scatter(avg_wave_X.X, real.(avg_wave_X.amplitudes[:,ho+1]), lab="Re Hankel 0")
 scatter!(avg_wave_X.X, real.(avg_wave_X.amplitudes[:,ho]), lab = "Re Hankel -1")
 
-X = avg_wave_X.X
+# X = avg_wave_X.X
 X0 = 2. # match from X[L]
 L = findmin(abs.(X .- X0))[2]
 X_max = X[Int(round(0.65*length(X)))] # maximum X considered to have the correct numerical solution
 i_max = findmin(abs.(X .- X_max))[2]
 
-wave_effs = effective_waves(ω, medium, [specie]; hankel_order=2)
-k_effs2 = [w.k_eff for w in wave_effs]
-# From effective wave theory
-k_effs = wavenumbers(ω, medium, [specie];
-    mesh_size = 0.2, mesh_points = 12, #max_Imk = - log(tol)*k/X[L],
-    tol = tol, hankel_order = ho,
-    radius_multiplier = radius_multiplier
-)
-scatter(real.(k_effs),imag.(k_effs), title = "Effective wavenumbers", xlab = "Re k_eff", ylab = "Im k_eff", ylims = (0,Inf))
+wave_effs = effective_waves(ω, medium, [specie];
+    hankel_order=ho, tol = tol,  θin = θin,
+    radius_multiplier = radius_multiplier, mesh_points = 6
+    , extinction_rescale = false
+    )
 
-wave_effs = [
-    EffectiveWave(ω, k_eff, medium, [specie];
-        hankel_order = ho, θin = θin,
-        extinction_rescale = true, tol=tol)
-for k_eff in k_effs]
+k_effs = [w.k_eff for w in wave_effs]
+scatter(real.(k_effs),imag.(k_effs),
+    title = "Effective wavenumbers",
+    xlab = "Re k_eff", ylab = "Im k_eff",
+    ylims = (0,Inf))
 
 # # If we assume the average wave is a sum of plane waves everywhere, then we can estimate which of these effectives waves will have decayed too much already, and therefore discard them
 decay_effs = [ abs.(exp.((im*X[L]*cos(w.θ_eff)/k).*w.k_eff)) for w in wave_effs]
@@ -95,7 +91,7 @@ scatter([abs.(exp.(im*k_effs./k)), sign.(real.(k_effs)).*abs.(αs)], lab = ["exp
     α1 = (qA + im*k^2)/w_vec[1]
 
 # check matching
-    αs_match = invVY*avg_wave.amplitudes[:]
+    αs_match = Y*avg_wave.amplitudes[:]
     # Calculate the discretised wave from these effective wave
     avg_wave_effs = [AverageWave(real(k), wave, X[L:i_max]) for wave in wave_effs]
 

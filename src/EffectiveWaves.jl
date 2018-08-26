@@ -5,7 +5,7 @@ export  EffectiveWave, AverageWave # the two main types
 
 export  Specie, Medium, volume_fraction, Zn, Nn, p_speed, maximum_hankel_order
 
-export  wavenumbers, wavenumber, reflection_coefficient, transmission_angle,
+export  wavenumbers, wavenumber, effective_waves, reflection_coefficient, transmission_angle,
         reduced_amplitudes_effective, scattering_amplitudes_average, scale_amplitudes_effective
 
 export  effective_medium, reflection_coefficient_halfspace

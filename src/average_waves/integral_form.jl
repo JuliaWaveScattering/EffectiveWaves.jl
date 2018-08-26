@@ -39,7 +39,7 @@ function intergrand_kernel(X::AbstractVector{T}, a12k::T; θin::T = 0.0,
         if abs(J*dX - X[end])/X[end] > 1e-10  warn("Unexpected X = $X.") end
         X = OffsetArray((0:J)*dX, 0:J)
     end
-    if ( abs(Int(floor(a12k/dX)) - a12k/dX) > 1e-5 )
+    if ( abs(Int(round(a12k/dX)) - a12k/dX) > 1e-10 )
         warn("There are no mesh points exactly on-top of the intergrands kinks. This could lead to poor accuracy.")
     end
     p = min(Int(floor(a12k/dX)),J)

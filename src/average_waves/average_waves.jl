@@ -39,14 +39,23 @@ end
 "Numerically solved the integral equation governing the average wave. Optionally can use wave_eff to approximate the wave away from the boundary."
 function AverageWave(ω::T, medium::Medium{T}, specie::Specie{T};
         radius_multiplier::T = 1.005,
-        X::T = [zero(T)], tol::T = T(1e-5),
-        wave_effs::Vector{EffectiveWave{T}} = [zero(EffectiveWave{T})], kws...) where T<:Number
+        X::AbstractVector{T} = [zero(T)],
+        tol::T = T(1e-4),
+        wave_effs::Vector{EffectiveWave{T}} = [zero(EffectiveWave{T})],
+    kws...) where T<:Number
 
     k = real(ω/medium.c)
     a12k = T(2)*radius_multiplier*specie.r
 
     if X == [zero(T)]
         if maximum(abs(w.k_eff) for w in wave_effs) == zero(T)
+            # estimate a large coarse mess based on the lowest attenuating effective wave
+            wave_effs = effective_waves(real(ω/medium.c), medium, [specie];
+                radius_multiplier=radius_multiplier, tol=tol, mesh_points=2)
+
+            L, X = X_match_waves(k, wave_effs;
+                    tol = tol,  a12k = a12k)
+
             error("Either provide the mesh X = .. or the effective waves wave_effs = .., from which we can estimate a mesh X")
         else L, X =  X_match_waves(k, wave_effs, a12k; tol = tol)
         end

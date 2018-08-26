@@ -19,13 +19,17 @@ function effective_waves(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; t
 end
 
 function EffectiveWave(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vector{Specie{T}};
-        θin::T = 0.0, tol::T = 1e-8, extinction_rescale::Bool = true, kws...
+        θin::T = 0.0, tol::T = 1e-8,
+        extinction_rescale::Bool = true,
+        hankel_order::Int = maximum_hankel_order(ω, medium, species; tol=tol),
+        radius_multiplier::T = radius_multiplier,
+        kws...
     ) where T<:AbstractFloat
 
     k = ω/medium.c
     θ_eff = transmission_angle(k, k_eff, θin; tol = tol)
-    amps = reduced_amplitudes_effective(ω, k_eff, medium, species; tol = tol, kws...)
-    hankel_order = Int(size(amps,1)/2-1/2)
+    amps = reduced_amplitudes_effective(ω, k_eff, medium, species;
+        hankel_order=hankel_order, tol = tol, radius_multiplier=radius_multiplier)
     wave_eff = EffectiveWave(hankel_order, amps, k_eff, θ_eff)
 
     if extinction_rescale
@@ -41,9 +45,9 @@ The function returns an array A, where
 AA(x,y,m,s) = im^m*exp(-im*m*θ_eff)*A[m + max_hankel_order +1,s]*exp(im*k_eff*(cos(θ_eff)*x + sin(θin)*y))
 where (x,y) are coordinates in the halfspace, m-th hankel order, s-th species,  and AA is the ensemble average scattering coefficient."
 function reduced_amplitudes_effective(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vector{Specie{T}};
-            tol = 1e-5,
-            radius_multiplier = 1.005,
-            hankel_order = maximum_hankel_order(ω, medium, species; tol=tol)
+            tol::T = 1e-5,
+            radius_multiplier::T = 1.005,
+            hankel_order::Int = maximum_hankel_order(ω, medium, species; tol=tol)
             ) where T<:Number
 
         k = ω/medium.c
