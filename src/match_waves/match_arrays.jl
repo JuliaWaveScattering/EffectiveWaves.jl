@@ -70,7 +70,7 @@ end
 
 
 "
-Returns inv(V)*Y, which connect the effective and average wave through α = inv(V)*Y*A.
+Returns YT, which connects the effective and average wave through α = YT*A.
 The matching region is X[XL:end].
 "
 function match_only_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, XL::Int, X::AbstractVector{T}, medium::Medium{T}, species::Vector{Specie{T}}; θin::T = 0.0) where T<:Number
@@ -99,13 +99,13 @@ function match_only_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, XL::Int, 
 
     invV = inv(sum(conj(vs)[inds] * transpose(vs[inds])  for inds in eachindex(vs)))
 
-    invVY = hcat(
+    YT = hcat(
         [
             invV * [(j < XL) ? zero(Complex{T}) : conj(w.amplitudes[j,n+ho+1,1]) for w in avg_wave_effs]
         for j = 1:XJ, n = -ho:ho]...
     )
 
-    return invVY
+    return YT
 end
 
 

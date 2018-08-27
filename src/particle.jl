@@ -44,8 +44,8 @@ function maximum_hankel_order(ω::Union{T,Complex{T}}, medium::Medium{T}, specie
     hankel_order = 0
     next_order = 2*sum(sp.num_density*Zn(ω,sp,medium,hankel_order) for sp in species)
 
-    # increase hankel order until the relative error < tol
-    while abs(next_order/f0) > tol
+    # increase hankel order until the relative error^2 < tol. The power 2 on the error has been chosen based on empircal comparisons with other tolerance used in wavenumber.
+    while abs(next_order/f0)^2 > tol
         hankel_order += 1
         next_order = 2*sum(sp.num_density*Zn(ω,sp,medium,hankel_order) for sp in species)
     end

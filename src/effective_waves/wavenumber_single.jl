@@ -13,7 +13,7 @@ end
 
 function wavenumber(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol = 1e-8,
         wavenumber_initial_guess = :auto,
-        hankel_order = maximum_hankel_order(ω, medium, species; tol=100*tol),
+        hankel_order = maximum_hankel_order(ω, medium, species; tol=tol),
         radius_multiplier = 1.005,
         kws...) where T<:Number
 

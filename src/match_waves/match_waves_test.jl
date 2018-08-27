@@ -3,8 +3,6 @@ using OffsetArrays
 using Plots; pyplot()
 Plots.scalefontsizes(1.5)
 
-include("../average_waves/integral_form.jl")
-
 # physical parameters
 medium = Medium(1.0,1.0+0.0im)
 specie = Specie(ρ=0.5, r=0.4, c=0.2, volfrac=0.1)
@@ -15,16 +13,17 @@ k = 1.;
 ω = real(k*medium.c)
 radius_multiplier = 1.005
 
+kws = ()
 T = Float64
 tol = 1e-7
-# ho = maximum_hankel_order(ω, medium, [specie]; tol=tol*1e4)
+# ho = maximum_hankel_order(ω, medium, [specie]; tol=tol)
 ho = 2
 
 # for X = 0.0:0.05:12. the relative convergence error for
 # Specie(ρ=0.5, r=0.5, c=0.2, volfrac=0.1), k = 0.8, and θin = 0.0,
 #  inbetween 6 and 8 is 0.05%
-ka12 = radius_multiplier*2.0*specie.r
-X = 0.0:(ka12/20):12.
+ka12 = k*radius_multiplier*2.0*specie.r
+X = 0.0:(ka12/31):15.
 # X = 0.0:0.04:12.
 
 # Calculate discretised average wave directly from governing equations
@@ -32,8 +31,39 @@ avg_wave_X = AverageWave(ω, medium, specie; hankel_order=ho, θin=θin, X = X,
     radius_multiplier = radius_multiplier)
 # x = X./k
 
-scatter(avg_wave_X.X, real.(avg_wave_X.amplitudes[:,ho+1]), lab="Re Hankel 0")
-scatter!(avg_wave_X.X, real.(avg_wave_X.amplitudes[:,ho]), lab = "Re Hankel -1")
+# plot(avg_wave_X, hankel_indexes = 0:0, seriestype=:scatter)
+# plot!(avg_wave_X, hankel_indexes = 0:0, apply=imag, seriestype=:scatter)
+
+# wave_effs = effective_waves(ω, medium, [specie];
+#     hankel_order=ho, tol = tol,  θin = θin,
+#     radius_multiplier = radius_multiplier, mesh_points = 6
+#     , extinction_rescale = false
+#     )
+#
+# k_effs = [w.k_eff for w in wave_effs]
+# scatter(real.(k_effs),imag.(k_effs),
+#     title = "Effective wavenumbers",
+#     xlab = "Re k_eff", ylab = "Im k_eff",
+#     ylims = (0,Inf))
+include("match_waves.jl")
+
+match_w = match_effective_waves(ω, medium, specie;
+    radius_multiplier = radius_multiplier,
+    hankel_order=ho,
+    tol = tol, θin = θin)
+    # ,wave_effs = wave_effs);
+
+L = match_w.match_index
+x = match_w.average_wave.X[L]:0.01:avg_wave_X.X[end]
+
+plot(avg_wave_X, hankel_indexes = 1:2, seriestype=:scatter)
+plot!(avg_wave_X, hankel_indexes = 1:2, apply=abs, seriestype=:scatter)
+
+plot!(match_w.average_wave, hankel_indexes = 1:2)
+plot!(match_w.average_wave, hankel_indexes = 1:2, apply=abs)
+
+plot!(x, match_w.effective_waves, hankel_indexes = 1:2)
+plot!(x, match_w.effective_waves, hankel_indexes = 1:2, apply=abs)
 
 # X = avg_wave_X.X
 X0 = 2. # match from X[L]
@@ -41,21 +71,14 @@ L = findmin(abs.(X .- X0))[2]
 X_max = X[Int(round(0.65*length(X)))] # maximum X considered to have the correct numerical solution
 i_max = findmin(abs.(X .- X_max))[2]
 
-wave_effs = effective_waves(ω, medium, [specie];
-    hankel_order=ho, tol = tol,  θin = θin,
-    radius_multiplier = radius_multiplier, mesh_points = 6
-    , extinction_rescale = false
-    )
-
-k_effs = [w.k_eff for w in wave_effs]
-scatter(real.(k_effs),imag.(k_effs),
-    title = "Effective wavenumbers",
-    xlab = "Re k_eff", ylab = "Im k_eff",
-    ylims = (0,Inf))
 
 # # If we assume the average wave is a sum of plane waves everywhere, then we can estimate which of these effectives waves will have decayed too much already, and therefore discard them
-decay_effs = [ abs.(exp.((im*X[L]*cos(w.θ_eff)/k).*w.k_eff)) for w in wave_effs]
-eff_inds = find(decay_effs .> 1e-5)
+avg_wave_effs = [AverageWave(real(k), wave, X[L:L+1]) for wave in wave_effs]
+ref_norm = norm(avg_wave_effs[1].amplitudes[end,:,:])/norm(wave_effs[1].amplitudes)
+eff_inds = find(
+    norm(avg_wave_effs[i].amplitudes[end,:,:])/norm(wave_effs[i].amplitudes) > ref_norm*tol
+for i in eachindex(wave_effs))
+
 k_effs = k_effs[eff_inds]
 wave_effs = wave_effs[eff_inds];
 

@@ -7,7 +7,6 @@ type MatchWave{T<:AbstractFloat}
     match_index::Int # waves are matched between average_wave.x[match_index:end]
 end
 
-
 function match_effective_waves(ω::T, medium::Medium{T}, specie::Specie{T};
         radius_multiplier::T = 1.005,
         tol::T = T(1e-5), θin::T = zero(T),
@@ -15,22 +14,22 @@ function match_effective_waves(ω::T, medium::Medium{T}, specie::Specie{T};
     ) where T<:Number
 
     k = real(ω/medium.c)
-    a12k = T(2)*radius_multiplier*specie.r
+    a12k = k*T(2)*radius_multiplier*specie.r
 
     if maximum(abs(w.k_eff) for w in wave_effs) == zero(T)
-        wave_effs = effective_waves(real(ω/medium.c), medium, [specie];
+        wave_effs = effective_waves(k, medium, [specie];
             radius_multiplier=radius_multiplier,
             extinction_rescale = false,
             tol=tol, θin=θin, kws...)
     end
 
     L, X =  X_match_waves(k, wave_effs; a12k = a12k, tol = tol);
-
-    # avg_wave_effs = [AverageWave(real(k), wave, X[L-1:L+1]) for wave in wave_effs]
-    # ref_norm = norm(avg_wave_effs[1].amplitudes[end,:,:])/norm(wave_effs[1].amplitudes)
-    # find(
-    #     norm(avg_wave_effs[i].amplitudes[end,:,:])/norm(wave_effs[i].amplitudes) < ref_norm*tol
-    # for i in eachindex(wave_effs))
+    # X = 0.0:0.0402:5.5984
+    # L = 51
+    avg_wave_effs = [AverageWave(real(k), wave, X[L:L+1]) for wave in wave_effs]
+    for i in eachindex(wave_effs)
+        wave_effs[i].amplitudes = wave_effs[i].amplitudes / norm(avg_wave_effs[i].amplitudes[1,:,1])
+    end
 
     M = wave_effs[1].hankel_order
     J = length(collect(X))
@@ -53,12 +52,7 @@ function match_effective_waves(ω::T, medium::Medium{T}, specie::Specie{T};
         wave_effs[i].amplitudes = αs[i] .* wave_effs[i].amplitudes
     end
 
-    match_wave = MatchWave(
-        wave_effs,
-        AverageWave(M, collect(X), As_mat),
-        L)
-
-    return match_waves
+    return MatchWave(wave_effs, AverageWave(M, collect(X), As_mat), L)
 end
 
 "Returns (X,L), where X[L:end] is the mesh used to match with wave_effs."
@@ -87,7 +81,7 @@ function X_match_waves(k::T, wave_effs::Vector{EffectiveWave{T}};
         n = ceil(a12k / dX)
         dX = a12k/n
     end
-    max_X = min_X + 2*length(wave_effs)*dX # add points in matching region
+    max_X = 2*min_X # so the matching region is [min_X, max_X]. This heavily penalises overfitting of the highest attenuating waves.
     X = 0:dX:max_X
     L = findmin(abs.(X .- min_X))[2]
 

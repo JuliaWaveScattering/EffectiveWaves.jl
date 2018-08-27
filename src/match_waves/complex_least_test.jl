@@ -1,4 +1,3 @@
-
 n = 8
 function complex_least(n)
     w = rand(Complex{T},n)
@@ -26,8 +25,6 @@ function complex_least_sys(i::Int)
     # α = invM*ctranspose(A)*c
 
     norm(transpose(w)*α - b)/norm(b)
-    norm(A*α - c)/norm(c)
-    plot([real.(A*α),real.(c)])
 
     return norm(A*α - c)/norm(c)
 end
@@ -55,8 +52,6 @@ mean(g(i) for i=1:500)
 plot([real.(A*α),real.(c)])
 
 return norm(A*α - c)/norm(c)
-
-
 
 ns = 2:2:1050
 fs = zeros(Float64,length(ns))

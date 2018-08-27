@@ -7,9 +7,9 @@
     ]
     ωs2 = 20.:30.:121
 
-    k_eff_φs = wavenumber_low_volfrac(ωs2, medium, species; tol=1e-5) # lowering tol to speed up calculation
-    k_effs = [wavenumbers(ω, medium, species; tol=1e-6) for ω in ωs2]
-    # k_effs = wavenumber(ωs2, medium, species; tol=1e-7) # lowering tol to speed up calculation
+    tol = 1e-7
+    k_eff_φs = wavenumber_low_volfrac(ωs2, medium, species; tol=tol)
+    k_effs = [wavenumbers(ω, medium, species; tol=tol) for ω in ωs2]
     inds = [indmin(abs.(k)) for k in (k_effs .- k_eff_φs)]
     k_effs2 = [k_effs[i][inds[i]] for i in eachindex(inds)]
 
@@ -19,6 +19,7 @@
         wave = EffectiveWave(ωs2[i], k_effs2[i], medium, species)
         reflection_coefficient(ωs2[i], wave, medium, species)
     end
+    # warning is expected, as k_eff_φs are assymptotic approximations.
     Rs_φs = map(eachindex(ωs2)) do i
         wave = EffectiveWave(ωs2[i], k_eff_φs[i], medium, species)
         reflection_coefficient(ωs2[i], wave, medium, species)

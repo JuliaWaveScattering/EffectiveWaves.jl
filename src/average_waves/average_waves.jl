@@ -21,7 +21,7 @@ end
 
 
 "Calculates an AverageWave from one EffectiveWave"
-function AverageWave(k::T, wave_eff::EffectiveWave{T}, X::AbstractVector{T}, X_match::T = zero(T)) where T<:Number
+function AverageWave(k::T, wave_eff::EffectiveWave{T}, X::AbstractVector{T}) where T<:Number
 
     amps = wave_eff.amplitudes
     ho = wave_eff.hankel_order
@@ -45,7 +45,7 @@ function AverageWave(ω::T, medium::Medium{T}, specie::Specie{T};
     kws...) where T<:Number
 
     k = real(ω/medium.c)
-    a12k = T(2)*radius_multiplier*specie.r
+    a12k = T(2)*radius_multiplier*specie.r*k
 
     if X == [zero(T)]
         if maximum(abs(w.k_eff) for w in wave_effs) == zero(T)
@@ -79,7 +79,7 @@ end
 function average_wave_system(ω::T, X::AbstractVector{T}, medium::Medium{T}, specie::Specie{T};
         θin::Float64 = 0.0, tol::T = 1e-6,
         radius_multiplier::T = 1.005,
-        hankel_order::Int = maximum_hankel_order(ω, medium, [specie]; tol = 1000*tol)
+        hankel_order::Int = maximum_hankel_order(ω, medium, [specie]; tol = tol)
     ) where T<:AbstractFloat
 
     k = real(ω/medium.c)
