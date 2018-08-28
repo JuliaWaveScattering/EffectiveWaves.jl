@@ -23,7 +23,7 @@ wave_effs = effective_waves(ω, medium, [specie];
     )
 k_effs = [w.k_eff for w in wave_effs]
 
-L, X = X_match_waves(k, wave_effs; tol = tol/10, a12k=a12k)
+L, X = X_mesh_match(k, wave_effs; tol = tol/10, a12k=a12k)
 
 avg_wave_effs = [AverageWave(real(k), wave, X[L:L+1]) for wave in wave_effs]
 for i in eachindex(k_effs)
@@ -49,7 +49,7 @@ end
 @test maximum(errs[1:10]) < tol/100
 @test issorted(errs[5:end])
 
-J, X = X_match_waves(k, wave_effs; tol = tol/100, a12k=a12k)
+J, X = X_mesh_match(k, wave_effs; tol = tol/100, a12k=a12k)
 XJ = 0.:(X[2] - X[1]):X[J]
 X2 = (X[J]+X[2]-X[1]):(X[2] - X[1]):(4*X[end])
 

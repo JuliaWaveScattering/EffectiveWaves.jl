@@ -85,7 +85,7 @@ norm(dqA - dqA_eff1)/norm(dqA) < 0.05
     #     xlab = "depth X", lab = "eff. wave[1] diff")
 
 # n = 1
-# plot(avg_wave.X, 0.0.*avg_wave.X, xlab = "depth X", lab = "abs avg wave ")
+# plot(avg_wave.x, 0.0.*avg_wave.x, xlab = "depth X", lab = "abs avg wave ")
 # map(eachindex(αs)) do i
 #     plot!(X[inds[i]:end], abs.(avg_wave.amplitudes[inds[i]:end,n+1+ho] - αs[i]*avg_wave_effs[1].amplitudes[inds[i]:end,n+1+ho]),
 #         xlab = "depth X", lab = "eff. wave α = $(round(100*αs[i])/100)")
@@ -96,6 +96,6 @@ norm(dqA - dqA_eff1)/norm(dqA) < 0.05
 # plot(X, abs.(avg_wave.amplitudes[:,n+1+ho]), xlab = "depth X", lab = "avg. wave")
 #
 # map(eachindex(k_effs)) do i
-#     plot!(avg_wave_effs[i].X, abs.(avg_wave_effs[i].amplitudes[:,n+1+ho]), xlab = "depth X", lab = "eff. wave k_eff = $(k_effs[i])")
+#     plot!(avg_wave_effs[i].x, abs.(avg_wave_effs[i].amplitudes[:,n+1+ho]), xlab = "depth X", lab = "eff. wave k_eff = $(k_effs[i])")
 # end
 # gui()

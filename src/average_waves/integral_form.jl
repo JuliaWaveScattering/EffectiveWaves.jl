@@ -42,11 +42,11 @@ function intergrand_kernel(X::AbstractVector{T}, a12k::T; θin::T = 0.0,
     if ( abs(Int(round(a12k/dX)) - a12k/dX) > 1e-10 )
         warn("There are no mesh points exactly on-top of the intergrands kinks. This could lead to poor accuracy.")
     end
-    p = min(Int(floor(a12k/dX)),J)
+    q = min(Int(floor(a12k/dX)),J)
     X = OffsetArray((-J:J)*dX, -J:J)
 
-    B = OffsetArray{Complex{Float64}}(-p:p, -2M:2M);
-    for j = -p:p, m = -2M:2M
+    B = OffsetArray{Complex{Float64}}(-q:q, -2M:2M);
+    for j = -q:q, m = -2M:2M
         if a12k^2 - X[j]^2 < - dX^2 error("evaluating B in the wrong domain") end
         B[j,m] = integrate_B(m, X[j], sqrt(abs(a12k^2 -X[j]^2)); θin = θin, num_coefs=num_coefs)
     end
@@ -56,7 +56,7 @@ function intergrand_kernel(X::AbstractVector{T}, a12k::T; θin::T = 0.0,
     end
     function intergrand(l,j,m,n)
         P = S[j-l,n-m]
-        Q = (abs(j-l)<= p) ? (B[j-l,n-m] - S[j-l,n-m]) : 0.0+0.0im
+        Q = (abs(j-l)<= q) ? (B[j-l,n-m] - S[j-l,n-m]) : 0.0+0.0im
         P + Q
     end
 

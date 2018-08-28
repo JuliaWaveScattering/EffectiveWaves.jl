@@ -97,14 +97,14 @@ avg_wave_eff = AverageWave(ho, X[XL:end], amplitudes_eff)
 
 plot(xlab = "X", ylab = "Re amplitude")
 for n = -ho:ho
-    scatter!(avg_wave_eff.X, real.(avg_wave_eff.amplitudes[:,n+ho+1]), lab = "Wave eff hankel $n")
+    scatter!(avg_wave_eff.x, real.(avg_wave_eff.amplitudes[:,n+ho+1]), lab = "Wave eff hankel $n")
     plot!(X[XL:end], real.(avg_wave.amplitudes[XL:end,n+ho+1]), lab = "Avg wave hankel $n" )
 end
 gui()
 
 plot(xlab = "X", ylab = "Abs amplitude")
 for n = -ho:ho
-    scatter!(avg_wave_eff.X, abs.(avg_wave_eff.amplitudes[:,n+ho+1]), lab = "Wave eff hankel $n")
+    scatter!(avg_wave_eff.x, abs.(avg_wave_eff.amplitudes[:,n+ho+1]), lab = "Wave eff hankel $n")
     plot!(X[XL:end], abs.(avg_wave.amplitudes[XL:end,n+ho+1]), lab = "Avg wave hankel $n" )
 end
 gui()

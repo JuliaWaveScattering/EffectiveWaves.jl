@@ -8,7 +8,8 @@ medium = Medium(1.0,1.0+0.0im)
 specie = Specie(ρ=0.5, r=0.4, c=0.2, volfrac=0.1)
 specie = Specie(ρ=0.2, r=0.4, c=0.2, volfrac=0.2)
 
-k = 1.;
+k = 0.4
+# k = 0.4;
 θin = 0.0
 ω = real(k*medium.c)
 radius_multiplier = 1.005
@@ -23,49 +24,60 @@ ho = 2
 # Specie(ρ=0.5, r=0.5, c=0.2, volfrac=0.1), k = 0.8, and θin = 0.0,
 #  inbetween 6 and 8 is 0.05%
 ka12 = k*radius_multiplier*2.0*specie.r
-X = 0.0:(ka12/31):15.
+# X = 0.0:(ka12/31):15.
 # X = 0.0:0.04:12.
 
 # Calculate discretised average wave directly from governing equations
-avg_wave_X = AverageWave(ω, medium, specie; hankel_order=ho, θin=θin, X = X,
-    radius_multiplier = radius_multiplier)
+avg_wave_x = AverageWave(ω, medium, specie; hankel_order=ho, θin=θin,
+    radius_multiplier = radius_multiplier, tol = 1e-6)
+X = avg_wave_x.x.*k
 # x = X./k
 
-# plot(avg_wave_X, hankel_indexes = 0:0, seriestype=:scatter)
-# plot!(avg_wave_X, hankel_indexes = 0:0, apply=imag, seriestype=:scatter)
+scatter(avg_wave_x, hankel_indexes = 0:0)
+scatter!(avg_wave_x, hankel_indexes = 0:0, apply=abs)
 
-# wave_effs = effective_waves(ω, medium, [specie];
-#     hankel_order=ho, tol = tol,  θin = θin,
-#     radius_multiplier = radius_multiplier, mesh_points = 6
-#     , extinction_rescale = false
-#     )
+wave_effs = effective_waves(ω, medium, [specie];
+    hankel_order=ho, tol = 1e-7,  θin = θin,
+    radius_multiplier = radius_multiplier, mesh_points = 15, max_Rek = 20.0, max_Imk = 20.0
+    , extinction_rescale = false
+    )
 #
-# k_effs = [w.k_eff for w in wave_effs]
-# scatter(real.(k_effs),imag.(k_effs),
-#     title = "Effective wavenumbers",
-#     xlab = "Re k_eff", ylab = "Im k_eff",
-#     ylims = (0,Inf))
-include("match_waves.jl")
+k_effs = [w.k_eff for w in wave_effs]
+scatter(real.(k_effs),imag.(k_effs),
+    title = "Effective wavenumbers",
+    xlab = "Re k_eff", ylab = "Im k_eff",
+    ylims = (0,Inf))
 
-match_w = match_effective_waves(ω, medium, specie;
+match_w = MatchWave(ω, medium, specie;
     radius_multiplier = radius_multiplier,
-    hankel_order=ho,
-    tol = tol, θin = θin)
-    # ,wave_effs = wave_effs);
+    hankel_order=ho, #scheme = :simpson, #scheme = :trapezoidal,
+    tol = 1e-7, θin = θin , wave_effs = wave_effs[:]);
+    # , wave_effs = wave_effs[[1:3; length(wave_effs)]]);
 
-L = match_w.match_index
-x = match_w.average_wave.X[L]:0.01:avg_wave_X.X[end]
+xs = match_w.x_match[1]:0.01:avg_wave_x.x[end]
 
-plot(avg_wave_X, hankel_indexes = 1:2, seriestype=:scatter)
-plot!(avg_wave_X, hankel_indexes = 1:2, apply=abs, seriestype=:scatter)
+plot(avg_wave_x, hankel_indexes = 1:2, apply=abs, seriestype=:scatter)
+# plot!(avg_wave_x, hankel_indexes = 1:2,  seriestype=:scatter)
 
-plot!(match_w.average_wave, hankel_indexes = 1:2)
-plot!(match_w.average_wave, hankel_indexes = 1:2, apply=abs)
+avg_wave_small = AverageWave(ω, medium, specie; hankel_order=ho, θin=θin, x=match_w.average_wave.x,
+    radius_multiplier = radius_multiplier, tol = 1e-6)
+plot!(avg_wave_small, hankel_indexes = 1:2, apply=abs, seriestype=:line)
 
-plot!(x, match_w.effective_waves, hankel_indexes = 1:2)
-plot!(x, match_w.effective_waves, hankel_indexes = 1:2, apply=abs)
+# plot!(xs, match_w.effective_waves, hankel_indexes = 1:2)
+plot!(xs, match_w.effective_waves, hankel_indexes = 1:2, apply=abs)
 
-# X = avg_wave_X.X
+# plot!(match_w.average_wave, hankel_indexes = 1:2, seriestype=:line, linestyle=:dash)
+plot!(match_w.average_wave, hankel_indexes = 1:2, apply=abs, seriestype=:line, linestyle=:dash)
+
+
+# test
+
+plot!(avg_wave_x, hankel_indexes = 2:2, apply=abs, seriestype=:scatter)
+plot!(match_w.average_wave, hankel_indexes = 2:2, apply=abs, seriestype=:line, linestyle=:dash)
+plot!(xs, match_w.effective_waves, hankel_indexes = 2:2, apply=abs)
+
+
+# X = avg_wave_x.x
 X0 = 2. # match from X[L]
 L = findmin(abs.(X .- X0))[2]
 X_max = X[Int(round(0.65*length(X)))] # maximum X considered to have the correct numerical solution
@@ -84,7 +96,7 @@ wave_effs = wave_effs[eff_inds];
 
 J = L + 3*length(k_effs) # double number of points than waves to avoid overfitting
 X_match = X[L:J]
-avg_wave = AverageWave(ho, X[1:J], avg_wave_X.amplitudes[1:J,:,:])
+avg_wave = AverageWave(ho, X[1:J], avg_wave_x.amplitudes[1:J,:,:])
 
 # rescale to lessen roundoff errors
 for i in eachindex(k_effs)[2:end]
@@ -119,10 +131,10 @@ scatter([abs.(exp.(im*k_effs./k)), sign.(real.(k_effs)).*abs.(αs)], lab = ["exp
     avg_wave_effs = [AverageWave(real(k), wave, X[L:i_max]) for wave in wave_effs]
 
     amplitudes_eff = sum(αs[i] * avg_wave_effs[i].amplitudes[:,:,:] for i in eachindex(avg_wave_effs))
-    avg_wave_eff = AverageWave(ho, avg_wave_effs[1].X, amplitudes_eff)
+    avg_wave_eff = AverageWave(ho, avg_wave_effs[1].x, amplitudes_eff)
 
     amplitudes_eff = sum(αs_match[i] * avg_wave_effs[i].amplitudes[:,:,:] for i in eachindex(avg_wave_effs))
-    avg_wave_eff_match = AverageWave(ho, avg_wave_effs[1].X, amplitudes_eff)
+    avg_wave_eff_match = AverageWave(ho, avg_wave_effs[1].x, amplitudes_eff)
 
     ps = map(0:ho) do n
         max_w = maximum(real.(avg_wave.amplitudes[L:end,n+ho+1]))
@@ -132,10 +144,10 @@ scatter([abs.(exp.(im*k_effs./k)), sign.(real.(k_effs)).*abs.(αs)], lab = ["exp
         plot(x -> x,y->max_w,X[L],X[J],line=0,fill=(0,:orange), fillalpha=0.4, lab="match region")
         plot!(x -> x,y->min_w,X[L],X[J],line=0,fill=(0,:orange), fillalpha=0.4, lab="")
         plot!(xlab = "X", ylab = "Re amplitude", title="Hankel order $n")
-        plot!(avg_wave_eff.X, real.(avg_wave_eff.amplitudes[:,n+ho+1]), lab = "Wave eff", linewidth=2)
-        # plot!(avg_wave_eff_match.X, real.(avg_wave_eff_match.amplitudes[:,n+ho+1]), lab = "Wave eff match", linewidth=2)
-        scatter!(X[L:i_max], real.(avg_wave_X.amplitudes[L:i_max,n+ho+1]), lab = "Avg wave", linewidth =2 )
-        plot!(avg_wave_effs[1].X, real.(α1*avg_wave_effs[1].amplitudes[:,n+ho+1]), lab = "Wave eff 1", linewidth =2, linestyle=:dash)
+        plot!(avg_wave_eff.x, real.(avg_wave_eff.amplitudes[:,n+ho+1]), lab = "Wave eff", linewidth=2)
+        # plot!(avg_wave_eff_match.x, real.(avg_wave_eff_match.amplitudes[:,n+ho+1]), lab = "Wave eff match", linewidth=2)
+        scatter!(X[L:i_max], real.(avg_wave_x.amplitudes[L:i_max,n+ho+1]), lab = "Avg wave", linewidth =2 )
+        plot!(avg_wave_effs[1].x, real.(α1*avg_wave_effs[1].amplitudes[:,n+ho+1]), lab = "Wave eff 1", linewidth =2, linestyle=:dash)
     end
     plot(ps...)
 
@@ -151,7 +163,7 @@ scatter([abs.(exp.(im*k_effs./k)), sign.(real.(k_effs)).*abs.(αs)], lab = ["exp
 
     plot(xlab = "X", ylab = "Abs amplitude")
     for n = -ho:ho
-        scatter!(avg_wave_eff.X, abs.(avg_wave_eff.amplitudes[:,n+ho+1]), lab = "Wave eff hankel $n")
-        plot!(X[L:end], abs.(avg_wave_X.amplitudes[L:end,n+ho+1]), lab = "Avg wave hankel $n" )
+        scatter!(avg_wave_eff.x, abs.(avg_wave_eff.amplitudes[:,n+ho+1]), lab = "Wave eff hankel $n")
+        plot!(X[L:end], abs.(avg_wave_x.amplitudes[L:end,n+ho+1]), lab = "Avg wave hankel $n" )
     end
     gui()

@@ -1,34 +1,38 @@
-include("match_arrays.jl")
-
 "A type for matched waves."
 type MatchWave{T<:AbstractFloat}
     effective_waves::Vector{EffectiveWave{T}}
     average_wave::AverageWave{T}
-    match_index::Int # waves are matched between average_wave.x[match_index:end]
+    x_match::Vector{T} # waves are matched between average_wave.x[match_index:end]
 end
 
-function match_effective_waves(ω::T, medium::Medium{T}, specie::Specie{T};
+function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
         radius_multiplier::T = 1.005,
         tol::T = T(1e-5), θin::T = zero(T),
         wave_effs::Vector{EffectiveWave{T}} = [zero(EffectiveWave{T})], kws...
     ) where T<:Number
 
     k = real(ω/medium.c)
-    a12k = k*T(2)*radius_multiplier*specie.r
 
     if maximum(abs(w.k_eff) for w in wave_effs) == zero(T)
         wave_effs = effective_waves(k, medium, [specie];
             radius_multiplier=radius_multiplier,
-            extinction_rescale = false,
+            extinction_rescale = false, #hankel_order=hankel_order,
             tol=tol, θin=θin, kws...)
     end
+    # use non-dimensional effective waves
+    wave_non_effs = deepcopy(wave_effs)
+    for w in wave_non_effs
+       w.k_eff = w.k_eff/k
+    end
 
-    L, X =  X_match_waves(k, wave_effs; a12k = a12k, tol = tol);
-    # X = 0.0:0.0402:5.5984
-    # L = 51
-    avg_wave_effs = [AverageWave(real(k), wave, X[L:L+1]) for wave in wave_effs]
-    for i in eachindex(wave_effs)
-        wave_effs[i].amplitudes = wave_effs[i].amplitudes / norm(avg_wave_effs[i].amplitudes[1,:,1])
+    a12k = T(2)*radius_multiplier*specie.r*k
+    # using non-dimensional wave_non_effs and a12k results in non-dimensional mesh X
+    L, X =  x_mesh_match(wave_non_effs; a12 = a12k, tol = tol);
+
+    avg_wave_effs = [AverageWave(w, X[L:L+1]) for w in wave_non_effs]
+    for i in eachindex(wave_non_effs)
+        wave_non_effs[i].amplitudes = wave_non_effs[i].amplitudes / norm(avg_wave_effs[i].amplitudes[1,:,1])
+        wave_effs[i].amplitudes = wave_non_effs[i].amplitudes
     end
 
     M = wave_effs[1].hankel_order
@@ -40,7 +44,7 @@ function match_effective_waves(ω::T, medium::Medium{T}, specie::Specie{T};
     MM_mat = reshape(MM_quad, (len, len));
     b = reshape(b_mat, (len));
 
-    (LT_mat, E_mat, b_eff) = match_arrays(ω, wave_effs, L, X, medium, [specie]; θin=θin);
+    (LT_mat, E_mat, b_eff) = match_arrays(ω, wave_non_effs, L, X, medium, [specie]; θin=θin, a12k=a12k);
 
     B = b - E_mat*b_eff
     As = (E_mat*LT_mat + MM_mat)\B
@@ -52,38 +56,21 @@ function match_effective_waves(ω::T, medium::Medium{T}, specie::Specie{T};
         wave_effs[i].amplitudes = αs[i] .* wave_effs[i].amplitudes
     end
 
-    return MatchWave(wave_effs, AverageWave(M, collect(X), As_mat), L)
+    return MatchWave(wave_effs, AverageWave(M, collect(X)./k, As_mat), collect(X[L:end])./k)
 end
 
-"Returns (X,L), where X[L:end] is the mesh used to match with wave_effs."
-function X_match_waves(k::T, wave_effs::Vector{EffectiveWave{T}};
-        tol::T = T(1e-5),  a12k::T = zero(T),
-        min_X::T = (-log(tol))*k/abs(cos(wave_effs[end].θ_eff)*imag(wave_effs[end].k_eff)),
-        ) where T<:AbstractFloat
+"Returns (x,L), where x[L:end] is the mesh used to match with wave_effs."
+function x_mesh_match(wave_effs::Vector{EffectiveWave{T}}; kws... ) where T<:AbstractFloat
+    # below wave_effs[end] establishes how long X should be, while wave_effs[1] estalishes how fine the mesh should be.
+    x = x_mesh(wave_effs[end], wave_effs[1]; kws...)
+    x_match = x[end]
+    x_max = (length(x) < length(wave_effs)*T(1.5)) ?
+         x[end] + T(1.5)*(x[2] - x[1])*length(wave_effs) :
+         T(2) * x[end]
 
-    #= The default min_X result in:
-        abs(exp(im*min_X*cos(θ_effs[end])*k_effs[end]/k)) < tol
-    =#
-    # estimate a reasonable derivative. Using df2 would be too large!
-    df1 = abs(wave_effs[1].k_eff * cos(wave_effs[1].θ_eff) / k)
-    # take the next index, if there is one
-    i =  mod(1,length(wave_effs)) + 1
-    df2 = abs(wave_effs[i].k_eff * cos(wave_effs[i].θ_eff) / k)
-    df = (df1+df2)/T(2)
+    x = 0.0:(x[2] - x[1]):x_max # choose twice the match length to heavily penalise overfitting wave_effs[end]
 
-    # Based on Simpson's rule
-        # dX  = (tol*90 / (df^4))^(1/5)
-    # Based on trapezoidal integration
-        dX  = (tol * 24 / (df1^2))^(1/3)
+    L = findmin(abs.(x .- x_match))[2]
 
-    # if whole correct size a12k was given, then make dX/a12k = integer
-    if a12k  != zero(T)
-        n = ceil(a12k / dX)
-        dX = a12k/n
-    end
-    max_X = 2*min_X # so the matching region is [min_X, max_X]. This heavily penalises overfitting of the highest attenuating waves.
-    X = 0:dX:max_X
-    L = findmin(abs.(X .- min_X))[2]
-
-    return L, X
+    return L, x
 end
