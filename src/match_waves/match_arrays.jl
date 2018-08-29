@@ -71,31 +71,31 @@ function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, L::Int, X::Abs
         for l = 0:J, p in eachindex(wave_effs)]
     for m = -ho:ho]
 
-    # q = min(Int(floor(a12k/(X[2]-X[1]))), J)
-    # B_mat = OffsetArray{Complex{T}}(0:q, -2ho:2ho);
-    # for j = 0:q, m = -2ho:2ho
-    #     B_mat[j,m] = integrate_B(m, X[j+1], sqrt(abs(a12k^2 -X[j]^2)); θin = θin)
-    # end
-    # XR = OffsetArray((J:(J+q))*(X[2]-X[1]), J:(J+q));
-    # Rs = [
-    #     [
-    #         (l+q <= J) ?
-    #             zero(Complex{T}) :
-    #             begin
-    #                 # the integration scheme may change with the domain
-    #                 σ = OffsetArray(integration_scheme(XR[J:l+q]; scheme=scheme), J:(l+q));
-    #                 sum(
-    #                     species[s].num_density * Z[n,s] * im^T(n) * wave_effs[p].amplitudes[n+ho+1] *
-    #                     exp(im*XR[j]*wave_effs[p].k_eff*cos(wave_effs[p].θ_eff) - im*n*wave_effs[p].θ_eff) *
-    #                     (B_mat[j-l,n-m] - S_mat[j-l,n-m]) * σ[j]
-    #                 for j = J:(l+q) n = -ho:ho, s = 1:S)
-    #             end
-    #     for l = 0:J, p in eachindex(wave_effs)]
-    # for m = -ho:ho]
+    q = min(Int(floor(a12k/(X[2]-X[1]))), J)
+    B_mat = OffsetArray{Complex{T}}(0:q, -2ho:2ho);
+    for j = 0:q, m = -2ho:2ho
+        B_mat[j,m] = integrate_B(m, X[j+1], sqrt(abs(a12k^2 -X[j+1]^2)); θin = θin)
+    end
+    XR = OffsetArray((J:(J+q))*(X[2]-X[1]), J:(J+q));
+    Rs = [
+        [
+            (l+q <= J) ?
+                zero(Complex{T}) :
+                begin
+                    # the integration scheme may change with the domain
+                    σ = OffsetArray(integration_scheme(XR[J:l+q]; scheme=scheme), J:(l+q));
+                    sum(
+                        species[s].num_density * Z[n,s] * im^T(n) * wave_effs[p].amplitudes[n+ho+1] *
+                        exp(im*XR[j]*wave_effs[p].k_eff*cos(wave_effs[p].θ_eff) - im*n*wave_effs[p].θ_eff) *
+                        (B_mat[j-l,n-m] - S_mat[j-l,n-m]) * σ[j]
+                    for j = J:(l+q), n = -ho:ho, s = 1:S)
+                end
+        for l = 0:J, p in eachindex(wave_effs)]
+    for m = -ho:ho]
 
-    E_mat = vcat(Es...)
+    ER_mat = vcat((Es+Rs)...)
 
-    return (LT_mat, E_mat, (im*k^2*inv_w).*invV*conj(w_vec))
+    return (LT_mat, ER_mat, (im*k^2*inv_w).*invV*conj(w_vec))
 end
 
 

@@ -8,6 +8,7 @@ end
 function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
         radius_multiplier::T = 1.005,
         tol::T = T(1e-5), θin::T = zero(T),
+        max_size::Int = 500,
         wave_effs::Vector{EffectiveWave{T}} = [zero(EffectiveWave{T})], kws...
     ) where T<:Number
 
@@ -27,7 +28,7 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
 
     a12k = T(2)*radius_multiplier*specie.r*k
     # using non-dimensional wave_non_effs and a12k results in non-dimensional mesh X
-    L, X =  x_mesh_match(wave_non_effs; a12 = a12k, tol = tol);
+    L, X =  x_mesh_match(wave_non_effs; a12 = a12k, tol = tol, max_size=max_size);
 
     avg_wave_effs = [AverageWave(w, X[L:L+1]) for w in wave_non_effs]
     for i in eachindex(wave_non_effs)

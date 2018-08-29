@@ -42,6 +42,7 @@ function AverageWave(ω::T, medium::Medium{T}, specie::Specie{T};
         x::AbstractVector{T} = [zero(T)],
         tol::T = T(1e-4),
         wave_effs::Vector{EffectiveWave{T}} = [zero(EffectiveWave{T})],
+        max_size::Int = 1000,
         kws...
     ) where T<:Number
 
@@ -54,7 +55,7 @@ function AverageWave(ω::T, medium::Medium{T}, specie::Specie{T};
         end
         # estimate a large coarse non-dimensional mesh based on the lowest attenuating effective wave
         a12 = T(2)*radius_multiplier*specie.r
-        x = x_mesh(wave_effs[1]; tol = tol,  a12 = a12)
+        x = x_mesh(wave_effs[1]; tol = tol,  a12 = a12, max_size=max_size)
     end
 
     X = x.*k
@@ -107,7 +108,8 @@ end
 
 "Returns x the mesh used to discretise the integral equations."
 function x_mesh(wave_eff_long::EffectiveWave{T}, wave_eff_short::EffectiveWave{T} = wave_eff_long;
-        tol::T = T(1e-5),  a12::T = zero(T)) where T<:AbstractFloat
+        tol::T = T(1e-5),  a12::T = zero(T),
+        max_size::Int = 1000) where T<:AbstractFloat
 
     max_x = (-log(tol))/abs(cos(wave_eff_long.θ_eff)*imag(wave_eff_long.k_eff))
     #= The default min_X result in:
@@ -120,6 +122,9 @@ function x_mesh(wave_eff_long::EffectiveWave{T}, wave_eff_short::EffectiveWave{T
         # dX  = (tol*90 / (df^4))^(1/5)
     # Based on trapezoidal integration
         dx  = (tol * T(30) / (df^2))^(1/3)
+    if length(max_x/dx) + 1 > max_size 
+        dx = max_x/(max_size-1)
+    end
 
     # if whole correction length a12k was given, then make dX/a12k = integer
     if a12  != zero(T)
