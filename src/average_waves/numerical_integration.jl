@@ -4,8 +4,8 @@
 #     -(g(x[1]) + g(x[end]))*h/2.0 + sum(g.(x)*h)
 # end
 
-function integration_scheme(x::AbstractVector{T}; scheme = :trapezoidal, kws...) where T<:AbstractFloat
-    if length(x) == 1
+function integration_scheme(x::AbstractVector{T}; scheme::Symbol = :trapezoidal, kws...) where T<:AbstractFloat
+    if length(collect(x)) == 1
         return [0.]
     end
 
@@ -19,7 +19,7 @@ function integration_scheme(x::AbstractVector{T}; scheme = :trapezoidal, kws...)
     end
 end
 
-function trap_scheme(x::AbstractVector{T}; x0 = first(x), xn = last(x)) where T<:AbstractFloat
+function trap_scheme(x::AbstractVector{T}; x0::T = first(x), xn::T = last(x)) where T<:AbstractFloat
 
     inds = indices(x,1)
 
@@ -37,7 +37,7 @@ function trap_scheme(x::AbstractVector{T}; x0 = first(x), xn = last(x)) where T<
     σs
 end
 
-function simpson_scheme(x::AbstractVector{T}; x0=first(x), xn=last(x))
+function simpson_scheme(x::AbstractVector{T}; x0::T = first(x), xn::T = last(x)) where T<:AbstractFloat
     inds = indices(x,1)
 
     if iseven(length(inds))

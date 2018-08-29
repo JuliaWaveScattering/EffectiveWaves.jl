@@ -23,8 +23,8 @@ ho = 2
 # for X = 0.0:0.05:12. the relative convergence error for
 # Specie(ρ=0.5, r=0.5, c=0.2, volfrac=0.1), k = 0.8, and θin = 0.0,
 #  inbetween 6 and 8 is 0.05%
-ka12 = k*radius_multiplier*2.0*specie.r
-# X = 0.0:(ka12/31):15.
+a12k = k*radius_multiplier*2.0*specie.r
+# X = 0.0:(a12k/31):15.
 # X = 0.0:0.04:12.
 
 # Calculate discretised average wave directly from governing equations
@@ -38,7 +38,7 @@ scatter!(avg_wave_x, hankel_indexes = 0:0, apply=abs)
 
 wave_effs = effective_waves(ω, medium, [specie];
     hankel_order=ho, tol = 1e-7,  θin = θin,
-    radius_multiplier = radius_multiplier, mesh_points = 15, max_Rek = 20.0, max_Imk = 20.0
+    radius_multiplier = radius_multiplier #,mesh_points = 15, max_Rek = 20.0, max_Imk = 20.0
     , extinction_rescale = false
     )
 #
@@ -51,7 +51,7 @@ scatter(real.(k_effs),imag.(k_effs),
 match_w = MatchWave(ω, medium, specie;
     radius_multiplier = radius_multiplier,
     hankel_order=ho, #scheme = :simpson, #scheme = :trapezoidal,
-    tol = 1e-7, θin = θin , wave_effs = wave_effs[:]);
+    tol = 1e-5, θin = θin , wave_effs = wave_effs[:]);
     # , wave_effs = wave_effs[[1:3; length(wave_effs)]]);
 
 xs = match_w.x_match[1]:0.01:avg_wave_x.x[end]
@@ -68,7 +68,6 @@ plot!(xs, match_w.effective_waves, hankel_indexes = 1:2, apply=abs)
 
 # plot!(match_w.average_wave, hankel_indexes = 1:2, seriestype=:line, linestyle=:dash)
 plot!(match_w.average_wave, hankel_indexes = 1:2, apply=abs, seriestype=:line, linestyle=:dash)
-
 
 # test
 

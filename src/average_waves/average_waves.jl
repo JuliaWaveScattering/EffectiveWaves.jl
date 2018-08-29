@@ -42,7 +42,8 @@ function AverageWave(ω::T, medium::Medium{T}, specie::Specie{T};
         x::AbstractVector{T} = [zero(T)],
         tol::T = T(1e-4),
         wave_effs::Vector{EffectiveWave{T}} = [zero(EffectiveWave{T})],
-    kws...) where T<:Number
+        kws...
+    ) where T<:Number
 
     k = real(ω/medium.c)
 
@@ -55,7 +56,7 @@ function AverageWave(ω::T, medium::Medium{T}, specie::Specie{T};
         a12 = T(2)*radius_multiplier*specie.r
         x = x_mesh(wave_effs[1]; tol = tol,  a12 = a12)
     end
-    
+
     X = x.*k
     (MM_quad,b_mat) = average_wave_system(ω, X, medium, specie; tol = tol, kws...);
 
@@ -84,7 +85,7 @@ function average_wave_system(ω::T, X::AbstractVector{T}, medium::Medium{T}, spe
     a12k = radius_multiplier*T(2)*real(k*specie.r);
     M = hankel_order;
 
-    J = length(collect(X))
+    J = length(X) - 1
     h = X[2] - X[1]
 
     Z = OffsetArray{Complex{Float64}}(-M:M);
@@ -93,14 +94,13 @@ function average_wave_system(ω::T, X::AbstractVector{T}, medium::Medium{T}, spe
         Z[-m] = Z[m]
     end
 
-    σ = integration_scheme(X; scheme = scheme) # integration scheme: trapezoidal
-    PQ_quad = intergrand_kernel(X, a12k; θin = θin, M = M);
+    PQ_quad = intergrand_kernel(X, a12k; M = M, θin = θin, scheme=scheme);
 
     MM_quad = [
-        specie.num_density*Z[n]*σ[j]*PQ_quad[l,m+M+1,j,n+M+1] + k^2*( (m==n && j==l) ? 1.0+0.0im : 0.0+0.0im)
-    for  l=1:J, m=-M:M, j=1:J, n=-M:M];
+        specie.num_density*Z[n]*PQ_quad[l,m+M+1,j,n+M+1] + k^2*( (m==n && j==l) ? 1.0+0.0im : 0.0+0.0im)
+    for  l=1:(J+1), m=-M:M, j=1:(J+1), n=-M:M];
 
-    b_mat = [ -k^2*exp(im*X[l]*cos(θin))*exp(im*m*(pi/2.0 - θin)) for l = 1:J, m = -M:M]
+    b_mat = [ -k^2*exp(im*X[l]*cos(θin))*exp(im*m*(pi/2.0 - θin)) for l = 1:(J+1), m = -M:M]
 
     return (MM_quad,b_mat)
 end
@@ -119,7 +119,7 @@ function x_mesh(wave_eff_long::EffectiveWave{T}, wave_eff_short::EffectiveWave{T
     # Based on Simpson's rule
         # dX  = (tol*90 / (df^4))^(1/5)
     # Based on trapezoidal integration
-        dx  = (tol * 30 / (df^2))^(1/3)
+        dx  = (tol * T(30) / (df^2))^(1/3)
 
     # if whole correction length a12k was given, then make dX/a12k = integer
     if a12  != zero(T)
@@ -127,5 +127,5 @@ function x_mesh(wave_eff_long::EffectiveWave{T}, wave_eff_short::EffectiveWave{T
         dx = a12/n
     end
 
-    return 0:dx:max_x
+    return zero(T):dx:max_x
 end

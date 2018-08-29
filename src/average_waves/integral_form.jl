@@ -29,19 +29,11 @@ function integrate_S(n::Int, X::T; θin::T = 0.0) where T <: AbstractFloat
     S
 end
 
-function intergrand_kernel(X::AbstractVector{T}, a12k::T; θin::T = 0.0,
+function BS_matrices(X::AbstractVector{T}, a12k::T; θin::T = 0.0,
         M::Int = 2, num_coefs::Int = 10000) where T<:AbstractFloat
 
     dX = X[2] - X[1]
     J = length(collect(X)) -1
-
-    if !(typeof(X) <: OffsetArray)
-        if abs(J*dX - X[end])/X[end] > 1e-10  warn("Unexpected X = $X.") end
-        X = OffsetArray((0:J)*dX, 0:J)
-    end
-    if ( abs(Int(round(a12k/dX)) - a12k/dX) > 1e-10 )
-        warn("There are no mesh points exactly on-top of the intergrands kinks. This could lead to poor accuracy.")
-    end
     q = min(Int(floor(a12k/dX)),J)
     X = OffsetArray((-J:J)*dX, -J:J)
 
@@ -54,13 +46,43 @@ function intergrand_kernel(X::AbstractVector{T}, a12k::T; θin::T = 0.0,
     for j = -J:J, m = -2M:2M
         S[j,m] = integrate_S(m, X[j]; θin = θin)
     end
-    function intergrand(l,j,m,n)
-        P = S[j-l,n-m]
-        Q = (abs(j-l)<= q) ? (B[j-l,n-m] - S[j-l,n-m]) : 0.0+0.0im
-        P + Q
+
+    return (B,S)
+end
+
+function intergrand_kernel(X::AbstractVector{T}, a12k::T; M::Int = 2,
+        scheme::Symbol = :trapezoidal, kws...) where T<:AbstractFloat
+
+    dX = X[2] - X[1]
+    J = length(collect(X)) -1
+    if abs(J*dX - X[end])/X[end] > 1e-10
+        error("Expected X to be uniformly spaced from 0. Instead got X= $X.")
+    end
+    if ( abs(Int(round(a12k/dX)) - a12k/dX) > 1e-10 )
+        warn("There are no mesh points exactly on-top of the intergrands kinks. This could lead to poor accuracy.")
     end
 
-    intergrand_quad = [intergrand(l,j,m,n) for  l=0:J, m=-M:M, j=0:J, n=-M:M]
+    q = min(Int(floor(a12k/dX)),J)
+    if q == 0 warn("Mesh element larger than ka12. This is unexpected.") end
+
+    B, S = BS_matrices(X, a12k; M = M, kws...)
+
+    # an numerical integration scheme for domain over X
+    σ = OffsetArray(integration_scheme(X; scheme=scheme), 0:J)
+    # an array of numerical integration schemes for the varying domain |j-l| <= q
+    σs = OffsetArray([
+        OffsetArray(
+            integration_scheme(X[max(l-q,0)+1:min(l+q,J)+1]; scheme=scheme),
+        max(l-q,0):min(l+q,J))
+    for l=0:J], 0:J)
+
+    intergrand_quad = [
+        begin
+            P = σ[j] * S[j-l,n-m]
+            Q = (abs(j-l) <= q) ? σs[l][j] * (B[j-l,n-m] - S[j-l,n-m]) : zero(Complex{T})
+            P + Q
+        end
+    for l=0:J, m=-M:M, j=0:J, n=-M:M]
 
     return intergrand_quad
 end
