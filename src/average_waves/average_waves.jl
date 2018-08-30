@@ -36,6 +36,18 @@ function AverageWave(wave_eff::EffectiveWave{T}, xs::AbstractVector{T}) where T<
     return AverageWave(ho,xs,average_amps)
 end
 
+"Calculates an AverageWave from a vector of EffectiveWave"
+function AverageWave(wave_effs::Vector{EffectiveWave{T}}, xs::AbstractVector{T}) where T<:Number
+
+    ho = wave_effs[1].hankel_order
+    avg_wave_effs = [AverageWave(wave, xs) for wave in wave_effs]
+    amps = sum(avg_wave_effs[i].amplitudes[:,:,:] for i in eachindex(avg_wave_effs))
+
+    return AverageWave(ho, xs, amps)
+end
+
+
+
 "Numerically solved the integral equation governing the average wave. Optionally can use wave_eff to approximate the wave away from the boundary."
 function AverageWave(ω::T, medium::Medium{T}, specie::Specie{T};
         radius_multiplier::T = 1.005,
@@ -122,8 +134,10 @@ function x_mesh(wave_eff_long::EffectiveWave{T}, wave_eff_short::EffectiveWave{T
         # dX  = (tol*90 / (df^4))^(1/5)
     # Based on trapezoidal integration
         dx  = (tol * T(30) / (df^2))^(1/3)
-    if length(max_x/dx) + 1 > max_size 
-        dx = max_x/(max_size-1)
+    if max_x/dx + 1 > max_size
+        a = sqrt(max_x/((max_size - 1)*dx))
+        dx = dx*a
+        max_x = max_x/a
     end
 
     # if whole correction length a12k was given, then make dX/a12k = integer

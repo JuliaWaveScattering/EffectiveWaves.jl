@@ -6,7 +6,7 @@ Plots.scalefontsizes(1.5)
 # physical parameters
 medium = Medium(1.0,1.0+0.0im)
 specie = Specie(ρ=0.2, r=0.4, c=0.2, volfrac=0.2)
-specie = Specie(ρ=0.1, r=0.4, c=0.1, volfrac=0.3)
+specie = Specie(ρ=0.1, r=0.4, c=0.1, volfrac=0.04)
 
 k = 2.5
 # k = 0.4;
@@ -27,6 +27,15 @@ a12k = k*radius_multiplier*2.0*specie.r
 # X = 0.0:(a12k/31):15.
 # X = 0.0:0.04:12.
 
+wave_effs = effective_waves(ω, medium, [specie];
+    hankel_order=ho, tol = 1e-7,  θin = θin,
+    radius_multiplier = radius_multiplier, mesh_points = 12#, max_Rek = 20.0, max_Imk = 20.0
+    , extinction_rescale = false
+    )
+plot(wave_effs)
+
+collect(x_mesh_match(wave_effs[1:15])[2])
+
 # Calculate discretised average wave directly from governing equations
 avg_wave_x = AverageWave(ω, medium, specie; hankel_order=ho, θin=θin,
     radius_multiplier = radius_multiplier, tol = 1e-5, max_size=500)
@@ -36,23 +45,10 @@ X = avg_wave_x.x.*k
 scatter(avg_wave_x, hankel_indexes = 0:0)
 scatter!(avg_wave_x, hankel_indexes = 0:ho, apply=abs)
 
-wave_effs = effective_waves(ω, medium, [specie];
-    hankel_order=ho, tol = 1e-7,  θin = θin,
-    radius_multiplier = radius_multiplier, mesh_points = 12#, max_Rek = 20.0, max_Imk = 20.0
-    , extinction_rescale = false
-    )
-collect(x_mesh_match(wave_effs[1:15])[2])
-
-k_effs = [w.k_eff for w in wave_effs[1:20]]
-scatter(real.(k_effs),imag.(k_effs),
-    title = "Effective wavenumbers",
-    xlab = "Re k_eff", ylab = "Im k_eff",
-    ylims = (0,Inf))
-
 match_w = MatchWave(ω, medium, specie;
     radius_multiplier = radius_multiplier,
     hankel_order=ho, #scheme = :simpson, #scheme = :trapezoidal,
-    tol = 1e-7, θin = θin, wave_effs = wave_effs[1:15]);
+    tol = 1e-7, θin = θin, wave_effs = wave_effs);
 
 plot(avg_wave_x, hankel_indexes = 0:ho, apply=abs, seriestype=:scatter)
 # plot(avg_wave_x, hankel_indexes = 1:2, apply=real, seriestype=:scatter)

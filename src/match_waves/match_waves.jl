@@ -8,6 +8,7 @@ end
 function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
         radius_multiplier::T = 1.005,
         tol::T = T(1e-5), θin::T = zero(T),
+        hankel_order::Int = 2,
         max_size::Int = 500,
         wave_effs::Vector{EffectiveWave{T}} = [zero(EffectiveWave{T})], kws...
     ) where T<:Number
@@ -18,7 +19,9 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
         wave_effs = effective_waves(k, medium, [specie];
             radius_multiplier=radius_multiplier,
             extinction_rescale = false, #hankel_order=hankel_order,
-            tol=tol, θin=θin, kws...)
+            tol=tol, θin=θin,
+            hankel_order=hankel_order,
+            kws...)
     end
     # use non-dimensional effective waves
     wave_non_effs = deepcopy(wave_effs)
@@ -36,12 +39,11 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
         wave_effs[i].amplitudes = wave_non_effs[i].amplitudes
     end
 
-    M = wave_effs[1].hankel_order
-    J = length(collect(X))
-    len = J  * (2M + 1)
+    J = length(collect(X)) - 1
+    len = (J + 1)  * (2hankel_order + 1)
 
     (MM_quad,b_mat) = average_wave_system(ω, X, medium, specie; tol=tol,
-        radius_multiplier=radius_multiplier, hankel_order=M, θin=θin,  kws...);
+        radius_multiplier=radius_multiplier, hankel_order=hankel_order, θin=θin,  kws...);
     MM_mat = reshape(MM_quad, (len, len));
     b = reshape(b_mat, (len));
 
@@ -49,7 +51,7 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
 
     B = b - E_mat*b_eff
     As = (E_mat*LT_mat + MM_mat)\B
-    As_mat = reshape(As, (J, 2M+1, 1))
+    As_mat = reshape(As, (J+1, 2hankel_order+1, 1))
 
     αs = LT_mat*As + b_eff
     # use these αs to correct the magnitude of the amplitudes of the effective waves
@@ -57,7 +59,7 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
         wave_effs[i].amplitudes = αs[i] .* wave_effs[i].amplitudes
     end
 
-    return MatchWave(wave_effs, AverageWave(M, collect(X)./k, As_mat), collect(X[L:end])./k)
+    return MatchWave(wave_effs, AverageWave(hankel_order, collect(X)./k, As_mat), collect(X[L:end])./k)
 end
 
 "Returns (x,L), where x[L:end] is the mesh used to match with wave_effs."
