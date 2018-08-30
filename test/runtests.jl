@@ -2,8 +2,6 @@ import Base.Test: @testset, @test, @test_throws
 
 using EffectiveWaves
 
-@testset "Summary" begin
-
 @testset "Examples from: Reflection from multi-species.., Proc.R.Soc.(2018)" begin
 
     include("../examples/concrete/concrete_species.jl")
@@ -35,5 +33,3 @@ include("strong_low_freq_effective.jl")
 
 include("integrated_reflection.jl")
 include("average_integrand_kernel.jl")
-
-end
