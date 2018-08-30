@@ -56,7 +56,7 @@ end
     end
 end
 
-@recipe function plot(match_wave::MatchWave{T})
+@recipe function plot(match_wave::MatchWave{T}) where T <: AbstractFloat
 
     dx = match_wave.x_match[2] - match_wave.x_match[1]
     max_x = match_wave.x_match[end]
@@ -65,7 +65,8 @@ end
 end
 
 @recipe function plot(x::AbstractVector{T}, match_wave::MatchWave{T};
-        hankel_indexes = -wave_effs[1].hankel_order:wave_effs[1].hankel_order, apply = real)
+        hankel_indexes = -wave_effs[1].hankel_order:wave_effs[1].hankel_order,
+        apply = real) where T <: AbstractFloat
 
     ho = match_wave.average_wave.hankel_order
     wave_eff = AverageWave(match_wave.effective_waves, match_wave.x_match)
@@ -89,8 +90,6 @@ end
         line --> 0
         (x1 -> x1, y->min_amp, match_w.x_match[1],  match_w.x_match[end])
     end
-    # plot(x -> x,y->max_w,X[L],X[J],line=0,fill=(0,:orange), fillalpha=0.4, lab="match region")
-    # plot!(x -> x,y->min_w,X[L],X[J],line=0,fill=(0,:orange), fillalpha=0.4, lab="")
 
     @series begin
         apply --> apply

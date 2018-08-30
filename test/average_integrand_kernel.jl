@@ -8,16 +8,16 @@
 
     function intergrand_kernels(X, a12k; M = M, θin=θin, num_coefs = 2000)
 
-        q = min(Int(floor(a12k/(X[2]-x[1]))),J)
+        q = min(Int(floor(a12k/(X[2]-X[1]))),J)
         B, S = BS_matrices(X, a12k; M = M, θin=θin, M=M, num_coefs = num_coefs)
 
         function intergrand(l,j,m,n)
             P = S[j-l,n-m]
-            Q = (abs(j-l) <= q) ? (B[j-l,n-m] - S[j-l,n-m]) : zero(Complex{T})
+            Q = (abs(j-l) <= q) ? (B[j-l,n-m] - S[j-l,n-m]) : zero(Complex{Float64})
             P + Q
         end
 
-        [ intergrand(l,j,m,n) for l=0:J, m=-M:M, j=0:J, n=-M:M]
+        [intergrand(l,j,m,n) for l=0:J, m=-M:M, j=0:J, n=-M:M]
     end
 
     h=0.02; max_x=2.0;
