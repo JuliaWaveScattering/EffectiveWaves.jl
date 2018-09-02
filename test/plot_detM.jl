@@ -44,7 +44,7 @@ S = length(species)
 
 as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
 function M(keff,j,l,m,n)
-    (n==m ? 1.0+im*0.0:0.0+im*0.0)*(j==l ? 1.0+im*0.0:0.0+im*0.0) + 2.0pi*species[l].num_density*Z_l_n(l,n)*
+    (n==m ? 1.0+im*0.0:0.0+im*0.0)*(j==l ? 1.0+im*0.0:0.0+im*0.0) + 2.0pi*species[l].num_density*Z_l_n[l,n]*
         Nn(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
 end
 
@@ -60,13 +60,15 @@ function detMM!(F,x)
     F[1] = abs(det(MM(x[1]+im*x[2])))
 end
 
-x = k0.*linspace(-0.8,0.8,200)
-y = k0.*linspace(-0.22,0.22,200)
+k0 = real(k)
+x = k0.*linspace(0.0,1.8,100)/10.
+y = k0.*linspace(0.,0.22,100)
 
 X = repmat(x',length(y),1)
 Y = repmat(y,1,length(x))
-Z = map( (x,y) -> (z = detMM2([x,y]); (abs(z)> 1.) ? NaN: z),X,Y)
 
+Z0 = map( (x,y) -> detMM2([x,y]),X,Y)
+Z = map( z -> (abs(z)> 2.) ? NaN : z, Z0)
 contour(x,y,Z,fill=true, xlab = "Re k*", ylab = "Im k*", title="Roots of secular det M - high ω - low φ")
 
 x = k0.*linspace(0.18,0.23,50)

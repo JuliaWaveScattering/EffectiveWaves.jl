@@ -81,26 +81,26 @@ end
         fillalpha --> 0.3
         fill --> (0,:orange)
         line --> 0
-        (x1 -> x1, y->max_amp, match_w.x_match[1],  match_w.x_match[end])
+        (x1 -> x1, y->max_amp, match_wave.x_match[1],  match_wave.x_match[end])
     end
     @series begin
         label --> ""
         fillalpha --> 0.3
         fill --> (0,:orange)
         line --> 0
-        (x1 -> x1, y->min_amp, match_w.x_match[1],  match_w.x_match[end])
+        (x1 -> x1, y->min_amp, match_wave.x_match[1],  match_wave.x_match[end])
     end
 
     @series begin
         apply --> apply
         hankel_indexes --> hankel_indexes
-        match_w.average_wave
+        match_wave.average_wave
     end
 
     @series begin
         apply --> apply
         hankel_indexes --> hankel_indexes
-        (x, match_w.effective_waves)
+        (x, match_wave.effective_waves)
     end
 
 end

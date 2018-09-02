@@ -122,9 +122,10 @@ end
 "Returns x the mesh used to discretise the integral equations."
 function x_mesh(wave_eff_long::EffectiveWave{T}, wave_eff_short::EffectiveWave{T} = wave_eff_long;
         tol::T = T(1e-5),  a12::T = zero(T),
-        max_size::Int = 1000) where T<:AbstractFloat
+        max_size::Int = 1000,
+        max_x::T = (-log(tol))/abs(cos(wave_eff_long.θ_eff)*imag(wave_eff_long.k_eff))
+) where T<:AbstractFloat
 
-    max_x = (-log(tol))/abs(cos(wave_eff_long.θ_eff)*imag(wave_eff_long.k_eff))
     #= The default min_X result in:
         abs(exp(im*min_X*cos(θ_effs[end])*k_effs[end]/k)) < tol
     =#
@@ -142,7 +143,7 @@ function x_mesh(wave_eff_long::EffectiveWave{T}, wave_eff_short::EffectiveWave{T
     end
 
     # if whole correction length a12k was given, then make dX/a12k = integer
-    if a12  != zero(T)
+    if a12  != zero(T) && dx < a12
         n = ceil(a12 / dx)
         dx = a12/n
     end

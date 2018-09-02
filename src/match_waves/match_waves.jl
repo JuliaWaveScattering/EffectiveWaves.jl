@@ -19,7 +19,7 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
         wave_effs = effective_waves(k, medium, [specie];
             radius_multiplier=radius_multiplier,
             extinction_rescale = false, #hankel_order=hankel_order,
-            tol=tol, θin=θin,
+            tol=1e-8, θin=θin,
             hankel_order=hankel_order,
             kws...)
     elseif wave_effs[1].hankel_order != hankel_order
@@ -49,10 +49,10 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
     MM_mat = reshape(MM_quad, (len, len));
     b = reshape(b_mat, (len));
 
-    (LT_mat, E_mat, b_eff) = match_arrays(ω, wave_non_effs, L, X, medium, [specie]; θin=θin, a12k=a12k);
+    (LT_mat, ER_mat, b_eff) = match_arrays(ω, wave_non_effs, L, X, medium, [specie]; θin=θin, a12k=a12k);
 
-    B = b - E_mat*b_eff
-    As = (E_mat*LT_mat + MM_mat)\B
+    B = b - ER_mat*b_eff
+    As = (ER_mat*LT_mat + MM_mat)\B
     As_mat = reshape(As, (J+1, 2hankel_order+1, 1))
 
     αs = LT_mat*As + b_eff
@@ -65,9 +65,12 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
 end
 
 "Returns (x,L), where x[L:end] is the mesh used to match with wave_effs."
-function x_mesh_match(wave_effs::Vector{EffectiveWave{T}}; kws... ) where T<:AbstractFloat
+function x_mesh_match(wave_effs::Vector{EffectiveWave{T}}; tol::T = 1e-7, kws... ) where T<:AbstractFloat
     # below wave_effs[end] establishes how long X should be, while wave_effs[1] estalishes how fine the mesh should be.
-    x = x_mesh(wave_effs[end], wave_effs[1]; kws...)
+    x = (length(wave_effs) == 1 || abs(cos(wave_effs[end].θ_eff)*imag(wave_effs[end].k_eff)) < tol*T(10) ) ?
+        x_mesh(wave_effs[end], wave_effs[1]; max_x = T(2pi)/abs(wave_effs[1].k_eff), tol=tol, kws...) :
+        x_mesh(wave_effs[end], wave_effs[1]; tol=tol, kws...)
+
     x_match = x[end]
     x_max = (length(x) < length(wave_effs)*T(1.5)) ?
          x[end] + T(1.5)*(x[2] - x[1])*length(wave_effs) :

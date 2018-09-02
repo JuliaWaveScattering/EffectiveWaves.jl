@@ -36,7 +36,8 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::
         [M_component(keff,j,l,m,n) for m in -ho:ho, j = 1:S, n in -ho:ho, l = 1:S]
     , ((2ho+1)*S, (2ho+1)*S))
 
-    constraint(keff_vec::Array{T}) = ( (keff_vec[2] < zero(T)) ? one(T):zero(T))*(-1 + exp(-T(100.0)*keff_vec[2]))
+    # the constraint uses keff_vec[2] < -tol to better specify solutions where imag(k_effs)<0
+    constraint(keff_vec::Array{T}) = ( (keff_vec[2] < -tol) ? one(T):zero(T))*(-1 + exp(-T(100.0)*keff_vec[2]))
     detMM2(keff_vec::Array{T}) =  constraint(keff_vec) + map(x -> real(x*conj(x)), det(MM(keff_vec[1]+im*keff_vec[2])))
 
     kφ = wavenumber_low_volfrac(ω, medium, species; verbose = false)
@@ -57,36 +58,44 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::
 
     kx = -max_Rek:dk_x:max_Rek
     ky = 0.0:dk_y:max_Imk
-    kins = [[x,y] for x in kx, y in ky]
-    #Note that there is not a unique effective wavenumber. The root closest to k_eff = 0.0 + 0.0im seems to be the right one, the others lead to strange transmission angles and large amplitudes As.
+    kins = [[x,y] for x in kx, y in ky][:]
+    # add both the low volfrac and frequency as initial guesses
+    push!(kins, [real(kφ),imag(kφ)], [real(k0),imag(k0)])
+
+    # Find all wavenumbers
     k_vecs = map(kins) do kin
         result = optimize(detMM2, kin; time_limit = time_limit)
-        if result.minimum < 100*tol
+        if result.minimum < sqrt(tol)
             result.minimizer
         else
             [0.,-1.0]
         end
     end
-    k_vecs = sort(k_vecs[:]; by = x -> x[2])
+
+    deleteat!(k_vecs, find(k_vec[2] < -sqrt(tol) for k_vec in k_vecs))
+    k_vecs = sort(k_vecs; by = x -> x[1]*x[2])
 
     digs = -3 - Int(round(log(10,tol))) # number of digits to round to check if equal
     k_vecs = map(groupby(k_vec -> round.(k_vec,digs), k_vecs)) do g
         res = mean(g)
     end
-    deleteat!(k_vecs, find(k_vec[2] < 0 for k_vec in k_vecs))
 
     # Here we refine the effective wavenumbers
-    k_vecs = map(k_vecs) do k_vec
+    k_vecs = map(k_vecs) do k_vec    # Here we refine the effective wavenumbers
         res = optimize(detMM2, k_vec;  g_tol = tol^2.0, f_tol = tol^4.0)
         res.minimizer
     end
 
-    k_vecs = sort(k_vecs[:]; by = x -> x[2])
+    k_vecs = sort(k_vecs[:]; by = x -> x[1]*x[2]-x[1])
     k_effs = map(groupby(k_vec -> round.(k_vec,digs), k_vecs)) do g
         res = mean(g)
         res[1] + res[2]*im
     end
+    # Finally delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
+    deleteat!(k_effs, find(imag(k_eff) < -tol for k_eff in k_effs))
+    deleteat!(k_effs, find(imag(k_eff) < -tol && real(k_eff) < tol for k_eff in k_effs))
 
+    k_effs = sort(k_effs; by = x -> imag(x))
     return k_effs
 end
 

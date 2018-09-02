@@ -63,7 +63,7 @@ function intergrand_kernel(X::AbstractVector{T}, a12k::T; M::Int = 2,
     end
 
     q = min(Int(floor(a12k/dX)),J)
-    if q == 0 warn("Mesh element larger than ka12. This is unexpected.") end
+    if q == 0 warn("Mesh element larger than ka12. This is only accurate for low frequency.") end
 
     B, S = BS_matrices(X, a12k; M = M, kws...)
 
