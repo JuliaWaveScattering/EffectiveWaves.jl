@@ -13,7 +13,7 @@ wave_effs = [EffectiveWave(ω, k_eff, medium, [specie]; tol = tol/10., extinctio
 
 # generate an averaged wave over x from these effective wave
 x = 0.:0.01:1.
-avg_wave_effs = [AverageWave(k, wave,x) for wave in wave_effs]
+avg_wave_effs = [AverageWave(x, wave) for wave in wave_effs]
 
 # calculate the numerical averaged wave over x
 avg_wave = AverageWave(ω, medium, specie; x = x, hankel_order=hankel_order)

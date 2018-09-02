@@ -45,8 +45,8 @@ for i in eachindex(k_effs)[2:end]
 end
 
 # Calculate the discretised wave from these effective wave
-avg_wave_effs = [AverageWave(real(k), wave_effs[1], X)]
-avg_wave_effs = [[AverageWave(real(k), wave, X) for wave in wave_effs[2:end]]; avg_wave_effs]
+avg_wave_effs = [AverageWave(X, wave_effs[1])]
+avg_wave_effs = [[AverageWave(X, wave) for wave in wave_effs[2:end]]; avg_wave_effs]
 
 species = [specie]
 include("match_waves.jl")

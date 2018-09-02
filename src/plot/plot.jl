@@ -22,7 +22,7 @@ end
 
     rgbs = map(wave_effs) do w
         c = norm(w.amplitudes)/maxamp
-        RGB(0.8,1-c,1-c)
+        RGB{T}(0.8,1-c,1-c)
     end
 
    scatter(real.(k_effs), imag.(k_effs), markercolors = rgbs )
@@ -42,7 +42,7 @@ end
         hankel_indexes = -wave_effs[1].hankel_order:wave_effs[1].hankel_order,
         apply = real) where T<:AbstractFloat
 
-    wave_eff = AverageWave(wave_effs, x)
+    wave_eff = AverageWave(x, wave_effs)
     ho = wave_eff.hankel_order
 
     for n in hankel_indexes
@@ -64,12 +64,12 @@ end
     @series (x, match_wave)
 end
 
-@recipe function plot(x::AbstractVector{T}, match_wave::MatchWave{T};
-        hankel_indexes = -wave_effs[1].hankel_order:wave_effs[1].hankel_order,
+@recipe function plot(x::AbstractVector{T}, match_wave::MatchWave{T}; hankel_order = match_wave.effective_waves[1].hankel_order,
+        hankel_indexes = -hankel_order:hankel_order,
         apply = real) where T <: AbstractFloat
 
-    ho = match_wave.average_wave.hankel_order
-    wave_eff = AverageWave(match_wave.effective_waves, match_wave.x_match)
+    ho = maximum(hankel_indexes)
+    wave_eff = AverageWave(match_wave.x_match, match_wave.effective_waves)
     max_amp = maximum(apply.(wave_eff.amplitudes[:,(hankel_indexes) .+ (ho+1),:]))
     min_amp = minimum(apply.(wave_eff.amplitudes[:,(hankel_indexes) .+ (ho+1),:]))
 

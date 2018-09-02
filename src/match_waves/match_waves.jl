@@ -22,6 +22,8 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
             tol=tol, θin=θin,
             hankel_order=hankel_order,
             kws...)
+    elseif wave_effs[1].hankel_order != hankel_order
+        error("wave_effs given have a different hankel order than the option hankel_order=$(hankel_order)")
     end
     # use non-dimensional effective waves
     wave_non_effs = deepcopy(wave_effs)
@@ -33,7 +35,7 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
     # using non-dimensional wave_non_effs and a12k results in non-dimensional mesh X
     L, X =  x_mesh_match(wave_non_effs; a12 = a12k, tol = tol, max_size=max_size);
 
-    avg_wave_effs = [AverageWave(w, X[L:L+1]) for w in wave_non_effs]
+    avg_wave_effs = [AverageWave(X[L:L+1], w) for w in wave_non_effs]
     for i in eachindex(wave_non_effs)
         wave_non_effs[i].amplitudes = wave_non_effs[i].amplitudes / norm(avg_wave_effs[i].amplitudes[1,:,1])
         wave_effs[i].amplitudes = wave_non_effs[i].amplitudes

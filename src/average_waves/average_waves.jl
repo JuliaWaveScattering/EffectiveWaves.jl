@@ -21,7 +21,7 @@ end
 
 
 "Calculates an AverageWave from one EffectiveWave"
-function AverageWave(wave_eff::EffectiveWave{T}, xs::AbstractVector{T}) where T<:Number
+function AverageWave(xs::AbstractVector{T}, wave_eff::EffectiveWave{T}) where T<:Number
 
     amps = wave_eff.amplitudes
     ho = wave_eff.hankel_order
@@ -37,10 +37,10 @@ function AverageWave(wave_eff::EffectiveWave{T}, xs::AbstractVector{T}) where T<
 end
 
 "Calculates an AverageWave from a vector of EffectiveWave"
-function AverageWave(wave_effs::Vector{EffectiveWave{T}}, xs::AbstractVector{T}) where T<:Number
+function AverageWave(xs::AbstractVector{T}, wave_effs::Vector{EffectiveWave{T}}) where T<:Number
 
     ho = wave_effs[1].hankel_order
-    avg_wave_effs = [AverageWave(wave, xs) for wave in wave_effs]
+    avg_wave_effs = [AverageWave(xs, wave) for wave in wave_effs]
     amps = sum(avg_wave_effs[i].amplitudes[:,:,:] for i in eachindex(avg_wave_effs))
 
     return AverageWave(ho, xs, amps)
@@ -91,7 +91,8 @@ function average_wave_system(ω::T, X::AbstractVector{T}, medium::Medium{T}, spe
         θin::Float64 = 0.0, tol::T = 1e-6,
         radius_multiplier::T = 1.005,
         scheme::Symbol = :trapezoidal,
-        hankel_order::Int = maximum_hankel_order(ω, medium, [specie]; tol = tol)
+        hankel_order::Int = maximum_hankel_order(ω, medium, [specie]; tol = tol),
+        kws...
     ) where T<:AbstractFloat
 
     k = real(ω/medium.c)

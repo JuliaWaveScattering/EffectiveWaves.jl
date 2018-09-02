@@ -46,7 +46,7 @@ wave_effs = [
 ; wave_effs]
 
 # Calculate the discretised wave from these effective wave
-avg_wave_effs = [AverageWave(k, wave, X) for wave in wave_effs]
+avg_wave_effs = [AverageWave(X, wave) for wave in wave_effs]
 
 
 # the as should tend to
