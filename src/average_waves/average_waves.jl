@@ -136,14 +136,23 @@ function x_mesh(wave_eff_long::EffectiveWave{T}, wave_eff_short::EffectiveWave{T
         # dX  = (tol*90 / (df^4))^(1/5)
     # Based on trapezoidal integration
         dx  = (tol * T(30) / (df^2))^(1/3)
+
     if max_x/dx + 1 > max_size
-        a = sqrt(max_x/((max_size - 1)*dx))
-        dx = dx*a
-        max_x = max_x/a
+        # prioritise a mesh fine enough to give accurate discrete integrals
+        if a12 != zero(T) && a12 < dx
+            dx = a12
+            max_x = (max_size - 1)*dx
+        else # otherwise priortise shrink max_x and increase dx proportionally
+            a = sqrt(max_x/((max_size - 1)*dx))
+            dx = dx*a
+            max_x = max_x/a
+        end
+    elseif dx > a12
+        dx = a12
     end
 
     # if whole correction length a12k was given, then make dX/a12k = integer
-    if a12  != zero(T) && dx < a12
+    if a12 != zero(T) && dx < a12
         n = ceil(a12 / dx)
         dx = a12/n
     end

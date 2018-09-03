@@ -22,8 +22,8 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::
 
     Z_l_n = Zn_matrix(ω, medium, species; hankel_order = ho)
 
-    r = maximum(s.r for s in species)
-    φ = sum(volume_fraction.(species))
+    # r = maximum(s.r for s in species)
+    # φ = sum(volume_fraction.(species))
 
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
     function M_component(keff,j,l,m,n)
@@ -68,17 +68,27 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::
         if result.minimum < sqrt(tol)
             result.minimizer
         else
-            [0.,-1.0]
+            [zero(T),-one(T)]
         end
     end
 
-    deleteat!(k_vecs, find(k_vec[2] < -sqrt(tol) for k_vec in k_vecs))
-    k_vecs = sort(k_vecs; by = x -> x[1]*x[2])
+    # remove unphysical wavenumbers
+    deleteat!(k_vecs, find(k_vec[2] < -tol for k_vec in k_vecs))
 
-    digs = -3 - Int(round(log(10,tol))) # number of digits to round to check if equal
-    k_vecs = map(groupby(k_vec -> round.(k_vec,digs), k_vecs)) do g
-        res = mean(g)
+    function reduce_vecs(vecs::Vector{Vector{T}},tol::T)
+        all_inds = collect(eachindex(vecs))
+        vecs = map(vecs) do k_vec
+            nk = norm(k_vec)*tol
+            ind_ins = find(norm(ks - k_vec) < nk for ks in vecs[all_inds])
+            inds = all_inds[ind_ins]
+            deleteat!(all_inds,ind_ins)
+            isempty(inds) ? [zero(T),-one(T)] :  mean(vecs[inds])
+        end
+        vecs = deleteat!(vecs, find(k_vec[2] < -tol for k_vec in vecs))
     end
+
+    # group together wavenumbers which are closer than sqrt(tol)
+    k_vecs = reduce_vecs(k_vecs,sqrt(tol))
 
     # Here we refine the effective wavenumbers
     k_vecs = map(k_vecs) do k_vec    # Here we refine the effective wavenumbers
@@ -86,18 +96,35 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::
         res.minimizer
     end
 
-    k_vecs = sort(k_vecs[:]; by = x -> x[1]*x[2]-x[1])
-    k_effs = map(groupby(k_vec -> round.(k_vec,digs), k_vecs)) do g
-        res = mean(g)
-        res[1] + res[2]*im
-    end
-    # Finally delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
-    deleteat!(k_effs, find(imag(k_eff) < -tol for k_eff in k_effs))
-    deleteat!(k_effs, find(imag(k_eff) < tol && real(k_eff) < tol for k_eff in k_effs))
+    # group together wavenumbers which are closer than tol
+    k_vecs = reduce_vecs(k_vecs,tol)
 
-    k_effs = sort(k_effs; by = x -> imag(x))
+    # Finally delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
+    deleteat!(k_vecs, find(k_vec[2] < -tol for k_vec in k_vecs))
+    deleteat!(k_vecs, find(k_vec[2] < tol && k_vec[1] < tol for k_vec in k_vecs))
+
+    k_vecs = sort(k_vecs; by = x -> x[2])
+    k_effs = [ k_vec[1] + k_vec[2]*im for k_vec in k_vecs]
+
     return k_effs
 end
+
+# Alternative grouping
+# all_inds = collect(eachindex(k_vecs))
+# k_vecs = map(k_vecs) do k_vec
+#     nk = norm(k_vec)*sqrt(tol)
+#     ind_ins = find(norm(ks - k_vec) < nk for ks in k_vecs[all_inds])
+#     inds = all_inds[ind_ins]
+#     deleteat!(all_inds,ind_ins)
+#     isempty(inds) ? [zero(T),-one(T)] :  mean(k_vecs[inds])
+# end
+
+# alternative grouping methods
+
+    # digs = 3 - Int(round(log(10,sqrt(tol)))) # number of digits to round to check if equal
+    # k_vecs = map(groupby(k_vec -> round.(k_vec,digs), k_vecs)) do g
+    #     mean(g)
+    # end
 
 # detMM2(keff_vec::Array{T}) =  map(x -> real(x*conj(x)), det(MM(keff_vec[1]+im*keff_vec[2])))
 

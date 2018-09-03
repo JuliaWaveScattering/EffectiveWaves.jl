@@ -21,6 +21,6 @@
     # k_effs = wavenumber(ωs, medium, species)
 
     @test norm(k_effs2 - k_eff_lows)/norm(k_effs2) < 1e-5
-    @test norm(k_effs2[1] - k_eff_lows[1])/norm(k_eff_lows[1]) < 2e-7
+    @test norm(k_effs2[1] - k_eff_lows[1])/norm(k_eff_lows[1]) < 4e-7
     @test norm(k_effs2 - k_eff_φs)/norm(k_effs2) < 0.01
 end

@@ -1,7 +1,7 @@
 # angular frequencies
 # travis keeps stalling when given a list..
-# ωs = [0.001, 2.0, 9.0]
-ωs = [0.001]
+ωs = [0.001, 2.0, 9.0]
+# ωs = [0.001]
 
 medium = Medium(1.0,1.0+0.0im)
 species = [
