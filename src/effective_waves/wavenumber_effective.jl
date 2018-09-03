@@ -93,7 +93,7 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::
     end
     # Finally delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
     deleteat!(k_effs, find(imag(k_eff) < -tol for k_eff in k_effs))
-    deleteat!(k_effs, find(imag(k_eff) < -tol && real(k_eff) < tol for k_eff in k_effs))
+    deleteat!(k_effs, find(imag(k_eff) < tol && real(k_eff) < tol for k_eff in k_effs))
 
     k_effs = sort(k_effs; by = x -> imag(x))
     return k_effs
