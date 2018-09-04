@@ -20,20 +20,18 @@ end
     k_effs = [w.k_eff for w in wave_effs]
     maxamp = maximum(norm(w.amplitudes) for w in wave_effs)
 
-    rgbs = map(wave_effs) do w
-        c = norm(w.amplitudes)/maxamp
-        RGB{T}(0.8,1-c,1-c)
+    alphas = map(wave_effs) do w
+        norm(w.amplitudes)/maxamp
     end
 
-   scatter(real.(k_effs), imag.(k_effs), markercolors = rgbs )
     @series begin
-        ylims --> (0,Inf)
+        # ylims --> (0,Inf)
         xlab --> "Re k_eff"
         ylab --> "Im k_eff"
         seriestype --> :scatter
         label --> "wavenumber k_eff"
-        markercolors --> rgbs
-        markerstrokealpha --> 0.4
+        markercolor --> :blue
+        markerstrokealpha --> alphas
         (real.(k_effs), imag.(k_effs))
     end
 end
