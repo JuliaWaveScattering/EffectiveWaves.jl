@@ -121,8 +121,9 @@ end
 
 "Returns x the mesh used to discretise the integral equations."
 function x_mesh(wave_eff_long::EffectiveWave{T}, wave_eff_short::EffectiveWave{T} = wave_eff_long;
-        tol::T = T(1e-5),  a12::T = zero(T),
+        tol::T = T(1e-5),  a12::T = T(Inf),
         max_size::Int = 1000,
+        min_size::Int = 5,
         max_x::T = (-log(tol))/abs(cos(wave_eff_long.θ_eff)*imag(wave_eff_long.k_eff))
 ) where T<:AbstractFloat
 
@@ -137,22 +138,25 @@ function x_mesh(wave_eff_long::EffectiveWave{T}, wave_eff_short::EffectiveWave{T
     # Based on trapezoidal integration
         dx  = (tol * T(30) / (df^2))^(1/3)
 
+    # prioritise a mesh fine enough to give accurate discrete integrals
+    if dx > a12 dx = a12 end
+
     if max_x/dx + 1 > max_size
-        # prioritise a mesh fine enough to give accurate discrete integrals
-        if a12 != zero(T) && a12 < dx
-            dx = a12
+        if dx == a12
             max_x = (max_size - 1)*dx
+            warn("The mesh max_size = $max_size which was too small for tol = $tol. Will shrink meshed region.")
         else # otherwise priortise shrink max_x and increase dx proportionally
             a = sqrt(max_x/((max_size - 1)*dx))
-            dx = dx*a
-            max_x = max_x/a
+            dx = min(dx*a,a12)
+            max_x = (max_size - 1)*dx
+            warn("The mesh max_size = $max_size which was too small for tol = $tol. Will make a smaller and coarser mesh.")
         end
-    elseif dx > a12
-        dx = a12
+    elseif max_x/dx + 1 < min_size
+        max_x = (min_size - 1)*dx
     end
 
     # if whole correction length a12k was given, then make dX/a12k = integer
-    if a12 != zero(T) && dx < a12
+    if a12 != T(Inf) && dx < a12
         n = ceil(a12 / dx)
         dx = a12/n
     end

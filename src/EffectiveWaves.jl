@@ -22,11 +22,12 @@ export  Brick, IronArmco, LeadAnnealed, RubberGum, FusedSilica, GlassPyrex,
 
 import Base.isequal, Base.(==), Base.zero
 import SpecialFunctions: besselj, hankelh1
+import Plots: RGB
 
 # try using BlackBoxOptim end
 using RecipesBase
 using Optim
-using IterTools
+# using IterTools
 using OffsetArrays
 using ApproxFun
 

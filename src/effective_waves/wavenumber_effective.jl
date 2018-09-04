@@ -63,14 +63,15 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::
     push!(kins, [real(kφ),imag(kφ)], [real(k0),imag(k0)])
 
     # Find all wavenumbers
-    k_vecs = map(kins) do kin
-        result = optimize(detMM2, kin; time_limit = time_limit)
-        if result.minimum < sqrt(tol)
-            result.minimizer
-        else
-            [zero(T),-one(T)]
-        end
+    results = map(kins) do kin
+       optimize(detMM2, kin; time_limit = time_limit)
     end
+
+    # Take the best length(kx) candidates, plus those that are smaller than tolerance T(1e-4).
+    # As tol does not affect the above results, it is best to use an imperical first pass tolerance T(1e-4).
+    sort!(results, by = r->r.minimum)
+    len = max(length(kx), findfirst(r -> sqrt(r.minimum) > T(1e-4), results))
+    k_vecs = [r.minimizer for r in results[1:len]]
 
     # remove unphysical wavenumbers
     deleteat!(k_vecs, find(k_vec[2] < -tol for k_vec in k_vecs))
@@ -78,8 +79,7 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::
     function reduce_vecs(vecs::Vector{Vector{T}},tol::T)
         all_inds = collect(eachindex(vecs))
         vecs = map(vecs) do k_vec
-            nk = norm(k_vec)*tol
-            ind_ins = find(norm(ks - k_vec) < nk for ks in vecs[all_inds])
+            ind_ins = find(norm(ks - k_vec) < sqrt(tol) for ks in vecs[all_inds])
             inds = all_inds[ind_ins]
             deleteat!(all_inds,ind_ins)
             isempty(inds) ? [zero(T),-one(T)] :  mean(vecs[inds])
@@ -103,8 +103,8 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::
     deleteat!(k_vecs, find(k_vec[2] < -tol for k_vec in k_vecs))
     deleteat!(k_vecs, find(k_vec[2] < tol && k_vec[1] < tol for k_vec in k_vecs))
 
-    k_vecs = sort(k_vecs; by = x -> x[2])
     k_effs = [ k_vec[1] + k_vec[2]*im for k_vec in k_vecs]
+    k_effs = sort(k_effs, by=imag)
 
     return k_effs
 end

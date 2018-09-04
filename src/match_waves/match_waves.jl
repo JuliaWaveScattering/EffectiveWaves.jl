@@ -72,18 +72,21 @@ end
 
 "Returns (x,L), where x[L:end] is the mesh used to match with wave_effs."
 function x_mesh_match(wave_effs::Vector{EffectiveWave{T}}; tol::T = 1e-7, kws... ) where T<:AbstractFloat
-    # below wave_effs[end] establishes how long X should be, while wave_effs[1] estalishes how fine the mesh should be.
-    # x = (length(wave_effs) == 1 || abs(cos(wave_effs[end].θ_eff)*imag(wave_effs[end].k_eff)) < tol*T(10) ) ?
-    #     x_mesh(wave_effs[end], wave_effs[1]; max_x = T(2pi)/abs(wave_effs[1].k_eff), tol=tol, kws...) :
-    #     x_mesh(wave_effs[end], wave_effs[1]; tol=tol, kws...)
+    # wave_effs[end] establishes how long X should be, while wave_effs[1] estalishes how fine the mesh should be.
 
-    x = x_mesh(wave_effs[end], wave_effs[1]; tol=tol, kws...)
+   # If there is only one wave, then it doesn't make sense to extend the mesh until it decays.
+   # Instead we choose, arbitrarily, a quarter of the wavelength.
+   # Note, having only one wave is very unusual, but tends to happen in the very low frequency limit.
+    x = (length(wave_effs) > 1) ?
+        x_mesh(wave_effs[end], wave_effs[1]; tol=tol, kws...) :
+        x_mesh(wave_effs[1]; tol=tol, max_x = (pi/2)/abs(cos(wave_effs[1].θ_eff)*abs(wave_effs[1].k_eff)), kws...)
+
     x_match = x[end]
     x_max = (length(x) < length(wave_effs)*T(1.5)) ?
          x[end] + T(1.5)*(x[2] - x[1])*length(wave_effs) :
          T(2) * x[end]
 
-    x = 0.0:(x[2] - x[1]):x_max # choose twice the match length to heavily penalise overfitting wave_effs[end]
+    x = 0.0:(x[2] - x[1]):x_max
 
     L = findmin(abs.(x .- x_match))[2]
 

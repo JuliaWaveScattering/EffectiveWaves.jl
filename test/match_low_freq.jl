@@ -2,11 +2,12 @@
 
 ## Low frequency
     medium = Medium(1.0,1.0+0.0im)
-    volfracs = 0.1:0.2:0.5
+    volfracs = [0.1,0.5]
     species = [
         Specie(ρ=5.,r=0.002, c=v, volfrac=v)
     for v in volfracs]
 
+    ω = 0.002
     θin = -0.2
     tol = 1e-7
     hankel_order = 1
@@ -32,11 +33,11 @@
         wave_effs = wave_effs_arr[i])
     for i in eachindex(species)]
 
-
     for i in eachindex(species)
-        x = linspace(match_ws[i].x_match[end],200*match_ws[i].x_match[end],200)
+        x = linspace(match_ws[i].x_match[end],2pi/real(match_ws[i].effective_waves[1].k_eff),200)
         avg_low = AverageWave(x, wave_eff_lows[i])
         avg = AverageWave(x, match_ws[i].effective_waves)
+        norm(avg.amplitudes[:]./avg_low.amplitudes[:] .- 1)
         @test maximum(abs.(avg.amplitudes[:]./avg_low.amplitudes[:] .- 1)) < 210*tol
     end
 end
