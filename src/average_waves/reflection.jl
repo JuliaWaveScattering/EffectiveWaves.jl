@@ -1,11 +1,11 @@
 function reflection_coefficient_integrated(ω::T, amps::AverageWave{T}, medium::Medium, specie::Specie;
-        θin::T = 0.0) where T <: Number
+        θin::T = 0.0) where T <: AbstractFloat
 
     k = ω/medium.c
 
     M = amps.hankel_order
     σ = trap_scheme(amps.x)
-    Z = OffsetArray{Complex{Float64}}(-M:M);
+    Z = OffsetArray{Complex{T}}(-M:M);
     for m = 0:M
         Z[m] = Zn(ω,specie,medium,m)
         Z[-m] = Z[m]
