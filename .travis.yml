@@ -10,7 +10,8 @@ notifications:
 git:
   depth: 99999999
 
-install: travis_wait mvn install
+script:
+  - mvn install
 
 ## uncomment the following lines to allow failures on nightly julia
 ## (tests will run but not make your overall status red)
