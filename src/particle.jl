@@ -53,9 +53,19 @@ function maximum_hankel_order(ω::Union{T,Complex{T}}, medium::Medium{T}, specie
     return hankel_order
 end
 
+"a vector of t_matrices, but as they are diagonal matrices we give them as a vectores."
+function t_vectors(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; hankel_order = 3) where T <: Number
+    t_vecs = [ zeros(Complex{T},1+2hankel_order) for s in species]
+    for i = 1:length(species), n = 0:hankel_order
+        t_vecs[i][n+hankel_order+1] = Zn(ω,species[i],medium,n)
+        t_vecs[i][-n+hankel_order+1] = t_vecs[i][n+hankel_order+1]
+    end
+    return t_vecs
+end
+
 "pre-calculate a matrix of Zn's"
 function Zn_matrix(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; hankel_order = 3) where T <: Number
-    Zs = OffsetArray{Complex{Float64}}(1:length(species), -hankel_order:hankel_order)
+    Zs = OffsetArray{Complex{T}}(1:length(species), -hankel_order:hankel_order)
     for i = 1:length(species), n = 0:hankel_order
         Zs[i,n] = Zn(ω,species[i],medium,n)
         Zs[i,-n] = Zs[i,n]

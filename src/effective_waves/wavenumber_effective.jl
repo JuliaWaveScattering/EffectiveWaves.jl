@@ -14,20 +14,21 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::
         max_Imk::T = 0.0, max_Rek::T = 0.0,
         time_limit::T = 1.0,
         radius_multiplier::T = 1.005,
+        t_vecs = t_vectors(ω, medium, species; hankel_order = hankel_order),
         kws...) where T<:Number
 
     k = ω/medium.c
     S = length(species)
     ho = hankel_order
 
-    Z_l_n = Zn_matrix(ω, medium, species; hankel_order = ho)
+    # Z_l_n = Zn_matrix(ω, medium, species; hankel_order = ho)
 
     # r = maximum(s.r for s in species)
     # φ = sum(volume_fraction.(species))
 
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
     function M_component(keff,j,l,m,n)
-        (n==m ? 1.0:0.0)*(j==l ? 1.0:0.0) + 2.0pi*species[l].num_density*Z_l_n[l,n]*
+        (n==m ? 1.0:0.0)*(j==l ? 1.0:0.0) + 2.0pi*species[l].num_density*t_vecs[l][n+ho+1]*
             Nn(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
     end
 

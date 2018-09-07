@@ -4,7 +4,7 @@ module EffectiveWaves
 export  EffectiveWave, AverageWave # the two main types
 export  MatchWave # a combination of the two types above
 
-export  Specie, Medium, volume_fraction, Zn, Nn, p_speed, maximum_hankel_order
+export  Specie, Medium, volume_fraction, Zn, t_vectors, Nn, p_speed, maximum_hankel_order
 
 export  wavenumbers, wavenumber, effective_waves, transmission_angle,
         reduced_amplitudes_effective, scattering_amplitudes_average, scale_amplitudes_effective
