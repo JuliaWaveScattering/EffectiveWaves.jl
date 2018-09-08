@@ -19,11 +19,11 @@ end
 include("types_constructors.jl")
 
 # # On Travis the below give some empty entries. This possibly due to time_limit not being stable accross different systems.
-include("weak_scatterers_effective.jl")
-
-include("high_frequency_effective.jl")
-include("large_vol_low_freq_effective.jl")
 include("strong_low_freq_effective.jl")
+include("high_frequency_effective.jl")
+
+include("large_vol_low_freq_effective.jl")
+include("weak_scatterers_effective.jl")
 
 include("integrated_reflection.jl")
 include("average_integrand_kernel.jl")
