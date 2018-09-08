@@ -3,7 +3,7 @@
     medium = Medium(1.0,1.0+0.0im)
 
     # angular frequencies
-    ωs = [0.001,5.0,20.]
+    ωs = [0.001,20.]
 
     species = [
         Specie(ρ=10.,r=0.01, c=12., volfrac=0.05),

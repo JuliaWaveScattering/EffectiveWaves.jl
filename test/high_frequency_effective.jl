@@ -5,7 +5,7 @@
         Specie(ρ=10.,r=1.9, c=12., volfrac=0.04),
         Specie(ρ=3., r=0.7, c=2.0, volfrac=0.02)
     ]
-    ωs2 = 20.:30.:121
+    ωs2 = [20.,120.]
 
     tol = 1e-7
     k_eff_φs = wavenumber_low_volfrac(ωs2, medium, species; tol=tol)

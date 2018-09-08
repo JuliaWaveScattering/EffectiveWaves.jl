@@ -6,7 +6,7 @@
         Specie(ρ=0.3, r=0.002, c=0.01, volfrac=0.1)
     ]
 
-    ωs = 0.001:0.004:0.01
+    ωs = [0.001,0.003]
     eff_medium = effective_medium(medium, species)
     k_eff_lows = ωs./eff_medium.c
 
