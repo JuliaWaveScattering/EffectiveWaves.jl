@@ -15,8 +15,8 @@
     wave_effs_arr = [
         effective_waves(ω, medium, [s];
             hankel_order=hankel_order, tol = tol,  θin = θin,
-            extinction_rescale = false)
-    for s in species]
+            extinction_rescale = false, mesh_size = 0.2)
+    for s in species];
 
     match_ws = [
         MatchWave(ω, medium, species[i];
@@ -37,7 +37,7 @@
         x0 = avgs[i].x[j0+1:end]
         avg_m = AverageWave(x0, match_ws[i].effective_waves)
         maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:]))
-        @test norm(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])/norm(avg_m.amplitudes[:]) < 2.5e-3
+        @test norm(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])/norm(avg_m.amplitudes[:]) < 3.0e-3
         @test maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])) < 1.5e-3
     end
 end

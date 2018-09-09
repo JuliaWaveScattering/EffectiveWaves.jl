@@ -26,6 +26,7 @@ import SpecialFunctions: besselj, hankelh1
 # try using BlackBoxOptim end
 using RecipesBase
 using Optim
+using NLsolve
 # using IterTools
 using OffsetArrays
 using ApproxFun

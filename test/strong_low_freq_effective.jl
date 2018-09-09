@@ -13,7 +13,7 @@
     k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
     # small mesh_size keeps all solutions close to the initial guess
     k_effs_arr = [
-        wavenumbers(ω, medium, species; tol=1e-6, mesh_size=0.1)
+        wavenumbers(ω, medium, species; tol=1e-6, mesh_size=0.05)
     for ω in ωs]
 
     inds = [indmin(abs.(k)) for k in (k_effs_arr .- k_eff_φs)]
@@ -21,6 +21,6 @@
     # k_effs = wavenumber(ωs, medium, species)
 
     @test norm(k_effs2 - k_eff_lows)/norm(k_effs2) < 1e-5
-    @test norm(k_effs2[1] - k_eff_lows[1])/norm(k_eff_lows[1]) < 4e-7
+    @test norm(k_effs2[1] - k_eff_lows[1])/norm(k_eff_lows[1]) < 5e-7
     @test norm(k_effs2 - k_eff_φs)/norm(k_effs2) < 0.01
 end

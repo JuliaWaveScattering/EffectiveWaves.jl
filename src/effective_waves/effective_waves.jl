@@ -19,7 +19,7 @@ function effective_waves(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; t
 end
 
 function EffectiveWave(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vector{Specie{T}};
-        θin::T = 0.0, tol::T = 1e-8,
+        θin::T = 0.0, tol::T = 1e-7,
         extinction_rescale::Bool = true,
         hankel_order::Int = maximum_hankel_order(ω, medium, species; tol=tol),
         radius_multiplier::T = 1.005,

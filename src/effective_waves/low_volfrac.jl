@@ -12,7 +12,7 @@ function wavenumber_low_volfrac(ω::T, medium::Medium{T}, species::Vector{Specie
 
   volume_fraction = sum(pi*sp.r^2.0*sp.num_density for sp in species)
   if volume_fraction >= 0.4 && verbose
-    warn("the volume fraction $(volume_fraction) is too high, expect a relative error of approximately $(volume_fraction^3.0)")
+    warn("the volume fraction $(round(100*volume_fraction))% is too high, expect a relative error of approximately $(round(100*volume_fraction^3.0))%")
   end
   num_density = sum(sp.num_density for sp in species)
   # Add incident wavenumber
@@ -53,7 +53,7 @@ function wavenumber_very_low_volfrac(ω::Number, medium::Medium, species::Array{
 
   volume_fraction = sum(pi*sp.r^2.0*sp.num_density for sp in species)
   if volume_fraction >= 0.4
-    warn("the volume fraction $(volume_fraction) is too high, expect a relative error of approximately $(volume_fraction^3.0)")
+    warn("the volume fraction $(round(100*volume_fraction))% is too high, expect a relative error of approximately $(round(100*volume_fraction^3.0))%")
   end
   kT2 = (ω/medium.c)^2.0
   next_order = 4.0im*sum(sp.num_density*Zn(ω,sp,medium,0) for sp in species)
