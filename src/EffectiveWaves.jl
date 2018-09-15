@@ -24,10 +24,9 @@ import Base.isequal, Base.(==), Base.zero
 import SpecialFunctions: besselj, hankelh1
 
 # try using BlackBoxOptim end
+# using IterTools
 using RecipesBase
 using Optim
-using NLsolve
-# using IterTools
 using OffsetArrays
 using ApproxFun
 
