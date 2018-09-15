@@ -10,7 +10,7 @@ function reduce_kvecs(vecs::Vector{Vector{T}},tol::T) where T<:AbstractFloat
         deleteat!(all_inds,ind_ins)
         isempty(inds) ? [zero(T),-one(T)] :  mean(vecs[inds])
     end
-    vecs = deleteat!(vecs, find(vec[2] < -tol for vec in vecs))
+    vecs = deleteat!(vecs, find(vec[2] < -T(10)*tol for vec in vecs))
 end
 
 # include depricated function to find a single effective wavenumber, when in fact there are many. The code is still used in tests and gives many correct results
@@ -19,7 +19,9 @@ include("wavenumber_single.jl")
 " Returns all the transmitted effective wavenumbers"
 wavenumbers(ω::T, medium::Medium{T}, specie::Specie{T}; kws...) where T<:Number = wavenumbers(ω, medium, [specie]; kws...)
 
-function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::T = 1e-6,
+wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; kws...) where T<:Number = wavenumbers_path(ω, medium, species; kws...)
+
+function wavenumbers_mesh(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::T = 1e-6,
         hankel_order::Int = maximum_hankel_order(ω, medium, species; tol=tol),
         mesh_points::Int = 7, mesh_size::T = T(0.2),
         max_Imk::T = zero(T), max_Rek::T = zero(T),

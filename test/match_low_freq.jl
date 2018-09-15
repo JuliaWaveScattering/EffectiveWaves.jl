@@ -9,7 +9,7 @@
 
     ω = 0.002
     θin = -0.2
-    tol = 1e-7
+    tol = 1e-8
     hankel_order = 1
 
     k_eff_lows = map(species) do s
@@ -23,21 +23,24 @@
 
     wave_effs_arr = [
         effective_waves(ω, medium, [s];
-            hankel_order=hankel_order, tol = tol,  θin = θin,
+            hankel_order=hankel_order,
+            num_wavenumbers = 1,
+            tol = tol,  θin = θin,
             extinction_rescale = false)
     for s in species]
 
     match_ws = [
         MatchWave(ω, medium, species[i]; hankel_order=hankel_order,
+        max_size = 40,
         θin = θin, tol = tol,
         wave_effs = wave_effs_arr[i])
     for i in eachindex(species)]
 
-    for i in eachindex(species)
+    map(eachindex(species)) do i
         x = linspace(match_ws[i].x_match[end],2pi/real(match_ws[i].effective_waves[1].k_eff),200)
         avg_low = AverageWave(x, wave_eff_lows[i])
         avg = AverageWave(x, match_ws[i].effective_waves)
         norm(avg.amplitudes[:]./avg_low.amplitudes[:] .- 1)
-        @test maximum(abs.(avg.amplitudes[:]./avg_low.amplitudes[:] .- 1)) < 210*tol
+        @test maximum(abs.(avg.amplitudes[:]./avg_low.amplitudes[:] .- 1)) < 4e-6
     end
 end

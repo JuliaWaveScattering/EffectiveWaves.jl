@@ -16,14 +16,16 @@
     k_eff_lows = ωs./eff_medium.c
     k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
 
-    k_effs = [wavenumbers(ω, medium, species; tol = 1e-6, time_limit=1.0) for ω in ωs]
+    k_effs = [
+        wavenumbers(ω, medium, species;
+            num_wavenumbers=1, tol = 1e-6, time_limit=1.0)
+    for ω in ωs]
     inds = [indmin(abs.(k)) for k in (k_effs .- k_eff_φs)]
     k_effs2 = [k_effs[i][inds[i]] for i in eachindex(inds)]
 
     @test norm(k_effs2 - k_eff_φs)/norm(k_eff_φs) < 0.002
     @test norm(k_effs2 - k_eff_lows)/norm(k_eff_lows) < 0.01
     @test norm(k_effs2[1] - k_eff_lows[1])/norm(k_effs[1]) < 4e-7
-
 
     wave_effs_2 = [EffectiveWave(ωs[i], k_effs2[i], medium, species; tol = 1e-6) for i in eachindex(ωs)]
     wave_effs_φs = [EffectiveWave(ωs[i], k_eff_φs[i], medium, species; tol = 1e-6) for i in eachindex(ωs)]
@@ -59,5 +61,4 @@
 
     @test maximum(abs(R_low[i] - Rs[i][1]) for i in 1:length(R_low)) < 2e-6
     @test maximum(norm(R)/len for R in (Rs_φs - Rs)) < 0.01
-
 end

@@ -2,6 +2,8 @@
 
 export far_field_pattern, pair_field_pattern, diff_far_field_pattern
 
+export wavenumbers_path, wavenumbers_mesh
+
 export wavenumber_challis, one_species_low_wavenumber,
         two_species_approx_wavenumber
 
@@ -14,6 +16,7 @@ include("far_fields.jl")
 include("effective_waves.jl")
 include("reflection_effective.jl")
 include("wavenumber_effective.jl")
+include("wavenumber_path.jl")
 
 include("low_frequency.jl")
 include("low_volfrac.jl")

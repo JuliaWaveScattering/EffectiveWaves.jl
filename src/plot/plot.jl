@@ -36,6 +36,12 @@ end
     end
 end
 
+@recipe function plot(x::AbstractVector{T}, wave_eff::EffectiveWave{T}) where T<:AbstractFloat
+    @series begin
+        (x, [wave_eff])
+    end
+end
+
 @recipe function plot(x::AbstractVector{T}, wave_effs::Vector{EffectiveWave{T}};
         hankel_indexes = -wave_effs[1].hankel_order:wave_effs[1].hankel_order,
         apply = real) where T<:AbstractFloat

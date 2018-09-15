@@ -9,11 +9,11 @@
 
     tol = 1e-7
     k_eff_φs = wavenumber_low_volfrac(ωs2, medium, species; tol=tol)
-    k_effs = [wavenumbers(ω, medium, species; tol=tol) for ω in ωs2]
+    k_effs = [wavenumbers(ω, medium, species; tol=tol, num_wavenumbers=1) for ω in ωs2]
     inds = [indmin(abs.(k)) for k in (k_effs .- k_eff_φs)]
     k_effs2 = [k_effs[i][inds[i]] for i in eachindex(inds)]
 
-    @test norm(k_effs2 - k_eff_φs)/norm(k_effs) < 2e-4
+    @test norm(k_effs2 - k_eff_φs)/norm(k_effs) < tol
 
     Rs = map(eachindex(ωs2)) do i
         wave = EffectiveWave(ωs2[i], k_effs2[i], medium, species)
@@ -26,7 +26,6 @@
     end
     Rs_φs2 = reflection_coefficient_low_volfrac(ωs2, medium, species)
 
-    len = length(ωs2)
-    @test norm(Rs_φs - Rs)/len < 5e-5
-    @test norm(Rs_φs2 - Rs)/len < 5e-5 # the incident wave has amplitude 1, so this is a tiny difference
+    @test maximum(abs.(Rs_φs - Rs)) < tol
+    @test maximum(abs.(Rs_φs - Rs)) < tol # the incident wave has amplitude 1, so this is already a relative difference
 end

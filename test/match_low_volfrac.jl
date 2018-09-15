@@ -14,7 +14,9 @@
     wave_effs_arr = [
         effective_waves(ω, medium, [specie];
             hankel_order=hankel_order, tol = tol,  θin = θin,
-            radius_multiplier = radius_multiplier, mesh_points = 10, mesh_size = 2.0 #, max_Rek = 20.0, max_Imk = 20.0
+            radius_multiplier = radius_multiplier,
+            num_wavenumbers = 1
+            #, mesh_points = 10, mesh_size = 2.0 #, max_Rek = 20.0, max_Imk = 20.0
             , extinction_rescale = false)
     for ω in ωs]
 
@@ -35,6 +37,7 @@
     match_ws = [
         MatchWave(ωs[i], medium, specie; θin = θin,
             radius_multiplier = radius_multiplier,
+            max_size=40,
             tol = tol, wave_effs = wave_effs_arr[i])
     for i in eachindex(ωs)]
 

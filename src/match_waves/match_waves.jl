@@ -8,7 +8,7 @@ end
 function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
         radius_multiplier::T = 1.005,
         tol::T = T(1e-5), θin::T = zero(T),
-        max_size::Int = 500,
+        max_size::Int = 200,
         wave_effs::Vector{EffectiveWave{T}} = [zero(EffectiveWave{T})],
         X::AbstractVector{T} = [-one(T)],
         hankel_order::Int = 2,

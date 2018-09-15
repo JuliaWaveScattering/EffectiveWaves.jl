@@ -1,5 +1,4 @@
 import Base.Test: @testset, @test, @test_throws
-
 using EffectiveWaves
 
 @testset "Examples from: Reflection from multi-species.., Proc.R.Soc.(2018)" begin
@@ -24,7 +23,7 @@ include("high_frequency_effective.jl")
 
 include("large_vol_low_freq_effective.jl")
 # to heavy a test..
-#include("weak_scatterers_effective.jl")
+# include("weak_scatterers_effective.jl")
 
 include("integrated_reflection.jl")
 include("average_integrand_kernel.jl")
