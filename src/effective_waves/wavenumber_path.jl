@@ -93,14 +93,18 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
 
             # find closest neighbour with smaller imaginary part
                 i = findmin((targets[1][2] != kvec[2])? norm(targets[1] - kvec) : Inf for kvec in k_vecs)[2]
+                j = findmin((targets[1][2] != kvec[2] && kvec[2] != k_vecs[i][2])? norm(targets[1] - kvec) : Inf for kvec in k_vecs)[2]
 
             # create a mesh from this
-                tks = [k_vecs[i] + dy.*(targets[1] - k_vecs[i]) for dy in dys]
-                v = reverse(targets[1] - k_vecs[i])
-                v[2] = -v[2]
-                mesh = hcat([
-                    [tk + x.*v for x in linspace(-mesh_size, mesh_size, mesh_points)]
-                for tk in tks]...)[:]
+                meshes = map([i,j]) do ind
+                    tks = [k_vecs[ind] + dy.*(targets[1] - k_vecs[ind]) for dy in dys]
+                    v = reverse(targets[1] - k_vecs[ind])
+                    v[2] = -v[2]
+                    hcat([
+                        [tk + x.*v for x in linspace(-mesh_size, mesh_size, mesh_points)]
+                    for tk in tks]...)[:]
+                end
+                mesh = vcat(meshes...)
                 deleteat!(mesh, find(vec[2] < 0 for vec in mesh))
 
             # search for roots from this mesh
@@ -114,6 +118,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
                 new_targets = [
                         (findmin([norm(h - kvec) for kvec in k_vecs])[1] > low_tol)? h : [zero(T),-one(T)]
                     for h in hits]
+
                 deleteat!(targets, 1)
                 targets = [targets; new_targets]
                 deleteat!(targets, find(vec[2] < 0 for vec in targets))

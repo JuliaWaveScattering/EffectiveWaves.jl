@@ -8,6 +8,8 @@ end
 
 zero(W::Type{EffectiveWave{T}}) where {T<:AbstractFloat} = EffectiveWave(0,[zero(Complex{T})],zero(Complex{T}),zero(Complex{T}))
 
+effective_waves(ω::T, medium::Medium{T}, specie::Specie{T}; kws...) where T<:AbstractFloat =  effective_waves(ω, medium, [specie]; kws...)
+
 function effective_waves(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::T = 1e-6, kws...) where T<:AbstractFloat
 
     k_effs = wavenumbers(ω, medium, species; tol = tol/T(10), kws... )
