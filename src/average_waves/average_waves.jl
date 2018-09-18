@@ -92,6 +92,7 @@ function average_wave_system(ω::T, X::AbstractVector{T}, medium::Medium{T}, spe
         radius_multiplier::T = 1.005,
         scheme::Symbol = :trapezoidal,
         hankel_order::Int = maximum_hankel_order(ω, medium, [specie]; tol = tol),
+        t_vecs::Vector{Vector{Complex{T}}} = t_vectors(ω, medium, [specie]; hankel_order = hankel_order),
         kws...
     ) where T<:AbstractFloat
 
@@ -102,19 +103,15 @@ function average_wave_system(ω::T, X::AbstractVector{T}, medium::Medium{T}, spe
     J = length(X) - 1
     h = X[2] - X[1]
 
-    Z = OffsetArray{Complex{Float64}}(-M:M);
-    for m = 0:M
-        Z[m] = Zn(ω,specie,medium,m)
-        Z[-m] = Z[m]
-    end
-
     PQ_quad = intergrand_kernel(X, a12k; M = M, θin = θin, scheme=scheme);
 
     MM_quad = [
-        specie.num_density*Z[n]*PQ_quad[l,m+M+1,j,n+M+1] + k^2*( (m==n && j==l) ? 1.0+0.0im : 0.0+0.0im)
+        (specie.num_density/(k^2))*t_vecs[1][m+M+1]*PQ_quad[l,m+M+1,j,n+M+1] + ( (m==n && j==l) ? 1.0+0.0im : 0.0+0.0im)
     for  l=1:(J+1), m=-M:M, j=1:(J+1), n=-M:M];
 
-    b_mat = [ -k^2*exp(im*X[l]*cos(θin))*exp(im*m*(pi/2.0 - θin)) for l = 1:(J+1), m = -M:M]
+    b_mat = [
+        -t_vecs[1][m+M+1]*exp(im*X[l]*cos(θin))*exp(im*m*(pi/2.0 - θin))
+    for l = 1:(J+1), m = -M:M]
 
     return (MM_quad,b_mat)
 end

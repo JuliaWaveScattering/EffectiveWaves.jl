@@ -21,11 +21,7 @@ function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, L::Int, X::Abs
     ho = minimum(hos)
     S = length(species)
 
-    Z = OffsetArray{Complex{Float64}}(-ho:ho, 1:S);
-    for m = 0:ho, s = 1:S
-        Z[m,s] = Zn(ω,species[s],medium,m)
-        Z[-m,s] = Z[m,s]
-    end
+    t_vecs = t_vectors(ω, medium, species; hankel_order = ho)
 
     σ = integration_scheme(X[1:L]; scheme=scheme) # integration scheme: trapezoidal
 
@@ -33,13 +29,13 @@ function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, L::Int, X::Abs
         [
             sum(
                 exp(im*m*(θin - w.θ_eff) + im*X[L]*(w.k_eff*cos(w.θ_eff) - cos(θin))) *
-                species[s].num_density * Z[m,s] *  w.amplitudes[m+ho+1,s]
+                species[s].num_density *  w.amplitudes[m+ho+1,s]
             for m = -ho:ho, s = 1:S) / (cos(θin)*(w.k_eff*cos(w.θ_eff) - cos(θin)))
         for w in wave_effs]
 
     G_arr = [
         (j > L) ? zero(Complex{T}) :
-            T(2) * (-im)^T(m-1) * species[s].num_density * exp(im*m*θin - im*X[j]*cos(θin)) * Z[m,s] * σ[j] / cos(θin)
+            T(2) * (-im)^T(m-1) * species[s].num_density * exp(im*m*θin - im*X[j]*cos(θin)) * σ[j] / cos(θin)
     for j = 1:(J+1), m = -ho:ho, s = 1:S]
 
     avg_wave_effs = [AverageWave(X, wave) for wave in wave_effs]
@@ -64,7 +60,7 @@ function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, L::Int, X::Abs
     Es = [
         [
             sum(
-                species[s].num_density * Z[n,s] * im^T(n+1) * S_mat[J-l,n-m] *
+                (species[s].num_density/(k^2)) * t_vecs[s][m+ho+1] * im^T(n+1) * S_mat[J-l,n-m] *
                 exp(im*X[J+1]*wave_effs[p].k_eff*cos(wave_effs[p].θ_eff) - im*n*wave_effs[p].θ_eff) *
                  wave_effs[p].amplitudes[n+ho+1] / (wave_effs[p].k_eff*cos(wave_effs[p].θ_eff) + cos(θin))
             for n = -ho:ho, s = 1:S)
@@ -84,13 +80,13 @@ function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, L::Int, X::Abs
 
     Rs = [
         [
-            (l+q <= J) ?
-                zero(Complex{T}) :
-                sum(
-                    species[s].num_density * Z[n,s] * im^T(n) * wave_effs[p].amplitudes[n+ho+1] *
-                    exp(im*XR[j]*wave_effs[p].k_eff*cos(wave_effs[p].θ_eff) - im*n*wave_effs[p].θ_eff) *
-                    (B_mat[j-l,n-m] - S_mat[j-l,n-m]) * σs[l][j]
-                for j = J:(l+q), n = -ho:ho, s = 1:S)
+        (l+q <= J) ?
+            zero(Complex{T}) :
+            sum(
+                (species[s].num_density/(k^2)) * t_vecs[s][m+ho+1] * im^T(n) * wave_effs[p].amplitudes[n+ho+1] *
+                exp(im*XR[j]*wave_effs[p].k_eff*cos(wave_effs[p].θ_eff) - im*n*wave_effs[p].θ_eff) *
+                (B_mat[j-l,n-m] - S_mat[j-l,n-m]) * σs[l][j]
+            for j = J:(l+q), n = -ho:ho, s = 1:S)
         for l = 0:J, p in eachindex(wave_effs)]
     for m = -ho:ho]
 

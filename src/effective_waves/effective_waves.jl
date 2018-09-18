@@ -56,9 +56,11 @@ function reduced_amplitudes_effective(ω::T, k_eff::Complex{T}, medium::Medium{T
     S = length(species)
     ho = hankel_order
 
+    t_vecs = t_vectors(ω, medium, species; hankel_order = hankel_order)
+
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
     function MM(keff,j,l,m,n)
-        (n==m ? 1.0:0.0)*(j==l ? 1.0:0.0) + 2.0pi*species[l].num_density*Zn(ω,species[l],medium,n)*
+        (n==m ? 1.0:0.0)*(j==l ? 1.0:0.0) + 2.0pi*species[l].num_density*t_vecs[l][m+ho+1]*
             Nn(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
     end
 
@@ -90,7 +92,7 @@ function scale_amplitudes_effective(ω::T, wave_eff::EffectiveWave{T},
     S = length(species)
 
     sumAs = T(2)*sum(
-            exp(im*n*(θin - θ_eff))*Zn(ω,species[l],medium,n)*species[l].num_density*amps[n+ho+1,l]
+            exp(im*n*(θin - θ_eff))*species[l].num_density*amps[n+ho+1,l]
     for n = -ho:ho, l = 1:S)
     a = im*k*cos(θin)*(wave_eff.k_eff*cos(θ_eff) - k*cos(θin))/sumAs
 
