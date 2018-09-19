@@ -4,8 +4,16 @@ module EffectiveWaves
 export  EffectiveWave, AverageWave # the two main types
 export  MatchWave # a combination of the two types above
 
+# for MatchWave
+export  match_error, x_mesh_match
+
+# for discrete method
+export  x_mesh
+
+# for material and particle properties
 export  Specie, Medium, volume_fraction, Zn, t_vectors, Nn, p_speed, maximum_hankel_order
 
+# for effective waves
 export  wavenumbers, wavenumber, effective_waves, transmission_angle,
         reduced_amplitudes_effective, scattering_amplitudes_average, scale_amplitudes_effective
 
@@ -13,8 +21,7 @@ export  reflection_coefficient, reflection_coefficients
 
 export  effective_medium, reflection_coefficient_halfspace
 
-export  x_mesh, x_mesh_match
-
+# List of shorthand for some materials 
 export  Brick, IronArmco, LeadAnnealed, RubberGum, FusedSilica, GlassPyrex,
         ClayRock, WaterDistilled, Glycerol, Hexadecane, Acetone, Benzene,
         Nitrobenzene, OliveOil, SodiumNitrate, AirDry,

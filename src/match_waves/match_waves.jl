@@ -2,7 +2,14 @@
 type MatchWave{T<:AbstractFloat}
     effective_waves::Vector{EffectiveWave{T}}
     average_wave::AverageWave{T}
-    x_match::Vector{T} # waves are matched between average_wave.x[match_index:end]
+    x_match::Vector{T} # waves are matched between average_wave.x_match
+end
+
+function match_error(m_wave::MatchWave{T}; apply_norm::Function=norm) where T<:AbstractFloat
+    avg_eff = AverageWave(m_wave.x_match, m_wave.effective_waves)
+    j0 = findmin(abs.(m_wave.average_wave.x .- m_wave.x_match[1]))[2]
+
+    return apply_norm(m_wave.average_wave.amplitudes[j0:end,:,:][:] - avg_eff.amplitudes[:])
 end
 
 function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};

@@ -1,4 +1,4 @@
-function reflection_coefficient_integrated(ω::T, amps::AverageWave{T}, medium::Medium, specie::Specie;
+function reflection_coefficient(ω::T, amps::AverageWave{T}, medium::Medium, specie::Specie;
         θin::T = 0.0) where T <: AbstractFloat
 
     k = ω/medium.c

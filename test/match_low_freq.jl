@@ -29,18 +29,22 @@
             extinction_rescale = false)
     for s in species]
 
+    @test norm([ ws[1].k_eff for ws in wave_effs_arr] - k_eff_lows) < tol
+
     match_ws = [
         MatchWave(ω, medium, species[i]; hankel_order=hankel_order,
-        max_size = 40,
+        max_size = 60,
         θin = θin, tol = tol,
         wave_effs = wave_effs_arr[i])
     for i in eachindex(species)]
+
+   @test maximum(match_error.(match_ws)) < tol
 
     map(eachindex(species)) do i
         x = linspace(match_ws[i].x_match[end],2pi/real(match_ws[i].effective_waves[1].k_eff),200)
         avg_low = AverageWave(x, wave_eff_lows[i])
         avg = AverageWave(x, match_ws[i].effective_waves)
-        norm(avg.amplitudes[:]./avg_low.amplitudes[:] .- 1)
-        @test maximum(abs.(avg.amplitudes[:]./avg_low.amplitudes[:] .- 1)) < 4e-6
+        @test norm(avg.amplitudes[:] - avg_low.amplitudes[:]) < tol
+        @test maximum(abs.(avg.amplitudes[:] - avg_low.amplitudes[:])) < tol
     end
 end

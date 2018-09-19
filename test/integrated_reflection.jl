@@ -19,7 +19,7 @@
     wave0 = EffectiveWave(ω, k_eff0, medium, [specie]; θin = θin, hankel_order = ho, tol=1e-8)
     wave_avg0 = AverageWave(x, wave0)
 
-    R = reflection_coefficient_integrated(ω, wave_avg0, medium, specie; θin = θin)
+    R = reflection_coefficient(ω, wave_avg0, medium, specie; θin = θin)
     R_eff = reflection_coefficient(ω, wave0, medium, [specie]; θin = θin, hankel_order = ho)
 
     @test abs(R-R_eff)/abs(R_eff) < 1e-4 #
@@ -29,7 +29,7 @@
     rel_errors = map(k_effs) do k_eff
         wave = EffectiveWave(ω, k_eff, medium, [specie]; θin = θin, hankel_order = ho)
         wave_avg = AverageWave(x, wave)
-        R = reflection_coefficient_integrated(ω, wave_avg, medium, specie; θin = θin)
+        R = reflection_coefficient(ω, wave_avg, medium, specie; θin = θin)
         R_eff = reflection_coefficient(ω, wave, medium, [specie]; θin = θin)
         abs(R-R_eff)/abs(R_eff)
     end

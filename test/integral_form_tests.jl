@@ -54,10 +54,10 @@ function test_integral_form()
     amps2_eff = scattering_amplitudes_average(ω, x, medium, [specie2];
             k_eff = k_effs2[2], hankel_order = ho, θin=θin, tol=1e-8)
     # sanity check: the abs of reflection coefficients should always be smaller than one.
-    reflection_coefficient_integrated(ω, medium, specie2; amps = amps2_eff, θin = θin)
-    reflection_coefficient_integrated(ω, medium, specie; amps = amps_eff2, θin = θin)
-    reflection_coefficient_integrated(ω, medium, specie; amps = amps_eff3, θin = θin)
-    reflection_coefficient_integrated(ω, medium, specie; amps = amps_eff1, θin = θin)
+    reflection_coefficient(ω, medium, specie2; amps = amps2_eff, θin = θin)
+    reflection_coefficient(ω, medium, specie; amps = amps_eff2, θin = θin)
+    reflection_coefficient(ω, medium, specie; amps = amps_eff3, θin = θin)
+    reflection_coefficient(ω, medium, specie; amps = amps_eff1, θin = θin)
 
     error0_eff = reshape( abs.(MM_mat*amps0_eff.amplitudes[:] .- b), (J+1, 2ho+1))
     error_eff1 = reshape( abs.(MM_mat*amps_eff1.amplitudes[:] .- b), (J+1, 2ho+1))

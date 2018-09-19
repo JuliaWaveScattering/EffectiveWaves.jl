@@ -135,13 +135,6 @@ scatter([abs.(exp.(im*k_effs./k)), sign.(real.(k_effs)).*abs.(αs)], lab = ["exp
 
 
 
-
-
-
-
-
-
-
     plot(xlab = "X", ylab = "Abs amplitude")
     for n = -ho:ho
         scatter!(avg_wave_eff.x, abs.(avg_wave_eff.amplitudes[:,n+ho+1]), lab = "Wave eff hankel $n")
