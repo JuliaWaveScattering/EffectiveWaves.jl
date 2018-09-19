@@ -38,16 +38,18 @@ Medium(;ρ=1.0, c=1.0+0.0im) = Medium{typeof(ρ)}(ρ,Complex{typeof(ρ)}(c))
 # Medium(;ρ::T = 1.0, c::Union{R,Complex{T}} = 1.0+0.0im) = Medium(ρ,Complex{T}(c))
 
 function maximum_hankel_order(ω::Union{T,Complex{T}}, medium::Medium{T}, species::Vector{Specie{T}};
-        tol=1e-6, verbose = false) where T <: Number
+        tol::T=1e-7, verbose::Bool = false) where T <: Number
 
+    # estimation is based on far-field scattering pattern contribution to the primary effective wavenumber^2 and reflection coefficient.
     f0 = ω^(2.0)/(medium.c^2)
     hankel_order = 0
-    next_order = 2*sum(sp.num_density*Zn(ω,sp,medium,hankel_order) for sp in species)
+    next_order = -4im*sum(sp.num_density*Zn(ω,sp,medium,hankel_order) for sp in species)
 
-    # increase hankel order until the relative error^2 < tol. The power 2 on the error has been chosen based on empircal comparisons with other tolerance used in wavenumber.
-    while abs(next_order/f0)^2 > tol
+    # increase hankel order until the relative error^2 < tol. Multiplying the tol by 200 has been chosen based on empircal comparisons with other tolerance used for reflection coefficients.
+    while abs(next_order/f0) > tol*200
+        f0 = f0 + next_order
         hankel_order += 1
-        next_order = 2*sum(sp.num_density*Zn(ω,sp,medium,hankel_order) for sp in species)
+        next_order = -4im*sum(sp.num_density*Zn(ω,sp,medium,hankel_order) for sp in species)
     end
 
     return hankel_order

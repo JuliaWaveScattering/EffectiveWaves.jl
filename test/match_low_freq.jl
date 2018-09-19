@@ -29,7 +29,7 @@
             extinction_rescale = false)
     for s in species]
 
-    @test norm([ ws[1].k_eff for ws in wave_effs_arr] - k_eff_lows) < tol
+    @test norm([ws[1].k_eff for ws in wave_effs_arr] - k_eff_lows) < tol
 
     match_ws = [
         MatchWave(ω, medium, species[i]; hankel_order=hankel_order,
