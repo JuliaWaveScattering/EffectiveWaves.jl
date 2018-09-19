@@ -111,12 +111,6 @@ function match_only_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, XL::Int, 
     ho = minimum(hos)
     s = length(species)
 
-    Z = OffsetArray{Complex{Float64}}(-ho:ho, 1:s);
-    for m = 0:ho, l = 1:s
-        Z[m,l] = Zn(ω,species[l],medium,m)
-        Z[-m,l] = Z[m,l]
-    end
-
     σ = integration_scheme(X[1:XL]; scheme=:trapezoidal) # integration scheme: trapezoidal
 
     avg_wave_effs = [AverageWave(X, wave) for wave in wave_effs]
@@ -153,12 +147,6 @@ function extinc_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}},
     ho = minimum(hos)
     S = length(species)
 
-    Z = OffsetArray{Complex{Float64}}(-ho:ho, 1:S);
-    for m = 0:ho, l = 1:S
-        Z[m,l] = Zn(ω,species[l],medium,m)
-        Z[-m,l] = Z[m,l]
-    end
-
     XJ = length(X)
     σ = integration_scheme(X[1:XL]; scheme=:trapezoidal) # integration scheme: trapezoidal
 
@@ -166,13 +154,13 @@ function extinc_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}},
         [
             sum(
                 exp(im*m*(θin - w.θ_eff) + im*X[XL]*(w.k_eff*cos(w.θ_eff) - k*cos(θin))/k) *
-                species[l].num_density * Z[m,l] *  w.amplitudes[m+ho+1,l]
+                species[l].num_density * w.amplitudes[m+ho+1,l]
             for m = -ho:ho, l = 1:S) / (cos(θin)*(w.k_eff*cos(w.θ_eff) - k*cos(θin)))
         for w in wave_effs]
 
     q_arr = [
         (j > XL) ? zero(Complex{T}) :
-            T(2) * (-im)^T(m-1) * species[l].num_density * exp(im*m*θin - im*X[j]*cos(θin)) * Z[m,l] * σ[j] / cos(θin)
+            T(2) * (-im)^T(m-1) * species[l].num_density * exp(im*m*θin - im*X[j]*cos(θin)) * σ[j] / cos(θin)
     for j = 1:XJ, m = -ho:ho, l = 1:S]
 
     return (w_vec, q_arr)
