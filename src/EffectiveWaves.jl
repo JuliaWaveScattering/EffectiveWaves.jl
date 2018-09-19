@@ -21,7 +21,7 @@ export  reflection_coefficient, reflection_coefficients
 
 export  effective_medium, reflection_coefficient_halfspace
 
-# List of shorthand for some materials 
+# List of shorthand for some materials
 export  Brick, IronArmco, LeadAnnealed, RubberGum, FusedSilica, GlassPyrex,
         ClayRock, WaterDistilled, Glycerol, Hexadecane, Acetone, Benzene,
         Nitrobenzene, OliveOil, SodiumNitrate, AirDry,
@@ -47,6 +47,7 @@ include("effective_waves/effective_waves_export.jl")
 include("average_waves/average_waves_export.jl")
 include("match_waves/match_waves.jl")
 include("match_waves/match_arrays.jl")
+include("match_waves/reflection.jl")
 
 include("../examples/materials.jl")
 

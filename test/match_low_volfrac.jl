@@ -5,7 +5,7 @@
     specie = Specie(ρ=0.5, r=0.4, c=0.5, volfrac=0.001)
     species = [specie]
     θin = 0.2
-    tol = 1e-8
+    tol = 1e-9
     hankel_order = 2
 
     ωs = [0.2,1.2]
@@ -28,7 +28,7 @@
             hankel_order=hankel_order, θin = θin, radius_multiplier = radius_multiplier)
     for i in eachindex(ωs)]
 
-    @test maximum(abs(wave_effs_arr[i][1].k_eff/k_eff_φs[i] - 1.0) for i in eachindex(ωs)) < 5*tol
+    @test maximum(abs(wave_effs_arr[i][1].k_eff/k_eff_φs[i] - 1.0) for i in eachindex(ωs)) < 5e-8
 
     ds = [abs(dot(wave_eff_φs[i].amplitudes[:], wave_effs_arr[i][1].amplitudes[:])) for i in eachindex(ωs)]
     ds2 = [norm(wave_eff_φs[i].amplitudes[:])*norm(wave_effs_arr[i][1].amplitudes[:]) for i in eachindex(ωs)]
@@ -37,15 +37,30 @@
     match_ws = [
         MatchWave(ωs[i], medium, specie; θin = θin,
             radius_multiplier = radius_multiplier,
-            max_size=40,
+            max_size=100,
             tol = tol, wave_effs = wave_effs_arr[i])
     for i in eachindex(ωs)]
+
+    @test maximum(match_error.(match_ws)) < 1e-6
 
     avg_wave_φs = [
         AverageWave(match_ws[i].average_wave.x, wave_eff_φs[i])
     for i in eachindex(ωs)]
 
+    Rs_near = [reflection_coefficient(ωs[i], match_ws[i].average_wave, medium, specie) for i in eachindex(ωs)]
+    Rs_near_φ = [reflection_coefficient(ωs[i], avg_wave_φs[i], medium, specie) for i in eachindex(ωs)]
+    @test norm(Rs_near_φ - Rs_near) < 5e-6
+
+    # [reflection_coefficient(ωs[i], match_ws[i], medium, specie) for i in eachindex(ωs)]
+    # [reflection_coefficient(ωs[i], wave_eff_φs[i], medium, species) for i in eachindex(ωs)]
+    #
+    # [ reflection_coefficient(ωs[i], wave_eff_φs[i], medium, species) - reflection_coefficient(ωs[i], wave_eff_φs[i], medium, species; x = m_wave.x_match[end]) for i in eachindex(ωs)]
+
+    # R_eff = reflection_coefficient(ω, m_wave.effective_waves, medium, [specie]; x = m_wave.x_match[end])
+    # R_discrete = reflection_coefficient(ω, m_wave.average_wave, medium, specie)
+
+
     @test maximum(
         norm(match_ws[i].average_wave.amplitudes[:] .- avg_wave_φs[i].amplitudes[:])/norm(avg_wave_φs[i].amplitudes[:])
-    for i in eachindex(ωs)) < 10*sqrt(tol)
+    for i in eachindex(ωs)) < 1e-3
 end

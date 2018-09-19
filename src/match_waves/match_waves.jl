@@ -8,8 +8,9 @@ end
 function match_error(m_wave::MatchWave{T}; apply_norm::Function=norm) where T<:AbstractFloat
     avg_eff = AverageWave(m_wave.x_match, m_wave.effective_waves)
     j0 = findmin(abs.(m_wave.average_wave.x .- m_wave.x_match[1]))[2]
+    len = length(m_wave.x_match)
 
-    return apply_norm(m_wave.average_wave.amplitudes[j0:end,:,:][:] - avg_eff.amplitudes[:])
+    return apply_norm(m_wave.average_wave.amplitudes[j0:end,:,:][:] - avg_eff.amplitudes[:])/len
 end
 
 function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
@@ -18,7 +19,6 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
         max_size::Int = 200,
         wave_effs::Vector{EffectiveWave{T}} = [zero(EffectiveWave{T})],
         X::AbstractVector{T} = [-one(T)],
-        hankel_order::Int = 2,
         L_match::Int = 0,
         kws...
     ) where T<:Number
@@ -30,7 +30,7 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
             radius_multiplier=radius_multiplier,
             extinction_rescale = false, #hankel_order=hankel_order,
             tol = T(10)*tol, θin=θin,
-            hankel_order=hankel_order,
+            # hankel_order=hankel_order,
             kws...)
     end
     hankel_order = wave_effs[1].hankel_order
@@ -78,15 +78,15 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
 end
 
 "Returns (x,L), where x[L:end] is the mesh used to match with wave_effs."
-function x_mesh_match(wave_effs::Vector{EffectiveWave{T}}; tol::T = 1e-7, kws... ) where T<:AbstractFloat
+function x_mesh_match(wave_effs::Vector{EffectiveWave{T}}; kws... ) where T<:AbstractFloat
     # wave_effs[end] establishes how long X should be, while wave_effs[1] estalishes how fine the mesh should be.
 
    # If there is only one wave, then it doesn't make sense to extend the mesh until it decays.
    # Instead we choose, arbitrarily, a quarter of the wavelength.
    # Note, having only one wave is very unusual, but tends to happen in the very low frequency limit.
     x = (length(wave_effs) > 1) ?
-        x_mesh(wave_effs[end], wave_effs[1]; tol=tol, kws...) :
-        x_mesh(wave_effs[1]; tol=tol, max_x = (pi/2)/abs(cos(wave_effs[1].θ_eff)*abs(wave_effs[1].k_eff)), kws...)
+        x_mesh(wave_effs[end], wave_effs[1]; kws...) :
+        x_mesh(wave_effs[1]; max_x = (pi/2)/abs(cos(wave_effs[1].θ_eff)*abs(wave_effs[1].k_eff)), kws...)
 
     x_match = x[end]
     x_max = (length(x) < length(wave_effs)*T(1.5)) ?
