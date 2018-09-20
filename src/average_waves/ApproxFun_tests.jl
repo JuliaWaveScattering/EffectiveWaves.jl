@@ -31,7 +31,6 @@ Y1s = Fun(identity,interval1)
 Y2s = Fun(identity,interval2)
 Ks = K.(Ys)
 
-
 interval1 = 0.0..1.0
 B_app =  Fun(x -> B(0,x),interval1)
 

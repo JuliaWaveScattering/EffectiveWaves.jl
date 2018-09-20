@@ -9,7 +9,7 @@
     k=1.; ho = 2
     medium = Medium(1.0,1.0+0.0im)
     ω = real(k*medium.c)
-    specie = Specie(ρ=0.1,r=0.1, c=0.5, volfrac=0.1)
+    specie = Specie(ρ=0.1,r=0.6, c=0.5, volfrac=0.1)
 
     # From effective wave theory
     k_eff0 = wavenumber_low_volfrac(ω, medium, [specie]; tol = 1e-12)
@@ -24,6 +24,17 @@
 
     @test abs(R-R_eff)/abs(R_eff) < 1e-4 #
 
+    # the matched wave is more accurate
+    m1 = Int(round(length(x)/50))
+    m2 = m1 + 100
+    wave_avg1 = deepcopy(wave_avg0)
+    wave_avg1.amplitudes = wave_avg0.amplitudes[1:m2,:,:]
+    wave_avg1.x = wave_avg0.x[1:m2]
+
+    match_wave = MatchWave{Float64}([wave0], wave_avg1, x[m1:m2])
+    R_m = reflection_coefficient(ω, match_wave, medium, specie; θin = θin)
+    @test abs(R_m-R_eff)/abs(R_eff)  < 1e-6
+
     k_effs = wavenumbers(ω, medium, [specie]; tol = 1e-8, hankel_order = ho)
 
     rel_errors = map(k_effs) do k_eff
@@ -31,7 +42,15 @@
         wave_avg = AverageWave(x, wave)
         R = reflection_coefficient(ω, wave_avg, medium, specie; θin = θin)
         R_eff = reflection_coefficient(ω, wave, medium, [specie]; θin = θin)
-        abs(R-R_eff)/abs(R_eff)
+        @test abs(R-R_eff)/abs(R_eff) < 1e-4
+
+        wave_avg1 = deepcopy(wave_avg)
+        wave_avg1.amplitudes = wave_avg.amplitudes[1:m2,:,:]
+        wave_avg1.x = wave_avg.x[1:m2]
+
+        match_wave = MatchWave{Float64}([wave], wave_avg1, x[m1:m2])
+        R_m = reflection_coefficient(ω, match_wave, medium, specie; θin = θin)
+        @test abs(R_m-R_eff)/abs(R_eff) < 1e-5
     end
-    @test rel_errors[1] < 1e-6 && maximum(rel_errors) < 2e-4
+    
 end

@@ -5,7 +5,7 @@ Nn(n::Int,x::Union{T,Complex{T}},y::Union{T,Complex{T}}) where T<:AbstractFloat 
 function reduce_kvecs(vecs::Vector{Vector{T}},tol::T) where T<:AbstractFloat
     all_inds = collect(eachindex(vecs))
     vecs = map(vecs) do vec
-        ind_ins = find(norm(v - vec) < T(4)*tol for v in vecs[all_inds])
+        ind_ins = find(norm(v - vec) < T(10)*tol for v in vecs[all_inds])
         inds = all_inds[ind_ins]
         deleteat!(all_inds,ind_ins)
         isempty(inds) ? [zero(T),-one(T)] :  mean(vecs[inds])
