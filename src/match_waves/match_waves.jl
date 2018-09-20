@@ -18,7 +18,7 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
         tol::T = T(1e-5), θin::T = zero(T),
         max_size::Int = 200,
         wave_effs::Vector{EffectiveWave{T}} = [zero(EffectiveWave{T})],
-        X::AbstractVector{T} = [-one(T)],
+        x::AbstractVector{T} = [-one(T)],
         L_match::Int = 0,
         kws...
     ) where T<:Number
@@ -41,10 +41,11 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
     end
 
     a12k = T(2)*radius_multiplier*specie.r*k
-    if first(X) == - one(T)
+    if first(x) == - one(T)
         # using non-dimensional wave_non_effs and a12k results in non-dimensional mesh X
         L_match, X =  x_mesh_match(wave_non_effs; a12 = a12k, tol = tol, max_size=max_size)
     elseif L_match == 0
+        X = x.*k
         L_match = Int(round(length(X)/2))
     end
 

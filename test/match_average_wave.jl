@@ -12,9 +12,11 @@
     θin = 0.3
     tol = 1e-8
     hankel_order = 2
+    radius_multiplier = 1.005
 
     wave_effs_arr = [
         effective_waves(ω, medium, [s];
+            radius_multiplier=radius_multiplier,
             hankel_order=hankel_order,
             mesh_points=6,
             num_wavenumbers=28,
@@ -23,27 +25,32 @@
     for s in species];
 
    # use only 10 least attenuating
-   wave_effs_arr = [w[1:10] for w in wave_effs_arr]
+   wave_effs_arr = [w[1:20] for w in wave_effs_arr]
 
     match_ws = [
         MatchWave(ω, medium, species[i];
+            radius_multiplier=radius_multiplier,
             hankel_order=hankel_order,
             θin = θin, tol = tol,
             wave_effs = wave_effs_arr[i],
-            max_size=60)
+            max_size=80)
+            # x = 0.0:(radius_multiplier*2*species[i].r/100):4)
     for i in eachindex(species)];
 
     @test maximum(match_error.(match_ws)) < 1e-4
 
     avgs = [
         AverageWave(ω, medium, species[i];
+                radius_multiplier=radius_multiplier,
                 hankel_order=hankel_order,
                 tol = tol, θin = θin,
-                wave_effs = wave_effs_arr[i], max_size=500)
+                wave_effs = wave_effs_arr[i], max_size=700)
     for i in eachindex(species)]
 
-    # R_ms = [reflection_coefficient(ω, match_ws[i].average_wave, medium, species[i]) for i in eachindex(species)]
-    # R_ds = [reflection_coefficient(ω, avgs[i], medium, species[i]) for i in eachindex(species)]
+    R_ms = [reflection_coefficient(ω, match_ws[i], medium, species[i]) for i in eachindex(species)]
+    R_ds = [reflection_coefficient(ω, avgs[i], medium, species[i]) for i in eachindex(species)]
+
+    norm(R_ms - R_ds) < 0.03
 
     map(eachindex(species)) do i
         j0 = findmin(abs.(avgs[i].x .- match_ws[i].x_match[1]))[2]
@@ -51,6 +58,6 @@
         avg_m = AverageWave(x0, match_ws[i].effective_waves)
         maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:]))
         @test norm(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])/norm(avg_m.amplitudes[:]) < 4e-3
-        @test maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])) < 1e-3
+        @test maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])) < 2e-3
     end
 end
