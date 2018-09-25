@@ -9,6 +9,7 @@
     for c in cs]
 
     ω = 1.1
+    k = ω/medium.c
     θin = 0.3
     tol = 1e-8
     hankel_order = 2
@@ -24,7 +25,7 @@
             extinction_rescale = false)
     for s in species];
 
-   # use only 10 least attenuating
+   # use only 20 least attenuating
    wave_effs_arr = [w[1:20] for w in wave_effs_arr]
 
     match_ws = [
@@ -50,7 +51,12 @@
     R_ms = [reflection_coefficient(ω, match_ws[i], medium, species[i]) for i in eachindex(species)]
     R_ds = [reflection_coefficient(ω, avgs[i], medium, species[i]) for i in eachindex(species)]
 
-    norm(R_ms - R_ds) < 0.03
+    avg_eff = AverageWave(match_ws[1].x_match[end]:0.002:40, match_ws[1].effective_waves);
+    R1 = reflection_coefficient(ω, avg_eff, medium, species[1])
+    R2 = reflection_coefficient(ω, match_ws[1].effective_waves, medium, species; x=avg_eff.x[1])
+    @test norm(R1 - R2) < 1e-7
+
+    @test norm(R_ms - R_ds) < 5e-4
 
     map(eachindex(species)) do i
         j0 = findmin(abs.(avgs[i].x .- match_ws[i].x_match[1]))[2]

@@ -28,9 +28,8 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
     if maximum(abs(w.k_eff) for w in wave_effs) == zero(T)
         wave_effs = effective_waves(k, medium, [specie];
             radius_multiplier=radius_multiplier,
-            extinction_rescale = false, #hankel_order=hankel_order,
+            extinction_rescale = false,
             tol = T(10)*tol, θin=θin,
-            # hankel_order=hankel_order,
             kws...)
     end
     hankel_order = wave_effs[1].hankel_order

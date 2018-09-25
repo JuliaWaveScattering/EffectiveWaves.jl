@@ -23,9 +23,12 @@
     k_eff_φs = wavenumber_low_volfrac(ωs, medium, species; tol=tol,
         hankel_order=hankel_order,
         radius_multiplier = radius_multiplier)
+
     wave_eff_φs = [
         EffectiveWave(ωs[i], k_eff_φs[i], medium, species; tol = tol,
-            hankel_order=hankel_order, θin = θin, radius_multiplier = radius_multiplier)
+            hankel_order=hankel_order, θin = θin,
+            extinction_rescale = true,
+            radius_multiplier = radius_multiplier)
     for i in eachindex(ωs)]
 
     @test maximum(abs(wave_effs_arr[i][1].k_eff/k_eff_φs[i] - 1.0) for i in eachindex(ωs)) < 5e-8
@@ -49,16 +52,11 @@
 
     Rs_near = [reflection_coefficient(ωs[i], match_ws[i].average_wave, medium, specie) for i in eachindex(ωs)]
     Rs_near_φ = [reflection_coefficient(ωs[i], avg_wave_φs[i], medium, specie) for i in eachindex(ωs)]
-    @test norm(Rs_near_φ - Rs_near) < 5e-6
+    @test maximum(abs.(Rs_near_φ - Rs_near)) < 5e-6
 
-    # [reflection_coefficient(ωs[i], match_ws[i], medium, specie) for i in eachindex(ωs)]
-    # [reflection_coefficient(ωs[i], wave_eff_φs[i], medium, species) for i in eachindex(ωs)]
-    #
-    # [ reflection_coefficient(ωs[i], wave_eff_φs[i], medium, species) - reflection_coefficient(ωs[i], wave_eff_φs[i], medium, species; x = m_wave.x_match[end]) for i in eachindex(ωs)]
-
-    # R_eff = reflection_coefficient(ω, m_wave.effective_waves, medium, [specie]; x = m_wave.x_match[end])
-    # R_discrete = reflection_coefficient(ω, m_wave.average_wave, medium, specie)
-
+    Rs = [reflection_coefficient(ωs[i], match_ws[i], medium, specie) for i in eachindex(ωs)]
+    Rs_φ = [reflection_coefficient(ωs[i], wave_eff_φs[i], medium, species) for i in eachindex(ωs)]
+    @test maximum(abs.(Rs_near_φ - Rs_near)) < 5e-6
 
     @test maximum(
         norm(match_ws[i].average_wave.amplitudes[:] .- avg_wave_φs[i].amplitudes[:])/norm(avg_wave_φs[i].amplitudes[:])
