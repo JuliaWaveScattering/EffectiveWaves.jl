@@ -2,6 +2,7 @@
 
 export intergrand_kernel, average_wave_system, integrate_S, integrate_B
 export integration_scheme, trap_scheme, simpson_scheme
+export average_error
 
 include("average_waves.jl")
 include("numerical_integration.jl")

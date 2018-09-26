@@ -19,6 +19,15 @@ function AverageWave(x::AbstractVector{T}, A_mat::Array{Complex{T}}) where T<:Nu
     AverageWave(Int((size(A_mat,2)-1)/2), collect(x), A_mat)
 end
 
+function average_error(avg_w::AverageWave)
+    ddf = circshift(avg_w.amplitudes, (2,0,0)) - 2*circshift(avg_w.amplitudes, (1,0,0)) + avg_w.amplitudes
+    h = (avg_w.x[2] - avg_w.x[1])
+    ddf = ddf[3:end,:,:]/(h^2)
+    max_ddf = maximum(abs.(ddf))
+
+    # trapezoidal error
+    return max_ddf*h^3/12
+end
 
 "Calculates an AverageWave from one EffectiveWave"
 function AverageWave(xs::AbstractVector{T}, wave_eff::EffectiveWave{T}) where T<:Number

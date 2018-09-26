@@ -1,5 +1,5 @@
 @recipe function plot(avg_wave::AverageWave{T};
-        hankel_indexes = -avg_wave.hankel_order:avg_wave.hankel_order,
+        hankel_indexes = 0:avg_wave.hankel_order,
         apply = real) where T<:AbstractFloat
 
     ho = avg_wave.hankel_order
@@ -43,7 +43,7 @@ end
 end
 
 @recipe function plot(x::AbstractVector, wave_effs::Vector{E};
-        hankel_indexes = -wave_effs[1].hankel_order:wave_effs[1].hankel_order,
+        hankel_indexes = 0:wave_effs[1].hankel_order,
         apply = real) where E<:EffectiveWave
 
     wave_eff = AverageWave(x, wave_effs)
@@ -72,7 +72,7 @@ end
         hankel_indexes = 0:hankel_order,
         apply = real, match_region = true) where T <: AbstractFloat
 
-    ho = maximum(hankel_indexes)
+    ho = hankel_order
     wave_eff = AverageWave(match_wave.x_match, match_wave.effective_waves)
     max_amp = maximum(apply.(wave_eff.amplitudes[:,(hankel_indexes) .+ (ho+1),:]))
     min_amp = minimum(apply.(wave_eff.amplitudes[:,(hankel_indexes) .+ (ho+1),:]))
@@ -101,7 +101,8 @@ end
     @series begin
         apply --> apply
         hankel_indexes --> hankel_indexes
-        markeralpha --> 0.2
+        # markeralpha --> 0.2
+        markersize --> 4.0
         match_wave.average_wave
     end
 
