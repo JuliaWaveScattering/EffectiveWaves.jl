@@ -2,6 +2,9 @@
 
 Nn(n::Int,x::Union{T,Complex{T}},y::Union{T,Complex{T}}) where T<:AbstractFloat = x*diffhankelh1(n,x)*besselj(n,y) - y*hankelh1(n,x)*diffbesselj(n,y)
 
+reduce_kvecs(vec::Vector,tol) = vec
+
+
 function reduce_kvecs(vecs::Vector{Vector{T}},tol::T) where T<:AbstractFloat
     all_inds = collect(eachindex(vecs))
     vecs = map(vecs) do vec

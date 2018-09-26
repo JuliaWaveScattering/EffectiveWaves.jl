@@ -140,9 +140,8 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
                 end
                 new_targets = reduce_kvecs(new_targets, low_tol/10)
                 deleteat!(new_targets, find(detMM2.(new_targets) .> low_tol))
-                # sort!(new_targets, by = kv->kv[2])
 
-            # reduce new targets
+                # reduce new targets
                 new_targets = [
                         (findmin([norm(h - kvec) for kvec in k_vecs])[1] > low_tol/10)? h : [zero(T),-one(T)]
                 for h in new_targets]
@@ -164,12 +163,11 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
                 new_targets = reduce_kvecs(new_targets, tol)
 
                 if verbose println("New roots: $(new_targets)") end
+
                 deleteat!(targets, 1)
                 targets = [targets; new_targets]
                 # group together wavenumbers which are closer than tol
                 k_vecs = reduce_kvecs([new_targets; k_vecs], tol)
-                # scatter([m[1] for m in k_vecs], [m[2] for m in k_vecs])
-                # scatter!([m[1] for m in new_targets], [m[2] for m in new_targets])
         end
 
     # Finally delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.

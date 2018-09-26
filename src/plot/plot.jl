@@ -42,9 +42,9 @@ end
     end
 end
 
-@recipe function plot(x::AbstractVector{T}, wave_effs::Vector{EffectiveWave{T}};
+@recipe function plot(x::AbstractVector, wave_effs::Vector{E};
         hankel_indexes = -wave_effs[1].hankel_order:wave_effs[1].hankel_order,
-        apply = real) where T<:AbstractFloat
+        apply = real) where E<:EffectiveWave
 
     wave_eff = AverageWave(x, wave_effs)
     ho = wave_eff.hankel_order
@@ -69,8 +69,8 @@ end
 end
 
 @recipe function plot(x::AbstractVector{T}, match_wave::MatchWave{T}; hankel_order = match_wave.effective_waves[1].hankel_order,
-        hankel_indexes = -hankel_order:hankel_order,
-        apply = real) where T <: AbstractFloat
+        hankel_indexes = 0:hankel_order,
+        apply = real, match_region = true) where T <: AbstractFloat
 
     ho = maximum(hankel_indexes)
     wave_eff = AverageWave(match_wave.x_match, match_wave.effective_waves)
@@ -80,24 +80,28 @@ end
     max_amp = (max_amp > 0) ? 1.1*max_amp : 0.0
     min_amp = (min_amp < 0) ? 1.1*min_amp : 0.0
 
-    @series begin
-        label --> "match region"
-        fillalpha --> 0.3
-        fill --> (0,:orange)
-        line --> 0
-        (x1 -> x1, y->max_amp, match_wave.x_match[1],  match_wave.x_match[end])
-    end
-    @series begin
-        label --> ""
-        fillalpha --> 0.3
-        fill --> (0,:orange)
-        line --> 0
-        (x1 -> x1, y->min_amp, match_wave.x_match[1],  match_wave.x_match[end])
+    if match_region == true
+        @series begin
+            label --> "match region"
+            fillalpha --> 0.3
+            fill --> (0,:orange)
+            line --> 0
+            (x1 -> x1, y->max_amp, match_wave.x_match[1],  match_wave.x_match[end])
+        end
+
+        @series begin
+            label --> ""
+            fillalpha --> 0.3
+            fill --> (0,:orange)
+            line --> 0
+            (x1 -> x1, y->min_amp, match_wave.x_match[1],  match_wave.x_match[end])
+        end
     end
 
     @series begin
         apply --> apply
         hankel_indexes --> hankel_indexes
+        markeralpha --> 0.2
         match_wave.average_wave
     end
 
