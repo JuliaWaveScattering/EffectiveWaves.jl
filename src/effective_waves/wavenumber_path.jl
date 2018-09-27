@@ -37,10 +37,11 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
         k_vecs = [[kin[1]+x,kin[2]] for x in linspace(-dx,dx,mesh_points+1)]
         push!(k_vecs,kin, [real(k0),zero(T)], [zero(T),zero(T)])
 
-        k_vecs = [optimize(detMM2, kvec; x_tol=low_tol).minimizer for kvec in k_vecs]
+        k_vecs = [optimize(detMM2, kvec; x_tol=low_tol, g_tol = low_tol^3).minimizer for kvec in k_vecs]
         k_vecs = reduce_kvecs(k_vecs, low_tol/10)
 
-        k_vecs = [optimize(detMM2, kvec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol).minimizer for kvec in k_vecs]
+        k_vecs = [optimize(detMM2, kvec; g_tol = tol^3.0, x_tol=tol).minimizer for kvec in k_vecs]
+        # k_vecs = [optimize(detMM2, kvec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol).minimizer for kvec in k_vecs]
         k_vecs = reduce_kvecs(k_vecs, tol)
 
         # Delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
@@ -61,13 +62,14 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
         # Find the first two roots that lead to the two branches of the root tree
         while !two_roots && (length(k_vecs) < num_wavenumbers)
             hits = [
-                optimize(detMM2, [kx, ky]; x_tol = low_tol).minimizer
+                optimize(detMM2, [kx, ky]; x_tol = low_tol, g_tol = low_tol^3).minimizer
             for kx in kxs]
             hits = reduce_kvecs(hits, low_tol)
 
             # Here we refine the hits
             hits = map(hits) do k_vec
-                res = optimize(detMM2, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
+                # res = optimize(detMM2, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
+                res = optimize(detMM2, k_vec; g_tol = tol^3.0, x_tol=tol)
                 if res.minimum > T(20)*tol
                     [zero(T),-one(T)]
                 else
@@ -129,27 +131,28 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
                 mesh = vcat(meshes...)
                 deleteat!(mesh, find(vec[2] < 0 for vec in mesh))
 
-# scatter([m[1] for m in mesh], [m[2] for m in mesh])
-# scatter!([targets[1][1]], [targets[1][2]])
+# scatter([m[1] for m in mesh], [m[2] for m in mesh], markeralpha=0.7);
+# scatter!([targets[1][1]], [targets[1][2]]);
 # scatter!([m[1] for m in k_vecs[[i,j]]], [m[2] for m in k_vecs[[i,j]]])
 # scatter!([m[1] for m in k_vecs], [m[2] for m in k_vecs])
 
             # search for roots from this mesh
                 new_targets = map(mesh) do kin
-                   optimize(detMM2, kin; x_tol = low_tol, f_tol = low_tol/10).minimizer
+                   optimize(detMM2, kin; x_tol = low_tol, g_tol = low_tol^3).minimizer
                 end
                 new_targets = reduce_kvecs(new_targets, low_tol/10)
                 deleteat!(new_targets, find(detMM2.(new_targets) .> low_tol))
 
-                # reduce new targets
+                # only keep targets which are not already in k_vecs
                 new_targets = [
-                        (findmin([norm(h - kvec) for kvec in k_vecs])[1] > low_tol/10)? h : [zero(T),-one(T)]
+                        (findmin([norm(h - kvec) for kvec in k_vecs])[1] > low_tol)? h : [zero(T),-one(T)]
                 for h in new_targets]
                 new_targets = reduce_kvecs(new_targets, low_tol)
 
                 # Here we refine the new roots
                 new_targets = map(new_targets) do k_vec
-                    res = optimize(detMM2, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
+                    # res = optimize(detMM2, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
+                    res = optimize(detMM2, k_vec; g_tol = tol^3.0, x_tol=tol)
                     if res.minimum > T(20)*tol
                         [zero(T),-one(T)]
                     else
@@ -158,7 +161,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
                 end
 
                 new_targets = [
-                        (findmin([norm(h - kvec) for kvec in k_vecs])[1] > 5*tol)? h : [zero(T),-one(T)]
+                        (findmin([norm(h - kvec) for kvec in k_vecs])[1] > 10*tol)? h : [zero(T),-one(T)]
                 for h in new_targets]
                 new_targets = reduce_kvecs(new_targets, tol)
 

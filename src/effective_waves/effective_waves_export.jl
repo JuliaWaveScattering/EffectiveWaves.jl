@@ -2,7 +2,7 @@
 
 export far_field_pattern, pair_field_pattern, diff_far_field_pattern
 
-export wavenumbers_path, wavenumbers_mesh
+export wavenumbers_path, wavenumbers_mesh, reduce_kvecs
 
 export wavenumber_challis, one_species_low_wavenumber,
         two_species_approx_wavenumber
