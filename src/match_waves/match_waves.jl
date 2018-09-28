@@ -43,9 +43,11 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
     if first(x) == - one(T)
         # using non-dimensional wave_non_effs and a12k results in non-dimensional mesh X
         L_match, X =  x_mesh_match(wave_non_effs; a12 = a12k, tol = tol, max_size=max_size)
-    elseif L_match == 0
+    else
         X = x.*k
-        L_match = Int(round(length(X)/2))
+        if L_match == 0
+            L_match = Int(round(length(X)/2))
+        end
     end
 
     avg_wave_effs = [AverageWave(X[L_match:L_match+1], w) for w in wave_non_effs]

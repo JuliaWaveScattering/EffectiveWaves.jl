@@ -40,8 +40,14 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
         k_vecs = [optimize(detMM2, kvec; x_tol=low_tol, g_tol = low_tol^3).minimizer for kvec in k_vecs]
         k_vecs = reduce_kvecs(k_vecs, low_tol/10)
 
-        k_vecs = [optimize(detMM2, kvec; g_tol = tol^3.0, x_tol=tol).minimizer for kvec in k_vecs]
-        # k_vecs = [optimize(detMM2, kvec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol).minimizer for kvec in k_vecs]
+        k_vecs = map(k_vecs) do k_vec
+           res = optimize(detMM2, k_vec; g_tol = tol^3.0, x_tol=tol)
+           if res.minimum > T(20)*tol
+               [zero(T),-one(T)]
+           else
+               res.minimizer
+           end
+        end
         k_vecs = reduce_kvecs(k_vecs, tol)
 
         # Delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.

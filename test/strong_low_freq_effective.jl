@@ -13,6 +13,8 @@
 
     k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
     # small mesh_size keeps all solutions close to the initial guess
+    wavenumbers_path(ω, medium, species; tol = tol, num_wavenumbers=1)
+
     k_effs_arr = [
         wavenumbers(ω, medium, species; tol=tol, num_wavenumbers=1)
     for ω in ωs]
