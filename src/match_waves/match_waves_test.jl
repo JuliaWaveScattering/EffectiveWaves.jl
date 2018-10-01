@@ -7,7 +7,7 @@ using EffectiveWaves
 medium = Medium(1.0,1.0+0.0im)
 specie = Specie(ρ=0.1, r=0.4, c=0.1, volfrac=0.04)
 specie = Specie(ρ=0.2, r=0.4, c=0.2, volfrac=0.2)
-specie = Specie(ρ=20.0, r=0.4, c=20.0, volfrac=0.10)
+# specie = Specie(ρ=20.0, r=0.4, c=20.0, volfrac=0.10)
 species = [specie]
 
 k = 0.4
@@ -28,13 +28,28 @@ hankel_order = ho
 #  inbetween 6 and 8 is 0.05%
 a12 = radius_multiplier*2.0*specie.r
 num_wavenumbers = 90;
-num_wavenumbers = 30;
+num_wavenumbers = 60;
 # X = 0.0:(a12k/31):15.
 # X = 0.0:0.04:12.
+
+# path_ks = wavenumbers_path(ω, medium, [specie];
+#     hankel_order=ho, tol = 1e-7,  θin = θin, verbose = true,
+#     num_wavenumbers = num_wavenumbers,
+#     radius_multiplier = radius_multiplier, mesh_refine = 0.4, mesh_points = 12, mesh_size=3.0
+#     );
+#
+# mesh_ks = wavenumbers_mesh(ω, path_ks, medium, [specie];
+#     hankel_order=ho, tol = 1e-7,  θin = θin, verbose = true,
+#     num_wavenumbers = num_wavenumbers,
+#     radius_multiplier = radius_multiplier, mesh_refine = 0.4, mesh_points = 10, mesh_size=2.0
+#     );
+
+
 
 wave_effs = effective_waves(ω, medium, [specie];
     hankel_order=ho, tol = 1e-7,  θin = θin, verbose = true,
     num_wavenumbers = num_wavenumbers,
+    apply_meshing = true,
     radius_multiplier = radius_multiplier, mesh_refine = 0.4, mesh_points = 10, mesh_size=2.0#, max_Rek = 20.0, max_Imk = 20.0
     , extinction_rescale = false
     )

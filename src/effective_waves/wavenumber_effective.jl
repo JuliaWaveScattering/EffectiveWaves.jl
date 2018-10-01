@@ -21,7 +21,7 @@ include("wavenumber_single.jl")
 " Returns all the transmitted effective wavenumbers"
 wavenumbers(ω::T, medium::Medium{T}, specie::Specie{T}; kws...) where T<:Number = wavenumbers(ω, medium, [specie]; kws...)
 
-function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; apply_meshing::Bool = true, kws...) where T<:Number
+function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; apply_meshing::Bool = false, kws...) where T<:Number
     k_effs = wavenumbers_path(ω, medium, species; kws...)
     if length(k_effs) > 1 && apply_meshing
         k_effs = wavenumbers_mesh(ω, k_effs, medium, species; kws...)

@@ -30,8 +30,8 @@ end
         ylab --> "Im k_eff"
         seriestype --> :scatter
         label --> "wavenumber k_eff"
-        markercolor --> :blue
-        markerstrokealpha --> alphas
+        # markercolor --> :blue
+        # markerstrokealpha --> alphas
         (real.(k_effs), imag.(k_effs))
     end
 end
