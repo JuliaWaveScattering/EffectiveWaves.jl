@@ -44,6 +44,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
         k_vecs = reduce_kvecs(k_vecs, tol)
 
         # Delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
+        deleteat!(k_vecs, find(detMM2.(k_vecs) .> low_tol))
         deleteat!(k_vecs, find(k_vec[2] < -T(10)*tol for k_vec in k_vecs))
         deleteat!(k_vecs, find(k_vec[2] < tol && k_vec[1] < tol for k_vec in k_vecs))
 
