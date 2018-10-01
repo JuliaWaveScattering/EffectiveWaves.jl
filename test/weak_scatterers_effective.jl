@@ -31,14 +31,14 @@
     wave_effs_φs = [EffectiveWave(ωs[i], k_eff_φs[i], medium, species; tol = 1e-9) for i in eachindex(ωs)]
 
     # reflection coefficient
-    Rs2 = reflection_coefficients(ωs, medium, species; tol=1e-8, num_wavenumbers=1)
+    Rs2 = reflection_coefficients(ωs, medium, species; tol=1e-9, num_wavenumbers=1)
 
     # if the wavenumber k_effs are already calculated, the below is faster
     # pairs each ω in ωs with each wave in wave_effs2 to calculate the refleciton coefficients
 
     Rs = map(eachindex(ωs)) do i
         w_effs = [EffectiveWave(ωs[i], k_eff, medium, species; tol = 1e-9) for k_eff in k_effs[i]]
-        reflection_coefficient(ωs[i], w_effs, medium, species)
+        reflection_coefficient(ωs[i], w_effs, medium, species; tol = 1e-9)
     end
 
     @test norm(Rs - Rs2)/norm(Rs) < 5e-6

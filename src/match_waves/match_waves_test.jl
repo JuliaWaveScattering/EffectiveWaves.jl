@@ -1,7 +1,7 @@
 using EffectiveWaves
-using OffsetArrays
-using Plots; pyplot()
-Plots.scalefontsizes(1.5)
+# using OffsetArrays
+# using Plots; pyplot()
+# Plots.scalefontsizes(1.5)
 
 # physical parameters
 medium = Medium(1.0,1.0+0.0im)
@@ -26,35 +26,46 @@ hankel_order = ho
 # for X = 0.0:0.05:12. the relative convergence error for
 # Specie(ρ=0.5, r=0.5, c=0.2, volfrac=0.1), k = 0.8, and θin = 0.0,
 #  inbetween 6 and 8 is 0.05%
-a12k = k*radius_multiplier*2.0*specie.r
+a12 = radius_multiplier*2.0*specie.r
+num_wavenumbers = 90;
+num_wavenumbers = 30;
 # X = 0.0:(a12k/31):15.
 # X = 0.0:0.04:12.
 
 wave_effs = effective_waves(ω, medium, [specie];
-    hankel_order=ho, tol = 1e-7,  θin = θin,
-    radius_multiplier = radius_multiplier, mesh_points = 12, num_wavenumbers = 10#, max_Rek = 20.0, max_Imk = 20.0
+    hankel_order=ho, tol = 1e-7,  θin = θin, verbose = true,
+    num_wavenumbers = num_wavenumbers,
+    radius_multiplier = radius_multiplier, mesh_refine = 0.4, mesh_points = 10, mesh_size=2.0#, max_Rek = 20.0, max_Imk = 20.0
     , extinction_rescale = false
     )
-# plot(wave_effs)
 
-collect(x_mesh_match(wave_effs[1:5])[2])
+using Plots; pyplot()
+plot(wave_effs)
+plot!(wave_effs[1:num_wavenumbers], markercolor=:red)
+
+collect(x_mesh_match(wave_effs[1:num_wavenumbers])[2])
 
 # Calculate discretised average wave directly from governing equations
-avg_wave_x = AverageWave(ω, medium, specie; hankel_order=ho, θin=θin, wave_effs = wave_effs[1:6],
-    radius_multiplier = radius_multiplier, tol = 1e-6, max_size=900)
+avg_wave_x = AverageWave(ω, medium, specie; hankel_order=ho, θin=θin, wave_effs = wave_effs[1:num_wavenumbers],
+    radius_multiplier = radius_multiplier, tol = 1e-8, max_size=1200)
 X = avg_wave_x.x.*k
 # x = X./k
 
-# scatter(avg_wave_x, hankel_indexes = 0:0)
 scatter(avg_wave_x)
+# scatter!(avg_wave_x, hankel_indexes = 0:ho, apply=abs)
+
+L, x = x_mesh_match(wave_effs[1:num_wavenumbers]; a12 = a12, max_size = 220, tol=1e-8);
+x = x[1:Int(round(length(x)/3))]
 
 match_w = MatchWave(ω, medium, specie;
+    x = x, L_match = 15,
     radius_multiplier = radius_multiplier,
-    hankel_order=ho, max_size=100,
-    tol = 1e-7, θin = θin, wave_effs = wave_effs[1:6]);
+    hankel_order=ho,
+    tol = 1e-7, θin = θin, wave_effs = wave_effs[1:num_wavenumbers]);
 
-plot(avg_wave_x)
-plot!(match_w, seriestype=:line)
+plot(match_w, hankel_indexes = 0:1)
+plot(avg_wave_x, hankel_indexes = 0:1, seriestype=:scatter, xlims = (0.,5.))
+plot!(match_w, hankel_indexes = 0:1, seriestype=:line, xlims = (0.,5.))
 
 # From effective wave theory
 k_eff0 = wavenumber_low_volfrac(ω, medium, species;
@@ -67,12 +78,11 @@ k_eff1 = wavenumbers(ω, medium, species; hankel_order=ho, tol=tol)[1]
 wave1 = EffectiveWave(ω, k_eff1, medium, species;
     θin = θin, hankel_order=ho, tol=tol)
 
-plot!(avg_wave_x.x, wave1, linestyle=:dot)
-
 R1 = reflection_coefficient(ω, wave1, medium, species; θin = θin, hankel_order=ho, tol=tol)
 R0 = reflection_coefficient(ω, wave0, medium, species; θin = θin, hankel_order=ho, tol=tol)
 Rm = reflection_coefficient(ω, match_w, medium, species[1]; θin = θin)
 Rd = reflection_coefficient(ω, avg_wave_x, medium, species[1]; θin = θin)
+
 
 avg_wave_small = AverageWave(ω, medium, specie; hankel_order=ho, θin=θin, x=match_w.average_wave.x,
     radius_multiplier = radius_multiplier, tol = 1e-6, max_size=500)
