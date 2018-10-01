@@ -29,7 +29,7 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
     max_kx = maximum(real(k1) for k1 in k_effs)
     min_kx = minimum(real(k1) for k1 in k_effs)
     max_ky = maximum(imag(k1) for k1 in k_effs)
-    min_ky = minimum(imag(k1) for k1 in k_effs)
+    min_ky = minimum(imag(k1) for k1 in k_effs[2:end])
 
     kx = linspace(min_kx, max_kx, round(length(k_effs)/(2*mesh_refine))) # tree shape makes this division by 2 natural
     ky = linspace(min_ky, max_ky, round(length(k_effs)/(2*mesh_refine)))
@@ -38,8 +38,8 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
     k_vecs = [[real(keff),imag(keff)] for keff in k_effs]
 
     # make slightly bigger box to be constrained within
-    min_kx = (min_kx < zero(T)) ? min_kx*T(1.001) : min_kx*T(0.999)
-    min_ky = (min_ky < zero(T)) ? min_ky*T(1.001) : min_ky*T(0.999)
+    min_kx = (min_kx < zero(T)) ? min_kx*T(1.1) : min_kx*T(0.9)
+    min_ky = (min_ky < zero(T)) ? min_ky*T(1.1) : min_ky*T(0.9)
     max_kx = (max_kx > zero(T)) ? max_kx*T(1.001) : max_kx*T(0.999)
     max_ky = (max_ky > zero(T)) ? max_ky*T(1.001) : max_ky*T(0.999)
 
