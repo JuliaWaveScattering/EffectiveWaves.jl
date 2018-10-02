@@ -31,10 +31,11 @@ end
         xlab --> "Re k_eff"
         ylab --> "Im k_eff"
         seriestype --> :scatter
-        label --> "wavenumber k_eff"
+        label --> ""
+        markerstrokealpha --> 0.2
         # markercolor --> :blue
-        # markerstrokealpha --> alphas
-        (real.(k_effs), imag.(k_effs))
+        markeralpha --> alphas
+        k_effs
     end
 end
 
