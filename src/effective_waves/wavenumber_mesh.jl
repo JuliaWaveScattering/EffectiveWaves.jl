@@ -1,10 +1,14 @@
 function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, species::Vector{Specie{T}};
         tol::T = 1e-6,
         hankel_order::Int = maximum_hankel_order(ω, medium, species; tol=tol),
-        mesh_refine::T = T(0.5),
+        mesh_refine::T = T(0.4),
         verbose::Bool = false,
         radius_multiplier::T = T(1.005),
         t_vecs::Vector{Vector{Complex{T}}} = t_vectors(ω, medium, species; hankel_order = hankel_order),
+        max_Rek::T = maximum(real(k1) for k1 in k_effs),
+        min_Rek::T = minimum(real(k1) for k1 in k_effs),
+        max_Imk::T = maximum(imag(k1) for k1 in k_effs),
+        min_Imk::T = minimum(imag(k1) for k1 in k_effs[2:end]),
         kws...) where T<:Number
 
     k = ω/medium.c
@@ -26,26 +30,21 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
 
     low_tol = max(1e-4, tol)*minimum( (k1 == k2) ? Inf : abs(k1-k2) for k1 in k_effs, k2 in k_effs) # a tolerance used for a first pass with time_limit
 
-    max_kx = maximum(real(k1) for k1 in k_effs)
-    min_kx = minimum(real(k1) for k1 in k_effs)
-    max_ky = maximum(imag(k1) for k1 in k_effs)
-    min_ky = minimum(imag(k1) for k1 in k_effs[2:end])
-
-    kx = linspace(min_kx, max_kx, round(length(k_effs)/(2*mesh_refine))) # tree shape makes this division by 2 natural
-    ky = linspace(min_ky, max_ky, round(length(k_effs)/(2*mesh_refine)))
+    kx = linspace(min_Rek, max_Rek, round(length(k_effs)/(2*mesh_refine))) # tree shape makes this division by 2 natural
+    ky = linspace(min_Imk, max_Imk, round(length(k_effs)/(2*mesh_refine)))
     k_mesh = [[x,y] for x in kx, y in ky][:]
 
     k_vecs = [[real(keff),imag(keff)] for keff in k_effs]
 
     # make slightly bigger box to be constrained within
-    min_kx = (min_kx < zero(T)) ? min_kx*T(1.1) : min_kx*T(0.9)
-    min_ky = (min_ky < zero(T)) ? min_ky*T(1.1) : min_ky*T(0.9)
-    max_kx = (max_kx > zero(T)) ? max_kx*T(1.001) : max_kx*T(0.999)
-    max_ky = (max_ky > zero(T)) ? max_ky*T(1.001) : max_ky*T(0.999)
+    min_Rek = (min_Rek < zero(T)) ? min_Rek*T(1.1) : min_Rek*T(0.9)
+    min_Imk = (min_Imk < zero(T)) ? min_Imk*T(1.1) : min_Imk*T(0.9)
+    max_Rek = (max_Rek > zero(T)) ? max_Rek*T(1.001) : max_Rek*T(0.999)
+    max_Imk = (max_Imk > zero(T)) ? max_Imk*T(1.001) : max_Imk*T(0.999)
 
     # Find all wavenumbers
-    lower = [min_kx, min_ky]
-    upper = [max_kx, max_ky]
+    lower = [min_Rek, min_Imk]
+    upper = [max_Rek, max_Imk]
     new_ks = [optimize(detMM2, kvec, lower, upper; x_tol=low_tol, g_tol = low_tol^3).minimizer for kvec in k_mesh]
     deleteat!(new_ks, find(detMM2.(new_ks) .> low_tol))
     new_ks = reduce_kvecs(new_ks, low_tol/10)
