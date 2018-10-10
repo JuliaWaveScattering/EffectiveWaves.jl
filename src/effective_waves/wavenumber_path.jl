@@ -1,7 +1,7 @@
 function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::T = 1e-6,
         hankel_order::Int = maximum_hankel_order(ω, medium, species; tol=tol),
         mesh_points::Int = 2, mesh_size::T = one(T),
-        num_wavenumbers::Int = 3,
+        num_wavenumbers = 3,
         radius_multiplier::T = T(1.005),
         t_vecs::Vector{Vector{Complex{T}}} = t_vectors(ω, medium, species; hankel_order = hankel_order),
         verbose::Bool = false,
@@ -23,8 +23,8 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
         [M_component(keff,j,l,m,n) for m in -ho:ho, j = 1:S, n in -ho:ho, l = 1:S]
     , ((2ho+1)*S, (2ho+1)*S))
 
-    # the constraint uses keff_vec[2] < -tol to better specify solutions where imag(k_effs)<0
-    constraint(keff_vec::Array{T}) = ( (keff_vec[2] < -tol) ? one(T):zero(T))*(-1 + exp(-T(100.0)*keff_vec[2]))
+    # the constraint uses keff_vec[2] < -low_tol to better specify solutions where imag(k_effs)<0
+    constraint(keff_vec::Array{T}) = ( (keff_vec[2] < -low_tol) ? one(T):zero(T))*(-1 + exp(-T(100.0)*keff_vec[2]))
     detMM2(keff_vec::Array{T}) =  constraint(keff_vec) + map(x -> real(x*conj(x)), det(MM(keff_vec[1]+im*keff_vec[2])))
 
     # find at least one root to use as a scale for dk_x and dk_y
@@ -52,8 +52,10 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
 
         # Delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
         deleteat!(k_vecs, find(detMM2.(k_vecs) .> low_tol))
-        deleteat!(k_vecs, find(k_vec[2] < -T(10)*tol for k_vec in k_vecs))
-        deleteat!(k_vecs, find(k_vec[2] < tol && k_vec[1] < tol for k_vec in k_vecs))
+        deleteat!(k_vecs, find(k_vec[2] < -sqrt(tol) for k_vec in k_vecs))
+        # delete wave travelling in wrong direction with small attenuation
+        deleteat!(k_vecs, find( -low_tol < abs(k_vec[2])/k_vec[1] < zero(T) for k_vec in k_vecs))
+        # deleteat!(k_vecs, find(k_vec[2] < tol && k_vec[1] < tol for k_vec in k_vecs))
 
     sort!(k_vecs, by= kv -> kv[2])
     dk_x = abs(k_vecs[1][1]) * mesh_size
@@ -138,11 +140,6 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
                 mesh = vcat(meshes...)
                 deleteat!(mesh, find(vec[2] < 0 for vec in mesh))
 
-# scatter([m[1] for m in mesh], [m[2] for m in mesh], markeralpha=0.7);
-# scatter!([targets[1][1]], [targets[1][2]]);
-# scatter!([m[1] for m in k_vecs[[i,j]]], [m[2] for m in k_vecs[[i,j]]])
-# scatter!([m[1] for m in k_vecs], [m[2] for m in k_vecs])
-
             # search for roots from this mesh
                 new_targets = map(mesh) do kin
                    optimize(detMM2, kin; x_tol = low_tol, g_tol = low_tol^3).minimizer
@@ -181,8 +178,10 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
         end
 
     # Finally delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
-    deleteat!(k_vecs, find(k_vec[2] < -T(10)*tol for k_vec in k_vecs))
-    deleteat!(k_vecs, find(k_vec[2] < tol && k_vec[1] < tol for k_vec in k_vecs))
+    # deleteat!(k_vecs, find(k_vec[2] < -T(10)*tol for k_vec in k_vecs))
+    deleteat!(k_vecs, find(k_vec[2] < -sqrt(tol) for k_vec in k_vecs))
+    # deleteat!(k_vecs, find(k_vec[2] < tol && k_vec[1] < tol for k_vec in k_vecs))
+    deleteat!(k_vecs, find( -low_tol < abs(k_vec[2])/k_vec[1] < zero(T) for k_vec in k_vecs))
 
     k_effs = [ k_vec[1] + k_vec[2]*im for k_vec in k_vecs]
     k_effs = sort(k_effs, by=imag)

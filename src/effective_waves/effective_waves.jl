@@ -12,7 +12,7 @@ effective_waves(ω::T, medium::Medium{T}, specie::Specie{T}; kws...) where T<:Ab
 
 function effective_waves(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::T = 1e-6, kws...) where T<:AbstractFloat
 
-    k_effs = wavenumbers(ω, medium, species; tol = tol/T(10), kws... )
+    k_effs = wavenumbers(ω, medium, species; tol = tol, kws... )
     wave_effs = [
         EffectiveWave(ω, k_eff, medium, species; tol = tol, kws...)
     for k_eff in k_effs]
