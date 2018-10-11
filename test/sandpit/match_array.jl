@@ -1,7 +1,8 @@
 import Base.Test: @testset, @test, @test_throws
 using OffsetArrays
+using EffectiveWaves
 
-include("../src/match_waves/match_arrays.jl")
+include("match_and_extinction.jl")
 
 medium = Medium(1.0,1.0+0.0im)
 specie = Specie(ρ=0.2, r=0.4, c=0.2, volfrac=0.2)

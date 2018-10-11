@@ -7,7 +7,7 @@ export wavenumbers_path, wavenumbers_mesh, reduce_kvecs
 export wavenumber_challis, one_species_low_wavenumber,
         two_species_approx_wavenumber
 
-export opt_methods, optimal_species, gray_square!, gray_square
+export gray_square!, gray_square
 
 export reflection_coefficient_low_volfrac, wavenumber_low_volfrac, wavenumber_very_low_volfrac
 
@@ -23,5 +23,3 @@ include("low_frequency.jl")
 include("low_volfrac.jl")
 include("alternative_wavenumbers.jl")
 include("two_species_approximate.jl")
-
-include("optimise_wavenumber.jl")

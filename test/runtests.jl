@@ -21,9 +21,12 @@ include("strong_low_freq_effective.jl")
 include("high_frequency_effective.jl")
 
 include("large_vol_low_freq_effective.jl")
-# too heavy a test..
+# A heavy test..
 include("weak_scatterers_effective.jl")
 
+include("path_mesh_wavenumbers.jl")
+
+include("numerical_integration.jl")
 include("integrated_reflection.jl")
 include("average_integrand_kernel.jl")
 include("match_wave.jl")

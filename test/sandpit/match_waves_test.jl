@@ -124,7 +124,7 @@ for i in eachindex(k_effs)[2:end]
     wave_effs[i].amplitudes = wave_effs[i].amplitudes * exp(-im*k_effs[i]*cos(wave_effs[i].θ_eff)*X_match[1]/k) / norm(wave_effs[i].amplitudes)
 end
 
-include("match_waves.jl")
+include("match_and_extinction.jl")
 
 Y = match_only_arrays(ω, wave_effs, L, X[1:J], medium, [specie]; θin = θin)
 (w_vec, G_arr) = extinc_arrays(ω, wave_effs, L, X[1:J], medium, [specie]; θin = θin)

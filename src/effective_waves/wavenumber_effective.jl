@@ -16,7 +16,7 @@ function reduce_kvecs(vecs::Vector{Vector{T}},tol::T) where T<:AbstractFloat
 end
 
 # include depricated function to find a single effective wavenumber, when in fact there are many. The code is still used in tests and gives many correct results
-include("wavenumber_single.jl")
+# include("wavenumber_single.jl")
 
 " Returns all the transmitted effective wavenumbers"
 wavenumbers(ω::T, medium::Medium{T}, specie::Specie{T}; kws...) where T<:Number = wavenumbers(ω, medium, [specie]; kws...)

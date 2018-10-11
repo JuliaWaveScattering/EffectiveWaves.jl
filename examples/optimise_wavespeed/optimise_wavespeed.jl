@@ -2,6 +2,8 @@ using EffectiveWaves
 
 using JLD
 
+include("optimise_wavenumber.jl")
+
 medium = Medium{Float64}(1.0,1.)
 ωs = 0.01:0.01:1.0
 MaxTime = 10000.0
