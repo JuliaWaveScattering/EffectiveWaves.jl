@@ -1,6 +1,6 @@
 "A type for the ensemble average scattering coefficients.
 Here they are discretised in terms of the depth x of the halfspace"
-type AverageWave{T<:AbstractFloat}
+mutable struct AverageWave{T<:AbstractFloat}
     hankel_order::Int # largest hankel order
     x::Vector{T} # spatial mesh
     amplitudes::Array{Complex{T}} # a matrix of the scattering amplitudes, size(A_mat) = (length(x), 2hankel_order +1)

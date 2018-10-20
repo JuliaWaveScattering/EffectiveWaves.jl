@@ -1,12 +1,12 @@
 "A circular or spherical species of particles with homogenious material properties"
-type Specie{T<:Real}
+mutable struct Specie{T<:Real}
   ρ::T # density
   r::T # radius
   c::Complex{T} # sound speed
   num_density::T # number density
 end
 
-type Medium{T}
+mutable struct Medium{T}
   ρ::T # density
   c::Complex{T} # sound speed
 end
@@ -17,7 +17,7 @@ volume_fraction(sp::Specie) = sp.r^2*sp.num_density*pi
 "Returns pressure wave speed, when β is the adiabatic bulk modulus"
 p_speed(ρ,β,μ) = sqrt(β+4*μ/3)/sqrt(ρ)
 
-function Specie{T}(ρ::T, r::T, c=one(Complex{T}); volfrac::T=0.1*one(T))
+function Specie(ρ::T, r::T, c=one(Complex{T}); volfrac::T=0.1*one(T)) where T <: AbstractFloat
   Specie{T}(ρ,r,c,volfrac/(T(pi)*r^2.0))
 end
 
@@ -116,7 +116,7 @@ function Zn(ω::Complex{T}, p::Specie{T}, med::Medium{T},  m::Int) where T<: Num
 end
 
 "Derivative of Hankel function of the first kind"
-function diffhankelh1(n,z)
+function diffhankelh1(n::Int,z)
   if n!=0
     0.5*(hankelh1(-1 + n, z) - hankelh1(1 + n, z))
   else

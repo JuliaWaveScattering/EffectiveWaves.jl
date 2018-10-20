@@ -50,7 +50,7 @@ function wavenumber(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol = 
         [M(keff,j,l,m,n) for m in -ho:ho, j = 1:S, n in -ho:ho, l = 1:S]
     , ((2ho+1)*S, (2ho+1)*S))
 
-    constraint(keff_vec::Array{T}) = ( (keff_vec[2] < zero(T)) ? one(T):zero(T))*(-1 + exp(-T(100.0)*keff_vec[2]))
+    constraint(keff_vec::Array{T}) = ( (keff_vec[2] < zero(T)) ? one(T) : zero(T))*(-1 + exp(-T(100.0)*keff_vec[2]))
     detMM2(keff_vec::Array{T}) =  constraint(keff_vec) + map(x -> real(x*conj(x)), det(MM(keff_vec[1]+im*keff_vec[2])))
 
     #Note that there is not a unique effective wavenumber. The root closest to k_eff = 0.0 + 0.0im seems to be the right one, the others lead to strange transmission angles and large amplitudes As.

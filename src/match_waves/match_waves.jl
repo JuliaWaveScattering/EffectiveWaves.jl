@@ -1,5 +1,5 @@
 "A type for matched waves."
-type MatchWave{T<:AbstractFloat}
+mutable struct MatchWave{T<:AbstractFloat}
     effective_waves::Vector{EffectiveWave{T}}
     average_wave::AverageWave{T}
     x_match::Vector{T} # waves are matched between average_wave.x_match

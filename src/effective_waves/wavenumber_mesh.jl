@@ -17,7 +17,7 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
 
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
     function M_component(keff,j,l,m,n)
-        (n==m ? 1.0:0.0)*(j==l ? 1.0:0.0) + 2.0pi*species[l].num_density*t_vecs[l][n+ho+1]*
+        (n == m ? 1.0 : 0.0)*(j == l ? 1.0 : 0.0) + 2.0pi*species[l].num_density*t_vecs[l][n+ho+1]*
             Nn(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
     end
 
@@ -51,7 +51,7 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
 
     # only keep targets which are not already in k_vecs
     new_ks = [
-            (findmin([norm(h - kvec) for kvec in k_vecs])[1] > low_tol)? h : [zero(T),-one(T)]
+            (findmin([norm(h - kvec) for kvec in k_vecs])[1] > low_tol) ? h : [zero(T),-one(T)]
     for h in new_ks]
     new_ks = reduce_kvecs(new_ks, low_tol)
 
@@ -67,7 +67,7 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
     end
 
     new_ks = [
-            (findmin([norm(h - kvec) for kvec in k_vecs])[1] > 10*tol)? h : [zero(T),-one(T)]
+            (findmin([norm(h - kvec) for kvec in k_vecs])[1] > 10*tol) ? h : [zero(T),-one(T)]
     for h in new_ks]
     new_ks = reduce_kvecs(new_ks, tol)
 
@@ -102,7 +102,7 @@ function wavenumbers_mesh_search(ω::T, medium::Medium{T}, species::Vector{Speci
 
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
     function M_component(keff,j,l,m,n)
-        (n==m ? 1.0:0.0)*(j==l ? 1.0:0.0) + 2.0pi*species[l].num_density*t_vecs[l][n+ho+1]*
+        (n == m ? 1.0 : 0.0)*(j == l ? 1.0 : 0.0) + 2.0pi*species[l].num_density*t_vecs[l][n+ho+1]*
             Nn(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
     end
 
@@ -112,7 +112,7 @@ function wavenumbers_mesh_search(ω::T, medium::Medium{T}, species::Vector{Speci
     , ((2ho+1)*S, (2ho+1)*S))
 
     # the constraint uses keff_vec[2] < -tol to better specify solutions where imag(k_effs)<0
-    constraint(keff_vec::Array{T}) = ( (keff_vec[2] < -tol) ? one(T):zero(T))*(-1 + exp(-T(100.0)*keff_vec[2]))
+    constraint(keff_vec::Array{T}) = ( (keff_vec[2] < -tol) ? one(T) : zero(T))*(-1 + exp(-T(100.0)*keff_vec[2]))
     detMM2(keff_vec::Array{T}) =  constraint(keff_vec) + map(x -> real(x*conj(x)), det(MM(keff_vec[1]+im*keff_vec[2])))
 
     kφ = wavenumber_low_volfrac(ω, medium, species; verbose = false)

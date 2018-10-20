@@ -14,7 +14,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
 
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
     function M_component(keff,j,l,m,n)
-        (n==m ? 1.0:0.0)*(j==l ? 1.0:0.0) + 2.0pi*species[l].num_density*t_vecs[l][m+ho+1]*
+        (n == m ? 1.0 : 0.0)*(j == l ? 1.0 : 0.0) + 2.0pi*species[l].num_density*t_vecs[l][m+ho+1]*
             Nn(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
     end
 
@@ -24,7 +24,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
     , ((2ho+1)*S, (2ho+1)*S))
 
     # the constraint uses keff_vec[2] < -low_tol to better specify solutions where imag(k_effs)<0
-    constraint(keff_vec::Array{T}) = ( (keff_vec[2] < -low_tol) ? one(T):zero(T))*(-1 + exp(-T(100.0)*keff_vec[2]))
+    constraint(keff_vec::Array{T}) = ( (keff_vec[2] < -low_tol) ? one(T) : zero(T))*(-1 + exp(-T(100.0)*keff_vec[2]))
     detMM2(keff_vec::Array{T}) =  constraint(keff_vec) + map(x -> real(x*conj(x)), det(MM(keff_vec[1]+im*keff_vec[2])))
 
     # find at least one root to use as a scale for dk_x and dk_y
@@ -119,11 +119,11 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
                 if verbose println("\n New target: $(targets[1])") end
 
             # find closest neighbour with smaller imaginary part
-                i = findmin((targets[1][2] != kvec[2])? norm(targets[1] - kvec) : Inf for kvec in k_vecs)[2]
+                i = findmin((targets[1][2] != kvec[2]) ? norm(targets[1] - kvec) : Inf for kvec in k_vecs)[2]
                 # find at least one neighbour below, as the tree is growing
                 j = (targets[1][2] > k_vecs[i][2]) ?
-                    findmin((targets[1][2] != kvec[2] && kvec[2] != k_vecs[i][2])? norm(targets[1] - kvec) : Inf for kvec in k_vecs)[2] :
-                    findmin((targets[1][2] > kvec[2] && kvec[2] != k_vecs[i][2])? norm(targets[1] - kvec) : Inf for kvec in k_vecs)[2]
+                    findmin((targets[1][2] != kvec[2] && kvec[2] != k_vecs[i][2]) ? norm(targets[1] - kvec) : Inf for kvec in k_vecs)[2] :
+                    findmin((targets[1][2] > kvec[2] && kvec[2] != k_vecs[i][2]) ? norm(targets[1] - kvec) : Inf for kvec in k_vecs)[2]
                 if j == Inf j = i end
 
                 if verbose println("Closest neighbours: $(k_vecs[i]) and $(k_vecs[j])") end
@@ -149,7 +149,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
 
                 # only keep targets which are not already in k_vecs
                 new_targets = [
-                        (findmin([norm(h - kvec) for kvec in k_vecs])[1] > low_tol)? h : [zero(T),-one(T)]
+                        (findmin([norm(h - kvec) for kvec in k_vecs])[1] > low_tol) ? h : [zero(T),-one(T)]
                 for h in new_targets]
                 new_targets = reduce_kvecs(new_targets, low_tol)
 
@@ -165,7 +165,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
                 end
 
                 new_targets = [
-                        (findmin([norm(h - kvec) for kvec in k_vecs])[1] > 10*tol)? h : [zero(T),-one(T)]
+                        (findmin([norm(h - kvec) for kvec in k_vecs])[1] > 10*tol) ? h : [zero(T),-one(T)]
                 for h in new_targets]
                 new_targets = reduce_kvecs(new_targets, tol)
 
