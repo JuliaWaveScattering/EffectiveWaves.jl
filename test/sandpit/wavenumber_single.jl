@@ -17,7 +17,7 @@ function wavenumber(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol = 
         radius_multiplier = 1.005,
         kws...) where T<:Number
 
-    warn("This function is now depricated as it's too unstable. Use wavenumbers(ω::T, medium::Medium{T}, Vector{Specie{T}}), which will return many effective wavenumbers.")
+    @warn("This function is now depricated as it's too unstable. Use wavenumbers(ω::T, medium::Medium{T}, Vector{Specie{T}}), which will return many effective wavenumbers.")
     k = ω/medium.c
     S = length(species)
     ho = hankel_order
@@ -58,7 +58,7 @@ function wavenumber(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol = 
     if !(result.f_converged || result.x_converged || result.g_converged) # if nothing converged
         result = optimize(detMM2, [0.,0.];  g_tol = tol^2.0, f_tol = tol^4.0)
         if !(result.f_converged || result.x_converged || result.g_converged)
-            warn("Local optimisation did not converge")
+            @warn("Local optimisation did not converge")
         end
     end
     # Check result
@@ -66,9 +66,9 @@ function wavenumber(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol = 
     # in case wave travelling opposite direction was found
     if imag(k_eff) < zero(T) k_eff = - k_eff end
     MM_svd = svd(MM(k_eff))
-    if last(MM_svd[2]) > T(4)*tol
-        warn("Local optimisation was unsucessful at finding an effective wavenumber for ω = $ω and max(radius)*k = $(abs(r*k)).")
-        warn("$(last(MM_svd[2])) was the smallest eigenvalue value (should be zero) of the effective wavenumber matrix equation.")
+    if last(MM_svd.S) > T(4)*tol
+        @warn("Local optimisation was unsucessful at finding an effective wavenumber for ω = $ω and max(radius)*k = $(abs(r*k)).")
+        @warn("$(last(MM_svd.S)) was the smallest eigenvalue value (should be zero) of the effective wavenumber matrix equation.")
     end
 
     return k_eff

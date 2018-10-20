@@ -67,7 +67,7 @@ end
 
 "pre-calculate a matrix of Zn's"
 function Zn_matrix(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; hankel_order = 3) where T <: Number
-    Zs = OffsetArray{Complex{T}}(1:length(species), -hankel_order:hankel_order)
+    Zs = OffsetArray{Complex{T}}(undef, 1:length(species), -hankel_order:hankel_order)
     for i = 1:length(species), n = 0:hankel_order
         Zs[i,n] = Zn(ω,species[i],medium,n)
         Zs[i,-n] = Zs[i,n]
@@ -79,7 +79,7 @@ Zn(ω::T, p::Specie{T}, med::Medium{T}, m::Int) where T<: Number = Zn(Complex{T}
 
 "Returns a ratio used in multiple scattering which reflects the material properties of the particles"
 function Zn(ω::Complex{T}, p::Specie{T}, med::Medium{T},  m::Int) where T<: Number
-    m = T(abs(m))
+    m = abs(m)
     ak = p.r*ω/med.c
     # check for material properties that don't make sense or haven't been implemented
     if abs(p.c*p.ρ) == T(NaN)
@@ -116,7 +116,7 @@ function Zn(ω::Complex{T}, p::Specie{T}, med::Medium{T},  m::Int) where T<: Num
 end
 
 "Derivative of Hankel function of the first kind"
-function diffhankelh1(n::Int,z)
+function diffhankelh1(n,z)
   if n!=0
     0.5*(hankelh1(-1 + n, z) - hankelh1(1 + n, z))
   else

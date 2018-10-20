@@ -13,7 +13,7 @@ using EffectiveWaves
   inclusion2 = Brick
 
   ωfactor = 50.0;
-  ωs = ωfactor.*linspace(real(medium.c/10000),real(medium.c),100) # k from 0 to 1
+  ωs = ωfactor.*LinRange(real(medium.c/10000),real(medium.c),100) # k from 0 to 1
 
   volfrac = 0.16
   r1 = 0.1/ωfactor; vol1 = 0.06
@@ -22,7 +22,7 @@ using EffectiveWaves
   sp1 = Specie(ρ=inclusion1.ρ ,r=r1, c=inclusion1.c, volfrac = vol1)
   sp2 = Specie(ρ=inclusion2.ρ ,r=r2, c=inclusion2.c, volfrac = volfrac-vol1)
 
-  # True wavenumber
+  # True low partilce volume fraction wavenumber
   kTs  = wavenumber_low_volfrac(ωs, medium, [sp1,sp2]);
   # Approximate wavenumber
   kTLSs = two_species_approx_wavenumber(ωs, medium, [sp1,sp2]);
@@ -31,7 +31,7 @@ using EffectiveWaves
 
   kTs_arr = [kTs,kTLSs,kTCs];
   speed_arr = [ ωs./real(ks) for ks in kTs_arr];
-  push!(speed_arr, 0.*ωs + real(medium.c))
+  push!(speed_arr, 0 .*ωs .+ real(medium.c))
   atten_arr = imag.(kTs_arr)
 
   # styles = [:solid :dashdot :dashdot :dot]
@@ -66,7 +66,7 @@ using EffectiveWaves
   # gui()
 
 ## Zoomed in version
-  ωs = linspace(ωs[1],ωs[m],250) # k from 0 to 1
+  ωs = LinRange(ωs[1],ωs[m],250) # k from 0 to 1
   m = length(ωs);
   kTs  = wavenumber_low_volfrac(ωs, medium, [sp1,sp2]);
   kTLSs = two_species_approx_wavenumber(ωs, medium, [sp1,sp2]);

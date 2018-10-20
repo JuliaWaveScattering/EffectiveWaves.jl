@@ -29,6 +29,7 @@ export  Brick, IronArmco, LeadAnnealed, RubberGum, FusedSilica, GlassPyrex,
 
 import Base.isequal, Base.(==), Base.zero
 import SpecialFunctions: besselj, hankelh1
+import Statistics: mean, std
 
 # try using BlackBoxOptim end
 # using IterTools
@@ -36,6 +37,7 @@ using RecipesBase
 using Optim
 using OffsetArrays
 using ApproxFun
+using LinearAlgebra
 
 # using RecipesBase # Have not really needed yet
 

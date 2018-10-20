@@ -13,8 +13,8 @@ height=500
   medium = LimeStone
   inclusion1 = AirDry
   inclusion2 = Brick
-  ωs = linspace(real(medium.c/10000),real(medium.c),100) # k from 0 to 1
-  # ωs = linspace(real(medium.c/10000),real(medium.c/1000),100) # k from 0 to 1
+  ωs = LinRange(real(medium.c/10000),real(medium.c),100) # k from 0 to 1
+  # ωs = LinRange(real(medium.c/10000),real(medium.c/1000),100) # k from 0 to 1
 
   volfrac = 0.16
   r1 = 0.1; vol1 = 0.06
@@ -28,7 +28,7 @@ height=500
   # Approximate wavenumber
   kTLSs = two_species_approx_wavenumber(ωs, medium, [sp1,sp2]);
 
-  speed_arr = [ ωs./real(kTs), ωs./real(kTLSs), 0.*ωs + real(medium.c)]
+  speed_arr = [ ωs./real(kTs), ωs./real(kTLSs), 0 .*ωs + real(medium.c)]
   atten_arr = imag([kTs,kTLSs])
 
   styles = reshape([:solid,:solid,:dot],1,3)
@@ -54,7 +54,7 @@ height=500
   gui()
 
 ## Zoomed in version
-  ωs = linspace(real(medium.c/10000),ωs[m],100) # k from 0 to 1
+  ωs = LinRange(real(medium.c/10000),ωs[m],100) # k from 0 to 1
   m = length(ωs);
   kTs  = wavenumber_low_volfrac(ωs, medium, [sp1,sp2]);
   kTLSs = two_species_approx_wavenumber(ωs, medium, [sp1,sp2]);

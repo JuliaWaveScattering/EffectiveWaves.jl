@@ -1,13 +1,13 @@
 #  Without using ApproxFun
 # function integrate_B_full(n::Int, X, Y0; Y1 =1000000, θin = 0.0, num_coefs = 1000000)
-#     Ys = linspace(Y0,Y1,num_coefs);
+#     Ys = LinRange(Y0,Y1,num_coefs);
 #     σs = integration_scheme(Ys; scheme = :trapezoidal)
-#     K(Y) = cos(Y*sin(θin) + n*atan2(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
+#     K(Y) = cos(Y*sin(θin) + n*atan(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
 #     return 2.0*(-1.0)^n*sum(K.(Ys).*σs)
 # end
 
 function integrate_B_full(n::Int, X, Y0; Y1 =1000000, θin = 0.0, num_coefs = 10000)
-    K(Y) = cos(Y*sin(θin) + n*atan2(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
+    K(Y) = cos(Y*sin(θin) + n*atan(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
     # approximate function with Chebyshev polynomial (to high precision) then integrate from Y0 to Y1
     return 2.0*(-1.0)^n*sum(Fun(K,Y0..Y1, num_coefs))
 end
@@ -37,12 +37,12 @@ function BS_matrices(X::AbstractVector{T}, a12k::T; θin::T = 0.0,
     q = min(Int(floor(a12k/dX)),J)
     X = OffsetArray((-J:J)*dX, -J:J)
 
-    B = OffsetArray{Complex{Float64}}(-q:q, -2M:2M);
+    B = OffsetArray{Complex{Float64}}(undef, -q:q, -2M:2M);
     for j = -q:q, m = -2M:2M
         if a12k^2 - X[j]^2 < - dX^2 error("evaluating B in the wrong domain") end
         B[j,m] = integrate_B(m, X[j], sqrt(abs(a12k^2 -X[j]^2)); θin = θin, num_coefs=num_coefs)
     end
-    S = OffsetArray{Complex{Float64}}(-J:J, -2M:2M);
+    S = OffsetArray{Complex{Float64}}(undef, -J:J, -2M:2M);
     for j = -J:J, m = -2M:2M
         S[j,m] = integrate_S(m, X[j]; θin = θin)
     end
@@ -59,11 +59,11 @@ function intergrand_kernel(X::AbstractVector{T}, a12k::T; M::Int = 2,
         error("Expected X to be uniformly spaced from 0. Instead got X= $X.")
     end
     if ( abs(Int(round(a12k/dX)) - a12k/dX) > 1e-10 )
-        warn("There are no mesh points exactly on-top of the intergrands kinks. This could lead to poor accuracy.")
+        @warn("There are no mesh points exactly on-top of the intergrands kinks. This could lead to poor accuracy.")
     end
 
     q = min(Int(floor(a12k/dX)),J)
-    if q == 0 warn("Mesh element larger than ka12. This is only accurate for low frequency.") end
+    if q == 0 @warn("Mesh element larger than ka12. This is only accurate for low frequency.") end
 
     B, S = BS_matrices(X, a12k; M = M, kws...)
 

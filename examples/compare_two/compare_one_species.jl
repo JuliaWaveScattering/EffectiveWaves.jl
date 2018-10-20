@@ -7,7 +7,7 @@ pyplot(linewidth=3, size=(2.0*height,height))
 
 # for fixed total volfrac fraction
 medium = Medium(ρ=3200.0,c = 2595.0)
-ωs = 2.0*pi*linspace(1.0e1,1.0e7,100)
+ωs = 2.0*pi*LinRange(1.0e1,1.0e7,100)
 
 volfrac = 0.12
 r1 = 30.0e-8

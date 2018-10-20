@@ -1,5 +1,7 @@
+import SpecialFunctions: besselj, hankelh1
+
 @testset "Particle types and constructors" begin
-    ω=0.4
+    ω = 0.4
     medium = Medium(ρ=10.,c=2.0+3.0im)
     p_dirichlet = Specie(0.0,0.1) # ρ=0.0, r =0.1
     p_neumann = Specie(Inf,0.1) # ρ=0.0, r =0.1

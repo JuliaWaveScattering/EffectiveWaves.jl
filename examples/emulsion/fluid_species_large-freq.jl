@@ -26,7 +26,7 @@ mediumname = "water"
   # inclusion2 = Glycerol
 
   ωfactor = 4000;
-  ωs = 20*ωfactor.*linspace(real(medium.c/10000),real(medium.c),200) # k from 0 to 1
+  ωs = 20*ωfactor.*LinRange(real(medium.c/10000),real(medium.c),200) # k from 0 to 1
 
   volfrac = 0.22
   r1 = 0.1/ωfactor; vol1 = 0.11;
@@ -41,14 +41,14 @@ mediumname = "water"
   # Approximate Challis wavenumber
   kTCs = wavenumber_challis(ωs, medium, [sp1,sp2]; hankel_order=5);
 
-  speed_arr = [ ωs./real(kTs), ωs./real(kTCs), 0.*ωs + real(medium.c)]
+  speed_arr = [ ωs./real(kTs), ωs./real(kTCs), 0 .*ωs .+ real(medium.c)]
   atten_arr = imag([kTs,kTCs])
 
   styles = [:solid :dashdot :dot]
   # labs = [L"Effective $k_{*}$" L"Approximate $k_{*C}$" mediumname];
   # xlabel = L"k a_S";
   ys_arr = speed_arr;
-  xs = r1.*ωs./real(medium.c);
+  xs = r1.*ωs ./ real(medium.c);
   # m =5;
   # p1= plot(xs, ys_arr, xlabel=xlabel, ylabel="sound speed (m/s)", labels=labs, line = styles
   #           , ylims = (minimum(minimum.(ys_arr))*0.995, maximum(maximum.(ys_arr))*1.005));

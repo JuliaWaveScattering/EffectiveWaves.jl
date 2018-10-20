@@ -9,7 +9,7 @@ function wavenumber_challis(ω::Number, medium::Medium{T}, species::Array{Specie
 
   volume_fraction = sum(pi*sp.r^2.0*sp.num_density for sp in species)
   if volume_fraction >= 0.4
-    warn("the volume fraction $(round(100*volume_fraction))% is a bit too high, expect a relative error of approximately $(round(100*volume_fraction^3.0))%")
+    @warn("the volume fraction $(round(100*volume_fraction))% is a bit too high, expect a relative error of approximately $(round(100*volume_fraction^3.0))%")
   end
 
   kT2 = (ω/medium.c)^2.0
@@ -43,7 +43,7 @@ function wavenumber_far_field_low_volfrac(ω::Complex{T}, medium::Medium{T}, spe
 
   volume_fraction = sum(pi*sp.r^2.0*sp.num_density for sp in species)
   if volume_fraction >= 0.4
-    warn("the volume fraction $(round(100*volume_fraction))% is a bit too high, expect a relative error of approximately $(round(100*volume_fraction^3.0))%")
+    @warn("the volume fraction $(round(100*volume_fraction))% is a bit too high, expect a relative error of approximately $(round(100*volume_fraction^3.0))%")
   end
   kT2 = (ω/medium.c)^2.0
   next_order = 4.0im*sum(sp.num_density*Zn(ω,sp,medium,0) for sp in species)

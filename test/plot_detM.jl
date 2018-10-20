@@ -61,8 +61,8 @@ function detMM!(F,x)
 end
 
 k0 = real(k)
-x = k0.*linspace(0.0,1.8,100)/10.
-y = k0.*linspace(0.,0.22,100)
+x = k0 .* LinRange(0.0,1.8,100)/10.
+y = k0 .* LinRange(0.,0.22,100)
 
 X = repmat(x',length(y),1)
 Y = repmat(y,1,length(x))
@@ -71,8 +71,8 @@ Z0 = map( (x,y) -> detMM2([x,y]),X,Y)
 Z = map( z -> (abs(z)> 2.) ? NaN : z, Z0)
 contour(x,y,Z,fill=true, xlab = "Re k*", ylab = "Im k*", title="Roots of secular det M - high ω - low φ")
 
-x = k0.*linspace(0.18,0.23,50)
-y = k0.*linspace(0.01,0.17,50)
+x = k0 .* LinRange(0.18,0.23,50)
+y = k0 .* LinRange(0.01,0.17,50)
 
 x = kx; y = ky;
 
@@ -82,8 +82,8 @@ Z = map( (x,y) -> (z = detMM2([x,y]); (abs(z)> 0.5) ? NaN: z),X,Y)
 
 contour(x,y,Z,fill=true, xlab = "Re k*", ylab = "Im k*", title="Roots of secular det M")
 
-x = linspace(3.,6.,40)
-y = linspace(-1.5,14.,40)
+x = LinRange(3.,6.,40)
+y = LinRange(-1.5,14.,40)
 
 X = repmat(x',length(y),1)
 Y = repmat(y,1,length(x))

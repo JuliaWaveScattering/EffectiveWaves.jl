@@ -2,7 +2,7 @@ using ApproxFun
 using HCubature
 
 function Bfull(n::Int,X; Y0= sqrt(k^2*a12^2-X^2), Y1 =1000000 , θin = 0.0)
-    K(Y) = cos(Y*sin(θin) + n*atan2(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
+    K(Y) = cos(Y*sin(θin) + n*atan(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
     return 2.0*(-1.0)^n*sum(Fun(K,Y0..Y1))
 end
 
@@ -21,7 +21,7 @@ a12 =1.0
 n=1
 k=1.
 X = 0.2
-K(Y) = cos(Y*sin(θin) + n*atan2(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
+K(Y) = cos(Y*sin(θin) + n*atan(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
 
 interval = sqrt(k^2*a12^2-X^2)..1000000
 interval1 = interval.left..1000.7
@@ -79,10 +79,10 @@ d = Interval(0.0, 10.0)
 xs = Fun(d)
 test_fun = exp(-xs)
 S_fun = S(0,xs; θin = 0.3)
-sum(S_fun*test_fun) ≈ 2*(exp(10.*(im*cos(θin)-1))-1.0)/(cos(θin)*(im*cos(θin)-1.0))
+sum(S_fun*test_fun) ≈ 2*(exp(10 .* (im*cos(θin)-1))-1.0)/(cos(θin)*(im*cos(θin)-1.0))
 
 Sop = DefiniteIntegral(Chebyshev(d))[S_fun]
-Sop*test_fun ≈ 2*(exp(10.*(im*cos(θin)-1))-1.0)/(cos(θin)*(im*cos(θin)-1.0))
+Sop*test_fun ≈ 2*(exp(10 .* (im*cos(θin)-1))-1.0)/(cos(θin)*(im*cos(θin)-1.0))
 
 x1 = Fun(Interval(0.0, 1.0))
 @time f1 = Fun( x-> exp(-x), 0.0..1.0)

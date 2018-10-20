@@ -9,7 +9,7 @@ function match_only_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, XL::Int, 
     k = ω/medium.c
     hos = union(w.hankel_order for w in wave_effs)
     if length(hos) > 1
-        warn("Expected all effective waves to have the same hankel order!")
+        @warn("Expected all effective waves to have the same hankel order!")
     end
     ho = minimum(hos)
     s = length(species)
@@ -45,7 +45,7 @@ function extinc_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}},
     k = ω/medium.c
     hos = union(w.hankel_order for w in wave_effs)
     if length(hos) > 1
-        warn("Expected all effective waves to have the same hankel order!")
+        @warn("Expected all effective waves to have the same hankel order!")
     end
     ho = minimum(hos)
     S = length(species)

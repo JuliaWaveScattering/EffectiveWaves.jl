@@ -32,7 +32,7 @@ for i in eachindex(k_effs)
     wave_effs[i].amplitudes = wave_effs[i].amplitudes / norm(avg_wave_effs[i].amplitudes[1,:,1])
 end
 
-Ls = Int.(round.(linspace(1,length(X) - length(wave_effs)/2,20)))
+Ls = Int.(round.(LinRange(1,length(X) - length(wave_effs)/2,20)))
 
 errs = map(Ls) do l
     # α = YT*A
@@ -61,12 +61,12 @@ ho = wave_effs[1].hankel_order
 S = 1;
 species = [specie]
 J = length(X) - 1
-S_mat = OffsetArray{Complex{T}}(0:J, -2ho:2ho);
+S_mat = OffsetArray{Complex{T}}(undef, 0:J, -2ho:2ho);
 for j = 0:J, m = -2ho:2ho
     S_mat[j,m] = integrate_S(m, X[j+1]; θin = θin)
 end
 
-Z = OffsetArray{Complex{Float64}}(-ho:ho);
+Z = OffsetArray{Complex{T}}(undef,-ho:ho);
 for m = 0:ho
     Z[m] = Zn(ω,specie,medium,m)
     Z[-m] = Z[m]

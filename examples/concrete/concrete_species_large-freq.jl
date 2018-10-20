@@ -19,7 +19,7 @@ using EffectiveWaves
   inclusion2 = Brick
 
   ωfactor = 50.0;
-  ωs = 20*ωfactor.*linspace(real(medium.c/10000),real(medium.c),400) # k from 0 to 1
+  ωs = 20*ωfactor.*LinRange(real(medium.c/10000),real(medium.c),400) # k from 0 to 1
 
   volfrac = 0.16
   r1 = 0.1/ωfactor; vol1 = 0.06
@@ -35,7 +35,7 @@ using EffectiveWaves
 
   kTs_arr = [kTs,kTCs];
   speed_arr = [ ωs./real(ks) for ks in kTs_arr];
-  push!(speed_arr, 0.*ωs + real(medium.c))
+  push!(speed_arr, 0 .*ωs .+ real(medium.c))
   atten_arr = imag.(kTs_arr)
 
   styles = [:solid :dashdot :dot]

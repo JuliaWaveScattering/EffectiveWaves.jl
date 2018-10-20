@@ -150,12 +150,12 @@ function x_mesh(wave_eff_long::EffectiveWave{T}, wave_eff_short::EffectiveWave{T
     if max_x/dx + 1 > max_size
         if dx == a12
             max_x = (max_size - 1)*dx
-            warn("The mesh max_size = $max_size which was too small for tol = $tol. Will shrink meshed region.")
+            @warn("The mesh max_size = $max_size which was too small for tol = $tol. Will shrink meshed region.")
         else # otherwise priortise shrink max_x and increase dx proportionally
             a = sqrt(max_x/((max_size - 1)*dx))
             dx = min(dx*a,a12)
             max_x = (max_size - 1)*dx
-            warn("The mesh max_size = $max_size which was too small for tol = $tol. Will make a smaller and coarser mesh.")
+            @warn("The mesh max_size = $max_size which was too small for tol = $tol. Will make a smaller and coarser mesh.")
         end
     elseif max_x/dx + 1 < min_size
         max_x = (min_size - 1)*dx

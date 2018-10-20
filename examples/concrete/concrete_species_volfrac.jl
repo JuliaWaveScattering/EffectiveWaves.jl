@@ -57,7 +57,7 @@ mediumname = "Lime stone"
 
   kTs_arr = [kTs,kT2s, kTLSs, kTCs];
   speed_arr = [ ω./real(ks) for ks in kTs_arr];
-  push!(speed_arr, 0.*real(kTs) + real(medium.c))
+  push!(speed_arr, 0 .* real(kTs) .+ real(medium.c))
   atten_arr = imag.(kTs_arr)
 
   styles = [:solid :dash :dashdot :dashdot :dot]

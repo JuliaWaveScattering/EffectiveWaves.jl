@@ -12,7 +12,7 @@ function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, L::Int, X::Abs
     hos = union(w.hankel_order for w in wave_effs)
 
     if length(hos) > 1
-        warn("Expected all effective waves to have the same hankel order!")
+        @warn("Expected all effective waves to have the same hankel order!")
     end
     if abs(1 - (X[2]-X[1])*J/X[J+1]) > eps(T)
         error("Expected a uniform mesh X starting at 0.")
@@ -53,7 +53,7 @@ function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, L::Int, X::Abs
 
     LT_mat = YT + invV * (conj(w_vec).*inv_w) * (transpose(G_arr[:]) - transpose(w_vec)*YT)
 
-    S_mat = OffsetArray{Complex{T}}(0:J, -2ho:2ho);
+    S_mat = OffsetArray{Complex{T}}(undef, 0:J, -2ho:2ho);
     for j = 0:J, m = -2ho:2ho
         S_mat[j,m] = integrate_S(m, X[j+1]; θin = θin)
     end
@@ -68,7 +68,7 @@ function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, L::Int, X::Abs
     for m = -ho:ho]
 
     q = min(Int(floor(a12k/(X[2]-X[1]))), J)
-    B_mat = OffsetArray{Complex{T}}(0:q, -2ho:2ho);
+    B_mat = OffsetArray{Complex{T}}(undef, 0:q, -2ho:2ho);
     for j = 0:q, m = -2ho:2ho
         B_mat[j,m] = integrate_B(m, X[j+1], sqrt(abs(a12k^2 -X[j+1]^2)); θin = θin)
     end

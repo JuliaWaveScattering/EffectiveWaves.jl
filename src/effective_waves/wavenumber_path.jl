@@ -34,7 +34,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
         if isnan(k0) k0 = kφ end
         kin = [min(real(k0),abs(real(kφ))),abs(imag(kφ))]
         dx = kin[1]*mesh_size
-        k_vecs = [[kin[1]+x,kin[2]] for x in linspace(-dx,dx,mesh_points+1)]
+        k_vecs = [[kin[1]+x,kin[2]] for x in LinRange(-dx,dx,mesh_points+1)]
         push!(k_vecs,kin, [real(k0),zero(T)], [zero(T),zero(T)])
 
         k_vecs = [optimize(detMM2, kvec; x_tol=low_tol, g_tol = low_tol^3).minimizer for kvec in k_vecs]
@@ -51,16 +51,16 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
         k_vecs = reduce_kvecs(k_vecs, tol)
 
         # Delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
-        deleteat!(k_vecs, find(detMM2.(k_vecs) .> low_tol))
-        deleteat!(k_vecs, find(k_vec[2] < -sqrt(tol) for k_vec in k_vecs))
+        deleteat!(k_vecs, findall(detMM2.(k_vecs) .> low_tol))
+        deleteat!(k_vecs, findall([k_vec[2] < -sqrt(tol) for k_vec in k_vecs]))
         # delete wave travelling in wrong direction with small attenuation
-        deleteat!(k_vecs, find( -low_tol < abs(k_vec[2])/k_vec[1] < zero(T) for k_vec in k_vecs))
+        deleteat!(k_vecs, findall([-low_tol < abs(k_vec[2])/k_vec[1] < zero(T) for k_vec in k_vecs]))
         # deleteat!(k_vecs, find(k_vec[2] < tol && k_vec[1] < tol for k_vec in k_vecs))
 
     sort!(k_vecs, by= kv -> kv[2])
     dk_x = abs(k_vecs[1][1]) * mesh_size
     dk_y = abs(k_vecs[1][2]) * mesh_size
-    dk_xs = linspace(-dk_x, dk_x, mesh_points)
+    dk_xs = LinRange(-dk_x, dk_x, mesh_points)
 
     # Find two more roots, one with larger and smaller imaginary parts than the primary root kin
         two_roots = false # in case the roots are not on both branches of the tree, which is tested below
@@ -95,7 +95,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
                     two_roots=true
                 end
                 dk_x += dk_x
-                kxs = -k_vecs[2][1] .+ linspace(-dk_x, dk_x, mesh_points)
+                kxs = -k_vecs[2][1] .+ LinRange(-dk_x, dk_x, mesh_points)
                 if invert
                     dk_y = k_vecs[2][2]/10
                     ky = k_vecs[2][2] - dk_y
@@ -112,18 +112,24 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
     # Find roots following on from the two roots
         sort!(k_vecs, by = kv->kv[2])
         targets = k_vecs[2:end]
-        dys = linspace(0.5,1.0+mesh_size,mesh_points)
+        dys = LinRange(0.5,1.0+mesh_size,mesh_points)
         while (length(k_vecs) < num_wavenumbers) && length(targets) > 0
             # find roots following on from the smallest attenuating root
                 sort!(targets, by = kv->kv[2])
                 if verbose println("\n New target: $(targets[1])") end
 
             # find closest neighbour with smaller imaginary part
-                i = findmin((targets[1][2] != kvec[2]) ? norm(targets[1] - kvec) : Inf for kvec in k_vecs)[2]
+                i = findmin(
+                    [(targets[1][2] != kvec[2]) ? norm(targets[1] - kvec) : Inf for kvec in k_vecs]
+                )[2]
                 # find at least one neighbour below, as the tree is growing
                 j = (targets[1][2] > k_vecs[i][2]) ?
-                    findmin((targets[1][2] != kvec[2] && kvec[2] != k_vecs[i][2]) ? norm(targets[1] - kvec) : Inf for kvec in k_vecs)[2] :
-                    findmin((targets[1][2] > kvec[2] && kvec[2] != k_vecs[i][2]) ? norm(targets[1] - kvec) : Inf for kvec in k_vecs)[2]
+                    findmin(
+                        [(targets[1][2] != kvec[2] && kvec[2] != k_vecs[i][2]) ? norm(targets[1] - kvec) : Inf for kvec in k_vecs]
+                    )[2] :
+                    findmin(
+                        [(targets[1][2] > kvec[2] && kvec[2] != k_vecs[i][2]) ? norm(targets[1] - kvec) : Inf for kvec in k_vecs]
+                    )[2]
                 if j == Inf j = i end
 
                 if verbose println("Closest neighbours: $(k_vecs[i]) and $(k_vecs[j])") end
@@ -134,18 +140,18 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
                     v = reverse(targets[1] - k_vecs[ind])
                     v[2] = -v[2]
                     hcat([
-                        [tk + x.*v for x in linspace(-mesh_size, mesh_size, mesh_points)]
+                        [tk + x.*v for x in LinRange(-mesh_size, mesh_size, mesh_points)]
                     for tk in tks]...)[:]
                 end
                 mesh = vcat(meshes...)
-                deleteat!(mesh, find(vec[2] < 0 for vec in mesh))
+                deleteat!(mesh, findall([vec[2] < 0 for vec in mesh]))
 
             # search for roots from this mesh
                 new_targets = map(mesh) do kin
                    optimize(detMM2, kin; x_tol = low_tol, g_tol = low_tol^3).minimizer
                 end
                 new_targets = reduce_kvecs(new_targets, low_tol/10)
-                deleteat!(new_targets, find(detMM2.(new_targets) .> low_tol))
+                deleteat!(new_targets, findall([detMM2.(new_targets) .> low_tol]))
 
                 # only keep targets which are not already in k_vecs
                 new_targets = [
@@ -179,9 +185,9 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
 
     # Finally delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
     # deleteat!(k_vecs, find(k_vec[2] < -T(10)*tol for k_vec in k_vecs))
-    deleteat!(k_vecs, find(k_vec[2] < -sqrt(tol) for k_vec in k_vecs))
+    deleteat!(k_vecs, findall([k_vec[2] < -sqrt(tol) for k_vec in k_vecs]))
     # deleteat!(k_vecs, find(k_vec[2] < tol && k_vec[1] < tol for k_vec in k_vecs))
-    deleteat!(k_vecs, find( -low_tol < abs(k_vec[2])/k_vec[1] < zero(T) for k_vec in k_vecs))
+    deleteat!(k_vecs, findall([-low_tol < abs(k_vec[2])/k_vec[1] < zero(T) for k_vec in k_vecs]))
 
     k_effs = [ k_vec[1] + k_vec[2]*im for k_vec in k_vecs]
     k_effs = sort(k_effs, by=imag)

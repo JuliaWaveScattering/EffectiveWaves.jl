@@ -10,7 +10,7 @@ species = [
 background = Glycerol # for other materials, see materials.jl
 
 # angular frequencies
-ωs = linspace(0.01,1.0,60)*30.0e6
+ωs = LinRange(0.01,1.0,60)*30.0e6
 wavenumbers = wavenumber_low_volfrac(ωs, background, species)
 
 speeds = ωs./real(wavenumbers)
@@ -32,12 +32,12 @@ Plots.scalefontsizes(1.5)
 
 # for fixed total volfrac fraction
 background = Medium(ρ=1.0,c = 1.0)
-ωs = linspace(0.01,1.0,60)
+ωs = LinRange(0.01,1.0,60)
 volfrac = 0.25
 r1 = 0.5
 r2 = 1.5
 N=5
-vols = linspace(0.0,1.0,N)*volfrac
+vols = LinRange(0.0,1.0,N)*volfrac
 
 kTs_arr = [
   begin

@@ -1,5 +1,4 @@
-import Base.Test: @testset, @test, @test_throws
-using EffectiveWaves
+using EffectiveWaves, Test
 
 @testset "Examples from: Reflection from multi-species.., Proc.R.Soc.(2018)" begin
 

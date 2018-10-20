@@ -14,14 +14,14 @@ function integration_scheme(x::AbstractVector{T}; scheme::Symbol = :trapezoidal,
     elseif scheme == :simpson
         simpson_scheme(x; kws...)
     else
-        warn("Integration scheme $scheme unknown, will use trapezoidal")
+        @warn("Integration scheme $scheme unknown, will use trapezoidal")
         trap_scheme(x; kws...)
     end
 end
 
 function trap_scheme(x::AbstractVector{T}; x0::T = first(x), xn::T = last(x)) where T<:AbstractFloat
 
-    inds = indices(x,1)
+    inds = axes(x,1)
 
     h = (x[inds[2]]-x[inds[1]])
     σs = x.*zero(T) .+ h
@@ -38,10 +38,10 @@ function trap_scheme(x::AbstractVector{T}; x0::T = first(x), xn::T = last(x)) wh
 end
 
 function simpson_scheme(x::AbstractVector{T}; x0::T = first(x), xn::T = last(x)) where T<:AbstractFloat
-    inds = indices(x,1)
+    inds = axes(x,1)
 
     if iseven(length(inds))
-        warn("Simpson's integration scheme is designed for an odd number of mesh points")
+        @warn("Simpson's integration scheme is designed for an odd number of mesh points")
     end
 
     h = (x[inds[2]]-x[inds[1]])

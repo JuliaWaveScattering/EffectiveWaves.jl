@@ -19,7 +19,7 @@ mediumname = "water"
   inclusion1 = Glycerol # surfactant ?
   inclusion2 = Hexadecane
   # inclusion2 = SodiumNitrate
-  # ωs = 2.0*pi*linspace(1.0e1,1.0e7,100)
+  # ωs = 2.0*pi*LinRange(1.0e1,1.0e7,100)
 
   ωfactor = 4000;
   ω = ωfactor*real(medium.c)/2.0
@@ -57,7 +57,7 @@ mediumname = "water"
 
   kTs_arr = [kTs,kT2s, kTLSs,kTCs];
   speed_arr = [ ω./real(ks) for ks in kTs_arr];
-  push!(speed_arr, 0.*real(kTs) + real(medium.c))
+  push!(speed_arr, 0 .*real(kTs) .+ real(medium.c))
   atten_arr = imag.(kTs_arr)
 
   styles = [:solid :dash :dashdot :dashdot :dot]

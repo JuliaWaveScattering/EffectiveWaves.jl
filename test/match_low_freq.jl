@@ -41,7 +41,7 @@
    @test maximum(match_error.(match_ws)) < tol
 
     map(eachindex(species)) do i
-        x = linspace(match_ws[i].x_match[end],2pi/real(match_ws[i].effective_waves[1].k_eff),200)
+        x = LinRange(match_ws[i].x_match[end],2pi/real(match_ws[i].effective_waves[1].k_eff),200)
         avg_low = AverageWave(x, wave_eff_lows[i])
         avg = AverageWave(x, match_ws[i].effective_waves)
         @test norm(avg.amplitudes[:] - avg_low.amplitudes[:]) < tol

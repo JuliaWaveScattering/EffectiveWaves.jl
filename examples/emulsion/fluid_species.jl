@@ -28,8 +28,8 @@ mediumname = "water"
   # inclusion2 = Glycerol
 
   ωfactor = 4000;
-  ωs = 2*ωfactor.*linspace(real(medium.c/10000),real(medium.c),100) # k from 0 to 1
-  # ωs = 2.0*pi*linspace(1.0e1,1.0e7,100)
+  ωs = 2*ωfactor.*LinRange(real(medium.c/10000),real(medium.c),100) # k from 0 to 1
+  # ωs = 2.0*pi*LinRange(1.0e1,1.0e7,100)
 
   volfrac = 0.22
   r1 = 0.1/ωfactor; vol1 = 0.11;
@@ -46,13 +46,13 @@ mediumname = "water"
   # Approximate Challis wavenumber
   kTCs = wavenumber_challis(ωs, medium, [sp1,sp2]);
 
-  speed_arr = [ ωs./real(kTs), ωs./real(kTLSs), ωs./real(kTCs), 0.*ωs + real(medium.c)]
+  speed_arr = [ ωs./real(kTs), ωs./real(kTLSs), ωs./real(kTCs), 0 .*ωs .+ real(medium.c)]
   atten_arr = imag([kTs,kTLSs,kTCs])
 
   styles = [:solid :dashdot :dashdot :dot]
   # labs = [L"Effective $k_{*}$" L"Approximate $k_{*LS}$" L"Approximate $k_{*C}$" mediumname];
   # xlabel = L"k a_S";
-  xs = r1.*ωs./real(medium.c);
+  xs = r1.*ωs ./ real(medium.c);
   ys_arr = speed_arr;
   m =5;
   # p1= plot(xs, ys_arr, xlabel=xlabel, ylabel="sound speed (m/s)", labels=labs, line = styles
@@ -70,8 +70,8 @@ mediumname = "water"
   # gui()
 
 ## How small does inclusion1 need to be ?
-  ω = ωfactor.*real(medium.c)/4.
-  r1s = (0.002:0.01:0.5)./ωfactor;
+  ω = ωfactor * real(medium.c)/4.0
+  r1s = (0.002:0.01:0.5) ./ ωfactor;
 
   sp2 = Specie(ρ=inclusion2.ρ ,r=r2, c=inclusion2.c, volfrac = volfrac-vol1)
 
@@ -91,13 +91,13 @@ mediumname = "water"
     wavenumber_challis(ω, medium, [sp1,sp2])
   end
 
-  speed_arr = [ ω./real(kTs), ω./real(kTLSs), ω./real(kTCs), 0.*real(kTLSs) + real(medium.c)]
+  speed_arr = [ ω./real(kTs), ω./real(kTLSs), ω./real(kTCs), 0 .*real(kTLSs) .+ real(medium.c)]
   atten_arr = imag([kTs,kTLSs,kTCs])
 
   styles = [:solid :dashdot :dashdot :dot]
   # labs = [L"Effective $k_{*}$" L"Approximate $k_{*LS}$" L"Approximate $k_{*C}$" mediumname]
   ys_arr = speed_arr;
-  xs = r1s.*ω./real(medium.c);
+  xs = r1s.*ω ./ real(medium.c);
   # xlabel=L"k_0 a_S"
   # m =5;
   # p1 = plot(xs, ys_arr, xlabel=xlabel, ylabel="sound speed (m/s)", labels=labs , line = styles

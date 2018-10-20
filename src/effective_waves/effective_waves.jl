@@ -70,11 +70,11 @@ function reduced_amplitudes_effective(ω::T, k_eff::Complex{T}, medium::Medium{T
             [MM(k_eff,j,l,m,n) for m in -ho:ho, j in 1:S, n in -ho:ho, l in 1:S]
         , ((2ho+1)*S, (2ho+1)*S))
     )
-    if MM_svd[2][end] > tol*T(40) # no analytic guarantee on this tolerance.
-        warn("The effective wavenumber gave an eigenvalue $(MM_svd[2][end]), which is larger than the tol = $( T(40)*tol). Note the secular equation is determined by the chosen medium and species.")
+    if MM_svd.S[end] > tol*T(40) # no analytic guarantee on this tolerance.
+        @warn("The effective wavenumber gave an eigenvalue $(MM_svd.S[end]), which is larger than the tol = $( T(40)*tol). Note the secular equation is determined by the chosen medium and species.")
     end
 
-    A_null = MM_svd[3][:,end] # eignvector of smallest eigenvalue
+    A_null = MM_svd.V[:,end] # eignvector of smallest eigenvalue
     A_null = reshape(A_null, (2*ho+1,S)) # A_null[:,j] = [A[-ho,j],A[-ho+1,j],...,A[ho,j]]
 
     return A_null

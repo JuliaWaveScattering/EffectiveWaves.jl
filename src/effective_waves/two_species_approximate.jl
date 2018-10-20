@@ -4,7 +4,7 @@ function two_species_approx_wavenumber(ω::Number, medium, species)
   sp2 = species[2]
 
   if sp1.r > sp2.r
-    warn("method two_species_approx was designed for species[1] to be the smallest.")
+    @warn("method two_species_approx was designed for species[1] to be the smallest.")
   end
   vol = pi*sp1.num_density*sp1.r^2
   rhoeff =  medium.ρ*(medium.ρ + sp1.ρ - vol*(medium.ρ - sp1.ρ))/
@@ -20,7 +20,7 @@ function two_species_approx_wavenumber(ωs::AbstractArray, medium, species)
   sp2 = species[2]
 
   if sp1.r > sp2.r
-    warn("method two_species_approx was designed for species[1] to be the smallest.")
+    @warn("method two_species_approx was designed for species[1] to be the smallest.")
   end
   vol = pi*sp1.num_density*sp1.r^2
   rhoeff =  medium.ρ*(medium.ρ + sp1.ρ - vol*(medium.ρ - sp1.ρ))/

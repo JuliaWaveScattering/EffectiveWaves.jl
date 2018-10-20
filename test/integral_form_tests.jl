@@ -167,7 +167,7 @@ function check_integration(k_eff::Complex{Float64} = 1.0+1.0im; k=1.,a=1., h = a
     # discretization parameters
     M = 3;
     J = Int(round(max_x/h)) # choose an even number for Integration schemes
-    x = OffsetArray{Float64}(0:J)
+    x = OffsetArray{Float64}(undef, 0:J)
     x[0:J] = (0:J)*h
 
     # trapezoidal

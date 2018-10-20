@@ -33,7 +33,7 @@ Calculate effective wavenumbers:
 ```julia
 
 # angular frequencies
-ωs = linspace(0.01,1.0,60)*30.0e6
+ωs = LinRange(0.01,1.0,60)*30.0e6
 wavenumbers = wavenumber_low_volfrac(ωs, background, species)
 
 speeds = ωs./real(wavenumbers)

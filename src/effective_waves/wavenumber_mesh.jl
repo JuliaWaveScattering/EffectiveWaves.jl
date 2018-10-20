@@ -30,8 +30,8 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
 
     low_tol = max(1e-4, tol)*minimum( (k1 == k2) ? Inf : abs(k1-k2) for k1 in k_effs, k2 in k_effs) # a tolerance used for a first pass with time_limit
 
-    kx = linspace(min_Rek, max_Rek, round(length(k_effs)/(2*mesh_refine))) # tree shape makes this division by 2 natural
-    ky = linspace(min_Imk, max_Imk, round(length(k_effs)/(2*mesh_refine)))
+    kx = LinRange(min_Rek, max_Rek, round(length(k_effs)/(2*mesh_refine))) # tree shape makes this division by 2 natural
+    ky = LinRange(min_Imk, max_Imk, round(length(k_effs)/(2*mesh_refine)))
     k_mesh = [[x,y] for x in kx, y in ky][:]
 
     k_vecs = [[real(keff),imag(keff)] for keff in k_effs]
@@ -46,7 +46,7 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
     lower = [min_Rek, min_Imk]
     upper = [max_Rek, max_Imk]
     new_ks = [optimize(detMM2, kvec, lower, upper; x_tol=low_tol, g_tol = low_tol^3).minimizer for kvec in k_mesh]
-    deleteat!(new_ks, find(detMM2.(new_ks) .> low_tol))
+    deleteat!(new_ks, findall([detMM2.(new_ks) .> low_tol]))
     new_ks = reduce_kvecs(new_ks, low_tol/10)
 
     # only keep targets which are not already in k_vecs
@@ -77,8 +77,8 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
     k_vecs = reduce_kvecs([new_ks; k_vecs], tol)
 
     # Finally delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
-    deleteat!(k_vecs, find(k_vec[2] < -low_tol for k_vec in k_vecs))
-    deleteat!(k_vecs, find(-low_tol < abs(k_vec[2])/k_vec[1] < zero(T) for k_vec in k_vecs))
+    deleteat!(k_vecs, findall([k_vec[2] < -low_tol for k_vec in k_vecs]))
+    deleteat!(k_vecs, findall([-low_tol < abs(k_vec[2])/k_vec[1] < zero(T) for k_vec in k_vecs]))
     # deleteat!(k_vecs, find(k_vec[2] < tol && k_vec[1] < tol for k_vec in k_vecs))
 
     k_effs = [k_vec[1] + k_vec[2]*im for k_vec in k_vecs]

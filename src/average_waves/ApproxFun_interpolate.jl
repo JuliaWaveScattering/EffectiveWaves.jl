@@ -10,7 +10,7 @@ specie = Specie(ρ=0.1,r=0.1, c=0.5, volfrac=0.1)
 
 # Guess a course mesh
 k_eff0 = wavenumber_low_volfrac(ω, medium, [specie]; tol = 1e-12)
-max_x = 10.*k/imag(k_eff0)
+max_x = 10 .* k/imag(k_eff0)
 x = 0.0:0.1:max_x
 
 wave0 = EffectiveWave(ω, k_eff0, medium, [specie]; θin = θin, hankel_order = ho, tol=1e-8)

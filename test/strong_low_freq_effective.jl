@@ -12,14 +12,13 @@
     k_eff_lows = ωs./eff_medium.c
 
     k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
-    # small mesh_size keeps all solutions close to the initial guess
-    wavenumbers_path(ω, medium, species; tol = tol, num_wavenumbers=1)
+    # num_wavenumbers =1 almost always finds the wavenubmer with the smallest attenuation
 
     k_effs_arr = [
         wavenumbers(ω, medium, species; tol=tol, num_wavenumbers=1)
     for ω in ωs]
 
-    inds = [indmin(abs.(k)) for k in (k_effs_arr .- k_eff_φs)]
+    inds = [argmin(abs.(k)) for k in (k_effs_arr .- k_eff_φs)]
     k_effs2 = [k_effs_arr[i][inds[i]] for i in eachindex(inds)]
     # k_effs = wavenumber(ωs, medium, species)
 
