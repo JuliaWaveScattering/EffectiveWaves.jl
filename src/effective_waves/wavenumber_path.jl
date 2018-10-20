@@ -151,7 +151,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
                    optimize(detMM2, kin; x_tol = low_tol, g_tol = low_tol^3).minimizer
                 end
                 new_targets = reduce_kvecs(new_targets, low_tol/10)
-                deleteat!(new_targets, findall([detMM2.(new_targets) .> low_tol]))
+                deleteat!(new_targets, findall(detMM2.(new_targets) .> low_tol))
 
                 # only keep targets which are not already in k_vecs
                 new_targets = [

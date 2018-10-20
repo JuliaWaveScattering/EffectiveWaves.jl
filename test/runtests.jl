@@ -1,4 +1,5 @@
 using EffectiveWaves, Test
+using LinearAlgebra
 
 @testset "Examples from: Reflection from multi-species.., Proc.R.Soc.(2018)" begin
 

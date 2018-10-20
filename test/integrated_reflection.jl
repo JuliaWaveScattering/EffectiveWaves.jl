@@ -1,6 +1,5 @@
+using EffectiveWaves, Test
 # using OffsetArrays
-# include("../src/average_waves/integral_form.jl")
-# include("src/average_waves/integral_form.jl")
 
 @testset "Integrated reflection" begin
 
@@ -13,7 +12,7 @@
 
     # From effective wave theory
     k_eff0 = wavenumber_low_volfrac(ω, medium, [specie]; tol = 1e-12)
-    max_x = 12.*k/imag(k_eff0)
+    max_x = 12.0*k/imag(k_eff0)
     x = 0.0:0.002:max_x
 
     wave0 = EffectiveWave(ω, k_eff0, medium, [specie]; θin = θin, hankel_order = ho, tol=1e-8)

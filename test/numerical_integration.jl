@@ -1,6 +1,10 @@
+using EffectiveWaves, Test
+
 @testset "test different numerical integration methods" begin
 
     using ApproxFun
+    import SpecialFunctions: hankelh1
+
     # function imitates kernal in Fredholm equation that is solved for AverageWave
     n = 1; X = 0.9; θin = 0.2;
     num_coefs = 10000;

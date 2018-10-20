@@ -1,3 +1,5 @@
+using EffectiveWaves, Test
+
 # This case is numerically challenging, because wavenumber() has many roots close together. Make sure spacing in ωs is small to help the optimisation method
 @testset "strong scatterers and low frequency" begin
     medium = Medium(1.0,1.0+0.0im)

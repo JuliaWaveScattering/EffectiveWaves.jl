@@ -46,7 +46,7 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
     lower = [min_Rek, min_Imk]
     upper = [max_Rek, max_Imk]
     new_ks = [optimize(detMM2, kvec, lower, upper; x_tol=low_tol, g_tol = low_tol^3).minimizer for kvec in k_mesh]
-    deleteat!(new_ks, findall([detMM2.(new_ks) .> low_tol]))
+    deleteat!(new_ks, findall(detMM2.(new_ks) .> low_tol))
     new_ks = reduce_kvecs(new_ks, low_tol/10)
 
     # only keep targets which are not already in k_vecs

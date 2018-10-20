@@ -1,5 +1,6 @@
 @testset "match wave low volfrac" begin
 
+using LinearAlgebra
 ## Low volume fraction
     medium = Medium(1.0,1.0+0.0im)
     specie = Specie(ρ=0.5, r=0.4, c=0.5, volfrac=0.001)

@@ -9,7 +9,7 @@
     function intergrand_kernels(X, a12k; M = M, θin=θin, num_coefs = 2000)
 
         q = min(Int(floor(a12k/(X[2]-X[1]))),J)
-        B, S = BS_matrices(X, a12k; M = M, θin=θin, M=M, num_coefs = num_coefs)
+        B, S = BS_matrices(X, a12k; θin=θin, M=M, num_coefs = num_coefs)
 
         function intergrand(l,j,m,n)
             P = S[j-l,n-m]
