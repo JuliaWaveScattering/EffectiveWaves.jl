@@ -1,4 +1,5 @@
 using EffectiveWaves
+using Statistics
 
 include("optimise_wavenumber.jl")
 

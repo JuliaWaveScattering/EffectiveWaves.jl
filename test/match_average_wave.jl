@@ -3,7 +3,7 @@ using EffectiveWaves, Test
 @testset "match purely numerical solution" begin
 
 ## high attenuating material
-    medium = Medium(1.0,1.0+0.0im)
+    medium = Medium(ρ=1.0, c=1.0)
     # cs = [0.1,0.5]
     cs = [0.5]
     species = [

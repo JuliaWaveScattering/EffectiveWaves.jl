@@ -11,10 +11,12 @@ background = Glycerol # for other materials, see materials.jl
 
 # angular frequencies
 ωs = LinRange(0.01,1.0,60)*30.0e6
-wavenumbers = wavenumber_low_volfrac(ωs, background, species)
 
-speeds = ωs./real(wavenumbers)
-attenuations = imag(wavenumbers)
+# using only one effective wavenumber per angular frequencies. This wavenumber is calculated from an asymptotic formula for low particle volume fraction
+k_effs = wavenumber_low_volfrac(ωs, background, species)
+
+speeds = ωs./real(k_effs)
+attenuations = imag(k_effs)
 
 using Plots
 pyplot()

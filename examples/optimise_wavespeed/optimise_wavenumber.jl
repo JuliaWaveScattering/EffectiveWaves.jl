@@ -1,3 +1,5 @@
+using BlackBoxOptim
+
 const opt_methods = (:adaptive_de_rand_1_bin, :adaptive_de_rand_1_bin_radiuslimited, :separable_nes, :xnes, :de_rand_1_bin, :de_rand_2_bin, :de_rand_1_bin_radiuslimited, :de_rand_2_bin_radiuslimited, :random_search, :generating_set_search, :probabilistic_descent)
 
 # opt_fields = [(:r,(0.01,2.0)),(:volfrac,(0.,0.14)),(:ρ,(0.0,100.))]

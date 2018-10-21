@@ -3,8 +3,7 @@ using EffectiveWaves, Test
 
 @testset "Mesh and path methods for wavenumbers" begin
 
-    # medium = WaterDistilled
-    medium = Medium(1.0,1.0+0.0im)
+    medium = Medium(ρ=1.0, c=1.0)
 
     species = [
         Specie(ρ=8.0, r=1.0, c=1.1, volfrac=0.25)
