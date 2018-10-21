@@ -26,7 +26,7 @@ deploydocs(
     julia = "1.0",
     osname = "linux",
     target = "build",
-    deps = nothing,
     make = nothing,
+    deps = nothing,
     repo = "github.com/arturgower/EffectiveWaves.jl.git"
 )
