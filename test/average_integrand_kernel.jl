@@ -1,9 +1,11 @@
+using EffectiveWaves, Test
+
 #tests the values of the integrand against results from the Mathematica file integrate_hankels.nb, which used no approximations.
 
 # When these tests were done there was an error in the integration domain of B. Likely these will need to be redone.
 @testset "Compare integrand values against brute force Mathematica result" begin
 
-    using OffsetArrays
+    # using OffsetArrays
     import EffectiveWaves: BS_matrices
 
     function intergrand_kernels(X, a12k; M = M, θin=θin, num_coefs = 2000)

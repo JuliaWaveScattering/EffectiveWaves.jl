@@ -20,9 +20,8 @@ using EffectiveWaves, Test
         wavenumbers(ω, medium, species; tol=tol, num_wavenumbers=1)
     for ω in ωs]
 
-    inds = [argmin(abs.(k)) for k in (k_effs_arr .- k_eff_φs)]
+    inds = [argmin(abs.(k_effs_arr[i] .- k_eff_φs[i])) for i in eachindex(ωs)]
     k_effs2 = [k_effs_arr[i][inds[i]] for i in eachindex(inds)]
-    # k_effs = wavenumber(ωs, medium, species)
 
     @test norm(k_effs2 - k_eff_lows)/norm(k_effs2) < 5e-7
     @test norm(k_effs2[1] - k_eff_lows[1])/norm(k_eff_lows[1]) < 5e-7

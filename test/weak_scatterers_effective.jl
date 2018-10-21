@@ -20,7 +20,7 @@
         wavenumbers(ω, medium, species;
             num_wavenumbers=1, tol = 1e-8)
     for ω in ωs]
-    inds = [argmin(abs.(k)) for k in (k_effs .- k_eff_φs)]
+    inds = [argmin(abs.(k_effs[i] .- k_eff_φs[i])) for i in eachindex(ωs)]
     k_effs2 = [k_effs[i][inds[i]] for i in eachindex(inds)]
 
     @test norm(k_effs2 - k_eff_φs)/norm(k_eff_φs) < 0.002

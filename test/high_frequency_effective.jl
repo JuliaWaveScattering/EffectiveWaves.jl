@@ -12,7 +12,7 @@ using EffectiveWaves, Test
         tol = 1e-6
         k_eff_φs = wavenumber_low_volfrac(ωs2, medium, species; tol=tol)
         k_effs = [wavenumbers(ω, medium, species; tol=tol, num_wavenumbers=1) for ω in ωs2]
-        inds = [argmin(abs.(k)) for k in (k_effs .- k_eff_φs)]
+        inds = [argmin(abs.(k_effs[i] .- k_eff_φs[i])) for i in eachindex(ωs2)]
         k_effs2 = [k_effs[i][inds[i]] for i in eachindex(inds)]
 
         @test norm(k_effs2 - k_eff_φs)/norm(k_effs2) < tol
