@@ -1,12 +1,14 @@
 
 # LaTeX generated files
-doc/*.aux
-doc/*.bcf
-doc/*.out
-doc/*.log
-doc/*.run.xml
-doc/*.blg
-doc/*.bbl
-doc/*.fls
-doc/*.fdb_latexmk
-doc/*.synctex.gz
+docs/*.aux
+docs/*.bcf
+docs/*.out
+docs/*.log
+docs/*.run.xml
+docs/*.blg
+docs/*.bbl
+docs/*.fls
+docs/*.fdb_latexmk
+docs/*.synctex.gz
+docs/build/
+docs/site/

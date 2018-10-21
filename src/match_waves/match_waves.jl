@@ -5,6 +5,7 @@ mutable struct MatchWave{T<:AbstractFloat}
     x_match::Vector{T} # waves are matched between average_wave.x_match
 end
 
+"Calculates the difference between the match of MatchWave.effective_waves and MatchWave.average_wave. This can be used as a proxi for convergence. "
 function match_error(m_wave::MatchWave{T}; apply_norm::Function=norm) where T<:AbstractFloat
     avg_eff = AverageWave(m_wave.x_match, m_wave.effective_waves)
     j0 = findmin(abs.(m_wave.average_wave.x .- m_wave.x_match[1]))[2]

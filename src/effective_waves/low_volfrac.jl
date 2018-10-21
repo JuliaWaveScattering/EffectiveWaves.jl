@@ -6,6 +6,7 @@ wavenumber_low_volfrac(ωs::AbstractVector{T}, medium::Medium{T}, species::Vecto
 
 wavenumber_low_volfrac(ωs::AbstractVector{T}, medium::Medium{T}, specie::Specie{T}; kws...) where T<:Number = [wavenumber_low_volfrac(ω, medium, [specie]; kws...) for ω in ωs]
 
+"Explicit formula for one effective wavenumber based on a low particle volume fraction expasion."
 function wavenumber_low_volfrac(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::T =1e-6,
     hankel_order::Int = maximum_hankel_order(ω, medium, species; tol=tol),
     radius_multiplier::T = 1.005, verbose::Bool = true) where T <: Number
@@ -29,6 +30,7 @@ end
 reflection_coefficient_low_volfrac(ωs::AbstractVector{T}, medium::Medium{T}, species::Vector{Specie{T}}; kws... ) where T<:Number =
     [reflection_coefficient_low_volfrac(ω, medium, species; kws... ) for ω in ωs]
 
+"An explicit formula for the refleciton coefficient based on a low particle volume fraction."
 function reflection_coefficient_low_volfrac(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
         θin::T = zero(T), kws... ) where T<:Number
 

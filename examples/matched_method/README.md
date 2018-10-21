@@ -20,6 +20,7 @@ using EffectiveWaves
     # savefig("wave_effs.png")
 ```
 ![Many effective wavenumbers](wave_effs.png)
+
 To determine the amplitude of these effective waves we used the newly developed matched method.
 ```julia
     match_wave = MatchWave(ω, medium, specie;
@@ -34,6 +35,7 @@ To determine the amplitude of these effective waves we used the newly developed 
     # savefig("match_wave.png")
 ```
 ![The matched wave field](match_wave.png)
+
 We can compare this results against a purely numerical method, which requires a much larger mesh.
 ```julia
   average_wave = AverageWave(ω, medium, specie; θin = θin, max_size=700)

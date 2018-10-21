@@ -19,6 +19,7 @@ function AverageWave(x::AbstractVector{T}, A_mat::Array{Complex{T}}) where T<:Nu
     AverageWave(Int((size(A_mat,2)-1)/2), collect(x), A_mat)
 end
 
+"Approximates the error in AverageWave.amplitudes due to the mesh AverageWave.x."
 function average_error(avg_w::AverageWave)
     ddf = circshift(avg_w.amplitudes, (2,0,0)) - 2*circshift(avg_w.amplitudes, (1,0,0)) + avg_w.amplitudes
     h = (avg_w.x[2] - avg_w.x[1])

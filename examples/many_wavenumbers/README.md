@@ -18,7 +18,8 @@ using Plots
 scatter(k_effs, lab="Effective wavenumbers")
 ```
 ![Many effective wavenumbers](many_keffs.png)
-## We can calculate the resulting effective field (ensemble average field) from each of these effective wavenumbers by choosing an arbitrary wave amplitude of 1 for each wave.
+
+We can calculate the resulting effective field (ensemble average field) from each of these effective wavenumbers by choosing an arbitrary wave amplitude of 1 for each wave.
 ```julia
 # with "extinction_rescalse=false" the amplitude will default to 1.
 waves = [EffectiveWave(ω, k_eff, medium, species; extinction_rescale=false) for k_eff in k_effs]

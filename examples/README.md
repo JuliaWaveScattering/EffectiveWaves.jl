@@ -1,4 +1,4 @@
-## [demo.jl](demo.jl)
+## [demo.jl](intro/README.md)
 Shows how to choose two species, vary the volume fraction of them both, and plot the resulting sound speed and attenuation.
 
 ## [Calculate the many wavenumbers](many_wavenumbers/README.md)

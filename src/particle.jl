@@ -1,4 +1,4 @@
-"A circular or spherical species of particles with homogenious material properties"
+"A circular or spherical specie of particle with homogenious material properties."
 mutable struct Specie{T<:Real}
   ρ::T # density
   r::T # radius
@@ -6,15 +6,16 @@ mutable struct Specie{T<:Real}
   num_density::T # number density
 end
 
+"A homogenious background material."
 mutable struct Medium{T}
   ρ::T # density
   c::Complex{T} # sound speed
 end
 
-"Returns the volume fraction of the specie"
+"Returns the volume fraction of the specie."
 volume_fraction(sp::Specie) = sp.r^2*sp.num_density*pi
 
-"Returns pressure wave speed, when β is the adiabatic bulk modulus"
+"Returns pressure wave speed, when β is the adiabatic bulk modulus/"
 p_speed(ρ,β,μ) = sqrt(β+4*μ/3)/sqrt(ρ)
 
 function Specie(ρ::T, r::T, c=one(Complex{T}); volfrac::T=0.1*one(T)) where T <: AbstractFloat
@@ -37,6 +38,7 @@ end
 Medium(;ρ=1.0, c=1.0+0.0im) = Medium{typeof(ρ)}(ρ,Complex{typeof(ρ)}(c))
 # Medium(;ρ::T = 1.0, c::Union{R,Complex{T}} = 1.0+0.0im) = Medium(ρ,Complex{T}(c))
 
+"Calculate the largest needed order for the hankel series."
 function maximum_hankel_order(ω::Union{T,Complex{T}}, medium::Medium{T}, species::Vector{Specie{T}};
         tol::T=1e-7, verbose::Bool = false) where T <: Number
 
@@ -55,7 +57,7 @@ function maximum_hankel_order(ω::Union{T,Complex{T}}, medium::Medium{T}, specie
     return hankel_order
 end
 
-"a vector of t_matrices, but as they are diagonal matrices we give them as a vectores."
+"A t_matrix in the form of a vector, because for now we only deal with diagonal T matrices."
 function t_vectors(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; hankel_order = 3) where T <: AbstractFloat
     t_vecs = [ zeros(Complex{T},1+2hankel_order) for s in species]
     for i = 1:length(species), n = 0:hankel_order
@@ -65,7 +67,7 @@ function t_vectors(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; hankel_
     return t_vecs
 end
 
-"pre-calculate a matrix of Zn's"
+"Pre-calculate a matrix of Zn's"
 function Zn_matrix(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; hankel_order = 3) where T <: Number
     Zs = OffsetArray{Complex{T}}(undef, 1:length(species), -hankel_order:hankel_order)
     for i = 1:length(species), n = 0:hankel_order
@@ -77,7 +79,7 @@ end
 
 Zn(ω::T, p::Specie{T}, med::Medium{T}, m::Int) where T<: Number = Zn(Complex{T}(ω), p, med, m)
 
-"Returns a ratio used in multiple scattering which reflects the material properties of the particles"
+"Returns a ratio used in multiple scattering which reflects the scattering strength of the particles"
 function Zn(ω::Complex{T}, p::Specie{T}, med::Medium{T},  m::Int) where T<: Number
     m = abs(m)
     ak = p.r*ω/med.c
