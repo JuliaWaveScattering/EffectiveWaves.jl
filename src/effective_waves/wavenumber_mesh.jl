@@ -2,6 +2,7 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
         tol::T = 1e-6,
         hankel_order::Int = maximum_hankel_order(ω, medium, species; tol=tol),
         mesh_refine::T = T(0.4),
+        inner_optimizer = LBFGS(),
         verbose::Bool = false,
         radius_multiplier::T = T(1.005),
         t_vecs::Vector{Vector{Complex{T}}} = t_vectors(ω, medium, species; hankel_order = hankel_order),
@@ -30,8 +31,8 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
 
     low_tol = max(1e-4, tol)*minimum( (k1 == k2) ? Inf : abs(k1-k2) for k1 in k_effs, k2 in k_effs) # a tolerance used for a first pass with time_limit
 
-    kx = LinRange(min_Rek, max_Rek, round(length(k_effs)/(2*mesh_refine))) # tree shape makes this division by 2 natural
-    ky = LinRange(min_Imk, max_Imk, round(length(k_effs)/(2*mesh_refine)))
+    kx = LinRange(min_Rek, max_Rek, Int(round(length(k_effs)/(2*mesh_refine)))) # tree shape makes this division by 2 natural
+    ky = LinRange(min_Imk, max_Imk, Int(round(length(k_effs)/(2*mesh_refine))))
     k_mesh = [[x,y] for x in kx, y in ky][:]
 
     k_vecs = [[real(keff),imag(keff)] for keff in k_effs]
@@ -45,7 +46,10 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
     # Find all wavenumbers
     lower = [min_Rek, min_Imk]
     upper = [max_Rek, max_Imk]
-    new_ks = [optimize(detMM2, kvec, lower, upper; x_tol=low_tol, g_tol = low_tol^3).minimizer for kvec in k_mesh]
+    new_ks = [
+        optimize(detMM2, lower, upper, kvec,
+            Fminbox(inner_optimizer), Optim.Options(x_tol=low_tol, g_tol = low_tol^3)).minimizer
+    for kvec in k_mesh]
     deleteat!(new_ks, findall(detMM2.(new_ks) .> low_tol))
     new_ks = reduce_kvecs(new_ks, low_tol/10)
 
@@ -58,7 +62,8 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
     # Here we refine the new roots
     new_ks = map(new_ks) do k_vec
         # res = optimize(detMM2, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
-        res = optimize(detMM2, k_vec, lower, upper; g_tol = tol^3.0, x_tol=tol)
+        res = optimize(detMM2, lower, upper, k_vec, Fminbox(inner_optimizer),
+            Optim.Options(g_tol = tol^3.0, x_tol=tol))
         if res.minimum > T(20)*tol
             [zero(T),-one(T)]
         else
@@ -82,100 +87,6 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
     # deleteat!(k_vecs, find(k_vec[2] < tol && k_vec[1] < tol for k_vec in k_vecs))
 
     k_effs = [k_vec[1] + k_vec[2]*im for k_vec in k_vecs]
-    k_effs = sort(k_effs, by=imag)
-
-    return k_effs
-end
-
-function wavenumbers_mesh_search(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::T = 1e-6,
-        hankel_order::Int = maximum_hankel_order(ω, medium, species; tol=tol),
-        mesh_points::Int = 7, mesh_size::T = T(0.2),
-        max_Imk::T = zero(T), max_Rek::T = zero(T),
-        time_limit::T = one(T),
-        radius_multiplier::T = T(1.005),
-        t_vecs = t_vectors(ω, medium, species; hankel_order = hankel_order),
-        kws...) where T<:Number
-
-    k = ω/medium.c
-    S = length(species)
-    ho = hankel_order
-
-    as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
-    function M_component(keff,j,l,m,n)
-        (n == m ? 1.0 : 0.0)*(j == l ? 1.0 : 0.0) + 2.0pi*species[l].num_density*t_vecs[l][n+ho+1]*
-            Nn(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
-    end
-
-    # this matrix is needed to calculate the eigenvectors
-    MM(keff::Complex{T}) = reshape(
-        [M_component(keff,j,l,m,n) for m in -ho:ho, j = 1:S, n in -ho:ho, l = 1:S]
-    , ((2ho+1)*S, (2ho+1)*S))
-
-    # the constraint uses keff_vec[2] < -tol to better specify solutions where imag(k_effs)<0
-    constraint(keff_vec::Array{T}) = ( (keff_vec[2] < -tol) ? one(T) : zero(T))*(-1 + exp(-T(100.0)*keff_vec[2]))
-    detMM2(keff_vec::Array{T}) =  constraint(keff_vec) + map(x -> real(x*conj(x)), det(MM(keff_vec[1]+im*keff_vec[2])))
-
-    kφ = wavenumber_low_volfrac(ω, medium, species; verbose = false)
-    eff_medium = effective_medium(medium, species)
-    k0 = ω/eff_medium.c
-    if isnan(k0) k0 = kφ end
-
-    # find at least one root to use as a scale for dk_x and dk_y
-        kin = [min(real(k0),abs(real(kφ))),abs(imag(kφ))]
-        kin = optimize(detMM2, kin; time_limit = T(2)*time_limit).minimizer
-
-    if max_Rek == 0.0
-        dk_x = abs(kin[1]) * mesh_size
-        max_Rek = mesh_points * dk_x
-    else dk_x = max_Rek/mesh_points
-    end
-    if max_Imk == 0.0
-        dk_y = abs(kin[2]) * mesh_size
-        max_Imk = mesh_points * dk_y
-    else dk_y = max_Imk/mesh_points
-    end
-
-    kx = -max_Rek:dk_x:max_Rek
-    ky = 0.0:dk_y:max_Imk
-    kins = [[x,y] for x in kx, y in ky][:]
-    # add both the low volfrac and frequency as initial guesses
-    push!(kins, kin, [real(kφ),abs(imag(kφ))], [real(k0),abs(imag(k0))])
-
-    # Find all wavenumbers
-    results = map(kins) do kin
-       optimize(detMM2, kin; time_limit = time_limit)
-    end
-
-    # Take the best length(kx) candidates, plus those that are smaller than tolerance T(1e-4).
-    # As tol does not affect the above results, it is best to use an imperical first pass tolerance T(1e-4).
-    sort!(results, by = r->r.minimum)
-    len = max(length(kx), findfirst(r -> sqrt(r.minimum) > T(1e-4), results))
-    k_vecs = [r.minimizer for r in results[1:len]]
-
-    # remove unphysical wavenumbers
-    deleteat!(k_vecs, find(k_vec[2] < -tol for k_vec in k_vecs))
-
-    # group together wavenumbers which are closer than sqrt(tol)
-    k_vecs = reduce_kvecs(k_vecs,sqrt(tol))
-
-    # Here we refine the effective wavenumbers
-    k_vecs = map(k_vecs) do k_vec    # Here we refine the effective wavenumbers
-        res = optimize(detMM2, k_vec;  g_tol = tol^2.0, f_tol = tol^4.0)
-        if res.minimum > T(10)*tol
-            [zero(T),-one(T)]
-        else
-            res.minimizer
-        end
-    end
-
-    # group together wavenumbers which are closer than tol
-    k_vecs = reduce_kvecs(k_vecs,tol)
-
-    # Finally delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
-    deleteat!(k_vecs, find(k_vec[2] < -tol for k_vec in k_vecs))
-    deleteat!(k_vecs, find(k_vec[2] < tol && k_vec[1] < tol for k_vec in k_vecs))
-
-    k_effs = [ k_vec[1] + k_vec[2]*im for k_vec in k_vecs]
     k_effs = sort(k_effs, by=imag)
 
     return k_effs

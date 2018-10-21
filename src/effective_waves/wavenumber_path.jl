@@ -37,11 +37,11 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
         k_vecs = [[kin[1]+x,kin[2]] for x in LinRange(-dx,dx,mesh_points+1)]
         push!(k_vecs,kin, [real(k0),zero(T)], [zero(T),zero(T)])
 
-        k_vecs = [optimize(detMM2, kvec; x_tol=low_tol, g_tol = low_tol^3).minimizer for kvec in k_vecs]
+        k_vecs = [optimize(detMM2, kvec, Optim.Options(x_tol=low_tol, g_tol = low_tol^3)).minimizer for kvec in k_vecs]
         k_vecs = reduce_kvecs(k_vecs, low_tol/10)
 
         k_vecs = map(k_vecs) do k_vec
-           res = optimize(detMM2, k_vec; g_tol = tol^3.0, x_tol=tol)
+           res = optimize(detMM2, k_vec, Optim.Options(g_tol = tol^3.0, x_tol=tol))
            if res.minimum > T(20)*tol
                [zero(T),-one(T)]
            else
@@ -71,14 +71,14 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
         # Find the first two roots that lead to the two branches of the root tree
         while !two_roots && (length(k_vecs) < num_wavenumbers)
             hits = [
-                optimize(detMM2, [kx, ky]; x_tol = low_tol, g_tol = low_tol^3).minimizer
+                optimize(detMM2, [kx, ky], Optim.Options(x_tol = low_tol, g_tol = low_tol^3)).minimizer
             for kx in kxs]
             hits = reduce_kvecs(hits, low_tol)
 
             # Here we refine the hits
             hits = map(hits) do k_vec
                 # res = optimize(detMM2, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
-                res = optimize(detMM2, k_vec; g_tol = tol^3.0, x_tol=tol)
+                res = optimize(detMM2, k_vec, Optim.Options(g_tol = tol^3.0, x_tol=tol))
                 if res.minimum > T(20)*tol
                     [zero(T),-one(T)]
                 else
@@ -148,7 +148,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
 
             # search for roots from this mesh
                 new_targets = map(mesh) do kin
-                   optimize(detMM2, kin; x_tol = low_tol, g_tol = low_tol^3).minimizer
+                   optimize(detMM2, kin, Optim.Options(x_tol = low_tol, g_tol = low_tol^3)).minimizer
                 end
                 new_targets = reduce_kvecs(new_targets, low_tol/10)
                 deleteat!(new_targets, findall(detMM2.(new_targets) .> low_tol))
@@ -162,7 +162,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
                 # Here we refine the new roots
                 new_targets = map(new_targets) do k_vec
                     # res = optimize(detMM2, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
-                    res = optimize(detMM2, k_vec; g_tol = tol^3.0, x_tol=tol)
+                    res = optimize(detMM2, k_vec, Optim.Options(g_tol = tol^3.0, x_tol=tol))
                     if res.minimum > T(20)*tol
                         [zero(T),-one(T)]
                     else

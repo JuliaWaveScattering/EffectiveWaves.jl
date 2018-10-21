@@ -25,7 +25,7 @@ include("large_vol_low_freq_effective.jl")
 include("weak_scatterers_effective.jl")
 
 # can not currently run test due to differences in Optim versions
-# include("path_mesh_wavenumbers.jl")
+include("path_mesh_wavenumbers.jl")
 
 include("numerical_integration.jl")
 include("integrated_reflection.jl")

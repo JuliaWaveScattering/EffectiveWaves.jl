@@ -1,3 +1,5 @@
+using EffectiveWaves, Test
+
 @testset "match purely numerical solution" begin
 
 ## high attenuating material

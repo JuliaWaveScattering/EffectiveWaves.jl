@@ -1,4 +1,5 @@
 # Test that path and mesh methods find the same wavenumbers
+using EffectiveWaves, Test
 
 @testset "Mesh and path methods for wavenumbers" begin
 
@@ -27,6 +28,6 @@
         tol = tol
     );
 
-   @test norm(k_effs_mesh[1:num_wavenumbers] - k_effs_path[1:num_wavenumbers]) < tol
+   @test maximum(abs.(k_effs_mesh[1:num_wavenumbers] - k_effs_path[1:num_wavenumbers])) < tol
 
 end

@@ -1,3 +1,5 @@
+using EffectiveWaves, Test
+
 @testset "match wave low volfrac" begin
 
 using LinearAlgebra
