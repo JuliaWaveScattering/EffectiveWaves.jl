@@ -2,7 +2,7 @@
 
     dx = match_wave.x_match[2] - match_wave.x_match[1]
     max_x = match_wave.x_match[end]
-    x = [match_wave.x_match; (max_x:dx:(2*max_x)) + dx]
+    x = [match_wave.x_match; (max_x:dx:(2*max_x)) .+ dx]
     @series (x, match_wave)
 end
 
