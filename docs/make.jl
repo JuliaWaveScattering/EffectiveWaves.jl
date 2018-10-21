@@ -1,5 +1,7 @@
 using Documenter, EffectiveWaves
 
+cp("../example","./example")
+
 makedocs(
     format=:html,
     sitename="EffectiveWaves.jl",
@@ -11,12 +13,12 @@ makedocs(
         "Manual" => [
             "base.md"
         ]
-        # ,
-        # "Examples" => [
-        #     "examples/intro/README.md",
-        #     "examples/many_wavenumbers/README.md",
-        #     "examples/matched_method/README.md"
-        # ]
+        ,
+        "Examples" => [
+            "examples/intro/README.md",
+            "examples/many_wavenumbers/README.md",
+            "examples/matched_method/README.md"
+        ]
     ]
 )
 
