@@ -4,7 +4,7 @@
 
 # Multi-species effective waves
 
-A Julia package for calculating, processing and plotting waves travelling in heterogeneous materials. The focus is on calculating the ensemble averaged waves, i.e. the statistical moments, of the waves. 
+A Julia package for calculating, processing and plotting waves travelling in heterogeneous materials. The focus is on calculating the ensemble averaged waves, i.e. the statistical moments, of the waves.
 You can run Julia on [JuliaBox](https://www.juliabox.com/) in your browser without installation.
 
 At present, the packages calculates effective wavenumbers, wave transimission and wave reflection from random particulate materials in two-dimensions, see [arXiv preprint](https://arxiv.org/abs/1712.05427) for details on the mathematics, or [these notes](theory/MultispeciesWaves.pdf) for the formulas.
@@ -12,7 +12,9 @@ At present, the packages calculates effective wavenumbers, wave transimission an
 ## Get started
 Type into Julia:
 ```julia
+using Pkg
 Pkg.clone("https://github.com/arturgower/EffectiveWaves.jl.git")
+
 using EffectiveWaves
 ```
 
