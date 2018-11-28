@@ -1,6 +1,6 @@
 using Documenter, EffectiveWaves
 
-cp("../example","./example")
+# cp("../example","example")
 
 makedocs(
     format=:html,
