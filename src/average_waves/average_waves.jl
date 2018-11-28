@@ -116,7 +116,7 @@ function average_wave_system(ω::T, X::AbstractVector{T}, medium::Medium{T}, spe
     PQ_quad = intergrand_kernel(X, a12k; M = M, θin = θin, scheme=scheme);
 
     MM_quad = [
-        (specie.num_density/(k^2))*t_vecs[1][m+M+1]*PQ_quad[l,m+M+1,j,n+M+1] + ( (m==n && j==l) ? 1.0+0.0im : 0.0+0.0im)
+        (specie.num_density/(k^2))*t_vecs[1][m+M+1]*PQ_quad[l,m+M+1,j,n+M+1] - ( (m==n && j==l) ? 1.0+0.0im : 0.0+0.0im)
     for  l=1:(J+1), m=-M:M, j=1:(J+1), n=-M:M];
 
     b_mat = [

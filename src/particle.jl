@@ -61,7 +61,7 @@ end
 function t_vectors(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; hankel_order = 3) where T <: AbstractFloat
     t_vecs = [ zeros(Complex{T},1+2hankel_order) for s in species]
     for i = 1:length(species), n = 0:hankel_order
-        t_vecs[i][n+hankel_order+1] = Zn(ω,species[i],medium,n)
+        t_vecs[i][n+hankel_order+1] = - Zn(ω,species[i],medium,n)
         t_vecs[i][-n+hankel_order+1] = t_vecs[i][n+hankel_order+1]
     end
     return t_vecs
