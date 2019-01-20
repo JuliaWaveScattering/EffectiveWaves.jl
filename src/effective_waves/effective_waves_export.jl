@@ -14,6 +14,7 @@ export reflection_coefficient_low_volfrac, wavenumber_low_volfrac, wavenumber_ve
 include("far_fields.jl")
 
 include("effective_waves.jl")
+include("effective_wavevectors.jl")
 include("reflection_effective.jl")
 include("wavenumber_effective.jl")
 include("wavenumber_path.jl")

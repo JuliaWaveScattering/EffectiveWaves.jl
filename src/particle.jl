@@ -117,20 +117,32 @@ function Zn(ω::Complex{T}, p::Specie{T}, med::Medium{T},  m::Int) where T<: Num
     return numer / denom
 end
 
+"m-th Derivative of Hankel function of the first kind"
+function diffhankelh1(n,z,m::Int)
+    if m == 0
+        return hankelh1(n, z)
+    elseif m > 0
+        m = m - 1
+        return 0.5*(diffhankelh1(n-1,z,m) - diffhankelh1(n+1,z,m))
+    else
+        error("Can not differentiate a negative number of times")
+    end
+end
+
 "Derivative of Hankel function of the first kind"
-function diffhankelh1(n,z)
-  if n!=0
-    0.5*(hankelh1(-1 + n, z) - hankelh1(1 + n, z))
-  else
-    - hankelh1(1, z)
-  end
+diffhankelh1(n,z) = 0.5*(hankelh1(-1 + n, z) - hankelh1(1 + n, z))
+
+"m-th Derivative of Hankel function of the first kind"
+function diffbesselj(n,z,m::Int)
+    if m == 0
+        return besselj(n, z)
+    elseif m > 0
+        m = m - 1
+        return 0.5*(diffbesselj(n-1,z,m) - diffbesselj(n+1,z,m))
+    else
+        error("Can not differentiate a negative number of times")
+    end
 end
 
 "Derivative of Bessel function of first kind"
-function diffbesselj(n,z)
-  if n!=0
-    0.5*(besselj(-1 + n, z) - besselj(1 + n, z))
-  else
-    - besselj(1, z)
-  end
-end
+diffbesselj(n,z) = 0.5*(besselj(-1 + n, z) - besselj(1 + n, z))
