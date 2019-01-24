@@ -11,6 +11,8 @@ export gray_square!, gray_square
 
 export reflection_coefficient_low_volfrac, wavenumber_low_volfrac, wavenumber_very_low_volfrac
 
+export wienerhopf_reflection_coefficient, wienerhopf_wavevectors
+
 include("far_fields.jl")
 
 include("effective_waves.jl")

@@ -36,3 +36,91 @@ function reflection_coefficient(ω::T, wave_eff::EffectiveWave{T}, medium::Mediu
 
     return R
 end
+
+"The average reflection coefficient"
+function wienerhopf_reflection_coefficient(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
+        tol::T = T(1e-7),
+        θin::T = zero(T),
+        radius_multiplier::T = 1.005,
+        hankel_order::Int = 0,
+        num_coefs::Int = 10000,
+        maxZ::T = T(100)*radius_multiplier*maximum(s.r for s in species) + T(100)
+    ) where T<:Number
+
+    k = ω/medium.c
+    ho = hankel_order
+
+    t_vecs = t_vectors(ω, medium, species; hankel_order = ho)
+    as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
+
+    function F0(S,j,l,m,n)
+        (S^T(2) - (k*as[j,l])^T(2)) * (n == m ? T(1) : T(0)) * (j == l ? T(1) : T(0)) +
+        T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1] * Nn(n-m,k*as[j,l],S)
+    end
+
+    function F(s,j,l,m,n)
+        (s^T(2) - (k*as[j,l]*cos(θin))^T(2)) * (n == m ? T(1) : T(0)) * (j == l ? T(1) : T(0)) +
+        T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1] * Nn(n-m,k*as[j,l],sqrt(s^2 + (k*as[j,l]*sin(θin))^2))
+    end
+
+    # Nn(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*besselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z)
+    q(s,j,l,m,n) = F(s,j,l,m,n) / (s^T(2) - (k*as[j,l]*cos(θin))^T(2))
+
+    # Nn(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*besselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z)
+    Q0(S,j,l,m,n) = F0(S,j,l,m,n) / (S^T(2) - (k*as[j,l])^T(2))
+
+    function F0p(S, maxZ::T = maxZ, num_coefs::Int = num_coefs)
+        Q(Z) = log(Q0(Z,1,1,0,0))/(Z - S)
+        xp = as[1,1]*k*(-1.0+1.0im)
+        (S + k*as[1,1]) * exp(
+            (T(1.0)/(T(2)*pi*im)) * (
+                sum(Fun(Q, (-maxZ)..xp, num_coefs)) +
+                sum(Fun(Q, xp..(-xp), num_coefs)) +
+                sum(Fun(Q, (-xp)..maxZ, num_coefs))
+            )
+        )
+    end
+
+    function Fp(s, maxZ::T = maxZ, num_coefs::Int = num_coefs)
+        Q(z) = log(q(z,1,1,0,0))/(z - s)
+        xp = as[1,1]*k*cos(θin)*(-1.0+1.0im)
+        (s + k*as[1,1]*cos(θin)) * exp(
+            (T(1.0)/(T(2)*pi*im)) * (
+                sum(Fun(Q, (-maxZ)..xp, num_coefs)) +
+                sum(Fun(Q, xp..(-xp), num_coefs)) +
+                sum(Fun(Q, (-xp)..maxZ, num_coefs))
+            )
+        )
+    end
+
+    function F0m(S, maxZ::T = maxZ, num_coefs::Int = num_coefs)
+        Q(Z) = log(Q0(Z,1,1,0,0))/(Z - S)
+        xm = as[1,1]*k*(-1.0+0.5im)
+        a1 = as[1,1]*k*0.5
+        # a1 = 0.0
+        (S - k*as[1,1]) * exp(
+            -(T(1.0)/(T(2)*pi*im)) * (
+                sum(Fun(Q, (-maxZ)..(xm+a1), num_coefs)) +
+                sum(Fun(Q, (xm+a1)..(-xm+a1), num_coefs)) +
+                sum(Fun(Q, (-xm+a1)..maxZ, num_coefs))
+            )
+        )
+    end
+
+    x = -as[1,1]*k*(-1.0+0.75im)
+    F0(x,1,1,0,0)
+
+    abs(F0p(x,maxZ,num_coefs) - F0p(x,maxZ+30, Int(round(num_coefs*1.1)))) / abs(F0p(x,maxZ,num_coefs))
+    abs(F0m(x,maxZ,num_coefs) - F0m(x,maxZ+30, Int(round(num_coefs*1.1)))) / abs(F0m(x,maxZ,num_coefs))
+
+    abs(F0p(x,maxZ) * F0m(x,maxZ) - F0(x,1,1,0,0))/abs(F0(x,1,1,0,0))
+
+    x = as[1,1]*k*(0.25)
+    abs(F0p(x,maxZ) * F0m(x,maxZ) - F0(x,1,1,0,0))/abs(F0(x,1,1,0,0))
+
+    R_a = F0(k*as[1,1],1,1,0,0) / F0p(k*as[1,1])^2
+    R_acos = F0(k*as[1,1]*cos(θin),1,1,0,0) / F0p(k*as[1,1]*cos(θin))^2
+    R = F(k*as[1,1]*cos(θin),1,1,0,0) / Fp(k*as[1,1]*cos(θin))^2
+
+    return R
+end

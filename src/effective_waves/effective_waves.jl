@@ -36,10 +36,10 @@ function EffectiveWave(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vec
         if hankel_order > 0
             error("the Wiener Hopf method has only been implemented for monopole scatterers, i.e. hankel order =0. ")
         end
-        amps = effective_wavevectors(ω, k_eff, medium, species;
+        amps = wienerhopf_wavevectors(ω, k_eff, medium, species;
             hankel_order=hankel_order, tol = tol, radius_multiplier=radius_multiplier)
     else
-        amps = wienerhopf_wavevectors(ω, k_eff, medium, species;
+        amps = effective_wavevectors(ω, k_eff, medium, species;
             hankel_order=hankel_order, tol = tol, radius_multiplier=radius_multiplier)
     end
     wave_eff = EffectiveWave(hankel_order, amps, k_eff, θ_eff)

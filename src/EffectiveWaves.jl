@@ -15,7 +15,7 @@ export  Specie, Medium, volume_fraction, Zn, t_vectors, Nn, p_speed, maximum_han
 
 # for effective waves
 export  wavenumbers, wavenumber, effective_waves, transmission_angle,
-        effective_wavevectors, wienerhopf_wavevectors, scattering_amplitudes_average, scale_amplitudes_effective
+        effective_wavevectors, scattering_amplitudes_average, scale_amplitudes_effective
 
 export  reflection_coefficient, reflection_coefficients
 

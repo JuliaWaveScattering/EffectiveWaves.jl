@@ -64,56 +64,56 @@ function wienerhopf_wavevectors(ω::T, k_eff::Complex{T}, medium::Medium{T}, spe
         tol::T = 1e-6, θin::T = 0.0,
         radius_multiplier::T = 1.005,
         hankel_order::Int = 0,
-        num_coefs::Int = 10000
-        ) where T<:AbstractFloat
+        num_coefs::Int = 10000,
+        maxZ::T = T(100)*radius_multiplier*maximum(s.r for s in species) + T(100)
+    ) where T<:AbstractFloat
 
     k = ω/medium.c
     ho = hankel_order
     θ_eff = transmission_angle(k, k_eff, θin; tol = tol)
 
     t_vecs = t_vectors(ω, medium, species; hankel_order = ho)
-    # Nn(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*besselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z)
-    # Q(S) = Q0(S/as[1,1],1,1,0,0) = 1 + 2.0pi*species[l].num_density*as[1,1]^2*t_vecs[l][m+ho+1] * Nn(0,k*species[1].r,S) / (S^2 - k^2 * as[1,1]^2);
-
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
 
-    function Q0(keff,j,l,m,n)
-        (n == m ? T(1) : T(0))*(j == l ? T(1) : T(0)) + T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1]*
-            Nn(n-m,k*as[j,l],keff*as[j,l])/(keff^T(2) - k^T(2))
+    function Q0(S,j,l,m,n)
+        (n == m ? T(1) : T(0))*(j == l ? T(1) : T(0)) + T(2) *  as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1]*
+            Nn(n-m,k*as[j,l],S)/(S^T(2) - (k*as[j,l])^T(2))
     end
 
-    # differentiate in S ( = a[j,l] k_eff )
-    function dQ0(j,l)
+    # differentiate in S ( = a[j,l] k_eff ) and evaluate at S
+    function dsQ0_eff(S,j,l)
         m = 0
-        T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1]*(-T(2)*k_eff)/(k_eff^T(2) - k^T(2))^2 *
-        Nn(0,k*as[j,l],k_eff*as[j,l])/as[j,l] +
-        T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1]/(k_eff^T(2) - k^T(2))*(
-            k*as[j,l]*diffhankelh1(0,k*as[j,l])*diffbesselj(0,k_eff*as[j,l]) -
-            hankelh1(0,k*as[j,l])*diffbesselj(0,k_eff*as[j,l]) -
-            k_eff*as[j,l]*hankelh1(0,k*as[j,l])*diffbesselj(0,k_eff*as[j,l],2)
+
+        T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1]*(-T(2)*S)/(S^T(2) - (k*as[j,l])^T(2))^2 *
+        Nn(0,k*as[j,l],S) +
+        T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1]/(S^T(2) - (k*as[j,l])^T(2)) * (
+            k*as[j,l]*diffhankelh1(0,k*as[j,l])*diffbesselj(0,S) -
+            hankelh1(0,k*as[j,l])*diffbesselj(0,S) -
+            S*hankelh1(0,k*as[j,l])*diffbesselj(0,S,2)
         )
     end
 
     # Nn(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*besselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z)
+    # DZNn(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*diffbesselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z,2) - hankelh1(0,k*a12)*diffbesselj(0,Z)
 
+    function F0p(S, maxZ::T = maxZ, num_coefs::Int = num_coefs)
+        Q(Z) = log(Q0(Z,1,1,0,0))/(Z - S)
+        xp = as[1,1]*k*(-1.0+1.0im)
+        (S + k*as[1,1]) * exp(
+            (T(1.0)/(T(2)*pi*im)) * (
+                sum(Fun(Q, (-maxZ)..xp, num_coefs)) +
+                sum(Fun(Q, xp..(-xp), num_coefs)) +
+                sum(Fun(Q, (-xp)..maxZ, num_coefs))
+            )
+        )
+    end
+    # Fp_eff = F0p(k_eff*as[1,1]*cos(θ_eff))
+    # Fp_a = F0p(k*as[1,1]*cos(θin))
+    Fp_eff = F0p(k_eff*as[1,1])
+    Fp_a = F0p(k*as[1,1])
 
-    Z0 = T(150)
-
-    Qp_eff(Z) = log(Q0(Z/as[1,1],1,1,0,0))/(Z - k_eff*as[1,1])
-    Fp_eff = (k_eff*as[1,1] + k*as[1,1]) * exp((T(1.0)/(T(2)*pi*im)) * (
-        sum(Fun(Qp_eff,(-Z0)..(as[1,1]*k*(-1.0+1.0im)), num_coefs)) +
-        sum(Fun(Qp_eff,(as[1,1]*k*(-1.0+1.0im))..(-as[1,1]*k*(-1.0+1.0im)), num_coefs)) +
-        sum(Fun(Qp_eff,(-as[1,1]*k*(-1.0+1.0im))..Z0, num_coefs))
-    ))
-
-    Qp_a(Z) = log(Q0(Z/as[1,1],1,1,0,0))/(Z - k*as[1,1])
-    Fp_a = (k*as[1,1] + k*as[1,1]) * exp((T(1.0)/(T(2)*pi*im)) * (
-        sum(Fun(Qp_a,(-Z0)..(as[1,1]*k*(-1.0+1.0im)), num_coefs)) +
-        sum(Fun(Qp_a,(as[1,1]*k*(-1.0+1.0im))..(-as[1,1]*k*(-1.0+1.0im)), num_coefs)) +
-        sum(Fun(Qp_a,(-as[1,1]*k*(-1.0+1.0im))..Z0, num_coefs))
-    ))
     # has been tested against Mathematica for at least one k_eff
-    dsF00_eff = T(2)*k_eff*as[1,1]^2 * Q0(k_eff,1,1,0,0) + ((k_eff*as[1,1])^2 - (k*as[1,1])^2)*dQ0(1,1)
+    dsF00(S) = T(2)*S * Q0(S,1,1,0,0) + (S^2 - (k*as[1,1])^2)*dsQ0_eff(S,1,1)
 
-    return T(2)*k*as[1,1]*(cos(θin)/cos(θ_eff))*(Fp_eff/Fp_a)/dsF00_eff
+    return T(2)*k*as[1,1]*(cos(θin)/cos(θ_eff))*(Fp_eff/Fp_a)/dsF00(k_eff*as[1,1])
 end

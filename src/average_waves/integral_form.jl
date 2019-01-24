@@ -13,8 +13,11 @@ function integrate_B_full(n::Int, X, Y0; Y1 =1000000, θin = 0.0, num_coefs = 10
 end
 
 # Y0 = sqrt(k^a12^2 - X^2)
-function integrate_B(n::Int, X, Y0; θin = 0.0, num_coefs = 10000)
-    Y1 = max(2000.0*X, 4000.0) # note Y1 is non-dimensional!
+function integrate_B(n::Int, X::T, Y0::T;
+        θin::T = 0.0, num_coefs::Int = 10000,
+        Y1::T = max(T(2000)*X, T(4000)) # note Y1 is non-dimensional!
+    ) where T<:AbstractFloat
+
     # assymptotically approximate the integral from Y1 to Inf (tested in integrate_hankels.nb)
     Binf = (1.0+1.0im)*exp(im*Y1*(1.0 - sin(θin)))*
         (1.0 + (-1.0)^n*exp(2.0im*Y1*sin(θin))*(1.0 - sin(θin)) + sin(θin))/(sqrt(pi*Y1)*cos(θin)^2)
@@ -42,6 +45,7 @@ function BS_matrices(X::AbstractVector{T}, a12k::T; θin::T = 0.0,
         if a12k^2 - X[j]^2 < - dX^2 error("evaluating B in the wrong domain") end
         B[j,m] = integrate_B(m, X[j], sqrt(abs(a12k^2 -X[j]^2)); θin = θin, num_coefs=num_coefs)
     end
+
     S = OffsetArray{Complex{Float64}}(undef, -J:J, -2M:2M);
     for j = -J:J, m = -2M:2M
         S[j,m] = integrate_S(m, X[j]; θin = θin)
