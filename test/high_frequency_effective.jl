@@ -1,4 +1,5 @@
 using EffectiveWaves, Test
+using LinearAlgebra
 
 @testset "high frequency effective" begin
         medium = Medium(1.0,1.0+0.0im)
