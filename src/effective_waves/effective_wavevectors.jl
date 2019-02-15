@@ -56,11 +56,16 @@ function scale_amplitudes_effective(ω::T, wave_eff::EffectiveWave{T},
     return a
 end
 
+function wienerhopf_wavevectors(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vector{Specie{T}}; kws...) where T<:AbstractFloat
+    return wienerhopf_wavevectors(ω, [k_eff], medium, species; kws...)
+end
+
+
 "The average effective transmitted wavevectors according to the Wiener-Hopf method.
 The function returns an array A, where
 AA(x,y,0,1) = A[1,1]*exp(im*k_eff*(cos(θ_eff)*x + sin(θin)*y))
 where (x,y) are coordinates in the halfspace  and AA is the ensemble average scattering coefficient. Method currently only implemented for 1 species and for monopole scatterers."
-function wienerhopf_wavevectors(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vector{Specie{T}};
+function wienerhopf_wavevectors(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, species::Vector{Specie{T}};
         tol::T = 1e-6, θin::T = 0.0,
         radius_multiplier::T = 1.005,
         hankel_order::Int = 0,
@@ -70,18 +75,12 @@ function wienerhopf_wavevectors(ω::T, k_eff::Complex{T}, medium::Medium{T}, spe
 
     k = ω/medium.c
     ho = hankel_order
-    θ_eff = transmission_angle(k, k_eff, θin; tol = tol)
 
     t_vecs = t_vectors(ω, medium, species; hankel_order = ho)
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
 
-    function Q0(S,j,l,m,n)
-        (n == m ? T(1) : T(0))*(j == l ? T(1) : T(0)) + T(2) *  as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1]*
-            Nn(n-m,k*as[j,l],S)/(S^T(2) - (k*as[j,l])^T(2))
-    end
-
     # differentiate in S ( = a[j,l] k_eff ) and evaluate at S
-    function dsQ0_eff(S,j,l)
+    function dSQ0_eff(S,j,l)
         m = 0
 
         T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1]*(-T(2)*S)/(S^T(2) - (k*as[j,l])^T(2))^2 *
@@ -94,26 +93,38 @@ function wienerhopf_wavevectors(ω::T, k_eff::Complex{T}, medium::Medium{T}, spe
     end
 
     # Nn(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*besselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z)
-    # DZNn(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*diffbesselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z,2) - hankelh1(0,k*a12)*diffbesselj(0,Z)
+    # DZNn(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*diffbesselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z,2) -
 
-    function F0p(S, maxZ::T = maxZ, num_coefs::Int = num_coefs)
-        Q(Z) = log(Q0(Z,1,1,0,0))/(Z - S)
-        xp = as[1,1]*k*(-1.0+1.0im)
-        (S + k*as[1,1]) * exp(
+    function q(s,j,l,m,n)
+        (n == m ? T(1) : T(0)) * (j == l ? T(1) : T(0)) +
+        T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1] * Nn(n-m,k*as[j,l],sqrt(s^2 + (k*as[j,l]*sin(θin))^2))/(s^T(2) - (k*as[j,l]*cos(θin))^T(2))
+    end
+
+    Zs = LinRange(T(100),1/(10*tol),3000)
+    maxZ = Zs[findfirst(Z -> abs(log(q(Z,1,1,0,0))) < 10*tol, Zs)]
+
+    function Fp(s, maxZ::T = maxZ, num_coefs::Int = num_coefs)
+        Q(z) = log(q(z,1,1,0,0))/(z - s)
+        xp = as[1,1]*k*cos(θin)*(-1.0+1.0im)
+        (s + k*as[1,1]*cos(θin)) * exp(
             (T(1.0)/(T(2)*pi*im)) * (
-                sum(Fun(Q, (-maxZ)..xp, num_coefs)) +
-                sum(Fun(Q, xp..(-xp), num_coefs)) +
-                sum(Fun(Q, (-xp)..maxZ, num_coefs))
+                sum(Fun(Q, Segment(-maxZ,xp), num_coefs)) +
+                sum(Fun(Q, Segment(xp,-xp), num_coefs)) +
+                sum(Fun(Q, Segment(-xp,maxZ), num_coefs))
             )
         )
     end
-    # Fp_eff = F0p(k_eff*as[1,1]*cos(θ_eff))
-    # Fp_a = F0p(k*as[1,1]*cos(θin))
-    Fp_eff = F0p(k_eff*as[1,1])
-    Fp_a = F0p(k*as[1,1])
 
+
+    Fp_a = Fp(k*as[1,1]*cos(θin))
     # has been tested against Mathematica for at least one k_eff
-    dsF00(S) = T(2)*S * Q0(S,1,1,0,0) + (S^2 - (k*as[1,1])^2)*dsQ0_eff(S,1,1)
+    dSF00(S) = (S^2 - (k*as[1,1])^2)*dSQ0_eff(S,1,1) # + T(2) * S * Q0(S,1,1,0,0)
+    # last term left out becuase Q0(k_eff,1,1,0,0) = 0.
 
-    return T(2)*k*as[1,1]*(cos(θin)/cos(θ_eff))*(Fp_eff/Fp_a)/dsF00(k_eff*as[1,1])
+    return map(k_effs) do k_eff
+        θ_eff = transmission_angle(k, k_eff, θin; tol = tol)
+        Fp_eff = Fp(k_eff*as[1,1]*cos(θ_eff))
+
+        T(2)*k*as[1,1]*(cos(θin)/cos(θ_eff))*(Fp_eff/Fp_a)/dSF00(k_eff*as[1,1])
+    end
 end

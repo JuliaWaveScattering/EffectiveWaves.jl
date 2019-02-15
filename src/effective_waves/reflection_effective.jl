@@ -91,8 +91,8 @@ function wienerhopf_reflection_coefficient(ω::T, medium::Medium{T}, species::Ve
 
     x = -as[1,1]*k*cos(θin)*(-1.0+0.75im)
 
-    abs(Fp(x,maxZ,num_coefs) - Fp(x,maxZ, Int(round(num_coefs*1.1)))) / abs(Fp(x,maxZ,num_coefs))
-    abs(Fm(x,maxZ,num_coefs) - Fm(x,maxZ, Int(round(num_coefs*1.1)))) / abs(Fm(x,maxZ,num_coefs))
+    # abs(Fp(x,maxZ,num_coefs) - Fp(x,maxZ, Int(round(num_coefs*1.1)))) / abs(Fp(x,maxZ,num_coefs))
+    # abs(Fm(x,maxZ,num_coefs) - Fm(x,maxZ, Int(round(num_coefs*1.1)))) / abs(Fm(x,maxZ,num_coefs))
 
     if (err = abs(Fp(x,maxZ) * Fm(x,maxZ) - F(x,1,1,0,0))/abs(F(x,1,1,0,0))) > tol
         @warn "Analytic split recovers original function with $err tolerance, instead of the specified tolernace: $tol"
