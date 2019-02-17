@@ -27,7 +27,7 @@ end
     end
 
     @series begin
-        # ylims --> (0,Inf)
+        ylims --> (0,Inf)
         xlab --> "Re k_eff"
         ylab --> "Im k_eff"
         seriestype --> :scatter

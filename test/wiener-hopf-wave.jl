@@ -22,11 +22,16 @@ using EffectiveWaves, Test
         num_wavenumbers = 15,
         mesh_points = 30, mesh_size = 2.);
 
+ws_non = deepcopy(ws)
+for w in ws_non
+    w.k_eff *=  (2*specie.r*radius_multiplier)
+end
+
 using Plots;
 pyplot(linewidth=2.0)
     # function Rerror(θ)
 
-plot!(ws, markercolor=:blue, markeralpha=1.0)
+plot(ws_non, markercolor=:blue, markeralpha=1.0)
 θ = 0.0
 
         match_ws = MatchWave(ω, medium, specie;
