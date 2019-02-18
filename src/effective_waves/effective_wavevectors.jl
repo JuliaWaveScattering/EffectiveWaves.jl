@@ -70,7 +70,8 @@ function wienerhopf_wavevectors(ω::T, k_effs::Vector{Complex{T}}, medium::Mediu
         radius_multiplier::T = 1.005,
         hankel_order::Int = 0,
         num_coefs::Int = 10000,
-        maxZ::T = T(100)*radius_multiplier*maximum(s.r for s in species) + T(100)
+        maxZ::T = T(100)*radius_multiplier*maximum(s.r for s in species) + T(100),
+        kws...
     ) where T<:AbstractFloat
 
     k = ω/medium.c

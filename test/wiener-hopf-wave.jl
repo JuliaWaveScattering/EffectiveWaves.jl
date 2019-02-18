@@ -1,7 +1,11 @@
 using EffectiveWaves, Test
 
+using Plots;
+pyplot(linewidth=2.0)
+
+
 # this is for high volume and frequency
-@testset "compare wienger-hopf and match method reflection" begin
+# @testset "compare wienger-hopf and match method reflection" begin
 
     medium = Medium(1.0,1.0+0.0im)
 
@@ -13,6 +17,7 @@ using EffectiveWaves, Test
     tol = 1e-9
     hankel_order=0
     t_vec = t_vectors(ω, medium, [specie]; hankel_order = hankel_order)
+    θ = 0.0
 
     ws = effective_waves(ω, medium, [specie];
         method=:WienerHopf,
@@ -22,25 +27,21 @@ using EffectiveWaves, Test
         num_wavenumbers = 15,
         mesh_points = 30, mesh_size = 2.);
 
-ws_non = deepcopy(ws)
-for w in ws_non
-    w.k_eff *=  (2*specie.r*radius_multiplier)
-end
+    match_ws = MatchWave(ω, medium, specie;
+        radius_multiplier = radius_multiplier,
+        hankel_order = hankel_order,
+        tol = tol, wave_effs = ws[1:15],
+        θin=θ,
+        max_size = 1200,
+    );
 
-using Plots;
-pyplot(linewidth=2.0)
     # function Rerror(θ)
 
-plot(ws_non, markercolor=:blue, markeralpha=1.0)
-θ = 0.0
+    # plot(ws, markercolor=:blue, markeralpha=1.0)
 
-        match_ws = MatchWave(ω, medium, specie;
-            radius_multiplier = radius_multiplier,
-            hankel_order = hankel_order,
-            tol = tol, wave_effs = ws[1:15],
-            θin=θ,
-            max_size = 600,
-        );
+        plot(match_ws, seriestype=:line, match_region=false)
+        avg_WH = AverageWave(match_ws.average_wave.x, ws[1:5]);
+        plot!(avg_WH, seriestype=:line, linestyle=:dash)
 
 
 
