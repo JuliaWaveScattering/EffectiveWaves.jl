@@ -40,7 +40,9 @@ pyplot(linewidth=2.0)
     # plot(ws, markercolor=:blue, markeralpha=1.0)
 
         plot(match_ws, seriestype=:line, match_region=false)
-        avg_WH = AverageWave(match_ws.average_wave.x, ws[1:5]);
+        avg_WH = AverageWave(match_ws.average_wave.x, ws[1:2]);
+        avg_WH.amplitudes = -avg_WH.amplitudes;
+
         plot!(avg_WH, seriestype=:line, linestyle=:dash)
 
 
