@@ -106,7 +106,7 @@ function wienerhopf_wavevectors(ω::T, k_effs::Vector{Complex{T}}, medium::Mediu
 
         T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1]*(-T(2)*S)/(S^T(2) - (k*as[j,l])^T(2))^2 *
         Nn(0,k*as[j,l],S) +
-        T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1]/(S^T(2) - (k*as[j,l])^T(2)) * (
+        T(2) * pi * as[j,l]^T(2) * species[l].num_density*t_vecs[l][m+ho+1]/(S^T(2) - (k*as[j,l])^T(2)) * (
             k*as[j,l]*diffhankelh1(0,k*as[j,l])*diffbesselj(0,S) -
             hankelh1(0,k*as[j,l])*diffbesselj(0,S) -
             S*hankelh1(0,k*as[j,l])*diffbesselj(0,S,2)
