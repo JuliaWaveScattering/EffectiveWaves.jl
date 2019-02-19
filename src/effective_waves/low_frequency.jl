@@ -17,9 +17,12 @@ end
 
 "the reflection from a homogenious halfspace, which is also the low frequency reflection from a particulate material when using the effective_medium."
 function reflection_coefficient_halfspace(incident_medium::Medium{T}, reflect_medium::Medium{T};
-        θin::T = zero(T), tol = 1e-6) where T<:Number
+        θin::T = zero(T), tol = 1e-8) where T<:Number
+
+    k_in = T(1)/incident_medium.c
+    k_r = T(1)/reflect_medium.c
 
     q = real(reflect_medium.c*reflect_medium.ρ/(incident_medium.c*incident_medium.ρ))
-    θ_trans = transmission_angle(reflect_medium.c, incident_medium.c, θin; tol=tol)
+    θ_trans = transmission_angle(k_in, k_r, θin; tol=tol)
     R = (q*cos(θin) - cos(θ_trans))/(q*cos(θin) + cos(θ_trans))
 end

@@ -59,17 +59,24 @@
     @test maximum(abs.(Rs_φs2 - Rs1)) < 1e-3
     @test abs(R_low - Rs1[1]) < 1e-7
 
-    # Vary angle of incidence θin
-    θs = 0.1:0.3:(π/2)
-    # θs = (-π/1.9):0.3:(π/1.9)
-    R_low = [reflection_coefficient_halfspace(medium, eff_medium; θin = θ) for θ in θs]
+    # Vary angle of incidence θin. Beware of extreme angles θ ~= -pi/2 or pi/2.
+    θs = (-π/2.1):0.3:(π/2.1)
+    R_low = [
+        reflection_coefficient_halfspace(medium, eff_medium; θin = θ, tol=1e-9)
+    for θ in θs]
 
     Rs = map(θs) do θ  # , hankel_order =7
-        wave_effs_2 = [EffectiveWave(ωs[i], k_effs2[i], medium, species; tol = 1e-9, θin = θ) for i in eachindex(ωs)]
+        wave_effs_2 = [
+            EffectiveWave(ωs[i], k_effs2[i], medium, species;
+                tol = 1e-9, θin = θ
+            )
+        for i in eachindex(ωs)]
         reflection_coefficients(ωs, wave_effs_2, medium, species; θin = θ)
     end
-    Rs_φs = [reflection_coefficient_low_volfrac(ωs, medium, species; θin = θ, tol = 1e-9, hankel_order =7) for θ in θs];
+    Rs_φs = [
+        reflection_coefficient_low_volfrac(ωs, medium, species; θin = θ, tol = 1e-9, hankel_order =7)
+    for θ in θs];
 
-    @test maximum(abs(R_low[i] - Rs[i][1]) for i in 1:length(R_low)) < 2e-6
-    @test maximum(norm(R)/len for R in (Rs_φs - Rs)) < 0.01
+    @test maximum(abs(R_low[i] - Rs[i][1]) for i in 1:length(R_low)) < 1e-7
+    @test maximum(norm(R)/len for R in (Rs_φs - Rs)[2:end-2]) < 4e-3
 end

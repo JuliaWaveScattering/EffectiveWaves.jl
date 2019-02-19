@@ -1,8 +1,8 @@
 
 "calculate effective transmission angle θ_eff. We restrict -pi/2 < Re θ_eff < pi/2"
 function transmission_angle(k::Complex{T}, k_eff::Complex{T}, θin; tol = 1e-8) where T<:Number
-    snell(θ::Array{T}) = abs(k*sin(θin) - k_eff*sin(θ[1] + im*θ[2]))^2
-    result = optimize(snell, [θin,0.]; x_tol= tol)
+    snell(θ::Array{T}) = abs(k*sin(θin) - k_eff*sin(θ[1] + im*θ[2]))
+    result = optimize(snell, [θin,0.]; x_tol= tol, g_tol= tol^2.0)
 
     if -pi/T(2) <= result.minimizer[1] <= pi/T(2)
         θ_eff = result.minimizer[1] + im*result.minimizer[2]
@@ -11,7 +11,7 @@ function transmission_angle(k::Complex{T}, k_eff::Complex{T}, θin; tol = 1e-8) 
     end
     return θ_eff
 end
-
+#
 # "calculate effective transmission angle"
 # function transmission_angle(k::Complex{T}, k_eff::Complex{T}, θin; tol = 1e-8) where T<:Number
 #     snell(θ::Array{T}) = norm(k*sin(θin) - k_eff*sin(θ[1] + im*θ[2]))
