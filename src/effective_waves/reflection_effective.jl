@@ -52,9 +52,12 @@ function wienerhopf_reflection_coefficient(ω::T, medium::Medium{T}, species::Ve
     t_vecs = t_vectors(ω, medium, species; hankel_order = ho)
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
 
+    sToS(s,j::Int,l::Int) = (real(s) >= 0) ? sqrt(s^2 + (k*as[j,l]*sin(θin))^2) : -sqrt(s^2 + (k*as[j,l]*sin(θin))^2)
+
     function F(s,j,l,m,n)
         (s^T(2) - (k*as[j,l]*cos(θin))^T(2)) * (n == m ? T(1) : T(0)) * (j == l ? T(1) : T(0)) +
-        T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1] * Nn(n-m,k*as[j,l],sqrt(s^2 + (k*as[j,l]*sin(θin))^2))
+        T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1] *
+        Nn(n-m,k*as[j,l], sToS(s,j,l))
     end
 
     # Nn(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*besselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z)

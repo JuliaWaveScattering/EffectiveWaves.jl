@@ -41,9 +41,14 @@ using EffectiveWaves, Test
         return abs(Rm-Rw)/abs(Rw)
     end
 
+    Rerror(0.0) # 3.771528229242978e-5
+    Rerror(0.5) # 5.2531420000213484e-5
+    Rerror(1.4) # 0.0005018041373008065
+
     @test Rerror(0.0) < 1e-4
     @test Rerror(0.5) < 1e-4
     @test Rerror(1.4) < 1e-3
+
 end
 
 # Note the wiener-hopf method is inaccurate or takes along time to calculate a very low-frequency solution

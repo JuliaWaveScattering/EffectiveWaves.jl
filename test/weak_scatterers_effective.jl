@@ -61,6 +61,7 @@
 
     # Vary angle of incidence θin
     θs = 0.1:0.3:(π/2)
+    # θs = (-π/1.9):0.3:(π/1.9)
     R_low = [reflection_coefficient_halfspace(medium, eff_medium; θin = θ) for θ in θs]
 
     Rs = map(θs) do θ  # , hankel_order =7

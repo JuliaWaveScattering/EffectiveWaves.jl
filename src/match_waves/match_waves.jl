@@ -36,7 +36,7 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
     hankel_order = wave_effs[1].hankel_order
     # use non-dimensional effective waves
     wave_non_effs = deepcopy(wave_effs)
-    # wave_effs = deepcopy(wave_effs) # forget the pointers of wave_effs field
+    # wave_effs = deepcopy(wave_effs) # uncomment to use wave_effs need to forget its pointers
     for w in wave_non_effs
        w.k_eff = w.k_eff/k
     end
@@ -55,7 +55,6 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
     avg_wave_effs = [AverageWave(X[L_match:L_match+1], w) for w in wave_non_effs]
     for i in eachindex(wave_non_effs)
         wave_non_effs[i].amplitudes = wave_non_effs[i].amplitudes / norm(avg_wave_effs[i].amplitudes[1,:,1])
-        # wave_effs[i].amplitudes = wave_non_effs[i].amplitudes
     end
 
 
@@ -79,7 +78,6 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
     for i in eachindex(wave_effs)
         wave_non_effs[i].amplitudes = αs[i] .* wave_non_effs[i].amplitudes
         wave_non_effs[i].k_eff = k * wave_non_effs[i].k_eff
-        # wave_effs[i].amplitudes = αs[i] .* wave_effs[i].amplitudes
     end
 
 

@@ -1,4 +1,24 @@
 
+"calculate effective transmission angle θ_eff. We restrict -pi/2 < Re θ_eff < pi/2"
+function transmission_angle(k::Complex{T}, k_eff::Complex{T}, θin; tol = 1e-8) where T<:Number
+    snell(θ::Array{T}) = abs(k*sin(θin) - k_eff*sin(θ[1] + im*θ[2]))^2
+    result = optimize(snell, [θin,0.]; x_tol= tol)
+
+    if -pi/T(2) <= result.minimizer[1] <= pi/T(2)
+        θ_eff = result.minimizer[1] + im*result.minimizer[2]
+    else
+        θ_eff = pi - result.minimizer[1] - im*result.minimizer[2]
+    end
+    return θ_eff
+end
+
+# "calculate effective transmission angle"
+# function transmission_angle(k::Complex{T}, k_eff::Complex{T}, θin; tol = 1e-8) where T<:Number
+#     snell(θ::Array{T}) = norm(k*sin(θin) - k_eff*sin(θ[1] + im*θ[2]))
+#     result = optimize(snell, [θin,0.]; g_tol= tol^2.0)
+#     θ_eff = result.minimizer[1] + im*result.minimizer[2]
+# end
+
 "The average effective transmitted scattering amplitudes for a given effective wavenumber k_eff. Assumes there exists only one k_eff.
 The function returns an array A, where
 AA(x,y,m,s) = im^m*exp(-im*m*θ_eff)*A[m + max_hankel_order +1,s]*exp(im*k_eff*(cos(θ_eff)*x + sin(θin)*y))
@@ -96,9 +116,12 @@ function wienerhopf_wavevectors(ω::T, k_effs::Vector{Complex{T}}, medium::Mediu
     # Nn(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*besselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z)
     # DZNn(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*diffbesselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z,2) -
 
+    sToS(s,j::Int,l::Int) = (real(s) >= 0) ? sqrt(s^2 + (k*as[j,l]*sin(θin))^2) : -sqrt(s^2 + (k*as[j,l]*sin(θin))^2)
+
     function q(s,j,l,m,n)
         (n == m ? T(1) : T(0)) * (j == l ? T(1) : T(0)) +
-        T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1] * Nn(n-m,k*as[j,l],sqrt(s^2 + (k*as[j,l]*sin(θin))^2))/(s^T(2) - (k*as[j,l]*cos(θin))^T(2))
+        T(2) * pi * as[j,l]^T(2) * species[l].num_density * t_vecs[l][m+ho+1] *
+        Nn(n-m, k*as[j,l], sToS(s,j,l)) / (s^T(2) - (k*as[j,l]*cos(θin))^T(2))
     end
 
     Zs = LinRange(T(100),1/(10*tol),3000)
@@ -125,7 +148,6 @@ function wienerhopf_wavevectors(ω::T, k_effs::Vector{Complex{T}}, medium::Mediu
     return map(k_effs) do k_eff
         θ_eff = transmission_angle(k, k_eff, θin; tol = tol)
         Fp_eff = Fp(k_eff*as[1,1]*cos(θ_eff))
-
         T(2)*k*as[1,1]*(cos(θin)/cos(θ_eff))*(Fp_eff/Fp_a)/dSF00(k_eff*as[1,1])
     end
 end

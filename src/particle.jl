@@ -34,9 +34,11 @@ end
 #   Specie{Float64}(Float64(ρ),Float64(r),c,Float64(volfrac/(Float64(pi)*r^2.0)))
 # end
 
-
 Medium(;ρ=1.0, c=1.0+0.0im) = Medium{typeof(ρ)}(ρ,Complex{typeof(ρ)}(c))
 # Medium(;ρ::T = 1.0, c::Union{R,Complex{T}} = 1.0+0.0im) = Medium(ρ,Complex{T}(c))
+
+Nn(n::Int,x::Union{T,Complex{T}},y::Union{T,Complex{T}}) where T<:AbstractFloat =
+    x*diffhankelh1(n,x)*besselj(n,y) - y*hankelh1(n,x)*diffbesselj(n,y)
 
 "Calculate the largest needed order for the hankel series."
 function maximum_hankel_order(ω::Union{T,Complex{T}}, medium::Medium{T}, species::Vector{Specie{T}};
