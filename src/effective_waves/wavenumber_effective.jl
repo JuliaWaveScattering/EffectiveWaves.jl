@@ -27,7 +27,7 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
     k_effs = wavenumbers_path(ω, medium, species; num_wavenumbers=num_wavenumbers, kws...)
     num_wavenumbers = min(length(k_effs),num_wavenumbers)
 
-    if num_wavenumbers > 1 &&  apply_meshing
+    if num_wavenumbers > 1 && apply_meshing
         num_wavenumbers = min(length(k_effs),num_wavenumbers)
         k_effs = wavenumbers_mesh(ω, k_effs[1:num_wavenumbers], medium, species; kws...)
     end

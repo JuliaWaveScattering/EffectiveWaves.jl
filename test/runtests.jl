@@ -33,3 +33,4 @@ include("average_integrand_kernel.jl")
 
 include("match_wave.jl")
 include("wiener-hopf-reflection.jl")
+include("wiener-hopf-wave.jl")

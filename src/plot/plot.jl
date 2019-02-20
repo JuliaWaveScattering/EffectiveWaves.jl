@@ -57,7 +57,7 @@ end
         apply_field = apply.(wave_eff.amplitudes[:,n+ho+1,1])
 
         @series begin
-            label --> "$apply H = $n"
+            label --> "$apply Hankel = $n"
             (x, apply_field)
         end
     end

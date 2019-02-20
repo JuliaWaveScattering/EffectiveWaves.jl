@@ -25,10 +25,10 @@ end
 
 function EffectiveWave(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vector{Specie{T}};
         θin::T = 0.0, tol::T = 1e-7,
-        extinction_rescale::Bool = true,
         hankel_order::Int = maximum_hankel_order(ω, medium, species; tol=tol),
         radius_multiplier::T = 1.005,
         method::Symbol = :none,
+        extinction_rescale::Bool = true,
         kws...
     ) where T<:AbstractFloat
 
@@ -41,19 +41,18 @@ function EffectiveWave(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vec
         amps = wienerhopf_wavevectors(ω, k_eff, medium, species;
             hankel_order=hankel_order, tol = tol,
             radius_multiplier=radius_multiplier,
-            kws...
+            θin = θin, kws...
         )
     else
         amps = effective_wavevectors(ω, k_eff, medium, species;
             hankel_order=hankel_order, tol = tol,
             radius_multiplier=radius_multiplier
         )
+        if extinction_rescale
+            amps = amps.*scale_amplitudes_effective(ω, wave_eff, medium, species; tol = tol, θin=θin)
+        end
     end
     wave_eff = EffectiveWave(hankel_order, amps, k_eff, θ_eff)
-
-    if extinction_rescale
-        amps = amps.*scale_amplitudes_effective(ω, wave_eff, medium, species; tol = tol, θin=θin)
-    end
 
     return EffectiveWave(hankel_order, amps, k_eff, θ_eff)
 end

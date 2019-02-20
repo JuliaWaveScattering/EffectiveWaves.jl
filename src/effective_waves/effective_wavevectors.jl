@@ -11,13 +11,6 @@ function transmission_angle(k::Complex{T}, k_eff::Complex{T}, θin; tol = 1e-8) 
     end
     return θ_eff
 end
-#
-# "calculate effective transmission angle"
-# function transmission_angle(k::Complex{T}, k_eff::Complex{T}, θin; tol = 1e-8) where T<:Number
-#     snell(θ::Array{T}) = norm(k*sin(θin) - k_eff*sin(θ[1] + im*θ[2]))
-#     result = optimize(snell, [θin,0.]; g_tol= tol^2.0)
-#     θ_eff = result.minimizer[1] + im*result.minimizer[2]
-# end
 
 "The average effective transmitted scattering amplitudes for a given effective wavenumber k_eff. Assumes there exists only one k_eff.
 The function returns an array A, where
@@ -148,6 +141,6 @@ function wienerhopf_wavevectors(ω::T, k_effs::Vector{Complex{T}}, medium::Mediu
     return map(k_effs) do k_eff
         θ_eff = transmission_angle(k, k_eff, θin; tol = tol)
         Fp_eff = Fp(k_eff*as[1,1]*cos(θ_eff))
-        T(2)*k*as[1,1]*(cos(θin)/cos(θ_eff))*(Fp_eff/Fp_a)/dSF00(k_eff*as[1,1])
+        t_vecs[1][ho+1] * T(2)*k*as[1,1]*(cos(θin)/cos(θ_eff))*(Fp_eff/Fp_a)/dSF00(k_eff*as[1,1])
     end
 end
