@@ -48,9 +48,9 @@ function EffectiveWave(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vec
             hankel_order=hankel_order, tol = tol,
             radius_multiplier=radius_multiplier
         )
-        if extinction_rescale
-            amps = amps.*scale_amplitudes_effective(ω, wave_eff, medium, species; tol = tol, θin=θin)
-        end
+    end
+    if extinction_rescale && method != :WienerHopf
+        amps = amps.*scale_amplitudes_effective(ω, wave_eff, medium, species; tol = tol, θin=θin)
     end
     wave_eff = EffectiveWave(hankel_order, amps, k_eff, θ_eff)
 
