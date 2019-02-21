@@ -24,7 +24,7 @@ include("large_vol_low_freq_effective.jl")
 # A heavy test..
 include("weak_scatterers_effective.jl")
 
-# can not currently run test due to differences in Optim versions
+# test does not run on Julia version < 0.7 due to differences in Optim versions
 include("path_mesh_wavenumbers.jl")
 
 include("numerical_integration.jl")
