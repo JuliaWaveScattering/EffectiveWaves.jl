@@ -57,7 +57,7 @@ function wienerhopf_reflection_coefficient(ω::T, medium::Medium{T}, species::Ve
     function F(s,j,l,m,n)
         (s^T(2) - (k*as[j,l]*cos(θin))^T(2)) * (n == m ? T(1) : T(0)) * (j == l ? T(1) : T(0)) +
         T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1] *
-        Nn(n-m,k*as[j,l], sToS(s,j,l))
+        Nn(n-m, k*as[j,l], sToS(s,j,l))
     end
 
     # Nn(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*besselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z)
@@ -97,7 +97,7 @@ function wienerhopf_reflection_coefficient(ω::T, medium::Medium{T}, species::Ve
     # abs(Fp(x,maxZ,num_coefs) - Fp(x,maxZ, Int(round(num_coefs*1.1)))) / abs(Fp(x,maxZ,num_coefs))
     # abs(Fm(x,maxZ,num_coefs) - Fm(x,maxZ, Int(round(num_coefs*1.1)))) / abs(Fm(x,maxZ,num_coefs))
 
-    if (err = abs(Fp(x,maxZ) * Fm(x,maxZ) - F(x,1,1,0,0))/abs(F(x,1,1,0,0))) > tol
+    if (err = abs(Fp(x,maxZ,num_coefs) * Fm(x,maxZ,num_coefs) - F(x,1,1,0,0))/abs(F(x,1,1,0,0))) > tol
         @warn "Analytic split recovers original function with $err tolerance, instead of the specified tolernace: $tol"
         # x = as[1,1]*k*(0.25)
         # abs(Fp(x,maxZ) * Fm(x,maxZ) - F(x,1,1,0,0))/abs(F(x,1,1,0,0))
