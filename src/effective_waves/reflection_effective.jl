@@ -55,8 +55,7 @@ function wienerhopf_reflection_coefficient(ω::T, medium::Medium{T}, species::Ve
     sToS(s,j::Int,l::Int) = (real(s) >= 0) ? sqrt(s^2 + (k*as[j,l]*sin(θin))^2) : -sqrt(s^2 + (k*as[j,l]*sin(θin))^2)
 
     function F(s,j,l,m,n)
-        (s^T(2) - (k*as[j,l]*cos(θin))^T(2)) * (n == m ? T(1) : T(0)) * (j == l ? T(1) : T(0)) +
-        T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1] *
+        (s^T(2) - (k*as[j,l]*cos(θin))^T(2)) * (n == m ? T(1) : T(0)) * (j == l ? T(1) : T(0)) + T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1] *
         Nn(n-m, k*as[j,l], sToS(s,j,l))
     end
 
@@ -69,27 +68,28 @@ function wienerhopf_reflection_coefficient(ω::T, medium::Medium{T}, species::Ve
     function Fp(s, maxZ::T = maxZ, num_coefs::Int = num_coefs)
         Q(z) = log(q(z,1,1,0,0))/(z - s)
         xp = as[1,1]*k*cos(θin)*(-1.0+1.0im)
-        (s + k*as[1,1]*cos(θin)) * exp(
+        q_pos = exp(
             (T(1.0)/(T(2)*pi*im)) * (
                 sum(Fun(Q, Segment(-maxZ,xp), num_coefs)) +
                 sum(Fun(Q, Segment(xp,-xp), num_coefs)) +
                 sum(Fun(Q, Segment(-xp,maxZ), num_coefs))
             )
         )
+        return (s + k*as[1,1]*cos(θin)) * q_pos
     end
 
     function Fm(s, maxZ::T = maxZ, num_coefs::Int = num_coefs)
         Q(z) = log(q(z,1,1,0,0))/(z - s)
         xm = as[1,1]*k*cos(θin)*(-1.0+0.5im)
         a1 = T(0)
-        # a1 = 0.0
-        (s - k*as[1,1]*cos(θin)) * exp(
+        q_neg = exp(
             -(T(1.0)/(T(2)*pi*im)) * (
                 sum(Fun(Q, Segment(-maxZ,xm+a1), num_coefs)) +
                 sum(Fun(Q, Segment(xm+a1,-xm+a1), num_coefs)) +
                 sum(Fun(Q, Segment(-xm+a1, maxZ), num_coefs))
             )
         )
+        return (s - k*as[1,1]*cos(θin)) * q_neg
     end
 
     x = -as[1,1]*k*cos(θin)*(-1.0+0.75im)
@@ -97,10 +97,9 @@ function wienerhopf_reflection_coefficient(ω::T, medium::Medium{T}, species::Ve
     # abs(Fp(x,maxZ,num_coefs) - Fp(x,maxZ, Int(round(num_coefs*1.1)))) / abs(Fp(x,maxZ,num_coefs))
     # abs(Fm(x,maxZ,num_coefs) - Fm(x,maxZ, Int(round(num_coefs*1.1)))) / abs(Fm(x,maxZ,num_coefs))
 
-    if (err = abs(Fp(x,maxZ,num_coefs) * Fm(x,maxZ,num_coefs) - F(x,1,1,0,0))/abs(F(x,1,1,0,0))) > tol
+    err = abs(Fp(x,maxZ,num_coefs) * Fm(x,maxZ,num_coefs) - F(x,1,1,0,0))/abs(F(x,1,1,0,0))
+    if err > tol
         @warn "Analytic split recovers original function with $err tolerance, instead of the specified tolernace: $tol"
-        # x = as[1,1]*k*(0.25)
-        # abs(Fp(x,maxZ) * Fm(x,maxZ) - F(x,1,1,0,0))/abs(F(x,1,1,0,0))
     end
 
     R = F(k*as[1,1]*cos(θin),1,1,0,0) / Fp(k*as[1,1]*cos(θin),maxZ,num_coefs)^2
