@@ -97,13 +97,21 @@ function wienerhopf_wavevectors(ω::T, k_effs::Vector{Complex{T}}, medium::Mediu
     function dSQ0_eff(S,j,l)
         m = 0
 
-        T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1]*(-T(2)*S)/(S^T(2) - (k*as[j,l])^T(2))^2 *
-        Nn(0,k*as[j,l],S) +
-        T(2) * pi * as[j,l]^T(2) * species[l].num_density*t_vecs[l][m+ho+1]/(S^T(2) - (k*as[j,l])^T(2)) * (
-            k*as[j,l]*diffhankelh1(0,k*as[j,l])*diffbesselj(0,S) -
-            hankelh1(0,k*as[j,l])*diffbesselj(0,S) -
-            S*hankelh1(0,k*as[j,l])*diffbesselj(0,S,2)
+        T(2) / (S^T(2) - (k*as[j,l])^T(2)) * (
+            S +
+            pi * as[j,l]^T(2) * species[l].num_density*t_vecs[l][m+ho+1] * (
+                k*as[j,l]*diffhankelh1(0,k*as[j,l])*diffbesselj(0,S) -
+                hankelh1(0,k*as[j,l])*diffbesselj(0,S) -
+                S*hankelh1(0,k*as[j,l])*diffbesselj(0,S,2)
+            )
         )
+        # T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1]*(-T(2)*S)/(S^T(2) - (k*as[j,l])^T(2))^2 *
+        # Nn(0,k*as[j,l],S) +
+        # T(2) * pi * as[j,l]^T(2) * species[l].num_density*t_vecs[l][m+ho+1]/(S^T(2) - (k*as[j,l])^T(2)) * (
+        #     k*as[j,l]*diffhankelh1(0,k*as[j,l])*diffbesselj(0,S) -
+        #     hankelh1(0,k*as[j,l])*diffbesselj(0,S) -
+        #     S*hankelh1(0,k*as[j,l])*diffbesselj(0,S,2)
+        # )
     end
 
     # Nn(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*besselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z)
@@ -132,9 +140,15 @@ function wienerhopf_wavevectors(ω::T, k_effs::Vector{Complex{T}}, medium::Mediu
         )
     end
 
+<<<<<<< HEAD
     Ψp_a = Ψp(k*as[1,1]*cos(θin))
     # has been tested against Mathematica for at least one k_eff
     dSΨ00(S) = (S^2 - (k*as[1,1])^2)*dSQ0_eff(S,1,1) # + T(2) * S * Q0(S,1,1,0,0)
+=======
+    Fp_a = Fp(k*as[1,1]*cos(θin))
+    # has been tested against Mathematica for at least one k_eff
+    dSF00(S) = (S^2 - (k*as[1,1])^2) * dSQ0_eff(S,1,1) # + T(2) * S * Q0(S,1,1,0,0)
+>>>>>>> 5e9d4615d879b4c3935a9385cc6b490de2617b5b
     # last term left out becuase Q0(k_eff,1,1,0,0) = 0.
 
     return map(k_effs) do k_eff
