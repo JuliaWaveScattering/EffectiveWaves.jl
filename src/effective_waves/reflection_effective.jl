@@ -56,7 +56,7 @@ function wienerhopf_reflection_coefficient(ω::T, medium::Medium{T}, species::Ve
 
     function F(s,j,l,m,n)
         (s^T(2) - (k*as[j,l]*cos(θin))^T(2)) * (n == m ? T(1) : T(0)) * (j == l ? T(1) : T(0)) +
-        T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1] *
+        T(2) * as[j,l]^T(2) * pi * species[l].num_density * t_vecs[l][m+ho+1] *
         Nn(n-m,k*as[j,l], sToS(s,j,l))
     end
 
@@ -103,7 +103,7 @@ function wienerhopf_reflection_coefficient(ω::T, medium::Medium{T}, species::Ve
         # abs(Fp(x,maxZ) * Fm(x,maxZ) - F(x,1,1,0,0))/abs(F(x,1,1,0,0))
     end
 
-    R = F(k*as[1,1]*cos(θin),1,1,0,0) / Fp(k*as[1,1]*cos(θin),maxZ,num_coefs)^2
+    R = F(k*as[1,1]*cos(θin),1,1,0,0) / (Fp(k*as[1,1]*cos(θin),maxZ,num_coefs))^2
 
     return R
 end

@@ -120,7 +120,7 @@ function wienerhopf_wavevectors(ω::T, k_effs::Vector{Complex{T}}, medium::Mediu
     Zs = LinRange(T(100),1/(10*tol),3000)
     maxZ = Zs[findfirst(Z -> abs(log(q(Z,1,1,0,0))) < 10*tol, Zs)]
 
-    function Fp(s, maxZ::T = maxZ, num_coefs::Int = num_coefs)
+    function Ψp(s, maxZ::T = maxZ, num_coefs::Int = num_coefs)
         Q(z) = log(q(z,1,1,0,0))/(z - s)
         xp = as[1,1]*k*cos(θin)*(-1.0+1.0im)
         (s + k*as[1,1]*cos(θin)) * exp(
@@ -132,15 +132,14 @@ function wienerhopf_wavevectors(ω::T, k_effs::Vector{Complex{T}}, medium::Mediu
         )
     end
 
-
-    Fp_a = Fp(k*as[1,1]*cos(θin))
+    Ψp_a = Ψp(k*as[1,1]*cos(θin))
     # has been tested against Mathematica for at least one k_eff
-    dSF00(S) = (S^2 - (k*as[1,1])^2)*dSQ0_eff(S,1,1) # + T(2) * S * Q0(S,1,1,0,0)
+    dSΨ00(S) = (S^2 - (k*as[1,1])^2)*dSQ0_eff(S,1,1) # + T(2) * S * Q0(S,1,1,0,0)
     # last term left out becuase Q0(k_eff,1,1,0,0) = 0.
 
     return map(k_effs) do k_eff
         θ_eff = transmission_angle(k, k_eff, θin; tol = tol)
-        Fp_eff = Fp(k_eff*as[1,1]*cos(θ_eff))
-        t_vecs[1][ho+1] * T(2)*k*as[1,1]*(cos(θin)/cos(θ_eff))*(Fp_eff/Fp_a)/dSF00(k_eff*as[1,1])
+        Ψp_eff = Ψp(k_eff*as[1,1]*cos(θ_eff))
+        t_vecs[1][ho+1] * T(2)*k*as[1,1]*(cos(θin)/cos(θ_eff))*(Ψp_eff/Ψp_a)/dSΨ00(k_eff*as[1,1])
     end
 end
