@@ -54,19 +54,19 @@ function wienerhopf_reflection_coefficient(ω::T, medium::Medium{T}, species::Ve
 
     sToS(s,j::Int,l::Int) = (real(s) >= 0) ? sqrt(s^2 + (k*as[j,l]*sin(θin))^2) : -sqrt(s^2 + (k*as[j,l]*sin(θin))^2)
 
-    function F(s,j,l,m,n)
+    function Ψ(s,j,l,m,n)
         (s^T(2) - (k*as[j,l]*cos(θin))^T(2)) * (n == m ? T(1) : T(0)) * (j == l ? T(1) : T(0)) +
         T(2) * as[j,l]^T(2) * pi * species[l].num_density * t_vecs[l][m+ho+1] *
         Nn(n-m,k*as[j,l], sToS(s,j,l))
     end
 
     # Nn(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*besselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z)
-    q(s,j,l,m,n) = F(s,j,l,m,n) / (s^T(2) - (k*as[j,l]*cos(θin))^T(2))
+    q(s,j,l,m,n) = Ψ(s,j,l,m,n) / (s^T(2) - (k*as[j,l]*cos(θin))^T(2))
 
     Zs = LinRange(T(100),1/(10*tol),3000)
     maxZ = Zs[findfirst(Z -> abs(log(q(Z,1,1,0,0))) < 10*tol, Zs)]
 
-    function Fp(s, maxZ::T = maxZ, num_coefs::Int = num_coefs)
+    function Ψp(s, maxZ::T = maxZ, num_coefs::Int = num_coefs)
         Q(z) = log(q(z,1,1,0,0))/(z - s)
         xp = as[1,1]*k*cos(θin)*(-1.0+1.0im)
         q_pos = exp(
@@ -79,7 +79,7 @@ function wienerhopf_reflection_coefficient(ω::T, medium::Medium{T}, species::Ve
         return (s + k*as[1,1]*cos(θin)) * q_pos
     end
 
-    function Fm(s, maxZ::T = maxZ, num_coefs::Int = num_coefs)
+    function Ψm(s, maxZ::T = maxZ, num_coefs::Int = num_coefs)
         Q(z) = log(q(z,1,1,0,0))/(z - s)
         xm = as[1,1]*k*cos(θin)*(-1.0+0.5im)
         a1 = T(0)
@@ -98,12 +98,14 @@ function wienerhopf_reflection_coefficient(ω::T, medium::Medium{T}, species::Ve
     # abs(Fp(x,maxZ,num_coefs) - Fp(x,maxZ, Int(round(num_coefs*1.1)))) / abs(Fp(x,maxZ,num_coefs))
     # abs(Fm(x,maxZ,num_coefs) - Fm(x,maxZ, Int(round(num_coefs*1.1)))) / abs(Fm(x,maxZ,num_coefs))
 
-    err = abs(Fp(x,maxZ,num_coefs) * Fm(x,maxZ,num_coefs) - F(x,1,1,0,0))/abs(F(x,1,1,0,0))
+    x2 = as[1,1]*k*cos(θin)*(1.0+2.75im)
+
+    err = abs(Ψp(x,maxZ,num_coefs) * Ψm(x,maxZ,num_coefs) - Ψ(x,1,1,0,0))/abs(Ψ(x,1,1,0,0))
     if err > tol
         @warn "Analytic split recovers original function with $err tolerance, instead of the specified tolernace: $tol"
     end
 
-    R = F(k*as[1,1]*cos(θin),1,1,0,0) / (Fp(k*as[1,1]*cos(θin),maxZ,num_coefs))^2
+    R = Ψ(k*as[1,1]*cos(θin),1,1,0,0) / (Ψp(k*as[1,1]*cos(θin),maxZ,num_coefs))^2
 
     return R
 end
