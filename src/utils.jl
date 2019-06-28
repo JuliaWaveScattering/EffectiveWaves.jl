@@ -4,14 +4,16 @@ sbesselj(m,x) = sqrt(pi/(2*x)) * besselj(m+1/2,x)
 """Define spherical hankel function of the first kind"""
 shankelh1(m,x) = sqrt(pi/(2*x)) * hankelh1(m+1/2,x)
 
-# h = 1e-8
-# n = 1
-# (shankelh1(n, 3.3 + h/2) - shankelh1(n, 3.3 - h/2))/h
-# diffbessel(shankelh1,3,3.3,1)
+"Derivative of any spherical bessel function"
+function diffsbessel(f::Function,n,z)
+    return f(n-1,z) - (n+1) * f(n,z) / z
+end
+
 
 # h = 1e-8
-# (hankelh1(3, 3.3 + h/2) - hankelh1(3, 3.3 - h/2))/h
-# diffbessel(hankelh1,3,3.3,1)
+# n = 4
+# (sbesselj(n, 3.3 + h/2) - sbesselj(n, 3.3 - h/2))/h
+# diffsbessel(sbesselj,n,3.3)
 
 "m-th Derivative of any bessel function"
 function diffbessel(f::Function,n,z,m::Int)
