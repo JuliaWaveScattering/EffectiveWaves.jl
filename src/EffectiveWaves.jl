@@ -43,7 +43,9 @@ using LinearAlgebra
 
 # push!(LOAD_PATH,"$(homedir())/.julia/v0.6/EffectiveWaves/examples/")
 
+include("utils.jl")
 include("particle.jl")
+include("t-matrix.jl")
 
 include("effective_waves/effective_waves_export.jl")
 include("average_waves/average_waves_export.jl")

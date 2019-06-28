@@ -21,6 +21,7 @@ include("reflection_effective.jl")
 include("wavenumber_effective.jl")
 include("wavenumber_path.jl")
 include("wavenumber_mesh.jl")
+include("utils.jl")
 
 include("low_frequency.jl")
 include("low_volfrac.jl")
