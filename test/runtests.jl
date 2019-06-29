@@ -15,6 +15,8 @@ using LinearAlgebra
     @test true
 end
 
+include("specialfunctions.jl")
+
 include("types_constructors.jl")
 
 include("strong_low_freq_effective.jl")

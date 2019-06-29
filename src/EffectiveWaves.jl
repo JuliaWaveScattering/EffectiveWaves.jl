@@ -10,6 +10,9 @@ export  match_error, x_mesh_match
 # for discrete method
 export  x_mesh
 
+# spherical bessel and hankel functions
+export  sbesselj, shankelh1, diffsbessel, diffbessel
+
 # for material and particle properties
 export  Specie, Medium, volume_fraction, Zn, t_vectors, Nn, p_speed, maximum_hankel_order
 
@@ -43,7 +46,7 @@ using LinearAlgebra
 
 # push!(LOAD_PATH,"$(homedir())/.julia/v0.6/EffectiveWaves/examples/")
 
-include("utils.jl")
+include("specialfunctions.jl")
 include("particle.jl")
 include("t-matrix.jl")
 

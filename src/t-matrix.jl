@@ -53,11 +53,11 @@ function Zn(ω::Complex{T}, p::Specie{T}, med::Medium{T},  m::Int; dim::Int = 2)
     elseif abs(med.ρ) == zero(T) && abs(p.c*p.ρ) == zero(T)
         error("scattering in a medium with density $(med.ρ) and a particle with density =$(p.ρ) and phase speed =$(p.c) is not defined")
     end
-    if dim = 3
-        j(m,x) = sqrt(pi/(T(2)*x)) * besselj(m+1/2,x)
-        dj = diffbesselj
-        h1 = hankelh1
-        dh1 = diffhankelh1
+    if dim == 3
+        j = sbesselj
+        dj(m,x) = diffsbessel(sbesselj,m,x)
+        h1 = shankelh1
+        dh1(m,x) = diffsbessel(shankelh1,m,x)
     else
         j = besselj
         dj = diffbesselj
@@ -65,21 +65,18 @@ function Zn(ω::Complex{T}, p::Specie{T}, med::Medium{T},  m::Int; dim::Int = 2)
         dh1 = diffhankelh1
     end
     # set the scattering strength and type
-    if abs(p.c) == T(Inf) || abs(p.ρ) == T(Inf)
-        numer = diffbesselj(m, ak)
-        denom = diffhankelh1(m, ak)
-    elseif abs(med.ρ) == zero(T)
-        numer = diffbesselj(m, ak)
-        denom = diffhankelh1(m, ak)
+    if abs(p.c) == T(Inf) || abs(p.ρ) == T(Inf) || abs(med.ρ) == zero(T)
+        numer = dj(m, ak)
+        denom = dh1(m, ak)
     else
         q = (p.c*p.ρ)/(med.c*med.ρ) #the impedance
         if q == zero(T)
-          numer =  besselj(m, ak)
-          denom =  hankelh1(m, ak)
+          numer =  j(m, ak)
+          denom =  h1(m, ak)
         else
           γ = med.c/p.c #speed ratio
-          numer = q * diffbesselj(m, ak)*besselj(m, γ*ak) - besselj(m, ak)*diffbesselj(m, γ*ak)
-          denom = q * diffhankelh1(m, ak)*besselj(m, γ*ak) - hankelh1(m, ak)*diffbesselj(m, γ*ak)
+          numer = q * dj(m, ak)*j(m, γ*ak) - j(m, ak)*dj(m, γ*ak)
+          denom = q * dh1(m, ak)*j(m, γ*ak) - h1(m, ak)*dj(m, γ*ak)
         end
     end
 
