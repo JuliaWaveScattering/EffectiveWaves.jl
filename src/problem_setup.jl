@@ -11,12 +11,11 @@ abstract type PlaneWaves3D{T} <: ProblemSetup{T,3} end
 """Extract the dimension of the space that this physical property lives in"""
 dim(p::ProblemSetup{T,Dim}) where {Dim,T} = Dim
 
-
 """
 A setup with an incident plane wave, from the left, on a plate region filled with particles.
 """
-struct Plate2D{T} <: ProblemSetup{T,3}
-    """The plate is the region define by x in the interval [x1, x2]"""
+struct Plate2D{T} <: ProblemSetup{T,2}
+    """The plate is the region defined by x in the interval [x1, x2]"""
     x1::T
     x2::T
     """The background medium"""

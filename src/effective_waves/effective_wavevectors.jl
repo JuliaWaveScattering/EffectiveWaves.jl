@@ -17,35 +17,29 @@ The function returns an array A, where
 AA(x,y,m,s) = im^m*exp(-im*m*θ_eff)*A[m + max_hankel_order +1,s]*exp(im*k_eff*(cos(θ_eff)*x + sin(θin)*y))
 where (x,y) are coordinates in the halfspace, m-th hankel order, s-th species,  and AA is the ensemble average scattering coefficient."
 function effective_wavevectors(ω::T, k_eff::Complex{T}, medium::Medium{T}, species::Vector{Specie{T}};
+        dim = 2,
         tol::T = 1e-5,
-        radius_multiplier::T = 1.005,
-        hankel_order::Int = maximum_hankel_order(ω, medium, species; tol=tol)
-        ) where T<:Number
+        hankel_order::Int = maximum_hankel_order(ω, medium, species; tol=tol),
+        kws...) where T<:Number
 
-    k = ω/medium.c
-    S = length(species)
-    ho = hankel_order
-
-    t_vecs = t_vectors(ω, medium, species; hankel_order = hankel_order)
-
-    as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
-    function MM(keff,j,l,m,n)
-        - (n == m ? 1.0 : 0.0)*(j == l ? 1.0 : 0.0) + 2.0pi*species[l].num_density*t_vecs[l][m+ho+1]*
-            Nn(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
+    MM = if dim == 2
+        wavematrix2D(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
+            hankel_order=hankel_order, tol=tol, kws...)
+    else
+        wavematrix3D(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
+            hankel_order=hankel_order,tol=tol, kws...)
     end
 
     # calculate effective amplitudes
-    MM_svd = svd(
-        reshape(
-            [MM(k_eff,j,l,m,n) for m in -ho:ho, j in 1:S, n in -ho:ho, l in 1:S]
-        , ((2ho+1)*S, (2ho+1)*S))
-    )
+    MM_svd = svd(MM(k_eff))
     if MM_svd.S[end] > tol*T(40) # no analytic guarantee on this tolerance.
         @warn("The effective wavenumber gave an eigenvalue $(MM_svd.S[end]), which is larger than the tol = $( T(40)*tol). Note the secular equation is determined by the chosen medium and species.")
     end
 
+    S = length(species)
+
     A_null = MM_svd.V[:,end] # eignvector of smallest eigenvalue
-    A_null = reshape(A_null, (2*ho+1,S)) # A_null[:,j] = [A[-ho,j],A[-ho+1,j],...,A[ho,j]]
+    A_null = reshape(A_null, (2*hankel_order+1,S)) # A_null[:,j] = [A[-ho,j],A[-ho+1,j],...,A[ho,j]]
 
     return A_null
 end
@@ -106,7 +100,7 @@ function wienerhopf_wavevectors(ω::T, k_effs::Vector{Complex{T}}, medium::Mediu
             )
         )
         # T(2) * as[j,l]^T(2) * pi*species[l].num_density*t_vecs[l][m+ho+1]*(-T(2)*S)/(S^T(2) - (k*as[j,l])^T(2))^2 *
-        # Nn(0,k*as[j,l],S) +
+        # kernelN(0,k*as[j,l],S) +
         # T(2) * pi * as[j,l]^T(2) * species[l].num_density*t_vecs[l][m+ho+1]/(S^T(2) - (k*as[j,l])^T(2)) * (
         #     k*as[j,l]*diffhankelh1(0,k*as[j,l])*diffbesselj(0,S) -
         #     hankelh1(0,k*as[j,l])*diffbesselj(0,S) -
@@ -114,15 +108,15 @@ function wienerhopf_wavevectors(ω::T, k_effs::Vector{Complex{T}}, medium::Mediu
         # )
     end
 
-    # Nn(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*besselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z)
-    # DZNn(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*diffbesselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z,2) -
+    # kernelN(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*besselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z)
+    # DZkernelN(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*diffbesselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z,2) -
 
     sToS(s,j::Int,l::Int) = (real(s) >= 0) ? sqrt(s^2 + (k*as[j,l]*sin(θin))^2) : -sqrt(s^2 + (k*as[j,l]*sin(θin))^2)
 
     function q(s,j,l,m,n)
         (n == m ? T(1) : T(0)) * (j == l ? T(1) : T(0)) +
         T(2) * pi * as[j,l]^T(2) * species[l].num_density * t_vecs[l][m+ho+1] *
-        Nn(n-m, k*as[j,l], sToS(s,j,l)) / (s^T(2) - (k*as[j,l]*cos(θin))^T(2))
+        kernelN(n-m, k*as[j,l], sToS(s,j,l)) / (s^T(2) - (k*as[j,l]*cos(θin))^T(2))
     end
 
     Zs = LinRange(T(100),1/(10*tol),3000)

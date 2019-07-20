@@ -18,10 +18,10 @@ function maximum_hankel_order(ω::Union{T,Complex{T}}, medium::Medium{T}, specie
 end
 
 "A t_matrix in the form of a vector, because for now we only deal with diagonal T matrices."
-function t_vectors(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; hankel_order = 3) where T <: AbstractFloat
+function t_vectors(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; hankel_order = 3, dim = 2) where T <: AbstractFloat
     t_vecs = [ zeros(Complex{T},1+2hankel_order) for s in species]
     for i = 1:length(species), n = 0:hankel_order
-        t_vecs[i][n+hankel_order+1] = - Zn(ω,species[i],medium,n)
+        t_vecs[i][n+hankel_order+1] = - Zn(ω,species[i],medium,n; dim = dim)
         t_vecs[i][-n+hankel_order+1] = t_vecs[i][n+hankel_order+1]
     end
     return t_vecs
@@ -37,7 +37,7 @@ function Zn_matrix(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; hankel_
     return Zs
 end
 
-Zn(ω::T, p::Specie{T}, med::Medium{T}, m::Int) where T<: Number = Zn(Complex{T}(ω), p, med, m)
+Zn(ω::T, p::Specie{T}, med::Medium{T}, m::Int; kws...) where T<: Number = Zn(Complex{T}(ω), p, med, m; kws...)
 
 "Returns a ratio which gives the scattering strength of a particle"
 function Zn(ω::Complex{T}, p::Specie{T}, med::Medium{T},  m::Int; dim::Int = 2) where T<: Number

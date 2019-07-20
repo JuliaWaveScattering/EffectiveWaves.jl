@@ -11,7 +11,7 @@ export  match_error, x_mesh_match
 export  x_mesh
 
 # spherical bessel and hankel functions
-export  sbesselj, shankelh1, diffsbessel, diffbessel
+export  sbesselj, shankelh1, diffsbessel, diffbessel, gaunt_coefficients, kernelN
 
 # for material and particle properties
 export  Specie, Medium, volume_fraction, Zn, t_vectors, Nn, p_speed, maximum_hankel_order
@@ -41,8 +41,7 @@ using Optim
 using OffsetArrays
 using ApproxFun
 using LinearAlgebra
-
-# using RecipesBase # Have not really needed yet
+using WignerSymbols
 
 # push!(LOAD_PATH,"$(homedir())/.julia/v0.6/EffectiveWaves/examples/")
 

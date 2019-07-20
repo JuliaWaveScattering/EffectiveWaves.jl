@@ -36,6 +36,3 @@ end
 
 Medium(;ρ=1.0, c=1.0+0.0im) = Medium{typeof(ρ)}(ρ,Complex{typeof(ρ)}(c))
 # Medium(;ρ::T = 1.0, c::Union{R,Complex{T}} = 1.0+0.0im) = Medium(ρ,Complex{T}(c))
-
-Nn(n::Int,x::Union{T,Complex{T}},y::Union{T,Complex{T}}) where T<:AbstractFloat =
-    x*diffhankelh1(n,x)*besselj(n,y) - y*hankelh1(n,x)*diffbesselj(n,y)

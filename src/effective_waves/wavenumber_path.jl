@@ -1,31 +1,14 @@
-function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::T = 1e-6,
-        hankel_order::Int = maximum_hankel_order(ω, medium, species; tol=tol),
+function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
+        tol::T = 1e-6,
         mesh_points::Int = 2, mesh_size::T = one(T),
         num_wavenumbers = 3,
-        radius_multiplier::T = T(1.005),
-        t_vecs::Vector{Vector{Complex{T}}} = t_vectors(ω, medium, species; hankel_order = hankel_order),
         verbose::Bool = false,
         kws...) where T<:Number
 
     low_tol = max(1e-4, tol) # a tolerance used for a first pass with time_limit
-    k = real(ω/medium.c)
-    S = length(species)
-    ho = hankel_order
 
-    as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
-    function M_component(keff,j,l,m,n)
-        (n == m ? 1.0 : 0.0)*(j == l ? 1.0 : 0.0) - 2.0pi*species[l].num_density*t_vecs[l][m+ho+1]*
-            Nn(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
-    end
-
-    # this matrix is needed to calculate the eigenvectors
-    MM(keff::Complex{T}) = reshape(
-        [M_component(keff,j,l,m,n) for m in -ho:ho, j = 1:S, n in -ho:ho, l = 1:S]
-    , ((2ho+1)*S, (2ho+1)*S))
-
-    # the constraint uses keff_vec[2] < -low_tol to better specify solutions where imag(k_effs)<0
-    constraint(keff_vec::Array{T}) = ( (keff_vec[2] < -low_tol) ? one(T) : zero(T))*(-1 + exp(-T(100.0)*keff_vec[2]))
-    detMM2(keff_vec::Array{T}) =  constraint(keff_vec) + map(x -> real(x*conj(x)), det(MM(keff_vec[1]+im*keff_vec[2])))
+    # the dispersion equation is given by: `dispersion(k1,k2) = 0` where k_eff = k1 + im*k2.
+    dispersion = dispersion_function(ω, medium, species; tol = low_tol, kws...)
 
     # find at least one root to use as a scale for dk_x and dk_y
         kφ = wavenumber_low_volfrac(ω, medium, species; verbose = false)
@@ -37,11 +20,11 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
         k_vecs = [[kin[1]+x,kin[2]] for x in LinRange(-dx,dx,mesh_points+1)]
         push!(k_vecs,kin, [real(k0),zero(T)], [zero(T),zero(T)])
 
-        k_vecs = [optimize(detMM2, kvec, Optim.Options(x_tol=low_tol, g_tol = low_tol^3)).minimizer for kvec in k_vecs]
+        k_vecs = [optimize(dispersion, kvec, Optim.Options(x_tol=low_tol, g_tol = low_tol^3)).minimizer for kvec in k_vecs]
         k_vecs = reduce_kvecs(k_vecs, low_tol/10)
 
         k_vecs = map(k_vecs) do k_vec
-           res = optimize(detMM2, k_vec, Optim.Options(g_tol = tol^3.0, x_tol=tol))
+           res = optimize(dispersion, k_vec, Optim.Options(g_tol = tol^3.0, x_tol=tol))
            if res.minimum > T(20)*tol
                [zero(T),-one(T)]
            else
@@ -51,7 +34,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
         k_vecs = reduce_kvecs(k_vecs, tol)
 
         # Delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
-        deleteat!(k_vecs, findall(detMM2.(k_vecs) .> low_tol))
+        deleteat!(k_vecs, findall(dispersion.(k_vecs) .> low_tol))
         deleteat!(k_vecs, findall([k_vec[2] < -sqrt(tol) for k_vec in k_vecs]))
         # delete wave travelling in wrong direction with small attenuation
         deleteat!(k_vecs, findall([-low_tol < abs(k_vec[2])/k_vec[1] < zero(T) for k_vec in k_vecs]))
@@ -71,14 +54,14 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
         # Find the first two roots that lead to the two branches of the root tree
         while !two_roots && (length(k_vecs) < num_wavenumbers)
             hits = [
-                optimize(detMM2, [kx, ky], Optim.Options(x_tol = low_tol, g_tol = low_tol^3)).minimizer
+                optimize(dispersion, [kx, ky], Optim.Options(x_tol = low_tol, g_tol = low_tol^3)).minimizer
             for kx in kxs]
             hits = reduce_kvecs(hits, low_tol)
 
             # Here we refine the hits
             hits = map(hits) do k_vec
-                # res = optimize(detMM2, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
-                res = optimize(detMM2, k_vec, Optim.Options(g_tol = tol^3.0, x_tol=tol))
+                # res = optimize(dispersion, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
+                res = optimize(dispersion, k_vec, Optim.Options(g_tol = tol^3.0, x_tol=tol))
                 if res.minimum > T(20)*tol
                     [zero(T),-one(T)]
                 else
@@ -148,10 +131,10 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
 
             # search for roots from this mesh
                 new_targets = map(mesh) do kin
-                   optimize(detMM2, kin, Optim.Options(x_tol = low_tol, g_tol = low_tol^3)).minimizer
+                   optimize(dispersion, kin, Optim.Options(x_tol = low_tol, g_tol = low_tol^3)).minimizer
                 end
                 new_targets = reduce_kvecs(new_targets, low_tol/10)
-                deleteat!(new_targets, findall(detMM2.(new_targets) .> low_tol))
+                deleteat!(new_targets, findall(dispersion.(new_targets) .> low_tol))
 
                 # only keep targets which are not already in k_vecs
                 new_targets = [
@@ -161,8 +144,8 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; 
 
                 # Here we refine the new roots
                 new_targets = map(new_targets) do k_vec
-                    # res = optimize(detMM2, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
-                    res = optimize(detMM2, k_vec, Optim.Options(g_tol = tol^3.0, x_tol=tol))
+                    # res = optimize(dispersion, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
+                    res = optimize(dispersion, k_vec, Optim.Options(g_tol = tol^3.0, x_tol=tol))
                     if res.minimum > T(20)*tol
                         [zero(T),-one(T)]
                     else

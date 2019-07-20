@@ -45,7 +45,7 @@ S = length(species)
 as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
 function M(keff,j,l,m,n)
     (n==m ? 1.0+im*0.0:0.0+im*0.0)*(j==l ? 1.0+im*0.0:0.0+im*0.0) + 2.0pi*species[l].num_density*Z_l_n[l,n]*
-        Nn(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
+        kernelN(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
 end
 
 ho = -1 + sum([ tol .< norm([M(0.9*k + 0.1im,j,l,1,n) for j = 1:S, l = 1:S]) for n=0:max_hankel_order ])
