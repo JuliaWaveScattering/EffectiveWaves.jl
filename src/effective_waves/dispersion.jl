@@ -142,4 +142,17 @@ end
 #         [ [s, m, ds, dm] for dm in -ho:ho, ds in 0:ho, m in -ho:ho, s in 0:ho]
 # , ((2ho+1)*(ho+1), (2ho+1)*(ho+1)))
 #
+# # @time MM2 = reshape(
+# #     [[s, m, ds, dm] for m in -ho:ho, s in 0:ho, dm in -ho:ho, ds in 0:ho]
+# # , ((2ho+1)*(ho+1), (2ho+1)*(ho+1)))
+#
 # reshape(MM2[1,:], (2ho+1,ho+1))
+#
+# MM2 = [ [ds, dm] for dm in -ho:ho, ds in 0:ho]
+#
+# MM = deepcopy(MM2)
+# for ds = 0:ho for dm = -ho:ho
+#     MM[dm+ho+1,ds+1] = [ds, dm]
+# end end
+#
+# MM
