@@ -1,6 +1,6 @@
 export sbesselj, shankelh1, diffsbessel, diffbessel
 export gaunt_coefficients, kernelN
-export associated_legendre_indices, Ylm_arr
+export associated_legendre_indices, spherical_harmonics_indices, spherical_harmonics
 
 """Define spherical bessel function of the first kind"""
 sbesselj(m,x) = sqrt(pi/(2*x)) * besselj(m+1/2,x)
@@ -86,8 +86,9 @@ function gaunt_coefficients(T::Type{<:AbstractFloat},l1::Int,m1::Int,l2::Int,m2:
     return (one(T)*im)^(l2+l3-l1) * (-T(1))^m1 * sqrt(4pi*(2*l1+1)*(2*l2+1)*(2*l3+1)) *
         wigner3j(T,l1,l2,l3,0,0,0) * wigner3j(T,l1,l2,l3,m1,-m2,-m3)
 end
+gaunt_coefficients(l1::Int,m1::Int,l2::Int,m2::Int,l3::Int,m3::Int) = gaunt_coefficients(Float64,l1,m1,l2,m2,l3,m3)
 
-function associated_legendre_indices(l_max::Int)
+function spherical_harmonics_indices(l_max::Int)
     indices = Vector{Vector{Int}}(undef, Int((l_max+1)^2))
     i=1
     for l = 0:l_max for m = -l:l
@@ -98,7 +99,7 @@ function associated_legendre_indices(l_max::Int)
     return indices
 end
 
-function associated_legendre_positive_indices(l_max::Int)
+function associated_legendre_indices(l_max::Int)
     indices = Vector{Vector{Int}}(undef, Int((2+l_max)*(l_max+1)/2))
     i=1
     for l = 0:l_max for m = 0:l
@@ -110,40 +111,40 @@ function associated_legendre_positive_indices(l_max::Int)
 end
 # associated_legendre_indices(l_max::Int) = [[[l,m] for m = 0:l] for l = 0:l_max]
 
-function spherical_harmonics_vec(l_max::Int, θ::T, φ::T) where T <: AbstractFloat
+"""
+`spherical_harmonics(l_max::Int, θ::T, φ::T)`
 
-    lm_vec = associated_legendre_positive_indices(l_max)
-    Ylm_vecs = OffsetArray{Vector{Complex{T}}}(undef, 0:l_max);
+returns a vector of all spherical harmonics with degree `l <= l_max`. The degree and order (indices) of the elements of the vector are given by `spherical_harmonics_indices(l_max::Int)`.
+
+The associated legendre polynomials are taken from the package GSL.jl.
+"""
+function spherical_harmonics(l_max::Int, θ::T, φ::T) where T <: AbstractFloat
+
+    lm_vec = associated_legendre_indices(l_max)
+    # Ylm_vecs = OffsetArray{Vector{Complex{T}}}(undef, 0:l_max);
     # len = sum(length.(lm_vecs))
     Plm_arr = sf_legendre_array(GSL_SF_LEGENDRE_SPHARM, l_max, cos(θ))[1:length(lm_vec)]
 
     Ylm_vec = Vector{Complex{T}}(undef, (l_max+1)^2)
     Ylm_vec[1] = Plm_arr[1]
 
-    ms = [lm[2] for lm in lm_vec]
     ls = [lm[1] for lm in lm_vec]
+    ms = [lm[2] for lm in lm_vec]
 
     ind1 = 1
     ind2 = 1
     for i = 1:l_max
         inds1 = (ind1+i):(ind1+2i)
-        i0 = inds1[1]
-        inds1 = inds1[2:end]
-        inds2 = (ind2+i):(ind2+3i)
-
-        neg = factorial.(ls[inds1] - ms[inds1]) ./ factorial.(ls[inds1] + ms[inds1]) .*
-            (-1).^ms[inds1] .* Plm_arr[inds1]
-        Ylm_vec[inds2] = [reverse(neg); Plm_arr[i0]; Plm_arr[inds1]]
+        # neg = (-1).^ms[inds1[2:end]] .* Plm_arr[inds1[2:end]] .*
+            # factorial.(ls[inds1[2:end]] - ms[inds1[2:end]]) ./ factorial.(ls[inds1[2:end]] + ms[inds1[2:end]])
+lm_vec[inds1]
+        Ylm_vec[(ind2+i):(ind2+3i)] = [reverse((-1).^ms[inds1[2:end]] .* conj(Plm_arr[inds1[2:end]])); Plm_arr[inds1]]
         ind1 += i
         ind2 += 2i
     end
 
-    lm_vec = associated_legendre_indices(l_max)
-    ms = [lm[2] for lm in lm_vec]
-    ls = [lm[1] for lm in lm_vec]
-
-    Ylm_vec = (-1).^ms .* exp.(ms .* (im*φ)) .* Ylm_vec
+    ms = [lm[2] for lm in spherical_harmonics_indices(l_max)]
+    Ylm_vec = exp.(ms .* (im*φ)) .* Ylm_vec
 
     return Ylm_vec
 end
-gaunt_coefficients(l1::Int,m1::Int,l2::Int,m2::Int,l3::Int,m3::Int) = gaunt_coefficients(Float64,l1,m1,l2,m2,l3,m3)

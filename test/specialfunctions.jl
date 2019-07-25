@@ -19,10 +19,7 @@ end
     # a few associated legendre functions without the Condon-Shortly factor
     Plm_arr = [1,x,sqrt(1-x^2),(3x^2-1)/2, 3x*sqrt(1-x^2),3*(1-x^2)]
 
-    ind_max = Int(sf_legendre_array_index(l_max,l_max+1)) # max index, but why do I need to add 1?
-    lm_indices = vcat(associated_legendre_indices(l_max)...)
-
-    @test length(lm_indices) == ind_max
+    lm_indices = associated_legendre_positive_indices(l_max)
 
     @test sf_legendre_array(GSL_SF_LEGENDRE_NONE, l_max, x)[1:ind_max] ≈ Plm_arr
 
@@ -35,6 +32,47 @@ end
     condon_phase = [(-1)^lm[2] for lm in lm_indices]
 
     @test condon_phase .* sf_legendre_array(GSL_SF_LEGENDRE_SPHARM, l_max, x)[1:ind_max] ≈ sph_factors .* Plm_arr
+
+end
+
+@testset "Spherical harmonics" begin
+    l_max = 4
+
+    lms = spherical_harmonics_indices(l_max)
+
+    θ = rand(1)[1] * 0.99
+    φ = rand(1)[1] * 0.99
+    sphs = spherical_harmonics(l_max, θ, φ)
+
+    # check special case l == abs(m)
+    inds = findall([abs(lm[1]) == abs(lm[2]) for lm in lms])
+
+    for i in inds
+        @test sphs[i] ≈ (sign(lms[i][2]))^lms[i][1] / (2^lms[i][1] * factorial(lms[i][1])) *
+            sqrt(factorial(2*lms[i][1] + 1) / (4pi)) * sin(θ)^lms[i][1] * exp(im * lms[i][2] * φ)
+    end
+
+    # special case m == 0, reduce to just Legendre polynomials
+    Ps = sf_legendre_Pl_array(l_max, cos(θ))
+    inds = findall([abs(lm[2]) == 0 for lm in lms])
+
+    for l in 0:l_max
+        @test sphs[inds][l+1] ≈ sqrt((2l+1)/(4pi)) * Ps[l+1]
+    end
+
+
+    # special case, north pole
+    θ = 0.0
+    sphs = spherical_harmonics(l_max, θ, φ)
+
+    for i in eachindex(sphs)
+        if lms[i][2] == 0
+            @test sphs[i] ≈ sqrt((2*lms[i][1] + 1)/(4pi))
+        else
+            @test sphs[i] ≈ 0.0
+        end
+        i += 1
+    end
 
 end
 
