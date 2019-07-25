@@ -77,7 +77,10 @@ The most standard gaunt coefficients `G(l1,m1;l2,m2;l3)` are related through the
     4pi * G(l1,m1;l2,m2;l3) = im^(l1-l2-l3) * (-1)^m2 * gaunt_coefficients(l1,m1,l2,-m2,l3,m1+m2)
 
 """
-function gaunt_coefficients(l1,m1,l2,m2,l3,m3)
+function gaunt_coefficients(T::Type{<:AbstractFloat},l1::Int,m1::Int,l2::Int,m2::Int,l3::Int,m3::Int)
     # note the wigner3j has only one convention, and is highly symmetric.
-    return im^(l2+l3-l1) * (-1)^m1 * sqrt(4pi*(2*l1+1)*(2*l2+1)*(2*l3+1)) * wigner3j(l1,l2,l3,0,0,0) * wigner3j(l1,l2,l3,m1,-m2,-m3)
+
+    return (one(T)*im)^(l2+l3-l1) * (-T(1))^m1 * sqrt(4pi*(2*l1+1)*(2*l2+1)*(2*l3+1)) *
+        wigner3j(T,l1,l2,l3,0,0,0) * wigner3j(T,l1,l2,l3,m1,-m2,-m3)
 end
+gaunt_coefficients(l1::Int,m1::Int,l2::Int,m2::Int,l3::Int,m3::Int) = gaunt_coefficients(Float64,l1,m1,l2,m2,l3,m3)

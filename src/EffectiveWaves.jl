@@ -11,7 +11,7 @@ export  match_error, x_mesh_match
 export  x_mesh
 
 # spherical bessel and hankel functions
-export  sbesselj, shankelh1, diffsbessel, diffbessel, gaunt_coefficients, kernelN
+export  sbesselj, shankelh1, diffsbessel, diffbessel, gaunt_coefficients, kernelN, gaunt_coefficients
 
 # for material and particle properties
 export  Specie, Medium, volume_fraction, Zn, t_vectors, Nn, p_speed, maximum_hankel_order
