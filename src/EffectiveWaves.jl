@@ -10,12 +10,6 @@ export  match_error, x_mesh_match
 # for discrete method
 export  x_mesh
 
-<<<<<<< HEAD
-# spherical bessel and hankel functions
-export  sbesselj, shankelh1, diffsbessel, diffbessel, gaunt_coefficients, kernelN, gaunt_coefficients
-
-=======
->>>>>>> 2820b780161c36e6c357cdb94c56194e607ad592
 # for material and particle properties
 export  Specie, Medium, volume_fraction, Zn, t_vectors, Nn, p_speed, maximum_hankel_order
 

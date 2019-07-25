@@ -73,7 +73,6 @@ function wavematrix3D(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
     function M_component(keff,l,m,l2,m2,s2,dl,dm,l1,m1,s1)
         (m == dm && l == dl ? 1.0 : 0.0)*(m1 == m2 && l1 == l2 ? 1.0 : 0.0) +
-<<<<<<< HEAD
         as[s2,s1] * species[s1].num_density * t_vecs[s2][l+ho+1] *
         sum(l3 ->
             if abs(m1-m2) <= l3
@@ -120,8 +119,6 @@ function wavematrix3DPlane(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
     function M_component(keff,l,m,l2,m2,s2,dl,dm,l1,m1,s1)
         (m == dm && l == dl ? 1.0 : 0.0)*(m1 == m2 && l1 == l2 ? 1.0 : 0.0) +
-=======
->>>>>>> 2820b780161c36e6c357cdb94c56194e607ad592
         as[s2,s1] * species[s1].num_density * t_vecs[s2][l+ho+1] *
         sum(l3 -> sum(m3 ->
             gaunt_coefficients(l, m, dl,dm,l3,m3) *
