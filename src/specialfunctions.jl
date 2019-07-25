@@ -89,27 +89,18 @@ end
 gaunt_coefficients(l1::Int,m1::Int,l2::Int,m2::Int,l3::Int,m3::Int) = gaunt_coefficients(Float64,l1,m1,l2,m2,l3,m3)
 
 function spherical_harmonics_indices(l_max::Int)
-    indices = Vector{Vector{Int}}(undef, Int((l_max+1)^2))
-    i=1
-    for l = 0:l_max for m = -l:l
-        indices[i] = [l,m]
-        i += 1
-    end end
+    ls = [l for l in 0:l_max for m in -l:l]
+    ms = [m for l in 0:l_max for m in -l:l]
 
-    return indices
+    return ls, ms
 end
 
 function associated_legendre_indices(l_max::Int)
-    indices = Vector{Vector{Int}}(undef, Int((2+l_max)*(l_max+1)/2))
-    i=1
-    for l = 0:l_max for m = 0:l
-        indices[i] = [l,m]
-        i += 1
-    end end
+    ls = [l for l in 0:l_max for m in 0:l]
+    ms = [m for l in 0:l_max for m in 0:l]
 
-    return indices
+    return ls, ms
 end
-# associated_legendre_indices(l_max::Int) = [[[l,m] for m = 0:l] for l = 0:l_max]
 
 """
 `spherical_harmonics(l_max::Int, θ::T, φ::T)`
@@ -120,30 +111,22 @@ The associated legendre polynomials are taken from the package GSL.jl.
 """
 function spherical_harmonics(l_max::Int, θ::T, φ::T) where T <: AbstractFloat
 
-    lm_vec = associated_legendre_indices(l_max)
-    # Ylm_vecs = OffsetArray{Vector{Complex{T}}}(undef, 0:l_max);
-    # len = sum(length.(lm_vecs))
-    Plm_arr = sf_legendre_array(GSL_SF_LEGENDRE_SPHARM, l_max, cos(θ))[1:length(lm_vec)]
+    ls, ms = associated_legendre_indices(l_max)
+    Plm_arr = sf_legendre_array(GSL_SF_LEGENDRE_SPHARM, l_max, cos(θ))[1:length(ls)]
 
     Ylm_vec = Vector{Complex{T}}(undef, (l_max+1)^2)
     Ylm_vec[1] = Plm_arr[1]
-
-    ls = [lm[1] for lm in lm_vec]
-    ms = [lm[2] for lm in lm_vec]
 
     ind1 = 1
     ind2 = 1
     for i = 1:l_max
         inds1 = (ind1+i):(ind1+2i)
-        # neg = (-1).^ms[inds1[2:end]] .* Plm_arr[inds1[2:end]] .*
-            # factorial.(ls[inds1[2:end]] - ms[inds1[2:end]]) ./ factorial.(ls[inds1[2:end]] + ms[inds1[2:end]])
-lm_vec[inds1]
         Ylm_vec[(ind2+i):(ind2+3i)] = [reverse((-1).^ms[inds1[2:end]] .* conj(Plm_arr[inds1[2:end]])); Plm_arr[inds1]]
         ind1 += i
         ind2 += 2i
     end
 
-    ms = [lm[2] for lm in spherical_harmonics_indices(l_max)]
+    ls, ms = spherical_harmonics_indices(l_max)
     Ylm_vec = exp.(ms .* (im*φ)) .* Ylm_vec
 
     return Ylm_vec

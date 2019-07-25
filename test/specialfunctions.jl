@@ -1,3 +1,6 @@
+using GSL
+using LinearAlgebra
+
 @testset "spherical bessel functions" begin
     x = 1.1 + 1.1im
     @test sbesselj(1, x) ≈ sin(x)/x^2 - cos(x)/x
@@ -36,38 +39,43 @@ end
 end
 
 @testset "Spherical harmonics" begin
-    l_max = 4
-
-    lms = spherical_harmonics_indices(l_max)
-
     θ = rand(1)[1] * 0.99
     φ = rand(1)[1] * 0.99
+
+    l_max = 8 # small l_max due to factorial formula below
+
+    ls, ms = spherical_harmonics_indices(l_max)
     sphs = spherical_harmonics(l_max, θ, φ)
 
     # check special case l == abs(m)
-    inds = findall([abs(lm[1]) == abs(lm[2]) for lm in lms])
+    inds = findall(ls .== abs.(ms))
 
     for i in inds
-        @test sphs[i] ≈ (sign(lms[i][2]))^lms[i][1] / (2^lms[i][1] * factorial(lms[i][1])) *
-            sqrt(factorial(2*lms[i][1] + 1) / (4pi)) * sin(θ)^lms[i][1] * exp(im * lms[i][2] * φ)
+        @test sphs[i] ≈ (sign(ms[i]))^ls[i] / (2^ls[i] * factorial(ls[i])) *
+            sqrt(factorial(2*ls[i] + 1) / (4pi)) * sin(θ)^ls[i] * exp(im * ms[i] * φ)
     end
+
+    l_max = 30
+    ls, ms = spherical_harmonics_indices(l_max)
+    sphs = spherical_harmonics(l_max, θ, φ)
 
     # special case m == 0, reduce to just Legendre polynomials
     Ps = sf_legendre_Pl_array(l_max, cos(θ))
-    inds = findall([abs(lm[2]) == 0 for lm in lms])
+    inds = findall(ms .== 0)
 
     for l in 0:l_max
         @test sphs[inds][l+1] ≈ sqrt((2l+1)/(4pi)) * Ps[l+1]
     end
 
+    #sphs[inds] .≈ sqrt.((2 .* (0:l_max) .+ 1) ./ (4pi)) .* Ps
 
     # special case, north pole
     θ = 0.0
     sphs = spherical_harmonics(l_max, θ, φ)
 
     for i in eachindex(sphs)
-        if lms[i][2] == 0
-            @test sphs[i] ≈ sqrt((2*lms[i][1] + 1)/(4pi))
+        if ms[i] == 0
+            @test sphs[i] ≈ sqrt((2*ls[i] + 1)/(4pi))
         else
             @test sphs[i] ≈ 0.0
         end
@@ -89,4 +97,31 @@ end
 
     @test_throws(DomainError,gaunt_coefficients(l1,2*l1,l2,m2,l3,m3))
     @test_throws(DomainError,gaunt_coefficients(l1,m1,l2,m2,0.1,m3))
+
+    # the spherical harmonics linearisation formula
+    θ = rand(1)[1] * 0.99
+    φ = rand(1)[1] * 0.99
+
+    l_max = 3
+
+    # l1 = rand(0:l_max)
+    l2 = rand(0:l_max)
+    l3 = rand(0:l_max)
+
+    # m1 = rand(-l1:l1)
+    m2 = rand(0:l2)
+    m3 = rand(0:l3)
+
+    ls, ms = spherical_harmonics_indices(l_max)
+    Ys = spherical_harmonics(l_max, θ, φ)
+
+    #  sum(m1 -> (-1)^m1 * )
+    #
+    # sum((1.0im)^(-l1) * (-1.0)^m1 * conj.(Ys) .* [gaunt_coefficients(l2,m2,l3,m3,ls[i],ms[i]) for i in eachindex(ls)])
+    #
+    # 4pi * (-1)^(m3+m2) * (1.0im)^(l3-l2) * sf_legendre_sphPlm(l3,m3,cos(θ))
+
+    # [[
+    # for m2 in -l2:l2, m3 in -l3:l3] for l2 in 1:4, l3 in 1:4]
+
 end
