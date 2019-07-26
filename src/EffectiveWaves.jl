@@ -39,6 +39,7 @@ using OffsetArrays
 using ApproxFun
 using LinearAlgebra
 using WignerSymbols
+using GSL
 
 # push!(LOAD_PATH,"$(homedir())/.julia/v0.6/EffectiveWaves/examples/")
 

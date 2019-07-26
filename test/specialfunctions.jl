@@ -96,32 +96,22 @@ end
     m3 = m1-m2
 
     @test_throws(DomainError,gaunt_coefficients(l1,2*l1,l2,m2,l3,m3))
-    @test_throws(DomainError,gaunt_coefficients(l1,m1,l2,m2,0.1,m3))
+    @test_throws(MethodError,gaunt_coefficients(l1,m1,l2,m2,0.1,m3))
 
     # the spherical harmonics linearisation formula
-    θ = rand(1)[1] * 0.99
-    φ = rand(1)[1] * 0.99
+    θ, φ = rand(2) .* 0.99
 
-    l_max = 3
+    l_small = 6
+    l_max = 2*l_small # needs to be larger than l_small
 
-    # l1 = rand(0:l_max)
-    l2 = rand(0:l_max)
-    l3 = rand(0:l_max)
+    ls, ms = spherical_harmonics_indices(l_max);
+    Ys = spherical_harmonics(l_max, θ, φ);
 
-    # m1 = rand(-l1:l1)
-    m2 = rand(0:l2)
-    m3 = rand(0:l3)
+    for n2 in 1:(l_small + 1)^2, n3 in 1:(l_small + 1)^2
+        gs = [gaunt_coefficients(ls[n2],ms[n2],ls[n3],ms[n3],ls[i],ms[i]) for i in eachindex(ls)]
 
-    ls, ms = spherical_harmonics_indices(l_max)
-    Ys = spherical_harmonics(l_max, θ, φ)
-
-    #  sum(m1 -> (-1)^m1 * )
-    #
-    # sum((1.0im)^(-l1) * (-1.0)^m1 * conj.(Ys) .* [gaunt_coefficients(l2,m2,l3,m3,ls[i],ms[i]) for i in eachindex(ls)])
-    #
-    # 4pi * (-1)^(m3+m2) * (1.0im)^(l3-l2) * sf_legendre_sphPlm(l3,m3,cos(θ))
-
-    # [[
-    # for m2 in -l2:l2, m3 in -l3:l3] for l2 in 1:4, l3 in 1:4]
+        @test 4pi * (-1)^(ms[n3]+ms[n2]) * (1.0im)^(ls[n3]-ls[n2]) * Ys[n3] * conj(Ys[n2]) ≈
+            sum( (1.0im).^(-ls) .* (-1.0).^ms .* conj.(Ys) .* gs) atol = 1e-12
+    end
 
 end
