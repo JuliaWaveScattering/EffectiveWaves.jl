@@ -10,6 +10,13 @@ species = [Specie(ρ=0.,r=0.6, c=0.2, volfrac=0.3)]
 ws = wavenumbers(ωs[1], medium, species; dim = 3, num_wavenumbers=10)
 
 
+wavesystem1 = wavematrix3DPlane(ωs[1], medium, species; hankel_order=4, θ_inc=2.0)
+
+det(wavesystem1(1.0+0.2im))
+
+wavesystem2 = wavematrix3DPlane(ωs[1], medium, species; hankel_order=4, θ_inc=0.0, φ_inc=0.4)
+det(wavesystem2(1.0+0.2im))
+
 eff_medium = effective_medium(medium, species)
 k_eff_lows = ωs./eff_medium.c
 

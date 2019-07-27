@@ -71,14 +71,14 @@ function wavematrix3D(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
-    function M_component(keff,l,m,l2,m2,s2,dl,dm,l1,m1,s1)
-        (m == dm && l == dl ? 1.0 : 0.0)*(m1 == m2 && l1 == l2 ? 1.0 : 0.0) +
-        as[s2,s1] * species[s1].num_density * t_vecs[s2][l+ho+1] *
+    function M_component(keff,l,m,l2,m2,s1,dl,dm,l1,m1,s2)
+        (m == dm && l == dl && m1 == m2 && l1 == l2 && s1 == s2 ? 1.0 : 0.0) +
+        as[s1,s2] * species[s2].num_density * t_vecs[s1][l+ho+1] *
         sum(l3 ->
             if abs(m1-m2) <= l3
                 gaunt_coefficients(l, m, dl,dm,l3,m1-m2) *
                 gaunt_coefficients(l1,m1,l2,m2,l3,m1-m2) *
-                kernelN(l3,k*as[s2,s1],keff*as[s2,s1]; dim = dim)
+                kernelN(l3,k*as[s1,s2],keff*as[s1,s2]; dim = dim)
             else
                 zero(T)
             end
@@ -88,10 +88,10 @@ function wavematrix3D(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
     # The order of the indices below has not been carefully planned
     function MM(keff::Complex{T})
         ind2 = 1
-        for s1 = 1:S, dl = 0:ho, l1 = 0:ho for dm = -dl:dl, m1 = -l1:l1
+        for s2 = 1:S, dl = 0:ho, l1 = 0:ho for dm = -dl:dl, m1 = -l1:l1
             ind1 = 1
-            for s2 = 1:S, l = 0:ho, l2 = 0:ho for m = -l:l, m2 = -l2:l2
-                MM_mat[ind1, ind2] = M_component(keff,l,m,l2,m2,s2,dl,dm,l1,m1,s1)
+            for s1 = 1:S, l = 0:ho, l2 = 0:ho for m = -l:l, m2 = -l2:l2
+                MM_mat[ind1, ind2] = M_component(keff,l,m,l2,m2,s1,dl,dm,l1,m1,s2)
                 ind1 += 1
             end end
             ind2 += 1
@@ -104,6 +104,8 @@ end
 
 
 function wavematrix3DPlane(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
+        θ_inc::T = T(0), # incident on the halfspace z >0, with kp_vec being in the y-z plane
+        φ_inc::T = T(0),
         dim = 3, tol::T = 1e-4,
         hankel_order::Int = maximum_hankel_order(ω, medium, species; tol=tol),
         radius_multiplier::T = T(1.005),
@@ -113,27 +115,32 @@ function wavematrix3DPlane(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
     k = real(ω/medium.c)
     S = length(species)
     ho = hankel_order
-    len = (ho+1)^4 * S
+    len = (ho+1)^2 * S
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
+    Ys = spherical_harmonics(ho, θ_inc, φ_inc);
+    ls, ms = spherical_harmonics_indices(ho);
+
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
-    function M_component(keff,l,m,l2,m2,s2,dl,dm,l1,m1,s1)
-        (m == dm && l == dl ? 1.0 : 0.0)*(m1 == m2 && l1 == l2 ? 1.0 : 0.0) +
-        as[s2,s1] * species[s1].num_density * t_vecs[s2][l+ho+1] *
-        sum(l3 -> sum(m3 ->
-            gaunt_coefficients(l, m, dl,dm,l3,m3) *
-            gaunt_coefficients(l1,m1,l2,m2,l3,m3) *
-            kernelN(l3,k*as[s2,s1],keff*as[s2,s1]; dim = dim)
-        , -l3:l3), 0:ho) / (keff^2.0 - k^2.0)
+    function M_component(keff,l,m,s1,dl,dm,s2)
+        (m == dm && l == dl && s1 == s2 ? 1.0 : 0.0) +
+        T(4pi) * as[s1,s2] * species[s2].num_density * t_vecs[s1][l+ho+1] *
+        sum(
+            if ms[n1] != dm - m
+                zero(T)
+            else
+                Complex{T}(im)^(-ls[n1]) * Ys[n1] * gaunt_coefficients(dl,dm,l,m,ls[n1],ms[n1]) *
+                kernelN(ls[n1],k*as[s1,s2],keff*as[s1,s2]; dim = dim)
+            end
+        for n1 in eachindex(Ys)) / (keff^2.0 - k^2.0)
     end
 
-    # The order of the indices below has not been carefully planned
     function MM(keff::Complex{T})
         ind2 = 1
-        for s1 = 1:S, dl = 0:ho, l1 = 0:ho for dm = -dl:dl, m1 = -l1:l1
+        for s2 = 1:S, dl = 0:ho for dm = -dl:dl
             ind1 = 1
-            for s2 = 1:S, l = 0:ho, l2 = 0:ho for m = -l:l, m2 = -l2:l2
-                MM_mat[ind1, ind2] = M_component(keff,l,m,l2,m2,s2,dl,dm,l1,m1,s1)
+            for s1 = 1:S, l = 0:ho for m = -l:l
+                MM_mat[ind1, ind2] = M_component(keff,l,m,s1,dl,dm,s2)
                 ind1 += 1
             end end
             ind2 += 1

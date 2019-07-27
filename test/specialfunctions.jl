@@ -99,7 +99,7 @@ end
     @test_throws(MethodError,gaunt_coefficients(l1,m1,l2,m2,0.1,m3))
 
     # the spherical harmonics linearisation formula
-    θ, φ = rand(2) .* 0.99
+    θ, φ = rand(2) .* pi
 
     l_small = 6
     l_max = 2*l_small # needs to be larger than l_small
