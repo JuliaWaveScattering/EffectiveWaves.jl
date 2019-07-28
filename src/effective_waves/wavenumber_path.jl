@@ -18,7 +18,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
         kin = [min(real(k0),abs(real(kφ))),abs(imag(kφ))]
         dx = kin[1]*mesh_size
         k_vecs = [[kin[1]+x,kin[2]] for x in LinRange(-dx,dx,mesh_points+1)]
-        push!(k_vecs,kin, [real(k0),zero(T)], [zero(T),zero(T)])
+        push!(k_vecs,kin, [real(k0),zero(T)], [sqrt(eps(T)),sqrt(eps(T))])
 
         k_vecs = [optimize(dispersion, kvec, Optim.Options(x_tol=low_tol, g_tol = low_tol^3)).minimizer for kvec in k_vecs]
         k_vecs = reduce_kvecs(k_vecs, low_tol/10)

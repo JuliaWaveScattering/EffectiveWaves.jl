@@ -22,19 +22,17 @@ end
     # a few associated legendre functions without the Condon-Shortly factor
     Plm_arr = [1,x,sqrt(1-x^2),(3x^2-1)/2, 3x*sqrt(1-x^2),3*(1-x^2)]
 
-    lm_indices = associated_legendre_positive_indices(l_max)
+    ls, ms = associated_legendre_indices(l_max)
 
-    @test sf_legendre_array(GSL_SF_LEGENDRE_NONE, l_max, x)[1:ind_max] ≈ Plm_arr
+    @test sf_legendre_array(GSL_SF_LEGENDRE_NONE, l_max, x)[1:length(ls)] ≈ Plm_arr
 
-    sph_factors = map(lm_indices) do lm
-       l = lm[1]
-       m = lm[2]
-       (-1)^m * sqrt((2l + 1)/(4pi) * factorial(l-m) / factorial(l+m))
+    sph_factors = map(eachindex(ls)) do i
+       (-1)^ms[i] * sqrt((2ls[i] + 1)/(4pi) * factorial(ls[i]-ms[i]) / factorial(ls[i]+ms[i]))
     end
 
-    condon_phase = [(-1)^lm[2] for lm in lm_indices]
+    condon_phase = (-1).^ms
 
-    @test condon_phase .* sf_legendre_array(GSL_SF_LEGENDRE_SPHARM, l_max, x)[1:ind_max] ≈ sph_factors .* Plm_arr
+    @test condon_phase .* sf_legendre_array(GSL_SF_LEGENDRE_SPHARM, l_max, x)[1:length(ls)] ≈ sph_factors .* Plm_arr
 
 end
 

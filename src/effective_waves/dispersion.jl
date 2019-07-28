@@ -5,9 +5,12 @@ function dispersion_function(ω::T, medium::Medium{T}, species::Vector{Specie{T}
     low_tol = max(1e-4, tol) # a tolerance used for a first pass with time_limit
 
     MM = if dim == 2
-        wavematrix2D(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol=tol, kws...)
-    else
-        wavematrix3D(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol=tol, kws...)
+        wavematrix2D(ω, medium, species; tol=tol, kws...)
+    elseif dim == 3
+        wavematrix3D(ω, medium, species; tol=tol, kws...)
+    elseif dim == :plane
+        wavematrix3DPlane(ω, medium, species; tol=tol, kws...)
+    else error("the dimension dim = $dim has no dispersion function implemented.")
     end
 
     # the constraint uses keff_vec[2] < -low_tol to better specify solutions where imag(k_effs)<0

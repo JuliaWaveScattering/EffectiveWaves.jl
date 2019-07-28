@@ -1,4 +1,5 @@
 using EffectiveWaves
+using LinearAlgebra
 using Plots
 pyplot()
 
@@ -7,15 +8,30 @@ species = [Specie(ρ=0.,r=0.6, c=0.2, volfrac=0.3)]
 
 ωs = [1.0]
 
-ws = wavenumbers(ωs[1], medium, species; dim = 3, num_wavenumbers=10)
+kp = 1.0+0.4im
+kps = collect(0.2:0.2:1.0) .+ collect(0.3:0.2:1.1) .* im
+hankel_order = 3
 
+wavesystemPlane = wavematrix3DPlane(ωs[1], medium, species; hankel_order=hankel_order)
+detsplanes = det.(wavesystemPlane.(kps))
+# dets1 = det.(wavesystem1.(kps))
+# wavesystem2 = wavematrix3DPlane(ωs[1], medium, species; hankel_order=hankel_order, θ_inc=2.0, φ_inc=0.4)
+# det(wavesystem2(kp))
 
-wavesystem1 = wavematrix3DPlane(ωs[1], medium, species; hankel_order=4, θ_inc=2.0)
+wavesystem3D = wavematrix3D(ωs[1], medium, species; tol = 1e-4, hankel_order=hankel_order);
+dets3D = det.(wavesystem3D.(kps))
 
-det(wavesystem1(1.0+0.2im))
+abs.(detsplanes)
+abs.(dets3D)
 
-wavesystem2 = wavematrix3DPlane(ωs[1], medium, species; hankel_order=4, θ_inc=0.0, φ_inc=0.4)
-det(wavesystem2(1.0+0.2im))
+kps = wavenumbers(ωs[1], medium, species; dim = :plane, num_wavenumbers=5)
+det.(wavesystemPlane.(kps))
+
+kps3D = wavenumbers(ωs[1], medium, species; dim = 3, num_wavenumbers=5)
+det.(wavesystem3D.(kps))
+det.(wavesystem3D.(kps3D))
+abs.(det.(wavesystemPlane.(kps3D)))
+abs.(det.(wavesystemPlane.(kps)))
 
 eff_medium = effective_medium(medium, species)
 k_eff_lows = ωs./eff_medium.c

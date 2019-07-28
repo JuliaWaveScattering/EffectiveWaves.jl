@@ -58,10 +58,10 @@ diffbesselj(n,z) = 0.5*(besselj(-1 + n, z) - besselj(1 + n, z))
 function kernelN(n::Int,x::Union{T,Complex{T}},y::Union{T,Complex{T}}; dim = 2) where T<:AbstractFloat
     if dim == 2
         h = hankelh1(n,x); dh = diffhankelh1(n,x)
-        j = besselj(n,y); dj = diffbesselj(n,y)
+        j = besselj(n,y);  dj = diffbesselj(n,y)
     else
         h = shankelh1(n,x); dh = diffsbessel(shankelh1,n,x)
-        j = sbesselj(n,y); dj = diffsbessel(sbesselj,n,x)
+        j = sbesselj(n,y);  dj = diffsbessel(sbesselj,n,y)
     end
 
     return x * dh * j - y * h * dj
