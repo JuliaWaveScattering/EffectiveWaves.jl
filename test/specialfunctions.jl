@@ -105,11 +105,22 @@ end
     ls, ms = spherical_harmonics_indices(l_max);
     Ys = spherical_harmonics(l_max, θ, φ);
 
-    for n2 in 1:(l_small + 1)^2, n3 in 1:(l_small + 1)^2
-        gs = [gaunt_coefficients(ls[n2],ms[n2],ls[n3],ms[n3],ls[i],ms[i]) for i in eachindex(ls)]
+    cs = reshape(
+        [
+            gaunt_coefficients(l1,m1,l2,m2,l3,m3)
+        for l3 = 0:l_max for m3 = -l3:l3 for l2 = 0:l_small for m2 = -l2:l2 for l1 = 0:l_small for m1 = -l1:l1]
+    , ((l_small + 1)^2,(l_small + 1)^2,(l_max+1)^2));
 
+    # cs = reshape(
+    #     [
+    #         (l1,m1,l2,m2,l3,m3)
+    #     for l3 = 0:l_small for m3 = -l3:l3 for l2 = 0:l_small for m2 = -l2:l2 for l1 = 0:l_max for m1 = -l1:l1]
+    # , ((l_small + 1)^2,(l_small + 1)^2,(l_max+1)^2));
+
+
+    for n2 in 1:(l_small + 1)^2, n3 in 1:(l_small + 1)^2
         @test 4pi * (-1)^(ms[n3]+ms[n2]) * (1.0im)^(ls[n3]-ls[n2]) * Ys[n3] * conj(Ys[n2]) ≈
-            sum( (1.0im).^(-ls) .* (-1.0).^ms .* conj.(Ys) .* gs) atol = 1e-12
+            sum( (1.0im).^(-ls) .* (-1.0).^ms .* conj.(Ys) .* cs[n2,n3,:]) atol = 1e-12
     end
 
 end

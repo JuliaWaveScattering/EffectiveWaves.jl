@@ -10,16 +10,37 @@ species = [Specie(ρ=0.,r=0.6, c=0.2, volfrac=0.3)]
 
 kp = 1.0+0.4im
 kps = collect(0.2:0.2:1.0) .+ collect(0.3:0.2:1.1) .* im
-hankel_order = 3
+hankel_order = 2
 
 wavesystemPlane = wavematrix3DPlane(ωs[1], medium, species; hankel_order=hankel_order)
 detsplanes = det.(wavesystemPlane.(kps))
+detP(k) = det(wavesystemPlane(k))
+
 # dets1 = det.(wavesystem1.(kps))
 # wavesystem2 = wavematrix3DPlane(ωs[1], medium, species; hankel_order=hankel_order, θ_inc=2.0, φ_inc=0.4)
 # det(wavesystem2(kp))
 
 wavesystem3D = wavematrix3D(ωs[1], medium, species; tol = 1e-4, hankel_order=hankel_order);
+detR(k) = det(wavesystem3D(k))
 dets3D = det.(wavesystem3D.(kps))
+
+ω = 1.
+k = ω/medium.c
+
+k0 = real(k)
+x = k0 .* LinRange(-5.001,5,150)
+y = k0 .* LinRange(0.001,5.0,150)
+
+X = repeat(x',length(y),1)
+Y = repeat(y,1,length(x))
+
+ZPs = map( (x,y) -> abs(detP(x+y*im)),X,Y)
+ZRs = map( (x,y) -> abs(detR(x+y*im)),X,Y)
+
+h1 = heatmap(x,y,ZPs, xlab = "Re k*", ylab = "Im k*", title="det(I + G) - moderate ω and dirichlet", clims = (0.,0.3))
+h2 = heatmap(x,y,ZRs, xlab = "Re k*", ylab = "Im k*", title="det(I + G) - moderate ω and dirichlet", clims = (0.,0.3))
+
+
 
 abs.(detsplanes)
 abs.(dets3D)

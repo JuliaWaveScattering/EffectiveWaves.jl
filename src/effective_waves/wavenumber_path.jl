@@ -1,4 +1,5 @@
 function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
+        dim = 2,
         tol::T = 1e-6,
         mesh_points::Int = 2, mesh_size::T = one(T),
         num_wavenumbers = 3,
@@ -8,11 +9,11 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
     low_tol = max(1e-4, tol) # a tolerance used for a first pass with time_limit
 
     # the dispersion equation is given by: `dispersion(k1,k2) = 0` where k_eff = k1 + im*k2.
-    dispersion = dispersion_function(ω, medium, species; tol = low_tol, kws...)
+    dispersion = dispersion_function(ω, medium, species; tol = low_tol, dim=dim, kws...)
 
     # find at least one root to use as a scale for dk_x and dk_y
         kφ = wavenumber_low_volfrac(ω, medium, species; verbose = false)
-        eff_medium = effective_medium(medium, species)
+        eff_medium = effective_medium(medium, species; dim=dim)
         k0 = ω/eff_medium.c
         if isnan(k0) k0 = kφ end
         kin = [min(real(k0),abs(real(kφ))),abs(imag(kφ))]
