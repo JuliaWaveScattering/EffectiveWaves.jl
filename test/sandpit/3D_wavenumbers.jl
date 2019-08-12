@@ -15,14 +15,14 @@ kp = 1.0+0.4im
 kps = collect(0.2:0.2:1.0) .+ collect(0.3:0.2:1.1) .* im
 hankel_order = ho = 2
 
-wavesystemPlane = wavematrix3DPlane(ωs[1], medium, species; hankel_order=hankel_order)
+wavesystemPlane = wavematrix3DPlane(ωs[1], medium, species; tol = 1e-5, hankel_order=hankel_order)
 detP(kp) = det(wavesystemPlane(kp))
 
 # detsplanes = det.(wavesystemPlane.(kps))
 # MPs = wavesystemPlane.(kps)
 
-wavesystem3D = wavematrix3D(ωs[1], medium, species; tol = 1e-4, hankel_order=hankel_order);
-detR(kp) = det(wavesystem3D(kp))
+wavesystem3D = wavematrix3D(ωs[1], medium, species; tol = 1e-5, hankel_order=hankel_order);
+detR(kp) = sqrt(det(wavesystem3D(kp)))
 
 # wavesystem3D_2 = wavematrix3D_allocate(ωs[1], medium, species; tol = 1e-4, hankel_order=hankel_order);
 # detR2(kp) = det(wavesystem3D_2(kp))
@@ -58,6 +58,7 @@ detR(kp) = det(wavesystem3D(kp))
 
 kps = wavenumbers(ω, medium, species; dim = 3,
     num_wavenumbers=7, tol = 1e-8, mesh_points = 10, mesh_size = 2.0)
+
 detP.(kps)
 detR.(kps)
 
@@ -94,42 +95,3 @@ abs.(dets3D)
 
 kps = wavenumbers(ωs[1], medium, species; symmetry = :plane, dim = 3, num_wavenumbers=5)
 detP.(kps)
-
-MPsvd = svd(wavesystemPlane(kps[1]))
-MPsvd.S
-MPsvd.V[:,end]
-
-MRsvd = svd(wavesystem3D(kps[1]))
-MRsvd = svd(wavesystem3D(kps[2]))
-MRsvd.S
-MRsvd.V[:,end]
-
-v = rand(3)
-
-M = [v v v]
-Msvd = svd(M)
-Msvd.S
-Msvd.V[:,3]
-
-kps3D = wavenumbers(ωs[1], medium, species; dim = 3, num_wavenumbers=5)
-det.(wavesystem3D.(kps))
-det.(wavesystem3D.(kps3D))
-abs.(det.(wavesystemPlane.(kps3D)))
-abs.(det.(wavesystemPlane.(kps)))
-
-eff_medium = effective_medium(medium, species)
-k_eff_lows = ωs./eff_medium.c
-
-k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
-# num_wavenumbers =1 almost always finds the wavenubmer with the smallest attenuation
-
-k_effs_arr = [
-    wavenumbers(ω, medium, species; tol=tol, num_wavenumbers=1)
-for ω in ωs]
-
-inds = [argmin(abs.(k_effs_arr[i] .- k_eff_φs[i])) for i in eachindex(ωs)]
-k_effs2 = [k_effs_arr[i][inds[i]] for i in eachindex(inds)]
-
-
-" Returns all the transmitted effective wavenumbers"
-wavenumbers(ω::T, medium::Medium{T}, specie::Specie{T}; kws...) where T<:Number = wavenumbers(ω, medium, [specie]; kws...)

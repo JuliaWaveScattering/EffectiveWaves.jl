@@ -15,8 +15,17 @@ function dispersion_function(ω::T, medium::Medium{T}, species::Vector{Specie{T}
 
     # the constraint uses keff_vec[2] < -low_tol to better specify solutions where imag(k_effs)<0
     constraint(keff_vec::Array{T}) = ( (keff_vec[2] < -low_tol) ? one(T) : zero(T))*(-1 + exp(-T(100.0)*keff_vec[2]))
-    detMM2(keff_vec::Array{T}) =  constraint(keff_vec) +
-        map(x -> real(x*conj(x)), det(MM(keff_vec[1]+im*keff_vec[2])))
+
+    detMM(keff) = det(MM(keff))
+    detMM2 = if dim == 3 && symmetry != :plane
+        function(keff_vec::Array{T})
+            constraint(keff_vec) + sqrt(abs(detMM(keff_vec[1]+im*keff_vec[2])))
+        end
+    else
+        function detMM2(keff_vec::Array{T})
+            constraint(keff_vec) + abs2(detMM(keff_vec[1]+im*keff_vec[2]))
+        end
+    end
 
     return detMM2
 end
