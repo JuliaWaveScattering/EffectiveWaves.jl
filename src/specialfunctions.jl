@@ -4,7 +4,14 @@ export associated_legendre_indices, spherical_harmonics_indices, lm_to_spherical
 export spherical_harmonics
 
 """Define spherical bessel function of the first kind"""
-sbesselj(m,x::Union{T,Complex{T}}) = (abs(x) > eps(T)) ? sqrt(pi/(2*x)) * besselj(m+1/2,x) : (m > 0 ? zero(Complex{T}) : one(Complex{T}))
+function sbesselj(m,x::Union{T,Complex{T}}) where T<:AbstractFloat
+    if (abs(x) > eps(T))
+        return sqrt(pi/(2*x)) * besselj(m+1/2,x)
+    else
+        return (m > 0 ? zero(typeof(x)) : one(typeof(x)))
+    end
+end
+
 
 """Define spherical hankel function of the first kind"""
 shankelh1(m,x) = sqrt(pi/(2*x)) * hankelh1(m+1/2,x)

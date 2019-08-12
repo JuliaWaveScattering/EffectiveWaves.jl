@@ -4,7 +4,7 @@ using Plots
 pyplot()
 
 medium = Medium(ρ=1.0, c=1.0)
-species = [Specie(ρ=0.1,r=0.6, c=0.2, volfrac=0.3)]
+species = [Specie(ρ=0.1,r=0.01, c=0.2, volfrac=0.3)]
 
 ωs = [0.001]
 ω = ωs[1]
@@ -42,18 +42,18 @@ detR(kp) = det(wavesystem3D(kp))
     β = medium.ρ*medium.c^2 # medium bulk modulus
     φ = sum(volume_fraction.(species; dim = dim))
     β_eff = one(T)/((1-φ)/β + sum(volume_fraction(s; dim = dim)/(s.ρ*s.c^2) for s in species))
-    ρ_frac = sum(volume_fraction(s; dim = dim)*(medium.ρ - s.ρ)/(medium.ρ + s.ρ) for s in species)
+    ρ_frac = sum(volume_fraction(s; dim = dim)*(medium.ρ - s.ρ)/(medium.ρ + 2*s.ρ) for s in species)
 
     ρ_eff = medium.ρ*(1 - ρ_frac)/(1 + T(dim - 1) * ρ_frac)
     eff_medium = Medium(ρ=ρ_eff, c=sqrt(β_eff/ρ_eff))
     k_low1 = ω/eff_medium.c
 
     ρ_eff = medium.ρ*(1 - ρ_frac)/(1 + (ho/(2ho+3))*ρ_frac)
-    eff_medium = Medium(ρ=ρ_eff, c=sqrt(β_eff/ρ_eff))
+    eff_medium = Medium(ρ=ρ_eff, c=sqrt(β/ρ_eff))
     k_low2 = ω/eff_medium.c
 
     ρ_eff = medium.ρ*(1 - ρ_frac)/(1 + ((ho-1)/(2ho+1))*ρ_frac)
-    eff_medium = Medium(ρ=ρ_eff, c=sqrt(β/ρ_eff))
+    eff_medium = Medium(ρ=ρ_eff, c=sqrt(β_eff/ρ_eff))
     k_low3 = ω/eff_medium.c
 
 kps = wavenumbers(ω, medium, species; dim = 3,
@@ -61,11 +61,12 @@ kps = wavenumbers(ω, medium, species; dim = 3,
 detP.(kps)
 detR.(kps)
 
-
-k0 = real(k_low)
-x = k0 .* LinRange(0.9,1.4,110)
-y = k0 .* LinRange(-0.01,6.0,90)
-y = LinRange(-0.0015,0.0015,90)
+k_lows = [k_low1,k_low2,k_low3][[1,3]]
+k1 = minimum(real.(k_lows))
+k2 = maximum(real.(k_lows))
+x = LinRange(0.9*k1,1.1*k2,110)
+y = k2 .* LinRange(-0.01,0.2,90)
+# y = LinRange(-0.0015,0.0015,90)
 
 X = repeat(x',length(y),1)
 Y = repeat(y,1,length(x))
@@ -73,13 +74,16 @@ Y = repeat(y,1,length(x))
 ZPs = map( (x,y) -> abs(detP(x+y*im)),X,Y)
 ZRs = map( (x,y) -> abs(detR(x+y*im)),X,Y)
 
-ZRs2 = [ (abs(ZRs[ind]) < 0.001 ? ZRs[ind] : NaN ) for ind in LinearIndices(ZRs)]
-ZPs2 = [ (abs(ZPs[ind]) < 0.5 ? ZPs[ind] : NaN ) for ind in LinearIndices(ZPs)]
+minR = 1e-10
+minP = 0.2
+
+ZRs2 = [ (abs(ZRs[ind]) < 3minR ? ZRs[ind] : NaN ) for ind in LinearIndices(ZRs)];
+ZPs2 = [ (abs(ZPs[ind]) < 3minP ? ZPs[ind] : NaN ) for ind in LinearIndices(ZPs)];
 
 # h1 = heatmap(x,y,ZPs, xlab = "Re k*", ylab = "Im k*", title="Planewave det(I + G), ka~1", clims = (0.,1.0))
 
-h1 = heatmap(x,y,ZPs2, xlab = "Re k*", ylab = "Im k*", title="Planewave det(I + G), ka~$(ω*species[1].r)", clims = (0.,0.4))
-h2 = heatmap(x,y,ZRs2, xlab = "Re k*", ylab = "Im k*", title="General det(I + G), ka~$(ω*species[1].r)", clims = (0.,0.0001))
+h2 = heatmap(x,y,ZRs2, xlab = "Re k*", ylab = "Im k*", title="General det(I + G), ka~$(ω*species[1].r)", clims = (0.,minR))
+h1 = heatmap(x,y,ZPs2, xlab = "Re k*", ylab = "Im k*", title="Planewave det(I + G), ka~$(ω*species[1].r)", clims = (0.,minP))
 
 # Z = map( (x,y) -> abs(((x^2-1)^2*(y*im - 1)*(y*im - 2))),X,Y)
 # Z = [ (abs(Z[ind]) < 1.0 ? Z[ind] : NaN ) for ind in LinearIndices(Z)]
