@@ -61,8 +61,8 @@ kps = wavenumbers(ω, medium, species; dim = 3,
 detP.(kps)
 detR.(kps)
 
-k_lows = [k_low1,k_low2,k_low3][[1,3]]
-k1 = minimum(real.(k_lows))
+k_lows = [k_low1,k_low2,k_low3]
+k1 = minimum(real.(k_lows[[1,3]]))
 k2 = maximum(real.(k_lows))
 x = LinRange(0.9*k1,1.1*k2,110)
 y = k2 .* LinRange(-0.01,0.2,90)
@@ -74,11 +74,11 @@ Y = repeat(y,1,length(x))
 ZPs = map( (x,y) -> abs(detP(x+y*im)),X,Y)
 ZRs = map( (x,y) -> abs(detR(x+y*im)),X,Y)
 
-minR = 1e-10
+minR = 1e-18
 minP = 0.2
 
-ZRs2 = [ (abs(ZRs[ind]) < 3minR ? ZRs[ind] : NaN ) for ind in LinearIndices(ZRs)];
-ZPs2 = [ (abs(ZPs[ind]) < 3minP ? ZPs[ind] : NaN ) for ind in LinearIndices(ZPs)];
+ZRs2 = [ (abs(ZRs[ind]) < minR ? ZRs[ind] : NaN ) for ind in LinearIndices(ZRs)];
+ZPs2 = [ (abs(ZPs[ind]) < minP ? ZPs[ind] : NaN ) for ind in LinearIndices(ZPs)];
 
 # h1 = heatmap(x,y,ZPs, xlab = "Re k*", ylab = "Im k*", title="Planewave det(I + G), ka~1", clims = (0.,1.0))
 
