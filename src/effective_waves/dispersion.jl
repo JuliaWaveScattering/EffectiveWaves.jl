@@ -1,15 +1,15 @@
 function dispersion_function(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
-        dim = 2, tol::T = 1e-4,
+        dim = 2, tol::T = 1e-4, symmetry = :sphere,
         kws...) where T<:Number
 
     low_tol = max(1e-4, tol) # a tolerance used for a first pass with time_limit
 
     MM = if dim == 2
         wavematrix2D(ω, medium, species; tol=tol, kws...)
+    elseif dim == 3 && symmetry == :plane
+        wavematrix3DPlane(ω, medium, species; tol=tol, kws...)
     elseif dim == 3
         wavematrix3D(ω, medium, species; tol=tol, kws...)
-    elseif dim == :plane
-        wavematrix3DPlane(ω, medium, species; tol=tol, kws...)
     else error("the dimension dim = $dim has no dispersion function implemented.")
     end
 
@@ -72,30 +72,27 @@ function wavematrix3D(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
-    function M_component(keff,l,m,l2,m2,s1,dl,dm,l1,m1,s2)::Complex{T}
+    function M_component(keff,Ns,l,m,l2,m2,s1,dl,dm,l1,m1,s2)::Complex{T}
         (m == dm && l == dl && m1 == m2 && l1 == l2 && s1 == s2 ? 1.0 : 0.0) +
         as[s1,s2] * species[s2].num_density * t_vecs[s1][l+ho+1] *
         sum(l3 ->
             if abs(m1-m2) <= l3
-                gs = gaunt_coefficients(l,m,dl,dm,l3,m1-m2) *
-                gaunt_coefficients(l1,m1,l2,m2,l3,m1-m2)
-                if abs(gs) < eps(T)
-                    gs * kernelN(l3,k*as[s1,s2],keff*as[s1,s2]; dim = dim)
-                else zero(Complex{T})
-                end
+                gaunt_coefficients(l,m,dl,dm,l3,m1-m2) *
+                gaunt_coefficients(l1,m1,l2,m2,l3,m1-m2) * Ns[l3+1,s1,s2]
             else
                 zero(Complex{T})
             end
         , 0:ho) / (keff^2.0 - k^2.0)
     end
 
-    # The order of the indices below has not been carefully planned
+    # The order of the indices below is important
     function MM(keff::Complex{T})::Matrix{Complex{T}}
+        Ns = [kernelN(l3,k*as[s1,s2],keff*as[s1,s2]; dim = dim) for l3 = 0:ho, s1 = 1:S, s2 = 1:S]
         ind2 = 1
         for s2 = 1:S for dl = 0:ho for dm = -dl:dl for l1 = 0:ho for m1 = -l1:l1
             ind1 = 1
             for s1 = 1:S for l = 0:ho for m = -l:l for l2 = 0:ho for m2 = -l2:l2
-                MM_mat[ind1, ind2] = M_component(keff,l,m,l2,m2,s1,dl,dm,l1,m1,s2)
+                MM_mat[ind1, ind2] = M_component(keff,Ns,l,m,l2,m2,s1,dl,dm,l1,m1,s2)
                 ind1 += 1
             end end end end end
             ind2 += 1
@@ -130,26 +127,18 @@ function wavematrix3D_allocate(ω::T, medium::Medium{T}, species::Vector{Specie{
     ls, ms = spherical_harmonics_indices(ho);
     n_max = length(ls)
 
-    function M_component2(keff,n,dn,n1,n2,s1,s2)::Complex{T}
+    function M_component2(keff,Ns,n,dn,n1,n2,s1,s2)::Complex{T}
         (n == dn && n1 == n2 && s1 == s2 ? 1.0 : 0.0) +
         as[s1,s2] * species[s2].num_density * t_vecs[s1][ls[n]+ho+1] *
-        sum(n3 ->
-        begin
-            cm = cs[n3,n,dn] * cs[n3,n1,n2]
-            if abs(cm) < eps(T)
-                zero(Complex{T})
-            else
-                cm * kernelN(ls[n3],k*as[s1,s2],keff*as[s1,s2]; dim = dim)
-            end
-        end
-        , 1:n_max) / (keff^2.0 - k^2.0)
+        sum(cs[:,n,dn] .* cs[:,n1,n2] .* Ns[ls[:].+1,s1,s2]) / (keff^2.0 - k^2.0)
     end
     function MM2(keff::Complex{T})
+        Ns = [kernelN(l3,k*as[s1,s2],keff*as[s1,s2]; dim = dim) for l3 = 0:ho, s1 = 1:S, s2 = 1:S]
         ind2 = 1
         for s2 = 1:S for dn = 1:n_max for n1 = 1:n_max
             ind1 = 1
             for s1 = 1:S for n = 1:n_max for n2 = 1:n_max
-                MM_mat[ind1, ind2] = M_component2(keff,n,dn,n1,n2,s1,s2)
+                MM_mat[ind1, ind2] = M_component2(keff,Ns,n,dn,n1,n2,s1,s2)
                 ind1 += 1
             end end end
             ind2 += 1
@@ -160,15 +149,15 @@ function wavematrix3D_allocate(ω::T, medium::Medium{T}, species::Vector{Specie{
     # s1 = s2 = 1
 
     # norm([
-    #     M_component2(keff,n,dn,n1,n2,s1,s2) - M_component(keff,ls[n],ms[n],ls[n2],ms[n2],s1,ls[dn],ms[dn],ls[n1],ms[n1],s2)
+    #     M_component2(keff,Ns,n,dn,n1,n2,s1,s2) - M_component(keff,Ns,ls[n],ms[n],ls[n2],ms[n2],s1,ls[dn],ms[dn],ls[n1],ms[n1],s2)
     # for n = 1:n_max for n2 = 1:n_max for dn = 1:n_max for n1 = 1:n_max ])
     # #
     # @time [
-    #     M_component(keff,n,dn,n1,n2,s1,s2)
+    #     M_component2(keff,Ns,n,dn,n1,n2,s1,s2)
     # for n = 1:n_max for dn = 1:n_max for n1 = 1:n_max for n2 = 1:n_max ];
-    #
+    # #
     # @time [
-    #      M_component(keff,ls[n],ms[n],ls[n2],ms[n2],s1,ls[dn],ms[dn],ls[n1],ms[n1],s2)
+    #      M_component(keff,Ns,ls[n],ms[n],ls[n2],ms[n2],s1,ls[dn],ms[dn],ls[n1],ms[n1],s2)
     # for n = 1:n_max for n2 = 1:n_max for dn = 1:n_max for n1 = 1:n_max ];
     return MM2
 end
@@ -190,28 +179,29 @@ function wavematrix3DPlane(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     Ys = spherical_harmonics(ho, θ_inc, φ_inc);
-    ls, ms = spherical_harmonics_indices(ho);
+    lm_to_n = lm_to_spherical_harmonic_index
 
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
-    function M_component(keff,l,m,s1,dl,dm,s2)
-        (m == dm && l == dl && s1 == s2 ? 1.0 : 0.0) +
-        T(4pi) * as[s1,s2] * species[s2].num_density * t_vecs[s1][l+ho+1] *
+    function M_component(keff,Ns,l,m,s1,dl,dm,s2)::Complex{T}
+        (m == dm && l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
+        Complex{T}(4pi) * as[s1,s2] * species[s2].num_density * t_vecs[s1][l+ho+1] *
         sum(
-            if ms[n1] != dm - m
-                zero(T)
+            if abs(dm-m) <= l1
+                Complex{T}(im)^(-l1) * Ys[lm_to_n(l1,dm-m)] * Ns[l1+1,s1,s2] *
+                gaunt_coefficients(dl,dm,l,m,l1,dm-m)
             else
-                Complex{T}(im)^(-ls[n1]) * Ys[n1] * gaunt_coefficients(dl,dm,l,m,ls[n1],ms[n1]) *
-                kernelN(ls[n1],k*as[s1,s2],keff*as[s1,s2]; dim = dim)
+                zero(Complex{T})
             end
-        for n1 in eachindex(Ys)) / (keff^2.0 - k^2.0)
+        for l1 in 0:ho) / (keff^2.0 - k^2.0)
     end
 
-    function MM(keff::Complex{T})
+    function MM(keff::Complex{T})::Matrix{Complex{T}}
+        Ns = [kernelN(l1,k*as[s1,s2],keff*as[s1,s2]; dim = dim) for l1 = 0:ho, s1 = 1:S, s2 = 1:S]
         ind2 = 1
         for s2 = 1:S, dl = 0:ho for dm = -dl:dl
             ind1 = 1
             for s1 = 1:S, l = 0:ho for m = -l:l
-                MM_mat[ind1, ind2] = M_component(keff,l,m,s1,dl,dm,s2)
+                MM_mat[ind1, ind2] = M_component(keff,Ns,l,m,s1,dl,dm,s2)
                 ind1 += 1
             end end
             ind2 += 1
