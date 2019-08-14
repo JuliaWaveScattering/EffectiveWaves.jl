@@ -1,9 +1,17 @@
 export sbesselj, shankelh1, diffsbessel, diffbessel
 export gaunt_coefficients, kernelN
-export associated_legendre_indices, spherical_harmonics_indices, spherical_harmonics
+export associated_legendre_indices, spherical_harmonics_indices, lm_to_spherical_harmonic_index
+export spherical_harmonics
 
 """Define spherical bessel function of the first kind"""
-sbesselj(m,x) = sqrt(pi/(2*x)) * besselj(m+1/2,x)
+function sbesselj(m,x::Union{T,Complex{T}}) where T<:AbstractFloat
+    if (abs(x) > eps(T))
+        return sqrt(pi/(2*x)) * besselj(m+1/2,x)
+    else
+        return (m > 0 ? zero(typeof(x)) : one(typeof(x)))
+    end
+end
+
 
 """Define spherical hankel function of the first kind"""
 shankelh1(m,x) = sqrt(pi/(2*x)) * hankelh1(m+1/2,x)
@@ -87,6 +95,8 @@ function gaunt_coefficients(T::Type{<:AbstractFloat},l1::Int,m1::Int,l2::Int,m2:
         wigner3j(T,l1,l2,l3,0,0,0) * wigner3j(T,l1,l2,l3,m1,-m2,-m3)
 end
 gaunt_coefficients(l1::Int,m1::Int,l2::Int,m2::Int,l3::Int,m3::Int) = gaunt_coefficients(Float64,l1,m1,l2,m2,l3,m3)
+
+lm_to_spherical_harmonic_index(l::Int,m::Int)::Int = l^2 + m + l + 1
 
 function spherical_harmonics_indices(l_max::Int)
     ls = [l for l in 0:l_max for m in -l:l]
