@@ -13,6 +13,26 @@ using LinearAlgebra
     x = 3.1 - 2.1im
     n = 2
     @test 2 * diffsbessel(shankelh1,n,x) ≈ shankelh1(n-1, x) - (shankelh1(n, x) + x*shankelh1(n+1, x))/x
+
+    xs = rand(20)*10
+    n = 15; ns = 0:n
+
+    errs = map(xs) do x
+        maximum(abs.(sf_bessel_jl_array(n,x) - [sbesselj(n,x) for n in ns]))
+    end
+    @test maximum(errs) < 20*eps(Float64)
+
+    errs = map(xs) do x
+        maximum(
+            abs.(
+                im .* sf_bessel_yl_array(n,x) -
+                [shankelh1(n,x) for n in ns] +
+                sf_bessel_jl_array(n,x)
+            ) ./ abs.(sf_bessel_yl_array(n,x))
+        )
+    end
+    @test maximum(errs) < 1e4*eps(Float64)
+
 end
 
 @testset "Associated legendre functions" begin
