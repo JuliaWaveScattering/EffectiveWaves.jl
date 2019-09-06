@@ -3,7 +3,9 @@ using Documenter, EffectiveWaves
 # cp("../example","example")
 
 makedocs(
-    format=:html,
+    format = Documenter.HTML(
+        prettyurls = get(ENV, "CI", nothing) == "true"
+    ),
     sitename="EffectiveWaves.jl",
     authors = "Artur L. Gower",
     source= "src",

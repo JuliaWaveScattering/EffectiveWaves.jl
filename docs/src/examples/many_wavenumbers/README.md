@@ -1,4 +1,4 @@
-## For each angular frequency ω there are a multitude of effective wavenumbers.
+# The many effective wavenumbers
 ```julia
 using EffectiveWaves
 
@@ -8,7 +8,7 @@ species = [
     Specie(ρ=0.2, r=1.0, c=0.2, volfrac=0.25)
 ];
 
-ω = 0.6;
+ω = 0.6; # For one each angular frequency ω there are a multitude of effective wavenumbers.
 num_wavenumbers = 8; # calculate the 8 least attenuating effective wavenumbers
 
 # often more wavenumbers a returned then asked for.

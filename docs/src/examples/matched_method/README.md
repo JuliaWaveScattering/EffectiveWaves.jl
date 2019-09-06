@@ -1,4 +1,4 @@
-## Compare the matched method with a purely numerical scheme.
+# A numerical matching method
 Both of these methods calculate the ensemble average wave in a particulate material. To do so, we need to specify the geometry of the material, as this ultimately determines the fields. We choose the simplest case which is a halfspace x>0 filled with particles.
 ```julia
 using EffectiveWaves

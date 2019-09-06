@@ -1,35 +1,20 @@
 function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, species::Vector{Specie{T}};
+        dim = 2,
         tol::T = 1e-6,
-        hankel_order::Int = maximum_hankel_order(ω, medium, species; tol=tol),
         mesh_refine::T = T(0.4),
         inner_optimizer = LBFGS(),
         verbose::Bool = false,
         radius_multiplier::T = T(1.005),
-        t_vecs::Vector{Vector{Complex{T}}} = t_vectors(ω, medium, species; hankel_order = hankel_order),
         max_Rek::T = maximum(real(k1) for k1 in k_effs),
         min_Rek::T = minimum(real(k1) for k1 in k_effs),
         max_Imk::T = maximum(imag(k1) for k1 in k_effs),
         min_Imk::T = minimum(imag(k1) for k1 in k_effs[2:end]),
         kws...) where T<:Number
 
-    k = ω/medium.c
-    S = length(species)
-    ho = hankel_order
-
-    as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
-    function M_component(keff,j,l,m,n)
-        (n == m ? 1.0 : 0.0)*(j == l ? 1.0 : 0.0) - 2.0pi*species[l].num_density*t_vecs[l][n+ho+1]*
-            kernelN(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
-    end
-
-    # this matrix is needed to calculate the eigenvectors
-    MM(keff::Complex{T}) = reshape(
-        [M_component(keff,j,l,m,n) for m in -ho:ho, j = 1:S, n in -ho:ho, l = 1:S]
-    , ((2ho+1)*S, (2ho+1)*S))
-
-    detMM2(keff_vec::Array{T}) =  map(x -> real(x*conj(x)), det(MM(keff_vec[1]+im*keff_vec[2])))
-
     low_tol = max(1e-4, tol)*minimum( (k1 == k2) ? Inf : abs(k1-k2) for k1 in k_effs, k2 in k_effs) # a tolerance used for a first pass with time_limit
+
+    # the dispersion equation is given by: `dispersion(k1,k2) = 0` where k_eff = k1 + im*k2.
+    dispersion = dispersion_function(ω, medium, species; tol = low_tol, dim=dim, kws...)
 
     kx = LinRange(min_Rek, max_Rek, Int(round(length(k_effs)/(2*mesh_refine)))) # tree shape makes this division by 2 natural
     ky = LinRange(min_Imk, max_Imk, Int(round(length(k_effs)/(2*mesh_refine))))
@@ -47,10 +32,10 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
     lower = [min_Rek, min_Imk]
     upper = [max_Rek, max_Imk]
     new_ks = [
-        optimize(detMM2, lower, upper, kvec,
+        optimize(dispersion, lower, upper, kvec,
             Fminbox(inner_optimizer), Optim.Options(x_tol=low_tol, g_tol = low_tol^3)).minimizer
     for kvec in k_mesh]
-    deleteat!(new_ks, findall(detMM2.(new_ks) .> low_tol))
+    deleteat!(new_ks, findall(dispersion.(new_ks) .> low_tol))
     new_ks = reduce_kvecs(new_ks, low_tol/10)
 
     # only keep targets which are not already in k_vecs
@@ -61,8 +46,8 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
 
     # Here we refine the new roots
     new_ks = map(new_ks) do k_vec
-        # res = optimize(detMM2, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
-        res = optimize(detMM2, lower, upper, k_vec, Fminbox(inner_optimizer),
+        # res = optimize(dispersion, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
+        res = optimize(dispersion, lower, upper, k_vec, Fminbox(inner_optimizer),
             Optim.Options(g_tol = tol^3.0, x_tol=tol))
         if res.minimum > T(20)*tol
             [zero(T),-one(T)]
@@ -109,8 +94,6 @@ end
     #     mean(g)
     # end
 
-# detMM2(keff_vec::Array{T}) =  map(x -> real(x*conj(x)), det(MM(keff_vec[1]+im*keff_vec[2])))
-
 # function detMM!(F,x)
 #     F[1] = abs(det(MM(x[1]+im*x[2])))
 # end
@@ -119,4 +102,4 @@ end
 # res = nlsolve(detMM!,initial_k_eff; iterations = 10000, factor=2.0)
 # k_eff_nl = res.zero[1] + im*res.zero[2]
 # lower = [0.,0.]; upper = [T(2)*k0,k0]
-# result = optimize(detMM2, initial_k0, lower, upper; g_tol = tol^2.0, f_tol = tol^4.0)
+# result = optimize(dispersion, initial_k0, lower, upper; g_tol = tol^2.0, f_tol = tol^4.0)

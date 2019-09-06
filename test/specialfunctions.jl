@@ -17,6 +17,7 @@ using LinearAlgebra
     xs = rand(20)*10;
     n = 15; ns = 0:n
 
+    # Compare with spherical bessel from GSL, which can only accept real arguments..
     errs = map(xs) do x
         maximum(abs.(sf_bessel_jl_array(n,x) - [sbesselj(n,x) for n in ns]))
     end;

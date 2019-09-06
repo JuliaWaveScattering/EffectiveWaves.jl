@@ -3,7 +3,11 @@ export gaunt_coefficients, kernelN
 export associated_legendre_indices, spherical_harmonics_indices, lm_to_spherical_harmonic_index
 export spherical_harmonics
 
-"""Define spherical bessel function of the first kind"""
+"""
+    sbesselj(m,x)
+
+Returns the spherical besselj function. The order is 'm' and the argument is 'x'. Note 'x' can be a complex number.
+"""
 function sbesselj(m::Int,x::Union{T,Complex{T}}) where T<:AbstractFloat
     if (abs(x) > eps(T))
         return sqrt(pi/(2*x)) * besselj(m+1/2,x)
@@ -12,33 +16,49 @@ function sbesselj(m::Int,x::Union{T,Complex{T}}) where T<:AbstractFloat
     end
 end
 
-"""Define spherical hankel function of the first kind"""
+"""
+    shankelh1(m,x)
+
+Returns the spherical hankel function of the first kind. The order is 'm' and the argument is 'x'. Note 'x' can be a complex number.
+"""
 shankelh1(m,x) = sqrt(pi/(2*x)) * hankelh1(m+1/2,x)
 
-"Derivative of any spherical bessel function"
+"""
+    diffsbessel(f::Function,m,x)
+
+Differentiates the spherical bessel function 'f' (for any spherical bessel). The order is 'm' and the argument is 'x'. Note 'x' can be a complex number.
+"""
 function diffsbessel(f::Function,n,z)
     return f(n-1,z) - (n+1) * f(n,z) / z
 end
 
-"m-th Derivative of any bessel function"
-function diffbessel(f::Function,n,z,m::Int)
-    if m == 0
-        return f(n, z)
-    elseif m > 0
-        m = m - 1
-        return 0.5*(diffbessel(f,n-1,z,m) - diffbessel(f,n+1,z,m))
+"""
+    diffbessel(f::Function,m,x,n::Int)
+
+Differentiates 'n' times any bessel function 'f' of order 'm' and at the argument 'x'.
+"""
+function diffbessel(f::Function,m,z,n::Int)
+    if n == 0
+        return f(m, z)
+    elseif n > 0
+        n = n - 1
+        return 0.5*(diffbessel(f,m-1,z,n) - diffbessel(f,m+1,z,n))
     else
         error("Can not differentiate a negative number of times")
     end
 end
 
-"m-th Derivative of Hankel function of the first kind"
-function diffhankelh1(n,z,m::Int)
-    if m == 0
-        return hankelh1(n, z)
-    elseif m > 0
-        m = m - 1
-        return 0.5*(diffhankelh1(n-1,z,m) - diffhankelh1(n+1,z,m))
+"""
+    diffhankelh1(m,x,n::Int)
+
+Differentiates 'n' times the hankelh1 function of order 'm' and at the argument 'x'.
+"""
+function diffhankelh1(m,z,n::Int)
+    if n == 0
+        return hankelh1(m, z)
+    elseif n > 0
+        n = n - 1
+        return 0.5*(diffhankelh1(m-1,z,n) - diffhankelh1(m+1,z,n))
     else
         error("Can not differentiate a negative number of times")
     end
