@@ -1,5 +1,25 @@
-using ApproxFun
-using HCubature
+using ApproxFun, Plots
+using LinearAlgebra, SpecialFunctions
+# using HCubature
+
+θin = 0.4; X = 1.0; n = 3
+num_coefs = 1000;
+Y0 = 0.0; Y1 = 2.0;
+
+d = Domain(0..2)
+
+K2D(X,Y) = cos((Y+X*im)*sin(θin) * n*dot(Y,X))*sin(sqrt(X^2+Y^2+ X*Y*im))
+# K(Y) = cos((Y+X*im)*sin(θin) * n*dot(Y,X))*hankelh1(n,sqrt(X^2+Y^2+ X*Y*im))
+K2Dreal(X,Y) = real(cos((Y+X*im)*sin(θin) * n*dot(Y,X))*sin(sqrt(X^2+Y^2+ X*Y*im)))
+K2Dimag(X,Y) = imag(cos((Y+X*im)*sin(θin) * n*dot(Y,X))*sin(sqrt(X^2+Y^2+ X*Y*im)))
+
+freal = Fun(K2Dreal, d^2, num_coefs,num_coefs)
+fimag = ProductFun(K2Dimag, d^2, num_coefs,num_coefs)
+
+f = Fun(K, Domain(0..2), num_coefs)
+freal = Fun(Kreal,Domain(0..2), num_coefs)
+fimag = Fun(Kreal,Domain(0..2), num_coefs)
+
 
 function Bfull(n::Int,X; Y0= sqrt(k^2*a12^2-X^2), Y1 =1000000 , θin = 0.0)
     K(Y) = cos(Y*sin(θin) + n*atan(Y,X))*hankelh1(n,sqrt(X^2+Y^2))

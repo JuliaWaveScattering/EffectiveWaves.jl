@@ -6,7 +6,7 @@ pyplot()
 medium = Medium(ρ=1.0, c=1.0)
 species = [Specie(ρ=0.1,r=0.01, c=0.2, volfrac=0.3)]
 
-ωs = [0.001]
+ωs = [0.5]
 ω = ωs[1]
 k = ω/medium.c
 
@@ -22,6 +22,9 @@ detP(kp) = det(wavesystemPlane(kp))
 # MPs = wavesystemPlane.(kps)
 
 wavesystem3D = wavematrix3D(ωs[1], medium, species; tol = 1e-5, hankel_order=hankel_order);
+detR(kp) = sqrt(det(wavesystem3D(kp)))
+
+wavesystem3D = wavematrix3D(ωs[1], medium, species; tol = 1e-5, hankel_order=1);
 detR(kp) = sqrt(det(wavesystem3D(kp)))
 
 # wavesystem3D_2 = wavematrix3D_allocate(ωs[1], medium, species; tol = 1e-4, hankel_order=hankel_order);
