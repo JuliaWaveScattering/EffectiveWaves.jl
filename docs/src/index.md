@@ -3,7 +3,7 @@
 A Julia package for calculating, processing and plotting waves travelling in heterogeneous materials. The focus is on calculating the ensemble averaged waves, i.e. the statistical moments, of the waves.
 You can run Julia on [JuliaBox](https://www.juliabox.com/) in your browser without installation.
 
-At present, the packages calculates effective wavenumbers, wave transimission and wave reflection from random particulate materials, see [arXiv preprint](https://arxiv.org/abs/1712.05427) for some details on the mathematics, or [these notes](theory/MultispeciesWaves.pdf) for the formulas.
+At present, the packages calculates effective wavenumbers, wave transimission and wave reflection from random particulate materials, see [arXiv preprint](https://arxiv.org/abs/1712.05427) for some details on the mathematics, or [these notes](theory/WavesInMultiSpecies.pdf) for the formulas.
 
 The package can deal with any volume fraction and frequency range.
 

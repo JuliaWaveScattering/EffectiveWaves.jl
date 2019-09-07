@@ -37,7 +37,7 @@ after_success:
   - julia -e 'using Pkg; cd(Pkg.dir("EffectiveWaves")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
   # push coverage results to Codecov
   - julia -e 'using Pkg; cd(Pkg.dir("EffectiveWaves")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
-  
+
 jobs:
   include:
     - stage: "Documentation"
