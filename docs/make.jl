@@ -1,7 +1,5 @@
 using Documenter, EffectiveWaves
 
-# cp("../example","example")
-
 makedocs(
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true"
@@ -25,6 +23,7 @@ makedocs(
 )
 
 deploydocs(
+    forcepush = true,
     branch = "gh-pages",
     latest = "master",
     julia = "1.0",
