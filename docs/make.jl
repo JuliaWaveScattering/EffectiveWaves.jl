@@ -4,6 +4,7 @@ makedocs(
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true"
     ),
+    debug = true,
     sitename="EffectiveWaves.jl",
     authors = "Artur L. Gower",
     source= "src",
