@@ -1,3 +1,5 @@
+[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://arturgower.github.io/EffectiveWaves.jl/stable)
+[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://arturgower.github.io/EffectiveWaves.jl/dev)
 [![Build Status](https://travis-ci.org/arturgower/EffectiveWaves.jl.svg?branch=master)](https://travis-ci.org/arturgower/EffectiveWaves.jl)
 [![Coverage Status](https://coveralls.io/repos/github/arturgower/EffectiveWaves.jl/badge.svg?branch=master)](https://coveralls.io/github/arturgower/EffectiveWaves.jl?branch=master)
 [![codecov.io](http://codecov.io/github/arturgower/EffectiveWaves.jl/coverage.svg?branch=master)](http://codecov.io/github/arturgower/EffectiveWaves.jl?branch=master)
