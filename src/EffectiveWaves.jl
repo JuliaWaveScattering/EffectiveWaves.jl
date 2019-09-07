@@ -11,9 +11,6 @@ using ApproxFun
 using LinearAlgebra
 using WignerSymbols
 using GSL
-using MultipleScattering
-
-# push!(LOAD_PATH,"$(homedir())/.julia/v0.6/EffectiveWaves/examples/")
 
 include("specialfunctions.jl")
 include("particle.jl")
@@ -25,7 +22,7 @@ include("match_waves/match_waves.jl")
 include("match_waves/match_arrays.jl")
 include("match_waves/reflection.jl")
 
-include("../examples/materials.jl")
+include("materials.jl")
 
 include("plot/graphics.jl")
 include("plot/plot.jl")

@@ -2,6 +2,10 @@ using EffectiveWaves
 
 ## Choose two species randomly (uniformly) distributed in the medium
 # Usage Specie(ρ = density, r = radius, c = wavespeed, volfrac = volume fraction)
+
+const WaterDistilled= Medium(ρ=0.998*1000, c = 1496.0)
+const Glycerol      = Medium(ρ=1.26*1000,  c = 1904.0)
+
 species = [
     Specie(ρ=WaterDistilled.ρ,r=30.e-6, c=WaterDistilled.c, volfrac=0.1),
     Specie(ρ=Inf, r=100.0e-6, c=2.0, volfrac=0.2)

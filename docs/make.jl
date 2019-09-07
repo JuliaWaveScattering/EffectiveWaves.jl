@@ -17,7 +17,7 @@ makedocs(
         ]
         ,
         "Examples" => [
-            "examples/intro/README.md",
+            "examples/vary_two_species/README.md",
             "examples/many_wavenumbers/README.md",
             "examples/matched_method/README.md"
         ]
@@ -30,7 +30,5 @@ deploydocs(
     julia = "1.0",
     osname = "linux",
     target = "build",
-    make = nothing,
-    deps = nothing,
     repo = "github.com/arturgower/EffectiveWaves.jl.git"
 )

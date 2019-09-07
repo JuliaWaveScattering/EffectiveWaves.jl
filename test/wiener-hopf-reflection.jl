@@ -12,14 +12,14 @@ using EffectiveWaves, Test
 
     tol = 1e-9
     hankel_order=0
-    t_vec = t_vectors(ω, medium, [specie]; hankel_order = hankel_order)
 
     ws = effective_waves(ω, medium, [specie];
         radius_multiplier = radius_multiplier,
         tol=tol, hankel_order = hankel_order,
-        apply_meshing = true,
+        apply_meshing = false,
         num_wavenumbers = 20,
         mesh_points = 30, mesh_size = 2.);
+
 
     function Rerror(θ)
 
@@ -62,7 +62,6 @@ end
     specie = Specie(ρ = 0.0, r=0.01, c=6.0, volfrac = 0.3)
 
     tol = 1e-7
-    t_vec = t_vectors(ω, medium, [specie]; hankel_order = hankel_order)
 
     eff_medium = effective_medium(medium, [specie])
 
