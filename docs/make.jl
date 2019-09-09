@@ -28,5 +28,6 @@ deploydocs(
     # forcepush = true,
     branch = "gh-pages",
     latest = "master",
-    target = "build"
+    target = "build",
+    versions = ["stable" => "v^", "v#.#", devurl => devurl]
 )

@@ -1,17 +1,17 @@
-[![](https://img.shields.io/badge/docs-stable-blue.svg)](https://arturgower.github.io/EffectiveWaves.jl/stable)
-[![](https://img.shields.io/badge/docs-dev-blue.svg)](https://arturgower.github.io/EffectiveWaves.jl/dev)
-[![Build Status](https://travis-ci.org/arturgower/EffectiveWaves.jl.svg?branch=master)](https://travis-ci.org/arturgower/EffectiveWaves.jl)
-[![Coverage Status](https://coveralls.io/repos/github/arturgower/EffectiveWaves.jl/badge.svg?branch=master)](https://coveralls.io/github/arturgower/EffectiveWaves.jl?branch=master)
-[![codecov.io](http://codecov.io/github/arturgower/EffectiveWaves.jl/coverage.svg?branch=master)](http://codecov.io/github/arturgower/EffectiveWaves.jl?branch=master)
+# EffectiveWaves
 
-# Multi-species effective waves
+*A Julia package for calculating, processing and plotting waves travelling in heterogeneous materials. The focus is on ensemble averaged waves.*
 
-A Julia package for calculating, processing and plotting waves travelling in heterogeneous materials. The focus is on calculating the ensemble averaged waves, i.e. the statistical moments, of the waves.
-You can run Julia on [JuliaBox](https://www.juliabox.com/) in your browser without installation.
+| **Documentation**                                                               | **Build Status**                                                                                |
+|:-------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
+| [![][docs-stable-img]][docs-stable-url] [![][docs-dev-img]][docs-dev-url] | [![][travis-img]][travis-url] [![][codecov-img]][codecov-url] [![][coveralls-img]][coveralls-url] |
+
+
+<!-- You can run Julia on [JuliaBox](https://www.juliabox.com/) in your browser without installation. -->
 
 At present, the packages calculates effective wavenumbers, wave transimission and wave reflection from random particulate materials in two-dimensions, see [arXiv preprint](https://arxiv.org/abs/1712.05427) for details on the mathematics, or [these notes](docs/src/theory/WavesInMultiSpecies.pdf) for the formulas.
 
-## Get started
+## Installation
 Type into Julia:
 ```julia
 using Pkg
@@ -19,6 +19,11 @@ Pkg.clone("https://github.com/arturgower/EffectiveWaves.jl.git")
 
 using EffectiveWaves
 ```
+
+## Documentation
+
+- [**STABLE**][docs-stable-url] &mdash; **documentation of the most recently tagged version.**
+- [**DEVEL**][docs-dev-url] &mdash; *documentation of the in-development version.*
 
 ## Simple example
 Effective wavenumbers for two species randomly (uniformly) distributed in Glycerol.
@@ -59,3 +64,20 @@ Please contribute, if nothing else, criticism is welcome, as I am relatively new
 [[1]](http://rspa.royalsocietypublishing.org/content/474/2212/20170864) Gower AL, Smith MJ, Parnell WJ, Abrahams ID. Reflection from a multi-species material and its transmitted effective wavenumber. Proc. R. Soc. A. 2018 Apr 1;474(2212):20170864.
 
 [[2]](https://arxiv.org/abs/1712.05427) Gower AL, Smith MJ, Parnell WJ, Abrahams ID. Reflection from a multi-species material and its transmitted effective wavenumber. arXiv preprint arXiv:1712.05427. 2017 Dec.
+
+[docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
+[docs-dev-url]: https://arturgower.github.io/EffectiveWaves.jl/dev
+
+[docs-stable-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-stable-url]: https://arturgower.github.io/EffectiveWaves.jl/stable
+
+[travis-img]: https://travis-ci.org/arturgower/EffectiveWaves.jl.svg?branch=master
+[travis-url]: https://travis-ci.org/arturgower/EffectiveWaves.jl
+
+[codecov-img]: http://codecov.io/github/arturgower/EffectiveWaves.jl/coverage.svg?branch=master
+[codecov-url]: http://codecov.io/github/arturgower/EffectiveWaves.jl?branch=master
+
+[coveralls-img]: https://coveralls.io/repos/github/arturgower/EffectiveWaves.jl/badge.svg?branch=master
+[coveralls-url]: https://coveralls.io/github/arturgower/EffectiveWaves.jl?branch=master
+
+[issues-url]: https://arturgower.github.io/EffectiveWaves.jl/issues
