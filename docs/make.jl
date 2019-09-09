@@ -24,9 +24,9 @@ makedocs(
 )
 
 deploydocs(
-    repo = "github.com/arturgower/EffectiveWaves.jl.git"
-    forcepush = true,
+    repo = "github.com/arturgower/EffectiveWaves.jl.git",
+    # forcepush = true,
     branch = "gh-pages",
     latest = "master",
-    target = "build",
+    target = "build"
 )
