@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>A numerical matching method · EffectiveWaves.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link href="../../../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>EffectiveWaves.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../../../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../../../">Home</a></li><li><span class="toctext">Manual</span><ul><li><a class="toctext" href="../../../base/">Base</a></li></ul></li><li><span class="toctext">Examples</span><ul><li><a class="toctext" href="../../vary_two_species/README/">Vary volume fraction of the two species</a></li><li><a class="toctext" href="../../many_wavenumbers/README/">The many effective wavenumbers</a></li><li class="current"><a class="toctext" href>A numerical matching method</a><ul class="internal"></ul></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li>Examples</li><li><a href>A numerical matching method</a></li></ul><a class="edit-page" href="https://github.com/arturgower/EffectiveWaves.jl/blob/master/docs/src/examples/matched_method/README.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>A numerical matching method</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="A-numerical-matching-method-1" href="#A-numerical-matching-method-1">A numerical matching method</a></h1><p>Both of these methods calculate the ensemble average wave in a particulate material. To do so, we need to specify the geometry of the material, as this ultimately determines the fields. We choose the simplest case which is a halfspace x&gt;0 filled with particles.</p><pre><code class="language-julia">using EffectiveWaves
+
+## choose a highly attenuating material
+    medium = Medium(ρ=1.0, c=1.0)
+    specie = Specie(ρ = 0.4, c = 0.3, r = 0.8, volfrac=0.2)
+
+    ω = 1.0
+    θin = 0.3 # angle made between incident wave direction and the material boundary
+
+    # calculate the 4 effective waves with the smallest attenuation
+    wave_effs = effective_waves(ω, medium, specie;
+          num_wavenumbers=5,
+          θin = θin,
+          extinction_rescale = false
+    )
+    # plot(wave_effs[1:5])
+    # savefig(&quot;wave_effs.png&quot;)</code></pre><p><img src="../wave_effs.png" alt="Many effective wavenumbers"/></p><p>To determine the amplitude of these effective waves we used the newly developed matched method.</p><pre><code class="language-julia">    match_wave = MatchWave(ω, medium, specie;
+      θin = θin,
+      wave_effs = wave_effs[1:5],
+      max_size=80)
+
+    # the error of the match is used as a proxy to determine if the method converged. That is, the match_error is the difference between a sum of the effective waves and a discrete solution.
+    match_error(match_wave)
+
+    # plot(match_wave, ylim=(-0.1,0.3), xlab = &quot;x&quot;, hankel_indexes=0:1)
+    # savefig(&quot;match_wave.png&quot;)</code></pre><p><img src="../match_wave.png" alt="The matched wave field"/></p><p>We can compare this results against a purely numerical method, which requires a much larger mesh.</p><pre><code class="language-julia">  average_wave = AverageWave(ω, medium, specie; θin = θin, max_size=700)
+
+  plot(average_wave, ylim=(-0.1,0.3), xlab = &quot;x&quot;, hankel_indexes=0:1)
+  plot!(match_wave, seriestype=:line, match_region=false, hankel_indexes=0:1)
+  savefig(&quot;compare_match_wave.png&quot;)</code></pre><p>The two fields perfectly overlap, as the matched method is an exact method. Below the line is from the matched method, while the scatter points are from the purely numerical method. <img src="../compare_match_wave.png" alt="Compare matched and discrete field"/></p><footer><hr/><a class="previous" href="../../many_wavenumbers/README/"><span class="direction">Previous</span><span class="title">The many effective wavenumbers</span></a></footer></article></body></html>

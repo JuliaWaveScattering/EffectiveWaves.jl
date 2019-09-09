@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Vary volume fraction of the two species · EffectiveWaves.jl</title><link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/4.2.0/normalize.min.css" rel="stylesheet" type="text/css"/><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.2.0/require.min.js" data-main="../../../assets/documenter.js"></script><script src="../../../siteinfo.js"></script><script src="../../../../versions.js"></script><link href="../../../assets/documenter.css" rel="stylesheet" type="text/css"/></head><body><nav class="toc"><h1>EffectiveWaves.jl</h1><select id="version-selector" onChange="window.location.href=this.value" style="visibility: hidden"></select><form class="search" id="search-form" action="../../../search/"><input id="search-query" name="q" type="text" placeholder="Search docs"/></form><ul><li><a class="toctext" href="../../../">Home</a></li><li><span class="toctext">Manual</span><ul><li><a class="toctext" href="../../../base/">Base</a></li></ul></li><li><span class="toctext">Examples</span><ul><li class="current"><a class="toctext" href>Vary volume fraction of the two species</a><ul class="internal"><li><a class="toctext" href="#Plot-the-results-1">Plot the results</a></li></ul></li><li><a class="toctext" href="../../many_wavenumbers/README/">The many effective wavenumbers</a></li><li><a class="toctext" href="../../matched_method/README/">A numerical matching method</a></li></ul></li></ul></nav><article id="docs"><header><nav><ul><li>Examples</li><li><a href>Vary volume fraction of the two species</a></li></ul><a class="edit-page" href="https://github.com/arturgower/EffectiveWaves.jl/blob/master/docs/src/examples/vary_two_species/README.md"><span class="fa"></span> Edit on GitHub</a></nav><hr/><div id="topbar"><span>Vary volume fraction of the two species</span><a class="fa fa-bars" href="#"></a></div></header><h1><a class="nav-anchor" id="Vary-volume-fraction-of-the-two-species-1" href="#Vary-volume-fraction-of-the-two-species-1">Vary volume fraction of the two species</a></h1><p>Here we demonstrate how varying the volume fraction of two different species of particles changes the effective wave speed and attenuation.</p><pre><code class="language-julia">using EffectiveWaves
+
+# for fixed total volume fraction
+background = Medium(ρ=1.0,c = 1.0)
+ωs = LinRange(0.01,1.0,60)
+volfrac = 0.25
+r1 = 0.5
+r2 = 1.5
+N=5
+vols = LinRange(0.0,1.0,N)*volfrac
+
+ks_arr = map(1:N) do i
+    sp1 = Specie(0.0, r1; volfrac=vols[i])
+    sp2 = Specie(Inf, r1; volfrac=volfrac-vols[i])
+    [ wavenumber_low_volfrac(ω, background, [sp1,sp2]) for ω in ωs]
+end
+
+speeds = [ ωs ./ real(ks) for ks in ks_arr]
+attenuations = imag.(ks_arr)</code></pre><h2><a class="nav-anchor" id="Plot-the-results-1" href="#Plot-the-results-1">Plot the results</a></h2><pre><code class="language-julia">labs = reshape( map(v -&gt; &quot;void vol = $(Int(round(100*v)))%&quot;,vols),1, length(vols));
+p1 = plot(ωs, speeds,
+    labels=labs, ylabel=&quot;wave speed (m/s)&quot; ,xlabel=&quot;frequency&quot;);
+p2 = plot(ωs, attenuations,
+    labels=labs, xlabel=&quot;frequency&quot;, ylabel=&quot;attenuation (1/m)&quot;);
+plot(p1,p2,layout=(2,1))</code></pre><p><img src="../vary_volfrac.png" alt="vary_volfrac.png"/></p><footer><hr/><a class="previous" href="../../../base/"><span class="direction">Previous</span><span class="title">Base</span></a><a class="next" href="../../many_wavenumbers/README/"><span class="direction">Next</span><span class="title">The many effective wavenumbers</span></a></footer></article></body></html>
