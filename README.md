@@ -80,4 +80,4 @@ Please contribute, if nothing else, criticism is welcome, as I am relatively new
 [coveralls-img]: https://coveralls.io/repos/github/arturgower/EffectiveWaves.jl/badge.svg?branch=master
 [coveralls-url]: https://coveralls.io/github/arturgower/EffectiveWaves.jl?branch=master
 
-[issues-url]: https://arturgower.github.io/EffectiveWaves.jl/issues
+[issues-url]: https://github.com/arturgower/EffectiveWaves.jl/issues
