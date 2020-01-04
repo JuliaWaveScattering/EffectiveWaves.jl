@@ -15,9 +15,8 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
     num_wavenumbers = min(length(k_effs),num_wavenumbers)
 
     if num_wavenumbers > 1 && apply_meshing
-        num_wavenumbers = min(length(k_effs),num_wavenumbers)
         k_effs = wavenumbers_mesh(ω, k_effs[1:num_wavenumbers], medium, species; kws...)
     end
-    
+
     return k_effs
 end

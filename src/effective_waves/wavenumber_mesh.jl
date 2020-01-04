@@ -58,12 +58,12 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
     new_ks = [
             (findmin([norm(h - kvec) for kvec in k_vecs])[1] > 10*tol) ? h : [zero(T),-one(T)]
     for h in new_ks]
-    new_ks = reduce_kvecs(new_ks, tol)
+    new_ks = reduce_kvecs(new_ks, T(10)*tol)
 
     if verbose println("New roots from mesh refiner:",new_ks) end
 
     # group together wavenumbers which are closer than tol
-    k_vecs = reduce_kvecs([new_ks; k_vecs], tol)
+    k_vecs = reduce_kvecs([new_ks; k_vecs], T(10)*tol)
 
     # Finally delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
     deleteat!(k_vecs, findall([k_vec[2] < -low_tol for k_vec in k_vecs]))

@@ -22,9 +22,10 @@ function Specie(ρ::T, r::T, c=one(Complex{T}); volfrac::T=0.1*one(T)) where T <
   Specie{T}(ρ,r,c,volfrac/(T(pi)*r^2.0))
 end
 
-function Specie(T=Float64;ρ = 1.0, r = 1.0, c= 1.0+0.0im, volfrac=0.1)
-  if T <: Int T = Float64 end
-  Specie{T}(T(ρ),T(r),Complex{T}(c),T(volfrac/(pi*r^2.0)))
+function Specie(T=Float64;ρ = 1.0, r = 1.0, c= 1.0+0.0im, volfrac=0.1, dim=2)
+    if T <: Int T = Float64 end
+    num_density = (dim == 2) ? T(volfrac/(pi*r^2.0)) : T(volfrac/(4pi*r^3.0/3))
+    Specie{T}(T(ρ),T(r),Complex{T}(c), num_density)
 end
 # function Specie(T=Float64; ρ = zero(T), r = one(T), c=one(Complex{T}), volfrac=0.1*one(T))
 #   Specie{T}(T(ρ),T(r),c,T(volfrac/(T(pi)*r^2.0)))

@@ -17,6 +17,7 @@ using EffectiveWaves, Test
     k_effs_path = wavenumbers_path(ω, medium, species;
         mesh_size = 2.0,
         mesh_points = 10,
+        max_Imk = 4.0,
         num_wavenumbers=num_wavenumbers+4,
         hankel_order=hankel_order,
         tol = tol

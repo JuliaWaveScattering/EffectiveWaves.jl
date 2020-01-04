@@ -1,6 +1,6 @@
 # Effective waves are related to the ansatz u ~ amps.*exp(im*k_eff*x), where k_eff is the effective wavenumber with Im(k_eff) > 0.
 
-export wavematrix2D, wavematrix3D, wavematrix3DPlane # supplies matrices used for disperision equation and effective eignvectors
+export wavematrix2D, wavematrix3D, wavematrix3DPlane, wavematrix3DAzimuth # supplies matrices used for disperision equation and effective eignvectors
 export far_field_pattern, pair_field_pattern, diff_far_field_pattern
 export wavenumbers_path, wavenumbers_mesh, reduce_kvecs
 export wavenumber_challis, one_species_low_wavenumber,

@@ -43,8 +43,8 @@ using LinearAlgebra
     match_ws = [
         MatchWave(ωs[i], medium, specie; θin = θin,
             radius_multiplier = radius_multiplier,
-            max_size=100,
-            tol = tol, wave_effs = wave_effs_arr[i])
+            max_size=150,
+            tol = tol, wave_effs = wave_effs_arr[i][1:1])
     for i in eachindex(ωs)]
 
     @test maximum(match_error.(match_ws)) < 1e-6

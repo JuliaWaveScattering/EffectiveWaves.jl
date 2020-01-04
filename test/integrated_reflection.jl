@@ -38,7 +38,7 @@ using EffectiveWaves, Test
     k_effs = wavenumbers(ω, medium, [specie]; tol = 1e-8,
         hankel_order = ho, num_wavenumbers = num_wavenumbers)
 
-    rel_errors = map(k_effs[1:num_wavenumbers]) do k_eff
+    rel_errors = map(k_effs[1:end]) do k_eff
         wave = EffectiveWave(ω, k_eff, medium, [specie]; θin = θin, hankel_order = ho)
         wave_avg = AverageWave(x, wave)
         R = reflection_coefficient(ω, wave_avg, medium, specie; θin = θin)

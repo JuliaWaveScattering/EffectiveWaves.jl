@@ -3,8 +3,10 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
         tol::T = 1e-6,
         mesh_points::Int = 2, mesh_size::T = one(T),
         num_wavenumbers = 3,
+        max_Imk::T = T(2) + T(20) * imag(wavenumber_low_volfrac(ω, medium, species)),
         verbose::Bool = false,
-        kws...) where T<:Number
+        k_effs::Vector{Complex{T}} = Complex{T}[],
+        kws...) where T<:AbstractFloat
 
     low_tol = max(1e-4, tol) # a tolerance used for a first pass with time_limit
 
@@ -24,6 +26,9 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
         k_vecs = [optimize(dispersion, kvec, Optim.Options(x_tol=low_tol, g_tol = low_tol^3)).minimizer for kvec in k_vecs]
         k_vecs = reduce_kvecs(k_vecs, low_tol/10)
 
+        # add any specified keffs
+        k_vecs = [k_vecs; [[real(kp),imag(kp)] for kp in k_effs]]
+
         k_vecs = map(k_vecs) do k_vec
            res = optimize(dispersion, k_vec, Optim.Options(g_tol = tol^3.0, x_tol=tol))
            if res.minimum > T(20)*tol
@@ -32,7 +37,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
                res.minimizer
            end
         end
-        k_vecs = reduce_kvecs(k_vecs, tol)
+        k_vecs = reduce_kvecs(k_vecs, T(10)*tol)
 
         # Delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
         deleteat!(k_vecs, findall(dispersion.(k_vecs) .> low_tol))
@@ -53,7 +58,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
         invert = true
 
         # Find the first two roots that lead to the two branches of the root tree
-        while !two_roots && (length(k_vecs) < num_wavenumbers)
+        while !two_roots && (length(k_vecs) < num_wavenumbers) && ky <= max_Imk
             hits = [
                 optimize(dispersion, [kx, ky], Optim.Options(x_tol = low_tol, g_tol = low_tol^3)).minimizer
             for kx in kxs]
@@ -69,7 +74,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
                     res.minimizer
                 end
             end
-            k_vecs = reduce_kvecs([hits;k_vecs], tol)
+            k_vecs = reduce_kvecs([hits;k_vecs], T(10)*tol)
             sort!(k_vecs, by= kv -> kv[2])
 
             if length(k_vecs) >= 2
@@ -106,7 +111,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
                 i = findmin(
                     [(targets[1][2] != kvec[2]) ? norm(targets[1] - kvec) : Inf for kvec in k_vecs]
                 )[2]
-                # find at least one neighbour below, as the tree is growing
+                # find at least one neighbour below, as the tree should grow
                 j = (targets[1][2] > k_vecs[i][2]) ?
                     findmin(
                         [(targets[1][2] != kvec[2] && kvec[2] != k_vecs[i][2]) ? norm(targets[1] - kvec) : Inf for kvec in k_vecs]
@@ -128,7 +133,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
                     for tk in tks]...)[:]
                 end
                 mesh = vcat(meshes...)
-                deleteat!(mesh, findall([vec[2] < 0 for vec in mesh]))
+                deleteat!(mesh, findall([vec[2] < 0 || vec[2] > max_Imk for vec in mesh]))
 
             # search for roots from this mesh
                 new_targets = map(mesh) do kin
@@ -136,9 +141,10 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
                 end
                 new_targets = reduce_kvecs(new_targets, low_tol/10)
                 deleteat!(new_targets, findall(dispersion.(new_targets) .> low_tol))
+                deleteat!(new_targets, findall([vec[2] < 0 || vec[2] > max_Imk for vec in new_targets]))
 
                 # only keep targets which are not already in k_vecs
-                new_targets = [
+                new_targets = Vector{T}[
                         (findmin([norm(h - kvec) for kvec in k_vecs])[1] > low_tol) ? h : [zero(T),-one(T)]
                 for h in new_targets]
                 new_targets = reduce_kvecs(new_targets, low_tol)
@@ -157,19 +163,20 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
                 new_targets = [
                         (findmin([norm(h - kvec) for kvec in k_vecs])[1] > 10*tol) ? h : [zero(T),-one(T)]
                 for h in new_targets]
-                new_targets = reduce_kvecs(new_targets, tol)
+                new_targets = reduce_kvecs(new_targets, T(10)*tol)
 
                 if verbose println("New roots: $(new_targets)") end
 
                 deleteat!(targets, 1)
                 targets = [targets; new_targets]
                 # group together wavenumbers which are closer than tol
-                k_vecs = reduce_kvecs([new_targets; k_vecs], tol)
+                k_vecs = reduce_kvecs([new_targets; k_vecs], T(10)*tol)
+                targets = filter(t -> t[2] <= max_Imk, targets)
         end
 
     # Finally delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
     # deleteat!(k_vecs, find(k_vec[2] < -T(10)*tol for k_vec in k_vecs))
-    deleteat!(k_vecs, findall([k_vec[2] < -sqrt(tol) for k_vec in k_vecs]))
+    deleteat!(k_vecs, findall([k_vec[2] < -sqrt(tol) || k_vec[2] > max_Imk for k_vec in k_vecs]))
     # deleteat!(k_vecs, find(k_vec[2] < tol && k_vec[1] < tol for k_vec in k_vecs))
     deleteat!(k_vecs, findall([-low_tol < abs(k_vec[2])/k_vec[1] < zero(T) for k_vec in k_vecs]))
 
