@@ -7,7 +7,7 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
         max_Rek::T = maximum(real(k1) for k1 in k_effs),
         min_Rek::T = minimum(real(k1) for k1 in k_effs),
         max_Imk::T = maximum(imag(k1) for k1 in k_effs),
-        min_Imk::T = minimum(imag(k1) for k1 in k_effs[2:end]),
+        min_Imk::T = minimum(imag(k1) for k1 in k_effs),
         kws...) where T<:Number
 
     low_tol = max(1e-4, tol)*minimum( (k1 == k2) ? Inf : abs(k1-k2) for k1 in k_effs, k2 in k_effs) # a tolerance used for a first pass with time_limit
@@ -19,7 +19,9 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
     ky = LinRange(min_Imk, max_Imk, Int(round(length(k_effs)/(2*mesh_refine))))
     k_mesh = [[x,y] for x in kx, y in ky][:]
 
+    # Include k_effs in the mesh, we do not assume these are solutions
     k_vecs = [[real(keff),imag(keff)] for keff in k_effs]
+    k_mesh = [k_mesh; k_vecs]
 
     # make slightly bigger box to be constrained within
     min_Rek = (min_Rek < zero(T)) ? min_Rek*T(1.1) : min_Rek*T(0.9)
@@ -35,13 +37,13 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
             Fminbox(inner_optimizer), Optim.Options(x_tol=low_tol, g_tol = low_tol^3)).minimizer
     for kvec in k_mesh]
     deleteat!(new_ks, findall(dispersion.(new_ks) .> low_tol))
-    new_ks = reduce_kvecs(new_ks, low_tol/10)
+    new_ks = reduce_kvecs(new_ks, low_tol)
 
     # only keep targets which are not already in k_vecs
-    new_ks = [
-            (findmin([norm(h - kvec) for kvec in k_vecs])[1] > low_tol) ? h : [zero(T),-one(T)]
-    for h in new_ks]
-    new_ks = reduce_kvecs(new_ks, low_tol)
+    # new_ks = [
+    #         (findmin([norm(h - kvec) for kvec in k_vecs])[1] > low_tol) ? h : [zero(T),-one(T)]
+    # for h in new_ks]
+    # new_ks = reduce_kvecs(new_ks, low_tol)
 
     # Here we refine the new roots
     new_ks = map(new_ks) do k_vec
@@ -55,15 +57,16 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
         end
     end
 
-    new_ks = [
-            (findmin([norm(h - kvec) for kvec in k_vecs])[1] > 10*tol) ? h : [zero(T),-one(T)]
-    for h in new_ks]
-    new_ks = reduce_kvecs(new_ks, T(10)*tol)
+    # only keep targets which are not already in k_vecs
+    # new_ks = [
+    #         (findmin([norm(h - kvec) for kvec in k_vecs])[1] > 10*tol) ? h : [zero(T),-one(T)]
+    # for h in new_ks]
+    # new_ks = reduce_kvecs(new_ks, T(10)*tol)
 
     if verbose println("New roots from mesh refiner:",new_ks) end
 
     # group together wavenumbers which are closer than tol
-    k_vecs = reduce_kvecs([new_ks; k_vecs], T(10)*tol)
+    k_vecs = reduce_kvecs(new_ks, T(10)*tol)
 
     # Finally delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
     deleteat!(k_vecs, findall([k_vec[2] < -low_tol for k_vec in k_vecs]))

@@ -168,7 +168,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
                 if verbose println("New roots: $(new_targets)") end
 
                 deleteat!(targets, 1)
-                targets = [targets; new_targets]
+                targets = Vector{T}[targets; new_targets]
                 # group together wavenumbers which are closer than tol
                 k_vecs = reduce_kvecs([new_targets; k_vecs], T(10)*tol)
                 targets = filter(t -> t[2] <= max_Imk, targets)
