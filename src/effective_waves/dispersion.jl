@@ -130,27 +130,31 @@ function wavematrix3DAzimuth(ω::T, medium::Medium{T}, species::Vector{Specie{T}
     S = length(species)
     L = hankel_order
     L1 = hankel_order_field
+
     len = (L1+1) * (L+1)^2 * S
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
     # the index for the T-matrix below needs to be changed when seperating correctly the 2D and 3D case.
     function M_component(keff,Ns,l,m,l2,s1,dl,dm,l1,s2)::Complex{T}
+        minl3 = max(abs(m-dm),abs(dl-l),abs(l1-l2))
+        maxl3 = min(dl+l,l1+l2)
+
         (m == dm && l == dl && l1 == l2 && s1 == s2 ? 1.0 : 0.0) +
-        as[s1,s2] * species[s2].num_density * t_vecs[s1][l+L+1] *
-        sum(l3 ->
-            if abs(m-dm) <= l3 && abs(dm) <= l1 && abs(m) <= l2
+        if abs(dm) <= min(l1) && abs(m) <= min(l2) && minl3 <= maxl3
+            as[s1,s2] * species[s2].num_density * t_vecs[s1][l+L+1] *
+            sum(l3 ->
                 gaunt_coefficients(l,m,dl,dm,l3,m-dm) *
                 gaunt_coefficients(l1,-dm,l2,-m,l3,m-dm) * Ns[l3+1,s1,s2]
-            else
-                zero(Complex{T})
-            end
-        , 0:L1) / (keff^2.0 - k^2.0)
+            , minl3:maxl3) / (keff^2.0 - k^2.0)
+        else
+            zero(Complex{T})
+        end
     end
 
     # The order of the indices below is important
     function MM(keff::Complex{T})::Matrix{Complex{T}}
-        Ns = [kernelN(l3,k*as[s1,s2],keff*as[s1,s2]; dim = dim) for l3 = 0:L1, s1 = 1:S, s2 = 1:S]
+        Ns = [kernelN(l3,k*as[s1,s2],keff*as[s1,s2]; dim = dim) for l3 = 0:min(2L1,2L), s1 = 1:S, s2 = 1:S]
         ind2 = 1
         for s2 = 1:S for dl = 0:L for dm = -dl:dl for l1 = 0:L1
             ind1 = 1
@@ -187,17 +191,13 @@ function wavematrix3DPlane(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
     lm_to_n = lm_to_spherical_harmonic_index
 
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
-    function M_component(keff,Ns,l,m,s1,dl,dm,s2)::Complex{T}
+    function M_component(keff::Complex{T},Ns::Array{Complex{T}},l,m,s1,dl,dm,s2)::Complex{T}
         (m == dm && l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
         Complex{T}(4pi) * as[s1,s2] * species[s2].num_density * t_vecs[s1][l+ho+1] *
         sum(
-            if abs(dm-m) <= l1
-                Complex{T}(im)^(-l1) * Ys[lm_to_n(l1,dm-m)] * Ns[l1+1,s1,s2] *
-                gaunt_coefficients(dl,dm,l,m,l1,dm-m)
-            else
-                zero(Complex{T})
-            end
-        for l1 in 0:L1) / (keff^2.0 - k^2.0)
+            Complex{T}(im)^(-l1) * Ys[lm_to_n(l1,dm-m)] * Ns[l1+1,s1,s2] *
+            gaunt_coefficients(dl,dm,l,m,l1,dm-m)
+        for l1 in max(abs(dm-m),abs(dl-l)):(dl+l)) / (keff^2.0 - k^2.0)
     end
 
     function MM(keff::Complex{T})::Matrix{Complex{T}}
@@ -233,13 +233,13 @@ function wavematrix3DPlaneAzimuth(ω::T, medium::Medium{T}, species::Vector{Spec
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
-    function M_component(keff,Ns,l,s1,dl,s2)::Complex{T}
+    function M_component(keff::Complex{T},Ns::Array{Complex{T}},l,s1,dl,s2)::Complex{T}
         (l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
         Complex{T}(4pi) * as[s1,s2] * species[s2].num_density * t_vecs[s1][l+ho+1] *
         sum(
             Complex{T}(im)^(-l1) * sqrt((2*l1+1)/(4pi) ) * Ns[l1+1,s1,s2] *
             gaunt_coefficients(dl,0,l,0,l1,0)
-        for l1 in 0:L1) / (keff^2.0 - k^2.0)
+        for l1 in abs(dl-l):(dl+l)) / (keff^2.0 - k^2.0)
     end
 
     function MM(keff::Complex{T})::Matrix{Complex{T}}

@@ -82,7 +82,7 @@ end
 "Derivative of Bessel function of first kind"
 diffbesselj(n,z) = 0.5*(besselj(-1 + n, z) - besselj(1 + n, z))
 
-function kernelN(n::Int,x::Union{T,Complex{T}},y::Union{T,Complex{T}}; dim = 2) where T<:AbstractFloat
+function kernelN(n::Int,x::Union{T,Complex{T}},y::Union{T,Complex{T}}; dim::Int = 2) where T<:AbstractFloat
     if dim == 2
         h = hankelh1(n,x); dh = diffhankelh1(n,x)
         j = besselj(n,y);  dj = diffbesselj(n,y)

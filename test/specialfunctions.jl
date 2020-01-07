@@ -16,7 +16,7 @@ using LinearAlgebra
         n = 2
         @test 2 * diffsbessel(shankelh1,n,x) ≈ shankelh1(n-1, x) - (shankelh1(n, x) + x*shankelh1(n+1, x))/x
 
-        xs = rand(20)*10;
+        xs = 0.01:0.9:11.0;
         n = 15; ns = 0:n
 
         # Compare with spherical bessel from GSL, which can only accept real arguments..

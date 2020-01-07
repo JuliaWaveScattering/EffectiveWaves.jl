@@ -28,16 +28,20 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
     min_Imk = (min_Imk < zero(T)) ? min_Imk*T(1.1) : min_Imk*T(0.9)
     max_Rek = (max_Rek > zero(T)) ? max_Rek*T(1.001) : max_Rek*T(0.999)
     max_Imk = (max_Imk > zero(T)) ? max_Imk*T(1.001) : max_Imk*T(0.999)
+    filter!(keff -> min_Rek <= keff[1] <= max_Rek && min_Imk <= keff[2] <= max_Imk, k_mesh)
 
     # Find all wavenumbers
     lower = [min_Rek, min_Imk]
     upper = [max_Rek, max_Imk]
+
     new_ks = [
         optimize(dispersion, lower, upper, kvec,
             Fminbox(inner_optimizer), Optim.Options(x_tol=low_tol, g_tol = low_tol^3)).minimizer
     for kvec in k_mesh]
     deleteat!(new_ks, findall(dispersion.(new_ks) .> low_tol))
     new_ks = reduce_kvecs(new_ks, low_tol)
+
+    filter!(keff -> lower[1] <= keff[1] <= upper[1] && lower[2] <= keff[2] <= upper[2], new_ks)
 
     # only keep targets which are not already in k_vecs
     # new_ks = [
@@ -50,10 +54,10 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
         # res = optimize(dispersion, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
         res = optimize(dispersion, lower, upper, k_vec, Fminbox(inner_optimizer),
             Optim.Options(g_tol = tol^3.0, x_tol=tol))
-        if res.minimum > T(20)*tol
-            [zero(T),-one(T)]
-        else
+        if res.minimum < T(20)*tol || (Optim.converged(res) && res.minimum < low_tol)
             res.minimizer
+        else
+            [zero(T),-one(T)]
         end
     end
 

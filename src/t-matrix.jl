@@ -7,6 +7,9 @@ function maximum_hankel_order(ω::Union{T,Complex{T}}, medium::Medium{T}, specie
     hankel_order = 0
     next_order = -4im*sum(sp.num_density*Zn(ω,sp,medium,hankel_order) for sp in species)
 
+    hankel_order = 1
+    next_order = -4im*sum(sp.num_density*Zn(ω,sp,medium,hankel_order) for sp in species)
+
     # increase hankel order until the relative error^2 < tol. Multiplying the tol by 200 has been chosen based on empircal comparisons with other tolerance used for reflection coefficients.
     while abs(next_order/f0) > tol*200
         f0 = f0 + next_order

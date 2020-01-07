@@ -6,7 +6,7 @@
     ωs = [0.001,20.]
 
     species = [
-        Specie(ρ=10.,r=0.01, c=12., volfrac=0.05),
+        Specie(ρ=10.,r=0.01, c=12., volfrac=0.03),
         Specie(ρ=3., r=0.2, c=2.0, volfrac=0.04)
     ]
 
@@ -20,11 +20,20 @@
         wavenumbers(ω, medium, species;
             num_wavenumbers=1, tol = 1e-8)
     for ω in ωs]
+
+        # k_vec = [real(k_effs[2][1]), imag(k_effs[2][1])]
+    # dispersion = dispersion_function(ω, medium, species; tol = 1e-3, dim=2, symmetry=:plane)
+    # dispersion(k_vec)
+
+    # maximum_hankel_order(ω, medium, species; tol=tol)
     inds = [argmin(abs.(k_effs[i] .- k_eff_φs[i])) for i in eachindex(ωs)]
     k_effs2 = [k_effs[i][inds[i]] for i in eachindex(inds)]
 
-    @test norm(k_effs2 - k_eff_φs)/norm(k_eff_φs) < 0.002
-    @test norm(k_effs2 - k_eff_lows)/norm(k_eff_lows) < 0.01
+    # 0.0010101407549128578 + 7.824113157942236e-13im
+    # 20.207827596241156 + 0.11344062283733775im
+
+    @test norm( (k_effs2 - k_eff_φs) ./ norm.(k_eff_φs) ) < 0.0025
+    @test norm( (k_effs2 - k_eff_lows) ./ norm.(k_eff_lows) ) < 0.01
     @test norm(k_effs2[1] - k_eff_lows[1])/norm(k_effs[1]) < 4e-7
 
     wave_effs_2 = [EffectiveWave(ωs[i], k_effs2[i], medium, species; tol = 1e-9) for i in eachindex(ωs)]

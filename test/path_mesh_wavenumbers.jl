@@ -10,7 +10,7 @@ using EffectiveWaves, Test
     ];
 
     ω = 0.6;
-    tol = 1e-8
+    tol = 1e-9
     num_wavenumbers = 8;
     hankel_order = 2
     dim = 2
@@ -20,7 +20,7 @@ using EffectiveWaves, Test
         mesh_points = 10,
         max_Imk = 4.0,
         dim = dim,
-        num_wavenumbers=num_wavenumbers+4,
+        num_wavenumbers=num_wavenumbers,
         hankel_order=hankel_order,
         tol = tol
     )
@@ -31,6 +31,6 @@ using EffectiveWaves, Test
         tol = tol
     );
 
-   @test maximum(abs.(k_effs_mesh[1:num_wavenumbers] - k_effs_path[1:num_wavenumbers])) < tol
+   @test maximum(abs.(k_effs_mesh[1:num_wavenumbers] - k_effs_path[1:num_wavenumbers])) < 10*tol
 
 end
