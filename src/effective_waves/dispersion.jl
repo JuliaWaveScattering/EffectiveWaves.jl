@@ -131,7 +131,8 @@ function wavematrix3DAzimuth(ω::T, medium::Medium{T}, species::Vector{Specie{T}
     L = hankel_order
     L1 = hankel_order_field
 
-    len = (L1+1) * (L+1)^2 * S
+    len = Int(1 - L*(2 + L)*(L - 3*L1 - 2)/3 + L1)
+
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
@@ -156,9 +157,9 @@ function wavematrix3DAzimuth(ω::T, medium::Medium{T}, species::Vector{Specie{T}
     function MM(keff::Complex{T})::Matrix{Complex{T}}
         Ns = [kernelN(l3,k*as[s1,s2],keff*as[s1,s2]; dim = dim) for l3 = 0:min(2L1,2L), s1 = 1:S, s2 = 1:S]
         ind2 = 1
-        for s2 = 1:S for dl = 0:L for dm = -dl:dl for l1 = 0:L1
+        for s2 = 1:S for dl = 0:L for dm = -dl:dl for l1 = abs(dm):L1
             ind1 = 1
-            for s1 = 1:S for l = 0:L for m = -l:l for l2 = 0:L1
+            for s1 = 1:S for l = 0:L for m = -l:l for l2 = abs(m):L1
                 MM_mat[ind1, ind2] = M_component(keff,Ns,l,m,l2,s1,dl,dm,l1,s2)
                 ind1 += 1
             end end end end
