@@ -2,10 +2,14 @@ using EffectiveWaves, Test
 
 # This case is numerically challenging, because wavenumber() has many roots close together. Make sure spacing in ωs is small to help the optimisation method
 @testset "strong scatterers and low frequency" begin
-    medium = Medium(ρ=1.0, c=1.0)
+    medium = Acoustic(2; ρ=1.0, c=1.0)
+
+    p1 = Particle(Acoustic(2; ρ=5.0, c=0.002),Circle(0.004))
+    p2 = Particle(Acoustic(2; ρ=0.3, c=0.01),Circle(0.002))
+
     species = [
-        Specie(ρ=5.,r=0.004, c=0.002, volfrac=0.2),
-        Specie(ρ=0.3, r=0.002, c=0.01, volfrac=0.1)
+        Specie(p1; volume_fraction=0.2),
+        Specie(p2; volume_fraction=0.1)
     ]
     tol=1e-7
     # ωs = [0.001,0.003]

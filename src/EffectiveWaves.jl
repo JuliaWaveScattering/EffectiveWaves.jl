@@ -8,6 +8,7 @@ using RecipesBase, OffsetArrays, LinearAlgebra
 using Optim, ApproxFun # Heavy packages
 using WignerSymbols, GSL
 
+using Reexport
 @reexport using MultipleScattering
 
 include("specialfunctions.jl")
