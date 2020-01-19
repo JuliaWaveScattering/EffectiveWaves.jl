@@ -11,11 +11,11 @@ using EffectiveWaves, Test
     radius_multiplier = 1.01
 
     tol = 1e-9
-    hankel_order=0
+    basis_order=0
 
     ws = effective_waves(ω, medium, [specie];
         radius_multiplier = radius_multiplier,
-        tol=tol, hankel_order = hankel_order,
+        tol=tol, basis_order = basis_order,
         apply_meshing = false,
         num_wavenumbers = 20,
         mesh_points = 30, mesh_size = 2.);
@@ -25,7 +25,7 @@ using EffectiveWaves, Test
 
         match_ws = MatchWave(ω, medium, specie;
             radius_multiplier = radius_multiplier,
-            hankel_order = hankel_order,
+            basis_order = basis_order,
             tol = tol, wave_effs = ws[1:15],
             θin=θ,
             max_size = 600,
@@ -36,7 +36,7 @@ using EffectiveWaves, Test
                 θin = θ,
                 tol=tol,
                 radius_multiplier = radius_multiplier,
-                hankel_order = hankel_order
+                basis_order = basis_order
         )
         return abs(Rm-Rw)/abs(Rw)
     end
@@ -56,9 +56,9 @@ end
 
     medium = Medium(1.0,1.0+0.0im)
     ω = 0.01
-    hankel_order=0
+    basis_order=0
 
-    # Always Dirichlet boundary conditions for hankel_order=0!
+    # Always Dirichlet boundary conditions for basis_order=0!
     specie = Specie(ρ = 0.0, r=0.01, c=6.0, volfrac = 0.3)
 
     tol = 1e-7
@@ -68,7 +68,7 @@ end
     function Rerror(θ)
         ws = effective_waves(ω, medium, [specie];
             tol=tol, θin = θ,
-            hankel_order = hankel_order,
+            basis_order = basis_order,
             num_wavenumbers = 2,
             extinction_rescale = true);
         R1 = reflection_coefficient(ω, ws[1], medium, [specie]; θin = θ)
@@ -76,7 +76,7 @@ end
         Rw = wienerhopf_reflection_coefficient(ω, medium, [specie];
                 θin = θ,
                 tol=tol,
-                hankel_order = hankel_order,
+                basis_order = basis_order,
                 num_coefs = 20000 + 200*Int(round(100*θ))
         )
         return abs(2*R_low-Rw-R1)/abs(2*R_low)

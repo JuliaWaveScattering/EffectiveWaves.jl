@@ -24,18 +24,18 @@ XL = XJ - 8
 X_match = X[XL]
 
 # Calculate discretised average wave directly from governing equations
-avg_wave = AverageWave(ω, medium, specie; hankel_order=ho, X=X)
+avg_wave = AverageWave(ω, medium, specie; basis_order=ho, X=X)
 
 # From effective wave theory
 k_effs = wavenumbers(ω, medium, [specie];
     mesh_size = 0.2, mesh_points = 20,
-    tol = tol/10, hankel_order = ho
+    tol = tol/10, basis_order = ho
 )
 scatter(real.(k_effs),imag.(k_effs), title = "Effective wavenumbers", xlab = "Re k_eff", ylab = "Im k_eff")
 
 wave_effs = [
     EffectiveWave(ω, k_eff, medium, [specie];
-        hankel_order = ho, extinction_rescale = true, tol=tol*10
+        basis_order = ho, extinction_rescale = true, tol=tol*10
     )
 for k_eff in k_effs]
 

@@ -10,7 +10,8 @@ export  match_error, x_mesh_match
 export  x_mesh
 
 # for material and particle properties
-export  Specie, Medium, volume_fraction, Zn, t_vectors, Nn, p_speed, maximum_hankel_order
+# export  Specie, Medium, volume_fraction, Zn, t_vectors, Nn, p_speed, maximum_basis_order
+export  Nn, p_speed#, maximum_basis_order
 
 # for effective waves
 export  wavenumbers, wavenumber, effective_waves, transmission_angle,

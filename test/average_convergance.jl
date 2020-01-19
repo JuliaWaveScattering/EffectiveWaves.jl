@@ -10,7 +10,7 @@ k = 0.8;
 θin = 0.0
 ω = real(k*medium.c)
 
-ho = maximum_hankel_order(ω, medium, [specie]; tol=tol*1e4)
+ho = maximum_basis_order(ω, medium, [specie]; tol=tol*1e4)
 
 X0 = 6.
 X1 = 8.
@@ -18,7 +18,7 @@ amps = map(8:1:16) do X_max
     X = 0.0:0.05:X_max
     i_X0 = findmin(abs.(X0 .- X))[2]
     i_X1 = findmin(abs.(X1 .- X))[2]
-    avg_wave = AverageWave(ω, medium, specie; hankel_order=ho, X=X)
+    avg_wave = AverageWave(ω, medium, specie; basis_order=ho, X=X)
     avg_wave.amplitudes[i_X0:i_X1,:,:]
 end
 

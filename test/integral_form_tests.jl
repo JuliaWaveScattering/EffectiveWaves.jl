@@ -16,21 +16,21 @@ function test_integral_form()
     specie2 = Specie(ρ=2.0, r=1.0, c=0.1, volfrac=0.15)
 
     # From effective wave theory
-    k_eff0 = wavenumber_low_volfrac(ω, medium, [specie]; hankel_order = ho)
-    k_effs = wavenumbers(ω, medium, [specie]; mesh_points = 10, tol = 1e-8, hankel_order = ho)
+    k_eff0 = wavenumber_low_volfrac(ω, medium, [specie]; basis_order = ho)
+    k_effs = wavenumbers(ω, medium, [specie]; mesh_points = 10, tol = 1e-8, basis_order = ho)
     k_effs = sort(k_effs, by=imag)
 
     eff_medium = effective_medium(medium, [specie])
     ω/eff_medium.c
-    k_effs2 = wavenumbers(ω, medium, [specie2]; tol = 1e-8, hankel_order = ho)
+    k_effs2 = wavenumbers(ω, medium, [specie2]; tol = 1e-8, basis_order = ho)
     k_effs2 = sort(k_effs2, by=imag)
 
     using OffsetArrays, ApproxFun, IterTools
     include("src/integral_form/integral_form.jl")
 
-    # (x, (MM_quad,b_mat)) = average_wave_system(ω, medium, specie; θin = θin, mesh_points = 501, hankel_order=ho);
+    # (x, (MM_quad,b_mat)) = average_wave_system(ω, medium, specie; θin = θin, mesh_points = 501, basis_order=ho);
     X = 0.0:0.005:30.0
-    (MM_quad,b_mat) = average_wave_system(ω, X, medium, specie;θin = θin, hankel_order=ho);
+    (MM_quad,b_mat) = average_wave_system(ω, X, medium, specie;θin = θin, basis_order=ho);
 
     # discretization parameters
     J = length(collect(x)) - 1
@@ -43,16 +43,16 @@ function test_integral_form()
     As_mat = reshape(As, (J+1, 2ho+1));
 
     amps_eff1 = scattering_amplitudes_average(ω, x, medium, [specie];
-            k_eff = k_effs[1], hankel_order = ho, θin=θin, tol=1e-8)
+            k_eff = k_effs[1], basis_order = ho, θin=θin, tol=1e-8)
     amps_eff2 = scattering_amplitudes_average(ω, x, medium, [specie];
-            k_eff = k_effs[2], hankel_order = ho, θin=θin, tol=1e-8)
+            k_eff = k_effs[2], basis_order = ho, θin=θin, tol=1e-8)
     amps_eff3 = scattering_amplitudes_average(ω, x, medium, [specie];
-            k_eff = k_effs[end], hankel_order = ho, θin=θin, tol=1e-8)
+            k_eff = k_effs[end], basis_order = ho, θin=θin, tol=1e-8)
 
     amps0_eff = scattering_amplitudes_average(ω, x, medium, [specie];
-            k_eff = k_eff0, hankel_order = ho, θin=θin)
+            k_eff = k_eff0, basis_order = ho, θin=θin)
     amps2_eff = scattering_amplitudes_average(ω, x, medium, [specie2];
-            k_eff = k_effs2[2], hankel_order = ho, θin=θin, tol=1e-8)
+            k_eff = k_effs2[2], basis_order = ho, θin=θin, tol=1e-8)
     # sanity check: the abs of reflection coefficients should always be smaller than one.
     reflection_coefficient(ω, medium, specie2; amps = amps2_eff, θin = θin)
     reflection_coefficient(ω, medium, specie; amps = amps_eff2, θin = θin)
@@ -67,7 +67,7 @@ function test_integral_form()
     error2_eff = reshape( abs.(MM_mat*amps2_eff.amplitudes[:] .- b), (J+1, 2ho+1))
     # With a completely wrong wavenumber I can still get a small error by just scalling the amplitudes
     amps2_eff = scattering_amplitudes_average(ω, x, medium, [specie];
-            k_eff = k_effs2[2], hankel_order = ho, θin=θin)
+            k_eff = k_effs2[2], basis_order = ho, θin=θin)
     error2_eff = reshape( abs.(MM_mat*amps2_eff.amplitudes[:] .- b), (J+1, 2ho+1))
     # scale_amplitudes_effective(ω, k_effs[1], amps2_eff.amplitudes, medium, [specie]; θin = θin)
 
@@ -128,9 +128,9 @@ function test_check_integration()
 
     using Plots; pyplot()
 
-    scatter(-3:3, abs.(julia[1]./math[1] .- 1), xlab = "hankel_order", ylab = "rel. error", lab ="", title="Mathematica vs Julia for x = 0.0")
-    scatter(-3:3, abs.(julia[2]./math[2] .- 1), xlab = "hankel_order", ylab = "rel. error", lab ="", title="Mathematica vs Julia for x = 1.0")
-    scatter(-3:3, abs.(julia[3]./math[3] .- 1), xlab = "hankel_order", ylab = "rel. error", lab ="", title="Mathematica vs Julia for x = 2.0")
+    scatter(-3:3, abs.(julia[1]./math[1] .- 1), xlab = "basis_order", ylab = "rel. error", lab ="", title="Mathematica vs Julia for x = 0.0")
+    scatter(-3:3, abs.(julia[2]./math[2] .- 1), xlab = "basis_order", ylab = "rel. error", lab ="", title="Mathematica vs Julia for x = 1.0")
+    scatter(-3:3, abs.(julia[3]./math[3] .- 1), xlab = "basis_order", ylab = "rel. error", lab ="", title="Mathematica vs Julia for x = 2.0")
 
 #from julia
 # using JLD

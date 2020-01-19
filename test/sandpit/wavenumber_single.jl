@@ -13,15 +13,15 @@ end
 
 function wavenumber(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol = 1e-8,
         wavenumber_initial_guess = :auto,
-        hankel_order = maximum_hankel_order(ω, medium, species; tol=tol),
+        basis_order = maximum_basis_order(ω, medium, species; tol=tol),
         radius_multiplier = 1.005,
         kws...) where T<:Number
 
     @warn("This function is now depricated as it's too unstable. Use wavenumbers(ω::T, medium::Medium{T}, Vector{Specie{T}}), which will return many effective wavenumbers.")
     k = ω/medium.c
     S = length(species)
-    ho = hankel_order
-    Z_l_n = Zn_matrix(ω, medium, species; hankel_order = ho)
+    ho = basis_order
+    Z_l_n = Zn_matrix(ω, medium, species; basis_order = ho)
 
     r = maximum(s.r for s in species)
     φ = sum(volume_fraction.(species))

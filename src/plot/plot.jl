@@ -1,10 +1,10 @@
 include("plot_match.jl")
 
 @recipe function plot(avg_wave::AverageWave{T};
-        hankel_indexes = 0:avg_wave.hankel_order,
+        hankel_indexes = 0:avg_wave.basis_order,
         apply = real) where T<:AbstractFloat
 
-    ho = avg_wave.hankel_order
+    ho = avg_wave.basis_order
 
     for n in hankel_indexes
 
@@ -46,11 +46,11 @@ end
 end
 
 @recipe function plot(x::AbstractVector, wave_effs::Vector{E};
-        hankel_indexes = 0:wave_effs[1].hankel_order,
+        hankel_indexes = 0:wave_effs[1].basis_order,
         apply = real) where E<:EffectiveWave
 
     wave_eff = AverageWave(x, wave_effs)
-    ho = wave_eff.hankel_order
+    ho = wave_eff.basis_order
 
     for n in hankel_indexes
 

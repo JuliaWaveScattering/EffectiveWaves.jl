@@ -19,11 +19,11 @@ struct Plate2D{T} <: ProblemSetup{T,2}
     x1::T
     x2::T
     """The background medium"""
-    medium::Medium{T}
+    medium::PhysicalMedium{T}
     """the species of the particles"""
     species::Vector{Specie{T}}
     """maximum order of hankel functions"""
-    hankel_order::Int
+    basis_order::Int
     """minimal particle distance multiplier"""
     radius_multiplier::T
     """orientation of wave-vector (k*cos(θin), k*sin(θin))"""
@@ -37,11 +37,11 @@ struct Sphere{T} <: ProblemSetup{T,3}
     centre::T
     radius::T
     """The background medium"""
-    medium::Medium{T}
+    medium::PhysicalMedium{T}
     """the species of the particles"""
     species::Vector{Specie{T}}
     """maximum order of hankel functions"""
-    hankel_order::Int
+    basis_order::Int
     """minimal particle distance multiplier"""
     radius_multiplier::T
     """orientation of wave-vector (k*cos(θin), k*sin(θin))"""

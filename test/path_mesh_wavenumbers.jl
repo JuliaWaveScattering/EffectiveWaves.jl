@@ -12,7 +12,7 @@ using EffectiveWaves, Test
     ω = 0.6;
     tol = 1e-9
     num_wavenumbers = 8;
-    hankel_order = 2
+    basis_order = 2
     dim = 2
 
     k_effs_path = wavenumbers_path(ω, medium, species;
@@ -21,13 +21,13 @@ using EffectiveWaves, Test
         max_Imk = 4.0,
         dim = dim,
         num_wavenumbers=num_wavenumbers,
-        hankel_order=hankel_order,
+        basis_order=basis_order,
         tol = tol
     )
 
     k_effs_mesh = wavenumbers_mesh(ω, k_effs_path[1:num_wavenumbers], medium, species;
         dim = dim,
-        hankel_order=hankel_order,
+        basis_order=basis_order,
         tol = tol
     );
 

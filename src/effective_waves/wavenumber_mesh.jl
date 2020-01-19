@@ -1,4 +1,4 @@
-function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, species::Vector{Specie{T}};
+function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMedium{T}, species::Vector{Specie{T}};
         dim = 2,
         tol::T = 1e-6,
         mesh_refine::T = T(0.4),
@@ -13,7 +13,7 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::Medium{T}, 
     low_tol = max(1e-4, tol)*minimum( (k1 == k2) ? Inf : abs(k1-k2) for k1 in k_effs, k2 in k_effs) # a tolerance used for a first pass with time_limit
 
     # the dispersion equation is given by: `dispersion(k1,k2) = 0` where k_eff = k1 + im*k2.
-    dispersion = dispersion_function(ω, medium, species; tol = low_tol, dim=dim, kws...)
+    dispersion = dispersion_equation(ω, medium, species; tol = low_tol, dim=dim, kws...)
 
     kx = LinRange(min_Rek, max_Rek, Int(round(length(k_effs)/(2*mesh_refine)))) # tree shape makes this division by 2 natural
     ky = LinRange(min_Imk, max_Imk, Int(round(length(k_effs)/(2*mesh_refine))))

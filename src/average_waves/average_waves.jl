@@ -1,15 +1,15 @@
 "A type for the ensemble average scattering coefficients.
 Here they are discretised in terms of the depth x of the halfspace"
 mutable struct AverageWave{T<:AbstractFloat}
-    hankel_order::Int # largest hankel order
+    basis_order::Int # largest hankel order
     x::Vector{T} # spatial mesh
-    amplitudes::Array{Complex{T}} # a matrix of the scattering amplitudes, size(A_mat) = (length(x), 2hankel_order +1)
+    amplitudes::Array{Complex{T}} # a matrix of the scattering amplitudes, size(A_mat) = (length(x), 2basis_order +1)
     # Enforce that the dimensions are correct
-    function AverageWave{T}(hankel_order::Int, x::Vector{T}, amplitudes::Array{Complex{T}}) where T <: AbstractFloat
-        if (length(x), 2*hankel_order+1) != size(amplitudes)[1:2]
-            error("The amplitudes of AverageWave does not satisfy size(amplitudes)[1:2] == (length(X), 2*hankel_order+1)")
+    function AverageWave{T}(basis_order::Int, x::Vector{T}, amplitudes::Array{Complex{T}}) where T <: AbstractFloat
+        if (length(x), 2*basis_order+1) != size(amplitudes)[1:2]
+            error("The amplitudes of AverageWave does not satisfy size(amplitudes)[1:2] == (length(X), 2*basis_order+1)")
         end
-        new(hankel_order,x,amplitudes)
+        new(basis_order,x,amplitudes)
     end
 end
 
@@ -34,7 +34,7 @@ end
 function AverageWave(xs::AbstractVector{T}, wave_eff::EffectiveWave{T}) where T<:Number
 
     amps = wave_eff.amplitudes
-    ho = wave_eff.hankel_order
+    ho = Int( (size(amps,1) - 1) / 2 )
     θ_eff = wave_eff.θ_eff
 
     S = size(amps,2)
@@ -49,7 +49,7 @@ end
 "Calculates an AverageWave from a vector of EffectiveWave"
 function AverageWave(xs::AbstractVector{T}, wave_effs::Vector{EffectiveWave{T}}) where T<:Number
 
-    ho = wave_effs[1].hankel_order
+    ho = wave_effs[1].basis_order
     avg_wave_effs = [AverageWave(xs, wave) for wave in wave_effs]
     amps = sum(avg_wave_effs[i].amplitudes[:,:,:] for i in eachindex(avg_wave_effs))
 
@@ -57,10 +57,9 @@ function AverageWave(xs::AbstractVector{T}, wave_effs::Vector{EffectiveWave{T}})
 end
 
 
-
 "Numerically solved the integral equation governing the average wave. Optionally can use wave_eff to approximate the wave away from the boundary."
-function AverageWave(ω::T, medium::Medium{T}, specie::Specie{T};
-        radius_multiplier::T = 1.005,
+function AverageWave(ω::T, medium::Acoustic{T,2}, specie::Specie{T};
+        # radius_multiplier::T = 1.005,
         x::AbstractVector{T} = [zero(T)],
         tol::T = T(1e-4),
         wave_effs::Vector{EffectiveWave{T}} = [zero(EffectiveWave{T})],
@@ -73,10 +72,10 @@ function AverageWave(ω::T, medium::Medium{T}, specie::Specie{T};
     if x == [zero(T)]
         if maximum(abs(w.k_eff) for w in wave_effs) == zero(T)
             wave_effs = effective_waves(real(ω/medium.c), medium, [specie];
-                radius_multiplier=radius_multiplier, tol=tol, mesh_points=2, kws...)
+                radius_multiplier=specie.exclusion_distance, tol=tol, mesh_points=2, kws...)
         end
         # estimate a large coarse non-dimensional mesh based on the lowest attenuating effective wave
-        a12 = T(2)*radius_multiplier*specie.r
+        a12 = T(2) * specie.exclusion_distance * outer_radius(specie)
         x = x_mesh(wave_effs[1]; tol = tol,  a12 = a12, max_size=max_size)
     end
 
@@ -97,18 +96,19 @@ function AverageWave(ω::T, medium::Medium{T}, specie::Specie{T};
 end
 
 "note that this uses the non-dimensional X = k*depth"
-function average_wave_system(ω::T, X::AbstractVector{T}, medium::Medium{T}, specie::Specie{T};
+function average_wave_system(ω::T, X::AbstractVector{T}, medium::Acoustic{T,2}, specie::Specie{T};
         θin::Float64 = 0.0, tol::T = 1e-6,
         radius_multiplier::T = 1.005,
         scheme::Symbol = :trapezoidal,
-        hankel_order::Int = maximum_hankel_order(ω, medium, [specie]; tol = tol),
-        t_vecs::Vector{Vector{Complex{T}}} = t_vectors(ω, medium, [specie]; hankel_order = hankel_order),
+        basis_order::Int = 2,#maximum_basis_order(ω, medium, [specie]; tol = tol),
         kws...
     ) where T<:AbstractFloat
 
+    t_vecs = t_matrix(specie, medium, ω, basis_order)
+
     k = real(ω/medium.c)
-    a12k = radius_multiplier*T(2)*real(k*specie.r);
-    M = hankel_order;
+    a12k = specie.exclusion_distance * T(2)*real(k * outer_radius(specie));
+    M = basis_order;
 
     J = length(X) - 1
     h = X[2] - X[1]
@@ -116,7 +116,7 @@ function average_wave_system(ω::T, X::AbstractVector{T}, medium::Medium{T}, spe
     PQ_quad = intergrand_kernel(X, a12k; M = M, θin = θin, scheme=scheme);
 
     MM_quad = [
-        (specie.num_density/(k^2))*t_vecs[1][m+M+1]*PQ_quad[l,m+M+1,j,n+M+1] - ( (m==n && j==l) ? 1.0+0.0im : 0.0+0.0im)
+        (number_density(specie) / (k^2))*t_vecs[1][m+M+1]*PQ_quad[l,m+M+1,j,n+M+1] - ( (m==n && j==l) ? 1.0+0.0im : 0.0+0.0im)
     for  l=1:(J+1), m=-M:M, j=1:(J+1), n=-M:M];
 
     b_mat = [

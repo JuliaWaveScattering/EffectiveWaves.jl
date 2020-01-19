@@ -26,7 +26,7 @@ end
 # background medium
 medium = Medium(1.0,1.0+0.0im)
 radius_multiplier = 1.005
-max_hankel_order=15
+max_basis_order=15
 
 incident_medium = medium
 θin = 0.2
@@ -48,7 +48,7 @@ function M(keff,j,l,m,n)
         kernelN(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
 end
 
-ho = -1 + sum([ tol .< norm([M(0.9*k + 0.1im,j,l,1,n) for j = 1:S, l = 1:S]) for n=0:max_hankel_order ])
+ho = -1 + sum([ tol .< norm([M(0.9*k + 0.1im,j,l,1,n) for j = 1:S, l = 1:S]) for n=0:max_basis_order ])
 
 # this matrix is needed to calculate the eigenvectors
 MM(keff::Complex{T}) = reshape(

@@ -14,8 +14,8 @@ function match_error(m_wave::MatchWave{T}; apply_norm::Function=norm) where T<:A
     return apply_norm(m_wave.average_wave.amplitudes[j0:end,:,:][:] - avg_eff.amplitudes[:])/len
 end
 
-function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
-        radius_multiplier::T = 1.005,
+function MatchWave(ω::T, medium::Acoustic{T,2}, specie::Specie{T,2,Acoustic{T,2}};
+        # radius_multiplier::T = 1.005,
         tol::T = T(1e-5), θin::T = zero(T),
         max_size::Int = 200,
         wave_effs::Vector{EffectiveWave{T}} = [zero(EffectiveWave{T})],
@@ -28,12 +28,12 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
 
     if maximum(abs(w.k_eff) for w in wave_effs) == zero(T)
         wave_effs = effective_waves(k, medium, [specie];
-            radius_multiplier=radius_multiplier,
+            # radius_multiplier=radius_multiplier,
             extinction_rescale = false,
             tol = T(10)*tol, θin=θin,
             kws...)
     end
-    hankel_order = wave_effs[1].hankel_order
+    basis_order = wave_effs[1].basis_order
     # use non-dimensional effective waves
     wave_non_effs = deepcopy(wave_effs)
     # wave_effs = deepcopy(wave_effs) # uncomment to use wave_effs need to forget its pointers
@@ -41,9 +41,9 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
        w.k_eff = w.k_eff/k
     end
 
-    a12k = T(2)*radius_multiplier*specie.r*k
     if first(x) == - one(T)
         # using non-dimensional wave_non_effs and a12k results in non-dimensional mesh X
+        a12k = T(2)*k* specie.exclusion_distance * outer_radius(specie)
         L_match, X =  x_mesh_match(wave_non_effs; a12 = a12k, tol = tol, max_size=max_size)
     else
         X = x.*k
@@ -59,18 +59,18 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
 
 
     J = length(collect(X)) - 1
-    len = (J + 1)  * (2hankel_order + 1)
+    len = (J + 1)  * (2basis_order + 1)
 
     (MM_quad,b_mat) = average_wave_system(ω, X, medium, specie; tol=tol,
-        radius_multiplier=radius_multiplier, hankel_order=hankel_order, θin=θin,  kws...);
+        basis_order=basis_order, θin=θin,  kws...);
     MM_mat = reshape(MM_quad, (len, len));
     b = reshape(b_mat, (len));
 
-    (LT_mat, ER_mat, b_eff) = match_arrays(ω, wave_non_effs, L_match, X, medium, [specie]; θin=θin, a12k=a12k);
+    (LT_mat, ER_mat, b_eff) = match_arrays(ω, wave_non_effs, L_match, X, medium, [specie]; θin=θin);
 
     B = b - ER_mat*b_eff
     As = (ER_mat*LT_mat + MM_mat)\B
-    As_mat = reshape(As, (J+1, 2hankel_order+1, 1))
+    As_mat = reshape(As, (J+1, 2basis_order+1, 1))
 
     αs = LT_mat*As + b_eff
     # use these αs to correct the magnitude of the amplitudes of the effective waves
@@ -81,8 +81,8 @@ function MatchWave(ω::T, medium::Medium{T}, specie::Specie{T};
     end
 
 
-    # return MatchWave(wave_effs, AverageWave(hankel_order, collect(X)./k, As_mat), collect(X[L_match:end])./k)
-    return MatchWave(wave_non_effs, AverageWave(hankel_order, collect(X)./k, As_mat), collect(X[L_match:end])./k)
+    # return MatchWave(wave_effs, AverageWave(basis_order, collect(X)./k, As_mat), collect(X[L_match:end])./k)
+    return MatchWave(wave_non_effs, AverageWave(basis_order, collect(X)./k, As_mat), collect(X[L_match:end])./k)
 end
 
 "Returns (x,L), where x[L:end] is the mesh used to match with wave_effs."

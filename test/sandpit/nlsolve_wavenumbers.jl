@@ -10,20 +10,20 @@ include("wavenumber_single.jl")
 wavenumbers(ω::T, medium::Medium{T}, specie::Specie{T}; kws...) where T<:Number = wavenumbers(ω, medium, [specie]; kws...)
 
 function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::T = 1e-6,
-        hankel_order::Int = maximum_hankel_order(ω, medium, species; tol=tol),
+        basis_order::Int = maximum_basis_order(ω, medium, species; tol=tol),
         mesh_points::Int = 7, mesh_size::T = 0.65,
         max_Imk::T = 0.0, max_Rek::T = 0.0,
         time_limit::T = 1.0,
         iterations::Int = 200,
         radius_multiplier::T = 1.005,
-        t_vecs = t_vectors(ω, medium, species; hankel_order = hankel_order),
+        t_vecs = t_vectors(ω, medium, species; basis_order = basis_order),
         kws...) where T<:Number
 
     k = ω/medium.c
     S = length(species)
-    ho = hankel_order
+    ho = basis_order
 
-    # Z_l_n = Zn_matrix(ω, medium, species; hankel_order = ho)
+    # Z_l_n = Zn_matrix(ω, medium, species; basis_order = ho)
     # r = maximum(s.r for s in species)
     # φ = sum(volume_fraction.(species))
 

@@ -19,7 +19,7 @@ ho = 2
 a12k = k*radius_multiplier*2.0*specie.r
 
 wave_effs = effective_waves(ω, medium, [specie];
-    hankel_order=ho, tol = 100*tol,  θin = θin,
+    basis_order=ho, tol = 100*tol,  θin = θin,
     radius_multiplier = radius_multiplier, mesh_points = 6
     , extinction_rescale = false
     )
@@ -57,7 +57,7 @@ XJ = 0.:(X[2] - X[1]):X[J]
 X2 = (X[J]+X[2]-X[1]):(X[2] - X[1]):(4*X[end])
 
 X = XJ
-ho = wave_effs[1].hankel_order
+ho = wave_effs[1].basis_order
 S = 1;
 species = [specie]
 J = length(X) - 1

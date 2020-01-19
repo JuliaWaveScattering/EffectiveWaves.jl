@@ -5,7 +5,7 @@ function wavenumbers_refine(ω::T, medium::Medium{T}, species::Vector{Specie{T}}
         kws...) where T<:Number
 
     # the dispersion equation is given by: `dispersion(k1,k2) = 0` where k_eff = k1 + im*k2.
-    dispersion = dispersion_function(ω, medium, species; tol = tol, dim=dim, kws...)
+    dispersion = dispersion_equation(ω, medium, species; tol = tol, dim=dim, kws...)
 
     # add any specified keffs
     k_vecs = [[real(kp),imag(kp)] for kp in k_effs]

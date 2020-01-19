@@ -12,17 +12,17 @@ using LinearAlgebra
     radius_multiplier = 1.001
 
     tol = 1e-8
-    hankel_order=0
+    basis_order=0
     θ = pi/4
 
     k_effs = wavenumbers(ω, medium, [specie];
         radius_multiplier = radius_multiplier,
-        tol=tol, hankel_order = hankel_order,
+        tol=tol, basis_order = basis_order,
         num_wavenumbers = 50);
 
     wave_effs = [
         EffectiveWave(ω, k_eff, medium, [specie];
-            hankel_order = hankel_order,
+            basis_order = basis_order,
             radius_multiplier = radius_multiplier,
             tol = tol, extinction_rescale=false,
             method = :WienerHopf,
@@ -32,7 +32,7 @@ using LinearAlgebra
 
     match_ws = MatchWave(ω, medium, specie;
         radius_multiplier = radius_multiplier,
-        hankel_order = hankel_order,
+        basis_order = basis_order,
         tol = tol, wave_effs = wave_effs[1:10],
         θin=θ,
         max_size = 800,

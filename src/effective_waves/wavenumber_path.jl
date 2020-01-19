@@ -1,5 +1,4 @@
-function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
-        dim = 2,
+function wavenumbers_path(ω::T, medium::PhysicalMedium{T}, species::Vector{Specie{T}};
         tol::T = 1e-6,
         mesh_points::Int = 2, mesh_size::T = one(T),
         num_wavenumbers = 3,
@@ -11,7 +10,7 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
 
     # find at least one root to use as a scale for dk_x and dk_y
         kφ = wavenumber_low_volfrac(ω, medium, species; verbose = false)
-        eff_medium = effective_medium(medium, species; dim=dim)
+        eff_medium = effective_medium(medium, species)
         k0 = ω/eff_medium.c
         if isnan(k0) k0 = kφ end
         kin = [min(real(k0),abs(real(kφ))),abs(imag(kφ))]
@@ -22,9 +21,9 @@ function wavenumbers_path(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
     # non-dimensionlise tolerances using k0
         low_tol = min(1e-5, sqrt(tol)) * abs(k0) # a tolerance used for a first pass with time_limit
         tol = tol * abs(k0)
-        
+
     # the dispersion equation is given by: `dispersion(k1,k2) = 0` where k_eff = k1 + im*k2.
-        dispersion = dispersion_function(ω, medium, species; tol = low_tol, dim=dim, kws...)
+        dispersion = dispersion_equation(ω, medium, species; tol = low_tol, dim=dim, kws...)
 
         k_vecs = [optimize(dispersion, kvec, Optim.Options(x_tol=low_tol, g_tol = low_tol^3)).minimizer for kvec in k_vecs]
         k_vecs = reduce_kvecs(k_vecs, low_tol/10)

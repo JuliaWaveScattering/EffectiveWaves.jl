@@ -14,13 +14,13 @@ using EffectiveWaves, Test
     k = ω/medium.c
     θin = 0.3
     tol = 1e-8
-    hankel_order = 2
+    basis_order = 2
     radius_multiplier = 1.005
 
     wave_effs_arr = [
         effective_waves(ω, medium, [s];
             radius_multiplier=radius_multiplier,
-            hankel_order=hankel_order,
+            basis_order=basis_order,
             mesh_points=6,
             num_wavenumbers=28,
             tol = tol,  θin = θin,
@@ -33,7 +33,7 @@ using EffectiveWaves, Test
     match_ws = [
         MatchWave(ω, medium, species[i];
             radius_multiplier=radius_multiplier,
-            hankel_order=hankel_order,
+            basis_order=basis_order,
             θin = θin, tol = tol,
             wave_effs = wave_effs_arr[i],
             max_size=80)
@@ -45,7 +45,7 @@ using EffectiveWaves, Test
     avgs = [
         AverageWave(ω, medium, species[i];
                 radius_multiplier=radius_multiplier,
-                hankel_order=hankel_order,
+                basis_order=basis_order,
                 tol = tol, θin = θin,
                 wave_effs = wave_effs_arr[i], max_size=700)
     for i in eachindex(species)]

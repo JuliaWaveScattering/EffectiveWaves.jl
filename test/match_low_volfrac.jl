@@ -9,14 +9,14 @@ using LinearAlgebra
     species = [specie]
     θin = 0.2
     tol = 1e-9
-    hankel_order = 2
+    basis_order = 2
 
     ωs = [0.2,1.2]
     radius_multiplier = 1.005
 
     wave_effs_arr = [
         effective_waves(ω, medium, [specie];
-            hankel_order=hankel_order, tol = tol,  θin = θin,
+            basis_order=basis_order, tol = tol,  θin = θin,
             radius_multiplier = radius_multiplier,
             num_wavenumbers = 1
             #, mesh_points = 10, mesh_size = 2.0 #, max_Rek = 20.0, max_Imk = 20.0
@@ -24,12 +24,12 @@ using LinearAlgebra
     for ω in ωs]
 
     k_eff_φs = wavenumber_low_volfrac(ωs, medium, species; tol=tol,
-        hankel_order=hankel_order,
+        basis_order=basis_order,
         radius_multiplier = radius_multiplier)
 
     wave_eff_φs = [
         EffectiveWave(ωs[i], k_eff_φs[i], medium, species; tol = tol,
-            hankel_order=hankel_order, θin = θin,
+            basis_order=basis_order, θin = θin,
             extinction_rescale = true,
             radius_multiplier = radius_multiplier)
     for i in eachindex(ωs)]

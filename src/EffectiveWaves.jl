@@ -4,17 +4,15 @@ module EffectiveWaves
 include("export_import.jl")
 # try using BlackBoxOptim end
 # using IterTools
-using RecipesBase
-using Optim
-using OffsetArrays
-using ApproxFun
-using LinearAlgebra
-using WignerSymbols
-using GSL
+using RecipesBase, OffsetArrays, LinearAlgebra
+using Optim, ApproxFun # Heavy packages
+using WignerSymbols, GSL
+
+@reexport using MultipleScattering
 
 include("specialfunctions.jl")
-include("particle.jl")
-include("t-matrix.jl")
+# include("particle.jl")
+# include("t-matrix.jl")
 
 include("effective_waves/effective_waves_export.jl")
 include("average_waves/average_waves_export.jl")

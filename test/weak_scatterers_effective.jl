@@ -22,10 +22,10 @@
     for ω in ωs]
 
         # k_vec = [real(k_effs[2][1]), imag(k_effs[2][1])]
-    # dispersion = dispersion_function(ω, medium, species; tol = 1e-3, dim=2, symmetry=:plane)
+    # dispersion = dispersion_equation(ω, medium, species; tol = 1e-3, dim=2, symmetry=:plane)
     # dispersion(k_vec)
 
-    # maximum_hankel_order(ω, medium, species; tol=tol)
+    # maximum_basis_order(ω, medium, species; tol=tol)
     inds = [argmin(abs.(k_effs[i] .- k_eff_φs[i])) for i in eachindex(ωs)]
     k_effs2 = [k_effs[i][inds[i]] for i in eachindex(inds)]
 
@@ -74,7 +74,7 @@
         reflection_coefficient_halfspace(medium, eff_medium; θin = θ, tol=1e-9)
     for θ in θs]
 
-    Rs = map(θs) do θ  # , hankel_order =7
+    Rs = map(θs) do θ  # , basis_order =7
         wave_effs_2 = [
             EffectiveWave(ωs[i], k_effs2[i], medium, species;
                 tol = 1e-9, θin = θ
@@ -83,7 +83,7 @@
         reflection_coefficients(ωs, wave_effs_2, medium, species; θin = θ)
     end
     Rs_φs = [
-        reflection_coefficient_low_volfrac(ωs, medium, species; θin = θ, tol = 1e-9, hankel_order =7)
+        reflection_coefficient_low_volfrac(ωs, medium, species; θin = θ, tol = 1e-9, basis_order =7)
     for θ in θs];
 
     @test maximum(abs(R_low[i] - Rs[i][1]) for i in 1:length(R_low)) < 1e-7

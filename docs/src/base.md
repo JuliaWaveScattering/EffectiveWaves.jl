@@ -8,18 +8,6 @@ CurrentModule = EffectiveWaves
 Pages = ["base.md"]
 ```
 
-## Material and particle properties
-
-```@docs
-Medium
-Specie
-volume_fraction
-p_speed
-t_vectors
-Zn
-maximum_hankel_order
-```
-
 ## Types of waves
 
 There are currently three main types used.

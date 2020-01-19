@@ -22,8 +22,8 @@ radius_multiplier = 1.005
 kws = ()
 T = Float64
 tol = 1e-7
-ho = maximum_hankel_order(ω, medium, [specie]; tol=tol) -1
-hankel_order = ho
+ho = maximum_basis_order(ω, medium, [specie]; tol=tol) -1
+basis_order = ho
 
 # for X = 0.0:0.05:12. the relative convergence error for
 # Specie(ρ=0.5, r=0.5, c=0.2, volfrac=0.1), k = 0.8, and θin = 0.0,
@@ -36,7 +36,7 @@ num_wavenumbers = 40;
 
 
 wave_effs = effective_waves(ω, medium, [specie];
-    hankel_order=ho, tol = 1e-7,  θin = θin, verbose = true,
+    basis_order=ho, tol = 1e-7,  θin = θin, verbose = true,
     num_wavenumbers = num_wavenumbers,
     apply_meshing = true,
     radius_multiplier = radius_multiplier,
@@ -46,7 +46,7 @@ wave_effs = effective_waves(ω, medium, [specie];
 
 # k_effs = [w.k_eff for w in wave_effs];
 # mesh_ks = wavenumbers_mesh(ω, k_effs, medium, [specie];
-#     hankel_order=ho, tol = 1e-7,  θin = θin, verbose = true,
+#     basis_order=ho, tol = 1e-7,  θin = θin, verbose = true,
 #     num_wavenumbers = num_wavenumbers,
 #     radius_multiplier = radius_multiplier, mesh_refine = 0.2
 #     );
@@ -63,7 +63,7 @@ L, x = x_mesh_match(wave_effs[1:num_wavenumbers]; a12 = a12, max_size = 220, tol
 x = x_mesh(wave_effs[1], wave_effs[2]; a12 = a12, max_size = 1600, tol=1e-8)
 
 avg_wave_x = AverageWave(ω, medium, specie;
-    hankel_order=ho, θin=θin, x = x,
+    basis_order=ho, θin=θin, x = x,
     wave_effs = wave_effs[1:num_wavenumbers],
     radius_multiplier = radius_multiplier, tol = 1e-8)
 X = avg_wave_x.x.*k
@@ -78,7 +78,7 @@ x_short = x[1:Int(round(length(x)/3))]
 match_w = MatchWave(ω, medium, specie;
     x = x_short, L_match = 20,
     radius_multiplier = radius_multiplier,
-    hankel_order=ho,
+    basis_order=ho,
     tol = 1e-7, θin = θin, wave_effs = wave_effs[1:num_wavenumbers]);
 
     ω = real(k*medium.c)
@@ -87,14 +87,14 @@ match_w = MatchWave(ω, medium, specie;
     kws = ()
     T = Float64
     tol = 1e-7
-    ho = maximum_hankel_order(ω, medium, [specie]; tol=tol) -1
-    hankel_order = ho
+    ho = maximum_basis_order(ω, medium, [specie]; tol=tol) -1
+    basis_order = ho
 
 plot(match_w, hankel_indexes = 0:1)
 plot(avg_wave_x, hankel_indexes = 0:1, seriestype=:scatter, xlims = (0.,5.))
 plot!(match_w, hankel_indexes = 0:1, seriestype=:line, xlims = (0.,5.))
 
-avg_wave_small = AverageWave(ω, medium, specie; hankel_order=ho, θin=θin, x=match_w.average_wave.x,
+avg_wave_small = AverageWave(ω, medium, specie; basis_order=ho, θin=θin, x=match_w.average_wave.x,
     radius_multiplier = radius_multiplier, tol = 1e-6, max_size=500)
 plot!(avg_wave_small, seriestype=:line, linestyle=:dash)
 

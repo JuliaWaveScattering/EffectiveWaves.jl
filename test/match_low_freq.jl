@@ -10,7 +10,7 @@
     ω = 0.002
     θin = -0.2
     tol = 1e-8
-    hankel_order = 1
+    basis_order = 1
 
     k_eff_lows = map(species) do s
         med_eff = effective_medium(medium, [s])
@@ -18,12 +18,12 @@
     end
     wave_eff_lows = [
         EffectiveWave(ω, k_eff_lows[i], medium, [species[i]]; tol = tol,
-            hankel_order=hankel_order, θin = θin)
+            basis_order=basis_order, θin = θin)
     for i in eachindex(species)]
 
     wave_effs_arr = [
         effective_waves(ω, medium, [s];
-            hankel_order=hankel_order,
+            basis_order=basis_order,
             num_wavenumbers = 1,
             tol = tol,  θin = θin,
             extinction_rescale = false)
@@ -32,7 +32,7 @@
     @test norm([ws[1].k_eff for ws in wave_effs_arr] - k_eff_lows) < tol
 
     match_ws = [
-        MatchWave(ω, medium, species[i]; hankel_order=hankel_order,
+        MatchWave(ω, medium, species[i]; basis_order=basis_order,
         max_size = 60,
         θin = θin, tol = tol,
         wave_effs = wave_effs_arr[i])
