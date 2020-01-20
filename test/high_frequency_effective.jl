@@ -2,11 +2,17 @@ using EffectiveWaves, Test
 using LinearAlgebra
 
 @testset "high frequency effective" begin
-        medium = Medium(1.0,1.0+0.0im)
+        medium = Acoustic(2; ρ=1.0, c=1.0)
+
         # Large weak scatterers with low volume fraciton
+        ms = MultipleScattering
+
+        p1 = Particle(Acoustic(2; ρ=10.0, c=12.0),ms.Circle(1.9))
+        p2 = Particle(Acoustic(2; ρ=3.0, c=2.0),ms.Circle(0.7))
+
         species = [
-            Specie(ρ=10.,r=1.9, c=12., volfrac=0.04),
-            Specie(ρ=3., r=0.7, c=2.0, volfrac=0.02)
+            Specie(p1; volume_fraction=0.04),
+            Specie(p2; volume_fraction=0.02)
         ]
         ωs2 = [120.]
 

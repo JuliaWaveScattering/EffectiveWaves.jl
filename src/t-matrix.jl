@@ -1,5 +1,5 @@
 # "Calculate the largest needed order for the hankel series."
-# function maximum_basis_order(ω::Union{T,Complex{T}}, medium::Acoustic{T,2}, species::Vector{Specie{T}};
+# function maximum_basis_order(ω::Union{T,Complex{T}}, medium::Acoustic{T,2}, species::Species{T};
 #         tol::T=1e-7, verbose::Bool = false) where T <: Number
 #
 #     # estimation is based on far-field scattering pattern contribution to the primary effective wavenumber^2 and reflection coefficient.
@@ -21,7 +21,7 @@
 # end
 
 # "A t_matrix in the form of a vector, because for now we only deal with diagonal T matrices."
-# function t_vectors(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; basis_order = 3, dim = 2) where T <: AbstractFloat
+# function t_vectors(ω::T, medium::Medium{T}, species::Species{T}; basis_order = 3, dim = 2) where T <: AbstractFloat
 #     t_vecs = [ zeros(Complex{T},1+2basis_order) for s in species]
 #     for i = 1:length(species), n = 0:basis_order
 #         t_vecs[i][n+basis_order+1] = - Zn(ω,species[i],medium,n; dim = dim)
@@ -31,7 +31,7 @@
 # end
 #
 # "Pre-calculate a matrix of Zn's"
-# function Zn_matrix(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; basis_order = 3) where T <: Number
+# function Zn_matrix(ω::T, medium::Medium{T}, species::Species{T}; basis_order = 3) where T <: Number
 #     Zs = OffsetArray{Complex{T}}(undef, 1:length(species), -basis_order:basis_order)
 #     for i = 1:length(species), n = 0:basis_order
 #         Zs[i,n] = Zn(ω,species[i],medium,n)

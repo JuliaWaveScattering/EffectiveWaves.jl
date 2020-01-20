@@ -4,26 +4,27 @@ using LinearAlgebra
 # this is for high volume and frequency
 @testset "compare wienger-hopf and match method average scattering coefficient" begin
 
-    medium = Medium(1.0,1.0+0.0im)
+    medium = Acoustic(2; ρ=1.0, c=1.0)
+    ms = MultipleScattering
+
+    specie = Specie(Particle(
+        Acoustic(2; ρ=0.0, c=0.0), ms.Circle(0.5));
+        volume_fraction=0.3
+    )
 
     ω = 1.0
-
-    specie = Specie(ρ=0.0, r=0.5, c=0.0, volfrac = 0.30)
-    radius_multiplier = 1.001
 
     tol = 1e-8
     basis_order=0
     θ = pi/4
 
     k_effs = wavenumbers(ω, medium, [specie];
-        radius_multiplier = radius_multiplier,
         tol=tol, basis_order = basis_order,
         num_wavenumbers = 50);
 
     wave_effs = [
         EffectiveWave(ω, k_eff, medium, [specie];
             basis_order = basis_order,
-            radius_multiplier = radius_multiplier,
             tol = tol, extinction_rescale=false,
             method = :WienerHopf,
             θin=θ
@@ -31,7 +32,6 @@ using LinearAlgebra
     for k_eff in k_effs];
 
     match_ws = MatchWave(ω, medium, specie;
-        radius_multiplier = radius_multiplier,
         basis_order = basis_order,
         tol = tol, wave_effs = wave_effs[1:10],
         θin=θ,

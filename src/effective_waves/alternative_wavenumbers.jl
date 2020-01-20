@@ -1,8 +1,8 @@
 "wavenumber from Challis, R. E., et al. Ultrasound techniques for characterizing colloidal dispersions. Reports on progress in physics 68.7 (2005): 1541."
-wavenumber_challis(ωs::AbstractArray,medium::Acoustic{T,2}, species::Array{Specie{T,2}}; kws...) where T<:AbstractFloat = [wavenumber_challis(ω, medium, species; kws...) for ω in ωs]
+wavenumber_challis(ωs::AbstractArray,medium::Acoustic{T,2}, species::Species{T,2}; kws...) where T<:AbstractFloat = [wavenumber_challis(ω, medium, species; kws...) for ω in ωs]
 
 # will sum Hankel orders only up to n =2 as in the paper "Ultrasound techniques for characterizing colloidal dispersions"
-function wavenumber_challis(ω::Number, medium::Acoustic{T,2}, species::Array{Specie{T,2}};
+function wavenumber_challis(ω::Number, medium::Acoustic{T,2}, species::Species{T,2};
     radius_multiplier = 1.005, verbose = false, basis_order=2) where T<:AbstractFloat
   # tol=0.004; radius_multiplier = 1.005
   # a12 = radius_multiplier(a1+a2)
@@ -35,7 +35,7 @@ function one_species_low_wavenumber(ωs, medium::Acoustic{T,2}, sp::Specie{T,2})
   (ωs./medium.c).*(1 - (φ/2)*(P+2*Q)-(φ^2/8)*(2*P^2-(P+2*Q)^2))
 end
 
-function wavenumber_far_field_low_volfrac(ω::Complex{T}, medium::Acoustic{T,2}, species::Array{Specie{T,2}};
+function wavenumber_far_field_low_volfrac(ω::Complex{T}, medium::Acoustic{T,2}, species::Species{T,2};
         tol=0.0002, #radius_multiplier = 1.005,
         verbose = false) where T<:AbstractFloat
   # tol=0.004; radius_multiplier = 1.005

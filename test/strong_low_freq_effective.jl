@@ -3,9 +3,12 @@ using EffectiveWaves, Test
 # This case is numerically challenging, because wavenumber() has many roots close together. Make sure spacing in ωs is small to help the optimisation method
 @testset "strong scatterers and low frequency" begin
     medium = Acoustic(2; ρ=1.0, c=1.0)
+    spatial_dim = 2
 
-    p1 = Particle(Acoustic(2; ρ=5.0, c=0.002),Circle(0.004))
-    p2 = Particle(Acoustic(2; ρ=0.3, c=0.01),Circle(0.002))
+    ms = MultipleScattering # just in case Circle conflicts with a definition from another package.
+
+    p1 = Particle(Acoustic(spatial_dim; ρ=5.0, c=0.002),ms.Circle(0.004))
+    p2 = Particle(Acoustic(spatial_dim; ρ=0.3, c=0.01),ms.Circle(0.002))
 
     species = [
         Specie(p1; volume_fraction=0.2),
@@ -17,11 +20,11 @@ using EffectiveWaves, Test
     eff_medium = effective_medium(medium, species)
     k_eff_lows = ωs./eff_medium.c
 
-    k_eff_φs = wavenumber_low_volfrac(ωs, medium, species)
+    k_eff_φs = wavenumber_low_volfrac(ωs, medium, species, basis_order=1)
     # num_wavenumbers =1 almost always finds the wavenubmer with the smallest attenuation
 
     k_effs_arr = [
-        wavenumbers(ω, medium, species; tol=tol, num_wavenumbers=1)
+        wavenumbers(ω, medium, species; tol=tol, num_wavenumbers=3, basis_order=1)
     for ω in ωs]
 
     inds = [argmin(abs.(k_effs_arr[i] .- k_eff_φs[i])) for i in eachindex(ωs)]

@@ -1,5 +1,5 @@
 
-function wavenumber(ωs::AbstractVector{T}, medium::Medium{T}, species::Vector{Specie{T}};
+function wavenumber(ωs::AbstractVector{T}, medium::Medium{T}, species::Species{T};
         wavenumber_initial_guess = :auto, kws...) where T<:Number
     ks = Vector{Complex{T}}(length(ωs))
     ks[1] = wavenumber(ωs[1], medium, species; wavenumber_initial_guess = wavenumber_initial_guess, kws...)
@@ -11,13 +11,13 @@ function wavenumber(ωs::AbstractVector{T}, medium::Medium{T}, species::Vector{S
     return ks
 end
 
-function wavenumber(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol = 1e-8,
+function wavenumber(ω::T, medium::Medium{T}, species::Species{T}; tol = 1e-8,
         wavenumber_initial_guess = :auto,
         basis_order = maximum_basis_order(ω, medium, species; tol=tol),
         radius_multiplier = 1.005,
         kws...) where T<:Number
 
-    @warn("This function is now depricated as it's too unstable. Use wavenumbers(ω::T, medium::Medium{T}, Vector{Specie{T}}), which will return many effective wavenumbers.")
+    @warn("This function is now depricated as it's too unstable. Use wavenumbers(ω::T, medium::Medium{T}, Species{T}), which will return many effective wavenumbers.")
     k = ω/medium.c
     S = length(species)
     ho = basis_order

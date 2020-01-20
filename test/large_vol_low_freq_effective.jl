@@ -6,17 +6,22 @@ using EffectiveWaves, Test
     # ωs = [0.001, 2.0, 9.0]
     ω = 0.001
 
-    medium = Medium(1.0,1.0+0.0im)
+    medium = Acoustic(2; ρ=1.0, c=1.0)
+    ms = MultipleScattering
+
+    p1 = Particle(Acoustic(2; ρ=5.0, c=1.2),ms.Circle(0.004))
+    p2 = Particle(Acoustic(2; ρ=0.3, c=0.4),ms.Circle(0.002))
+
     species = [
-        Specie(ρ=5.,r=0.004, c=1.2, volfrac=0.4),
-        Specie(ρ=0.3, r=0.002, c=0.4, volfrac=0.3)
+        Specie(p1; volume_fraction=0.4),
+        Specie(p2; volume_fraction=0.3)
     ]
 
     eff_medium = effective_medium(medium, species)
 
-    tol = 1e-7
+    tol = 1e-6
     k_eff_low = ω/eff_medium.c
-    k_effs = wavenumbers(ω, medium, species; tol = tol, num_wavenumbers=1)
+    k_effs = wavenumbers(ω, medium, species; tol = tol, num_wavenumbers=1, basis_order=1)
     i = findmin(abs.(k_effs .- k_eff_low))[2]
     k_eff = k_effs[i]
 

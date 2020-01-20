@@ -4,45 +4,53 @@ using EffectiveWaves, Test
 
 using LinearAlgebra
 ## Low volume fraction
-    medium = Medium(1.0,1.0+0.0im)
-    specie = Specie(ρ=0.5, r=0.4, c=0.5, volfrac=0.001)
+    medium = Acoustic(2; ρ=1.0, c=1.0)
+    ms = MultipleScattering
+
+    exclusion_distance = 1.005
+
+    specie = Specie(Particle(
+        Acoustic(2; ρ=0.5, c=0.5), ms.Circle(0.4));
+        volume_fraction=0.001,
+        exclusion_distance=exclusion_distance
+    )
     species = [specie]
+
     θin = 0.2
-    tol = 1e-9
+    tol = 1e-8
     basis_order = 2
 
     ωs = [0.2,1.2]
-    radius_multiplier = 1.005
 
     wave_effs_arr = [
         effective_waves(ω, medium, [specie];
             basis_order=basis_order, tol = tol,  θin = θin,
-            radius_multiplier = radius_multiplier,
             num_wavenumbers = 1
             #, mesh_points = 10, mesh_size = 2.0 #, max_Rek = 20.0, max_Imk = 20.0
             , extinction_rescale = false)
     for ω in ωs]
 
     k_eff_φs = wavenumber_low_volfrac(ωs, medium, species; tol=tol,
-        basis_order=basis_order,
-        radius_multiplier = radius_multiplier)
+        basis_order=basis_order)
 
     wave_eff_φs = [
         EffectiveWave(ωs[i], k_eff_φs[i], medium, species; tol = tol,
             basis_order=basis_order, θin = θin,
-            extinction_rescale = true,
-            radius_multiplier = radius_multiplier)
+            extinction_rescale = true)
     for i in eachindex(ωs)]
 
-    @test maximum(abs(wave_effs_arr[i][1].k_eff/k_eff_φs[i] - 1.0) for i in eachindex(ωs)) < 5e-8
+    @test maximum(abs(wave_effs_arr[i][1].k_eff/k_eff_φs[i] - 1.0) for i in eachindex(ωs)) < 1e-7
 
-    ds = [abs(dot(wave_eff_φs[i].amplitudes[:], wave_effs_arr[i][1].amplitudes[:])) for i in eachindex(ωs)]
-    ds2 = [norm(wave_eff_φs[i].amplitudes[:])*norm(wave_effs_arr[i][1].amplitudes[:]) for i in eachindex(ωs)]
+    ds = [
+        abs(dot(wave_eff_φs[i].amplitudes[:], wave_effs_arr[i][1].amplitudes[:]))
+    for i in eachindex(ωs)]
+    ds2 = [
+        norm(wave_eff_φs[i].amplitudes[:])*norm(wave_effs_arr[i][1].amplitudes[:])
+    for i in eachindex(ωs)]
     @test maximum(ds./ds2 .- 1.0) < tol
 
     match_ws = [
         MatchWave(ωs[i], medium, specie; θin = θin,
-            radius_multiplier = radius_multiplier,
             max_size=150,
             tol = tol, wave_effs = wave_effs_arr[i][1:1])
     for i in eachindex(ωs)]

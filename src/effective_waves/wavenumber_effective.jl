@@ -6,7 +6,7 @@
 " Returns all the transmitted effective wavenumbers"
 wavenumbers(ω::T, medium::PhysicalMedium{T}, specie::Specie{T}; kws...) where T<:Number = wavenumbers(ω, medium, [specie]; kws...)
 
-function wavenumbers(ω::T, medium::PhysicalMedium{T}, species::Vector{Specie{T}};
+function wavenumbers(ω::T, medium::PhysicalMedium{T}, species::Species{T};
         num_wavenumbers = 8,
         apply_meshing::Bool = true,
         kws...) where T<:Number

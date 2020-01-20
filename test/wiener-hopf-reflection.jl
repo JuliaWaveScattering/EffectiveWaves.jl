@@ -3,28 +3,28 @@ using EffectiveWaves, Test
 # this is for high volume and frequency
 @testset "compare wienger-hopf and match method reflection" begin
 
-    medium = Medium(1.0,1.0+0.0im)
+    medium = Acoustic(2; ρ=1.0, c=1.0)
+    ms = MultipleScattering
+
+    specie = Specie(Particle(
+        Acoustic(2; ρ=0.0, c=0.0), ms.Circle(0.5));
+        volume_fraction = 0.2, exclusion_distance = 1.01
+    )
 
     ω = 1.3
-
-    specie = Specie(ρ=0.0, r=0.5, c=0.0, volfrac = 0.2)
-    radius_multiplier = 1.01
 
     tol = 1e-9
     basis_order=0
 
     ws = effective_waves(ω, medium, [specie];
-        radius_multiplier = radius_multiplier,
         tol=tol, basis_order = basis_order,
         apply_meshing = false,
         num_wavenumbers = 20,
         mesh_points = 30, mesh_size = 2.);
 
-
     function Rerror(θ)
 
         match_ws = MatchWave(ω, medium, specie;
-            radius_multiplier = radius_multiplier,
             basis_order = basis_order,
             tol = tol, wave_effs = ws[1:15],
             θin=θ,
@@ -35,7 +35,6 @@ using EffectiveWaves, Test
         Rw = wienerhopf_reflection_coefficient(ω, medium, [specie];
                 θin = θ,
                 tol=tol,
-                radius_multiplier = radius_multiplier,
                 basis_order = basis_order
         )
         return abs(Rm-Rw)/abs(Rw)
@@ -54,12 +53,17 @@ end
 # Note the wiener-hopf method is inaccurate or takes along time to calculate a very low-frequency solution
 @testset "compare wienger-hopf for low-ish frequency" begin
 
-    medium = Medium(1.0,1.0+0.0im)
+    medium = Acoustic(2; ρ=1.0, c=1.0)
+    ms = MultipleScattering
+    
+    # Always Dirichlet boundary conditions for basis_order=0!
+    specie = Specie(Particle(
+        Acoustic(2; ρ=0.0, c=6.0), ms.Circle(0.01));
+        volume_fraction = 0.3
+    )
+
     ω = 0.01
     basis_order=0
-
-    # Always Dirichlet boundary conditions for basis_order=0!
-    specie = Specie(ρ = 0.0, r=0.01, c=6.0, volfrac = 0.3)
 
     tol = 1e-7
 

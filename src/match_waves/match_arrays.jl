@@ -2,11 +2,11 @@
 Returns (LT, ER, (im*k^2*inv_w).*invV*conj(w_vec)), which connect the effective and average wave through α = LT*A + (im*k^2*inv_w).*invV*conj(w_vec).
 The matching region is X[L:end].
 "
-function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, L::Int, X::AbstractVector{T}, medium::Acoustic{T,2}, species::Vector{Specie{T,2,Acoustic{T,2}}};
+function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, L::Int, X::AbstractVector{T}, medium::Acoustic{T,2}, species::Species{T,2};
         # a12k::T = 1.005*T(2)*real(specie.r*ω/medium.c),
         scheme::Symbol = :trapezoidal, θin::T = 0.0) where T<:Number
 
-    a12k = T(2)*real(species[1].exclusion_distance * outer_radius(specie) * ω/medium.c)
+    a12k = T(2)*real(species[1].exclusion_distance * outer_radius(species[1]) * ω/medium.c)
 
     J = length(X) - 1
     k = ω/medium.c

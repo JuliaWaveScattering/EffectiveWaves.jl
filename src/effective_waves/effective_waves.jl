@@ -6,14 +6,14 @@ mutable struct EffectiveWave{T<:AbstractFloat}
     θ_eff::Complex{T} # the effective transmission angle
 end
 
-EffectiveWave(amps::Array{Complex{T}}, k_eff::Complex{T}, θ_eff::Complex{T}) where T<:AbstractFloat = EffectiveWave(Int( (size(wave_eff.amplitudes,1) - 1) / 2 ), amps, k_eff, θ_eff)
+EffectiveWave(amps::Array{Complex{T}}, k_eff::Complex{T}, θ_eff::Complex{T}) where T<:AbstractFloat = EffectiveWave(Int( (size(amps,1) - 1) / 2 ), amps, k_eff, θ_eff)
 
 zero(W::Type{EffectiveWave{T}}) where {T<:AbstractFloat} = EffectiveWave(0,[zero(Complex{T})],zero(Complex{T}),zero(Complex{T}))
 
 effective_waves(ω::T, medium::PhysicalMedium{T}, specie::Specie{T}; kws...) where T<:AbstractFloat =  effective_waves(ω, medium, [specie]; kws...)
 
 "Calculates the effective wavenumbers and return Vector{EffectiveWave}."
-function effective_waves(ω::T, medium::Acoustic{T,2}, species::Vector{Specie{T}}; tol::T = 1e-6,
+function effective_waves(ω::T, medium::Acoustic{T,2}, species::Species{T}; tol::T = 1e-6,
     extinction_rescale::Bool = false, kws...) where T<:AbstractFloat
     # as there will be likely more than 1 k_eff we set extinction to false.
 
@@ -25,7 +25,7 @@ function effective_waves(ω::T, medium::Acoustic{T,2}, species::Vector{Specie{T}
     return wave_effs
 end
 
-function EffectiveWave(ω::T, k_eff::Complex{T}, medium::Acoustic{T,2}, species::Vector{Specie{T,2}};
+function EffectiveWave(ω::T, k_eff::Complex{T}, medium::Acoustic{T,2}, species::Species{T,2};
         θin::T = 0.0, tol::T = 1e-7,
         # basis_order::Int = 2, #maximum_basis_order(ω, medium, species; tol=tol),
         # radius_multiplier::T = 1.005,

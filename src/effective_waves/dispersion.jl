@@ -1,6 +1,6 @@
 
 
-function dispersion_equation(ω::T, medium::Ph, species::Vector{Specie{T}};
+function dispersion_equation(ω::T, medium::Ph, species::Species{T};
         tol::T = 1e-4, symmetry = :plane,
         kws...) where {T<:Number, Ph<:PhysicalMedium}
 
@@ -31,11 +31,10 @@ function dispersion_equation(ω::T, medium::Ph, species::Vector{Specie{T}};
     return detMM
 end
 
-function effectivewave_system(ω::T, medium::Acoustic{T,2}, species::Vector{Specie{T,2,P}};
+function effectivewave_system(ω::T, medium::Acoustic{T,2}, species::Species{T,2};
         tol::T = 1e-4,
         basis_order::Int = 2, #maximum_basis_order(ω, medium, species; tol=tol),
-        # radius_multiplier::T = T(1.005),
-        kws...) where {T<:AbstractFloat,P<:AbstractParticle}
+        kws...) where {T<:AbstractFloat}
 
     t_matrices = get_t_matrices(medium, species, ω, basis_order)
 
@@ -49,7 +48,7 @@ function effectivewave_system(ω::T, medium::Acoustic{T,2}, species::Vector{Spec
     function M_component(keff,j,l,m,n)
         ajl = species[j].exclusion_distance * outer_radius(species[j]) + species[l].exclusion_distance * outer_radius(species[l])
 
-        (n == m ? 1.0 : 0.0)*(j == l ? 1.0 : 0.0) - 2.0pi * number_density(species[l]) * t_matrices[l][m+ho+1] * kernelN(n-m,k*ajl,keff*ajl) / (k^2.0-keff^2.0)
+        (n == m ? 1.0 : 0.0)*(j == l ? 1.0 : 0.0) - 2.0pi * number_density(species[l]) * t_matrices[l][m+ho+1,m+ho+1] * kernelN(n-m,k*ajl,keff*ajl) / (k^2.0-keff^2.0)
     end
 
     # this matrix is needed to calculate the eigenvectors
@@ -69,7 +68,7 @@ function effectivewave_system(ω::T, medium::Acoustic{T,2}, species::Vector{Spec
     return MM
 end
 
-function wavematrix3D(ω::T, medium::Acoustic{T,3}, species::Vector{Specie{T}};
+function wavematrix3D(ω::T, medium::Acoustic{T,3}, species::Species{T};
         dim = 3, tol::T = 1e-4,
         basis_order::Int = 2,
         basis_order_field::Int = 2*basis_order,
@@ -87,7 +86,7 @@ function wavematrix3D(ω::T, medium::Acoustic{T,3}, species::Vector{Specie{T}};
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
     function M_component(keff,Ns,l,m,l2,m2,s1,dl,dm,l1,m1,s2)::Complex{T}
         (m == dm && l == dl && m1 == m2 && l1 == l2 && s1 == s2 ? 1.0 : 0.0) +
-        as[s1,s2] * species[s2].num_density * t_vecs[s1][l+L+1] *
+        as[s1,s2] * number_density(species[s2]) * t_vecs[s1][l+L+1] *
         sum(l3 ->
             if abs(m1-m2) <= l3
                 gaunt_coefficients(l,m,dl,dm,l3,m1-m2) *
@@ -116,7 +115,7 @@ function wavematrix3D(ω::T, medium::Acoustic{T,3}, species::Vector{Specie{T}};
     return MM
 end
 
-function wavematrix3DAzimuth(ω::T, medium::Acoustic{T,3}, species::Vector{Specie{T}};
+function wavematrix3DAzimuth(ω::T, medium::Acoustic{T,3}, species::Species{T};
         dim = 3, tol::T = 1e-4,
         basis_order::Int = 1,
         basis_order_field::Int = 2*basis_order,
@@ -141,7 +140,7 @@ function wavematrix3DAzimuth(ω::T, medium::Acoustic{T,3}, species::Vector{Speci
 
         (m == dm && l == dl && l1 == l2 && s1 == s2 ? 1.0 : 0.0) +
         if abs(dm) <= min(l1) && abs(m) <= min(l2) && minl3 <= maxl3
-            as[s1,s2] * species[s2].num_density * t_vecs[s1][l+L+1] *
+            as[s1,s2] * number_density(species[s2]) * t_vecs[s1][l+L+1] *
             sum(l3 ->
                 gaunt_coefficients(l,m,dl,dm,l3,m-dm) *
                 gaunt_coefficients(l1,-dm,l2,-m,l3,m-dm) * Ns[l3+1,s1,s2]
@@ -169,7 +168,7 @@ function wavematrix3DAzimuth(ω::T, medium::Acoustic{T,3}, species::Vector{Speci
     return MM
 end
 
-function wavematrix3DPlane(ω::T, medium::Acoustic{T,3}, species::Vector{Specie{T}};
+function wavematrix3DPlane(ω::T, medium::Acoustic{T,3}, species::Species{T};
         θ_inc::T = T(0), # incident on the halfspace z >0, with kp_vec being in the y-z plane
         φ_inc::T = T(0),
         dim = 3, tol::T = 1e-5,
@@ -192,7 +191,7 @@ function wavematrix3DPlane(ω::T, medium::Acoustic{T,3}, species::Vector{Specie{
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
     function M_component(keff::Complex{T},Ns::Array{Complex{T}},l,m,s1,dl,dm,s2)::Complex{T}
         (m == dm && l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
-        Complex{T}(4pi) * as[s1,s2] * species[s2].num_density * t_vecs[s1][l+ho+1] *
+        Complex{T}(4pi) * as[s1,s2] * number_density(species[s2]) * t_vecs[s1][l+ho+1] *
         sum(
             Complex{T}(im)^(-l1) * Ys[lm_to_n(l1,dm-m)] * Ns[l1+1,s1,s2] *
             gaunt_coefficients(dl,dm,l,m,l1,dm-m)
@@ -216,7 +215,7 @@ function wavematrix3DPlane(ω::T, medium::Acoustic{T,3}, species::Vector{Specie{
     return MM
 end
 
-function wavematrix3DPlaneAzimuth(ω::T, medium::Acoustic{T,3}, species::Vector{Specie{T}};
+function wavematrix3DPlaneAzimuth(ω::T, medium::Acoustic{T,3}, species::Species{T};
         dim = 3, tol::T = 1e-4,
         basis_order::Int = 1,
         basis_order_field::Int = 2*basis_order,
@@ -234,7 +233,7 @@ function wavematrix3DPlaneAzimuth(ω::T, medium::Acoustic{T,3}, species::Vector{
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
     function M_component(keff::Complex{T},Ns::Array{Complex{T}},l,s1,dl,s2)::Complex{T}
         (l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
-        Complex{T}(4pi) * as[s1,s2] * species[s2].num_density * t_vecs[s1][l+ho+1] *
+        Complex{T}(4pi) * as[s1,s2] * number_density(species[s2]) * t_vecs[s1][l+ho+1] *
         sum(
             Complex{T}(im)^(-l1) * sqrt((2*l1+1)/(4pi) ) * Ns[l1+1,s1,s2] *
             gaunt_coefficients(dl,0,l,0,l1,0)

@@ -14,8 +14,7 @@ function match_error(m_wave::MatchWave{T}; apply_norm::Function=norm) where T<:A
     return apply_norm(m_wave.average_wave.amplitudes[j0:end,:,:][:] - avg_eff.amplitudes[:])/len
 end
 
-function MatchWave(ω::T, medium::Acoustic{T,2}, specie::Specie{T,2,Acoustic{T,2}};
-        # radius_multiplier::T = 1.005,
+function MatchWave(ω::T, medium::Acoustic{T,2}, specie::Specie{T,2};
         tol::T = T(1e-5), θin::T = zero(T),
         max_size::Int = 200,
         wave_effs::Vector{EffectiveWave{T}} = [zero(EffectiveWave{T})],
@@ -56,7 +55,6 @@ function MatchWave(ω::T, medium::Acoustic{T,2}, specie::Specie{T,2,Acoustic{T,2
     for i in eachindex(wave_non_effs)
         wave_non_effs[i].amplitudes = wave_non_effs[i].amplitudes / norm(avg_wave_effs[i].amplitudes[1,:,1])
     end
-
 
     J = length(collect(X)) - 1
     len = (J + 1)  * (2basis_order + 1)

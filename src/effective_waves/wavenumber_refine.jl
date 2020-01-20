@@ -1,4 +1,4 @@
-function wavenumbers_refine(ω::T, medium::Medium{T}, species::Vector{Specie{T}};
+function wavenumbers_refine(ω::T, medium::Medium{T}, species::Species{T};
         dim = 2,
         tol::T = 1e-8,
         k_effs::Vector{Complex{T}} = Complex{T}[],

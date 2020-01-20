@@ -9,7 +9,7 @@ include("wavenumber_single.jl")
 " Returns all the transmitted effective wavenumbers"
 wavenumbers(ω::T, medium::Medium{T}, specie::Specie{T}; kws...) where T<:Number = wavenumbers(ω, medium, [specie]; kws...)
 
-function wavenumbers(ω::T, medium::Medium{T}, species::Vector{Specie{T}}; tol::T = 1e-6,
+function wavenumbers(ω::T, medium::Medium{T}, species::Species{T}; tol::T = 1e-6,
         basis_order::Int = maximum_basis_order(ω, medium, species; tol=tol),
         mesh_points::Int = 7, mesh_size::T = 0.65,
         max_Imk::T = 0.0, max_Rek::T = 0.0,

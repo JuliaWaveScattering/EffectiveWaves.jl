@@ -1,4 +1,4 @@
-function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMedium{T}, species::Vector{Specie{T}};
+function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMedium{T}, species::Species{T};
         dim = 2,
         tol::T = 1e-6,
         mesh_refine::T = T(0.4),
@@ -54,7 +54,7 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMed
         # res = optimize(dispersion, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
         res = optimize(dispersion, lower, upper, k_vec, Fminbox(inner_optimizer),
             Optim.Options(g_tol = tol^3.0, x_tol=tol))
-        if res.minimum < T(20)*tol || (Optim.converged(res) && res.minimum < low_tol)
+        if res.minimum < T(100)*tol || (Optim.converged(res) && res.minimum < T(10)*low_tol)
             res.minimizer
         else
             [zero(T),-one(T)]

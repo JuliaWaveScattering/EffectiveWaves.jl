@@ -1,4 +1,4 @@
-function wavenumbers_path(ω::T, medium::PhysicalMedium{T}, species::Vector{Specie{T}};
+function wavenumbers_path(ω::T, medium::PhysicalMedium{T}, species::Species{T};
         tol::T = 1e-6,
         mesh_points::Int = 2, mesh_size::T = one(T),
         num_wavenumbers = 3,
@@ -23,7 +23,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T}, species::Vector{Spec
         tol = tol * abs(k0)
 
     # the dispersion equation is given by: `dispersion(k1,k2) = 0` where k_eff = k1 + im*k2.
-        dispersion = dispersion_equation(ω, medium, species; tol = low_tol, dim=dim, kws...)
+        dispersion = dispersion_equation(ω, medium, species; tol = low_tol, kws...)
 
         k_vecs = [optimize(dispersion, kvec, Optim.Options(x_tol=low_tol, g_tol = low_tol^3)).minimizer for kvec in k_vecs]
         k_vecs = reduce_kvecs(k_vecs, low_tol/10)
@@ -33,7 +33,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T}, species::Vector{Spec
 
         k_vecs = map(k_vecs) do k_vec
            res = optimize(dispersion, k_vec, Optim.Options(g_tol = tol^3.0, x_tol=tol))
-           if res.minimum < T(20)*tol || (Optim.converged(res) && res.minimum < low_tol)
+           if res.minimum < T(100)*tol || (Optim.converged(res) && res.minimum < T(10)*low_tol)
                res.minimizer
            else
                [zero(T),-one(T)]
@@ -70,7 +70,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T}, species::Vector{Spec
             hits = map(hits) do k_vec
                 # res = optimize(dispersion, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
                 res = optimize(dispersion, k_vec, Optim.Options(g_tol = tol^3.0, x_tol=tol))
-                if res.minimum < T(20)*tol || (Optim.converged(res) && res.minimum < low_tol)
+                if res.minimum < T(100)*tol || (Optim.converged(res) && res.minimum < T(10)*low_tol)
                     res.minimizer
                 else
                     [zero(T),-one(T)]
@@ -155,7 +155,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T}, species::Vector{Spec
                 new_targets = map(new_targets) do k_vec
                     # res = optimize(dispersion, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
                     res = optimize(dispersion, k_vec, Optim.Options(g_tol = tol^3.0, x_tol=tol))
-                    if res.minimum < T(20)*tol || (Optim.converged(res) && res.minimum < low_tol)
+                    if res.minimum < T(100)*tol || (Optim.converged(res) && res.minimum < T(10)*low_tol)
                         res.minimizer
                     else
                         [zero(T),-one(T)]

@@ -1,10 +1,15 @@
 @testset "match wave low frequency" begin
 
 ## Low frequency
-    medium = Medium(1.0,1.0+0.0im)
+    medium = Acoustic(2; ρ=1.0, c=1.0)
+    ms = MultipleScattering
+
     volfracs = [0.1,0.5]
     species = [
-        Specie(ρ=5.,r=0.002, c=v, volfrac=v)
+        Specie(Particle(
+            Acoustic(2; ρ=5., c=v), ms.Circle(0.002));
+            volume_fraction=v
+        )
     for v in volfracs]
 
     ω = 0.002

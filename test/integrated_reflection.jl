@@ -5,15 +5,22 @@ using EffectiveWaves, Test
 
     # physical parameters
     θin = 0.13
-    k=1.; ho = 3
-    medium = Medium(1.0,1.0+0.0im)
+    k=1.; ho = 2
+
+    medium = Acoustic(2; ρ=1.0, c=1.0)
+    ms = MultipleScattering
+
+    specie = Specie(Particle(
+        Acoustic(2; ρ=0.1, c=0.5), ms.Circle(0.6));
+        volume_fraction=0.25
+    )
+
     ω = real(k*medium.c)
-    specie = Specie(ρ=0.1,r=0.6, c=0.5, volfrac=0.1)
 
     # From effective wave theory
-    k_eff0 = wavenumber_low_volfrac(ω, medium, [specie]; tol = 1e-12)
-    max_x = 12.0*k/imag(k_eff0)
-    x = 0.0:0.002:max_x
+    k_eff0 = wavenumber_low_volfrac(ω, medium, [specie]; tol = 1e-12, basis_order = ho)
+    max_x = 15.0*k/imag(k_eff0)
+    x = 0.0:0.001:max_x
 
     wave0 = EffectiveWave(ω, k_eff0, medium, [specie]; θin = θin, basis_order = ho, tol=1e-8)
     wave_avg0 = AverageWave(x, wave0)
@@ -21,7 +28,7 @@ using EffectiveWaves, Test
     R = reflection_coefficient(ω, wave_avg0, medium, specie; θin = θin)
     R_eff = reflection_coefficient(ω, wave0, medium, [specie]; θin = θin, basis_order = ho)
 
-    @test abs(R-R_eff) < 2e-6 #
+    @test abs(R-R_eff) < 1e-6
 
     # the matched wave also gives the same reflection coefficient
     m1 = Int(round(length(x)/50))

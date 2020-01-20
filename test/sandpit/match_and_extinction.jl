@@ -3,7 +3,7 @@
 Returns YT, which connects the effective and average wave through α = YT*A.
 The matching region is X[XL:end].
 "
-function match_only_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, XL::Int, X::AbstractVector{T}, medium::Medium{T}, species::Vector{Specie{T}}; θin::T = 0.0) where T<:Number
+function match_only_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, XL::Int, X::AbstractVector{T}, medium::Medium{T}, species::Species{T}; θin::T = 0.0) where T<:Number
 
     XJ = length(X)
     k = ω/medium.c
@@ -39,7 +39,7 @@ The index XL indicates that X[XL] is the first point in the matching region.
 "
 function extinc_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}},
         XL::Int, X::AbstractVector{T},
-        medium::Medium{T}, species::Vector{Specie{T}};
+        medium::Medium{T}, species::Species{T};
         θin::T = 0.0) where T<:Number
 
     k = ω/medium.c

@@ -21,7 +21,7 @@ struct Plate2D{T} <: ProblemSetup{T,2}
     """The background medium"""
     medium::PhysicalMedium{T}
     """the species of the particles"""
-    species::Vector{Specie{T}}
+    species::Species{T}
     """maximum order of hankel functions"""
     basis_order::Int
     """minimal particle distance multiplier"""
@@ -39,7 +39,7 @@ struct Sphere{T} <: ProblemSetup{T,3}
     """The background medium"""
     medium::PhysicalMedium{T}
     """the species of the particles"""
-    species::Vector{Specie{T}}
+    species::Species{T}
     """maximum order of hankel functions"""
     basis_order::Int
     """minimal particle distance multiplier"""

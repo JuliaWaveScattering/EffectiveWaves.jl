@@ -96,15 +96,14 @@ function AverageWave(ω::T, medium::Acoustic{T,2}, specie::Specie{T};
 end
 
 "note that this uses the non-dimensional X = k*depth"
-function average_wave_system(ω::T, X::AbstractVector{T}, medium::Acoustic{T,2}, specie::Specie{T};
+function average_wave_system(ω::T, X::AbstractVector{T}, medium::Acoustic{T,2}, specie::Specie{T,2};
         θin::Float64 = 0.0, tol::T = 1e-6,
-        radius_multiplier::T = 1.005,
         scheme::Symbol = :trapezoidal,
         basis_order::Int = 2,#maximum_basis_order(ω, medium, [specie]; tol = tol),
         kws...
     ) where T<:AbstractFloat
 
-    t_vecs = t_matrix(specie, medium, ω, basis_order)
+    t_vec = t_matrix(specie, medium, ω, basis_order)
 
     k = real(ω/medium.c)
     a12k = specie.exclusion_distance * T(2)*real(k * outer_radius(specie));
@@ -116,11 +115,11 @@ function average_wave_system(ω::T, X::AbstractVector{T}, medium::Acoustic{T,2},
     PQ_quad = intergrand_kernel(X, a12k; M = M, θin = θin, scheme=scheme);
 
     MM_quad = [
-        (number_density(specie) / (k^2))*t_vecs[1][m+M+1]*PQ_quad[l,m+M+1,j,n+M+1] - ( (m==n && j==l) ? 1.0+0.0im : 0.0+0.0im)
+        (number_density(specie) / (k^2))*t_vec[m+M+1,m+M+1]*PQ_quad[l,m+M+1,j,n+M+1] - ( (m==n && j==l) ? 1.0+0.0im : 0.0+0.0im)
     for  l=1:(J+1), m=-M:M, j=1:(J+1), n=-M:M];
 
     b_mat = [
-        -t_vecs[1][m+M+1]*exp(im*X[l]*cos(θin))*exp(im*m*(pi/2.0 - θin))
+        -t_vec[m+M+1,m+M+1]*exp(im*X[l]*cos(θin))*exp(im*m*(pi/2.0 - θin))
     for l = 1:(J+1), m = -M:M]
 
     return (MM_quad,b_mat)

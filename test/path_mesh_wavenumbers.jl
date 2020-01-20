@@ -3,30 +3,28 @@ using EffectiveWaves, Test
 
 @testset "Mesh and path methods for wavenumbers" begin
 
-    medium = Medium(ρ=1.0, c=1.0)
+    medium = Acoustic(2; ρ=1.0, c=1.0)
+    ms = MultipleScattering
 
     species = [
-        Specie(ρ=8.0, r=1.0, c=1.1, volfrac=0.25)
-    ];
+        Specie(Particle(Acoustic(2; ρ=8.0, c=1.1), ms.Circle(1.0)); volume_fraction=0.25),
+    ]
 
     ω = 0.6;
     tol = 1e-9
     num_wavenumbers = 8;
     basis_order = 2
-    dim = 2
 
     k_effs_path = wavenumbers_path(ω, medium, species;
         mesh_size = 2.0,
         mesh_points = 10,
         max_Imk = 4.0,
-        dim = dim,
         num_wavenumbers=num_wavenumbers,
         basis_order=basis_order,
         tol = tol
     )
 
     k_effs_mesh = wavenumbers_mesh(ω, k_effs_path[1:num_wavenumbers], medium, species;
-        dim = dim,
         basis_order=basis_order,
         tol = tol
     );

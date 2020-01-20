@@ -1,5 +1,4 @@
-function reflection_coefficient(ω::T, amps::AverageWave{T}, medium::Acoustic{T,2}, specie::Specie{T};
-        θin::T = 0.0, scheme::Symbol = :trapezoidal) where T <: AbstractFloat
+function reflection_coefficient(ω::T, amps::AverageWave{T}, medium::Acoustic{T,2}, specie::Specie{T,2}; θin::T = 0.0, scheme::Symbol = :trapezoidal) where T <: AbstractFloat
 
     k = ω/medium.c
     M = amps.basis_order
