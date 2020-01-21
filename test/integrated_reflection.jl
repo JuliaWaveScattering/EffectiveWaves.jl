@@ -22,8 +22,8 @@ using EffectiveWaves, Test
     max_x = 15.0*k/imag(k_eff0)
     x = 0.0:0.001:max_x
 
-    wave0 = EffectiveWave(ω, k_eff0, medium, [specie]; θin = θin, basis_order = ho, tol=1e-8)
-    wave_avg0 = AverageWave(x, wave0)
+    wave0 = EffectivePlaneWaveMode(ω, k_eff0, medium, [specie]; θin = θin, basis_order = ho, tol=1e-8)
+    wave_avg0 = DiscretePlaneWaveMode(x, wave0)
 
     R = reflection_coefficient(ω, wave_avg0, medium, specie; θin = θin)
     R_eff = reflection_coefficient(ω, wave0, medium, [specie]; θin = θin, basis_order = ho)
@@ -37,7 +37,7 @@ using EffectiveWaves, Test
     wave_avg1.amplitudes = wave_avg0.amplitudes[1:m2,:,:]
     wave_avg1.x = wave_avg0.x[1:m2]
 
-    match_wave = MatchWave{Float64}([wave0], wave_avg1, x[m1:m2])
+    match_wave = MatchPlaneWaveMode{Float64}([wave0], wave_avg1, x[m1:m2])
     R_m = reflection_coefficient(ω, match_wave, medium, specie; θin = θin)
     @test abs(R_m-R_eff)  < 1e-6
 
@@ -46,8 +46,8 @@ using EffectiveWaves, Test
         basis_order = ho, num_wavenumbers = num_wavenumbers)
 
     rel_errors = map(k_effs[1:end]) do k_eff
-        wave = EffectiveWave(ω, k_eff, medium, [specie]; θin = θin, basis_order = ho)
-        wave_avg = AverageWave(x, wave)
+        wave = EffectivePlaneWaveMode(ω, k_eff, medium, [specie]; θin = θin, basis_order = ho)
+        wave_avg = DiscretePlaneWaveMode(x, wave)
         R = reflection_coefficient(ω, wave_avg, medium, specie; θin = θin)
         R_eff = reflection_coefficient(ω, wave, medium, [specie]; θin = θin)
         @test abs(R-R_eff) < 5e-5
@@ -56,7 +56,7 @@ using EffectiveWaves, Test
         wave_avg1.amplitudes = wave_avg.amplitudes[1:m2,:,:]
         wave_avg1.x = wave_avg.x[1:m2]
 
-        match_wave = MatchWave{Float64}([wave], wave_avg1, x[m1:m2])
+        match_wave = MatchPlaneWaveMode{Float64}([wave], wave_avg1, x[m1:m2])
         R_m = reflection_coefficient(ω, match_wave, medium, specie; θin = θin)
         @test abs(R_m-R_eff) < 5e-5
     end

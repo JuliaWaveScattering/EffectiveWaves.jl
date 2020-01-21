@@ -1,23 +1,23 @@
 "A type for matched waves."
-mutable struct MatchWave{T<:AbstractFloat}
-    effective_waves::Vector{EffectiveWave{T}}
-    discrete_wave::AverageWave{T}
+mutable struct MatchPlaneWaveMode{T<:AbstractFloat}
+    effective_waves::Vector{EffectivePlaneWaveMode{T}}
+    discrete_wave::DiscretePlaneWaveMode{T}
     x_match::Vector{T} # waves are matched between discrete_wave.x_match
 end
 
-"Calculates the difference between the match of MatchWave.effective_waves and MatchWave.discrete_wave. This can be used as a proxi for convergence. "
-function match_error(m_wave::MatchWave{T}; apply_norm::Function=norm) where T<:AbstractFloat
-    avg_eff = AverageWave(m_wave.x_match, m_wave.effective_waves)
+"Calculates the difference between the match of MatchPlaneWaveMode.effective_waves and MatchPlaneWaveMode.discrete_wave. This can be used as a proxi for convergence. "
+function match_error(m_wave::MatchPlaneWaveMode{T}; apply_norm::Function=norm) where T<:AbstractFloat
+    avg_eff = DiscretePlaneWaveMode(m_wave.x_match, m_wave.effective_waves)
     j0 = findmin(abs.(m_wave.discrete_wave.x .- m_wave.x_match[1]))[2]
     len = length(m_wave.x_match)
 
     return apply_norm(m_wave.discrete_wave.amplitudes[j0:end,:,:][:] - avg_eff.amplitudes[:])/len
 end
 
-function MatchWave(ω::T, medium::Acoustic{T,2}, specie::Specie{T,2};
+function MatchPlaneWaveMode(ω::T, medium::Acoustic{T,2}, specie::Specie{T,2};
         tol::T = T(1e-5), θin::T = zero(T),
         max_size::Int = 200,
-        wave_effs::Vector{EffectiveWave{T}} = [zero(EffectiveWave{T})],
+        wave_effs::Vector{EffectivePlaneWaveMode{T}} = [zero(EffectivePlaneWaveMode{T})],
         x::AbstractVector{T} = [-one(T)],
         L_match::Int = 0,
         kws...
@@ -51,7 +51,7 @@ function MatchWave(ω::T, medium::Acoustic{T,2}, specie::Specie{T,2};
         end
     end
 
-    avg_wave_effs = [AverageWave(X[L_match:L_match+1], w) for w in wave_non_effs]
+    avg_wave_effs = [DiscretePlaneWaveMode(X[L_match:L_match+1], w) for w in wave_non_effs]
     for i in eachindex(wave_non_effs)
         wave_non_effs[i].amplitudes = wave_non_effs[i].amplitudes / norm(avg_wave_effs[i].amplitudes[1,:,1])
     end
@@ -79,12 +79,12 @@ function MatchWave(ω::T, medium::Acoustic{T,2}, specie::Specie{T,2};
     end
 
 
-    # return MatchWave(wave_effs, AverageWave(basis_order, collect(X)./k, As_mat), collect(X[L_match:end])./k)
-    return MatchWave(wave_non_effs, AverageWave(basis_order, collect(X)./k, As_mat), collect(X[L_match:end])./k)
+    # return MatchPlaneWaveMode(wave_effs, DiscretePlaneWaveMode(basis_order, collect(X)./k, As_mat), collect(X[L_match:end])./k)
+    return MatchPlaneWaveMode(wave_non_effs, DiscretePlaneWaveMode(basis_order, collect(X)./k, As_mat), collect(X[L_match:end])./k)
 end
 
 "Returns (x,L), where x[L:end] is the mesh used to match with wave_effs."
-function x_mesh_match(wave_effs::Vector{EffectiveWave{T}}; kws... ) where T<:AbstractFloat
+function x_mesh_match(wave_effs::Vector{EffectivePlaneWaveMode{T}}; kws... ) where T<:AbstractFloat
     # wave_effs[end] establishes how long X should be, while wave_effs[1] estalishes how fine the mesh should be.
 
    # If there is only one wave, then it doesn't make sense to extend the mesh until it decays.

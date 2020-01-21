@@ -1,6 +1,6 @@
 include("plot_match.jl")
 
-@recipe function plot(avg_wave::AverageWave{T};
+@recipe function plot(avg_wave::DiscretePlaneWaveMode{T};
         hankel_indexes = 0:avg_wave.basis_order,
         apply = real) where T<:AbstractFloat
 
@@ -18,7 +18,7 @@ include("plot_match.jl")
     end
 end
 
-@recipe function plot(wave_effs::Vector{EffectiveWave{T}}) where T<:AbstractFloat
+@recipe function plot(wave_effs::Vector{EffectivePlaneWaveMode{T}}) where T<:AbstractFloat
     k_effs = [w.k_eff for w in wave_effs]
     maxamp = maximum(norm(w.amplitudes) for w in wave_effs)
 
@@ -39,7 +39,7 @@ end
     end
 end
 
-@recipe function plot(x::AbstractVector{T}, wave_eff::EffectiveWave{T}) where T<:AbstractFloat
+@recipe function plot(x::AbstractVector{T}, wave_eff::EffectivePlaneWaveMode{T}) where T<:AbstractFloat
     @series begin
         (x, [wave_eff])
     end
@@ -47,9 +47,9 @@ end
 
 @recipe function plot(x::AbstractVector, wave_effs::Vector{E};
         hankel_indexes = 0:wave_effs[1].basis_order,
-        apply = real) where E<:EffectiveWave
+        apply = real) where E<:EffectivePlaneWaveMode
 
-    wave_eff = AverageWave(x, wave_effs)
+    wave_eff = DiscretePlaneWaveMode(x, wave_effs)
     ho = wave_eff.basis_order
 
     for n in hankel_indexes

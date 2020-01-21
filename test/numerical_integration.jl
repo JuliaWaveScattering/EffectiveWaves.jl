@@ -5,7 +5,7 @@ using EffectiveWaves, Test
     using ApproxFun
     import SpecialFunctions: hankelh1
 
-    # function imitates kernal in Fredholm equation that is solved for AverageWave
+    # function imitates kernal in Fredholm equation that is solved for DiscretePlaneWaveMode
     n = 1; X = 0.9; θin = 0.2;
     num_coefs = 10000;
     tol = (1.0/num_coefs)^2

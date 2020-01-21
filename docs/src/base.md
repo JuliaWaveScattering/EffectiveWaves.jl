@@ -15,10 +15,10 @@ There are currently three main types used.
 ```@docs
 EffectiveWave
 effective_waves
-AverageWave
-average_error
+DiscretePlaneWaveMode
+discretewave_error
 x_mesh
-MatchWave
+MatchPlaneWaveMode
 match_error
 x_mesh_match
 ```
@@ -36,6 +36,6 @@ effective_medium
 ```@docs
 reflection_coefficient
 reflection_coefficient_low_volumefraction
-reflection_coefficient_halfspace
+reflection_coefficient
 transmission_angle
 ```

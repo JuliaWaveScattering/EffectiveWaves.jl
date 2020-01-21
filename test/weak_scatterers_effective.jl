@@ -41,8 +41,8 @@
     @test norm( (k_effs2 - k_eff_lows) ./ norm.(k_eff_lows) ) < 0.01
     @test norm(k_effs2[1] - k_eff_lows[1])/norm(k_effs[1]) < 1e-7
 
-    wave_effs_2 = [EffectiveWave(ωs[i], k_effs2[i], medium, species; tol = 1e-9) for i in eachindex(ωs)]
-    wave_effs_φs = [EffectiveWave(ωs[i], k_eff_φs[i], medium, species; tol = 1e-9) for i in eachindex(ωs)]
+    wave_effs_2 = [EffectivePlaneWaveMode(ωs[i], k_effs2[i], medium, species; tol = 1e-9) for i in eachindex(ωs)]
+    wave_effs_φs = [EffectivePlaneWaveMode(ωs[i], k_eff_φs[i], medium, species; tol = 1e-9) for i in eachindex(ωs)]
 
     # reflection coefficient
     Rs2 = reflection_coefficients(ωs, medium, species; tol=1e-9, num_wavenumbers=1)
@@ -51,19 +51,19 @@
     # pairs each ω in ωs with each wave in wave_effs2 to calculate the refleciton coefficients
 
     Rs = map(eachindex(ωs)) do i
-        w_effs = [EffectiveWave(ωs[i], k_eff, medium, species; tol = 1e-9) for k_eff in k_effs[i]]
+        w_effs = [EffectivePlaneWaveMode(ωs[i], k_eff, medium, species; tol = 1e-9) for k_eff in k_effs[i]]
         reflection_coefficient(ωs[i], w_effs, medium, species; tol = 1e-9)
     end
 
     @test norm(Rs - Rs2)/norm(Rs) < 1e-6
 
     Rs1 = map(eachindex(ωs)) do i
-        w_effs = EffectiveWave(ωs[i], k_effs[i][1], medium, species; tol = 1e-9)
+        w_effs = EffectivePlaneWaveMode(ωs[i], k_effs[i][1], medium, species; tol = 1e-9)
         reflection_coefficient(ωs[i], w_effs, medium, species)
     end
 
     # Direct incidence
-    R_low = reflection_coefficient_halfspace(medium, eff_medium; tol=1e-9)
+    R_low = reflection_coefficient(medium, eff_medium; tol=1e-9)
     Rs_φs = reflection_coefficients(ωs, wave_effs_φs, medium, species; tol=1e-9)
     # the below takes a low-volfrac expansion for both the wavenumber and reflection coefficient
     Rs_φs2 = reflection_coefficient_low_volumefraction(ωs, medium, species; tol=1e-9)
@@ -75,12 +75,12 @@
     # Vary angle of incidence θin. Beware of extreme angles θ ~= -pi/2 or pi/2.
     θs = (-π/2.1):0.3:(π/2.1)
     R_low = [
-        reflection_coefficient_halfspace(medium, eff_medium; θin = θ, tol=1e-9)
+        reflection_coefficient(medium, eff_medium; θin = θ, tol=1e-9)
     for θ in θs]
 
     Rs = map(θs) do θ  # , basis_order =7
         wave_effs_2 = [
-            EffectiveWave(ωs[i], k_effs2[i], medium, species;
+            EffectivePlaneWaveMode(ωs[i], k_effs2[i], medium, species;
                 tol = 1e-9, θin = θ
             )
         for i in eachindex(ωs)]

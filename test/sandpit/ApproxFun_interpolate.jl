@@ -13,8 +13,8 @@ k_eff0 = wavenumber_low_volumefraction(ω, medium, [specie]; tol = 1e-12)
 max_x = 10 .* k/imag(k_eff0)
 x = 0.0:0.1:max_x
 
-wave0 = EffectiveWave(ω, k_eff0, medium, [specie]; θin = θin, basis_order = ho, tol=1e-8)
-wave_avg0 = AverageWave(x, wave0)
+wave0 = EffectivePlaneWaveMode(ω, k_eff0, medium, [specie]; θin = θin, basis_order = ho, tol=1e-8)
+wave_avg0 = DiscretePlaneWaveMode(x, wave0)
 
 R_eff = reflection_coefficient(ω, wave0, medium, [specie]; θin = θin, basis_order = ho)
 R = reflection_coefficient(ω, wave_avg0, medium, specie; θin = θin)

@@ -23,7 +23,7 @@ using LinearAlgebra
         num_wavenumbers = 50);
 
     wave_effs = [
-        EffectiveWave(ω, k_eff, medium, [specie];
+        EffectivePlaneWaveMode(ω, k_eff, medium, [specie];
             basis_order = basis_order,
             tol = tol, extinction_rescale=false,
             method = :WienerHopf,
@@ -31,7 +31,7 @@ using LinearAlgebra
         )
     for k_eff in k_effs];
 
-    match_ws = MatchWave(ω, medium, specie;
+    match_ws = MatchPlaneWaveMode(ω, medium, specie;
         basis_order = basis_order,
         tol = tol, wave_effs = wave_effs[1:10],
         θin=θ,
@@ -40,7 +40,7 @@ using LinearAlgebra
 
     inds = Int.(round.(LinRange(1,length(wave_effs),5)))
     errors = map(inds) do i
-        avg_WH = AverageWave(match_ws.discrete_wave.x[1:200], wave_effs[1:i]);
+        avg_WH = DiscretePlaneWaveMode(match_ws.discrete_wave.x[1:200], wave_effs[1:i]);
         norm(avg_WH.amplitudes - match_ws.discrete_wave.amplitudes[1:200,:,:])/norm(match_ws.discrete_wave.amplitudes[1:200,:,:])
     end
 

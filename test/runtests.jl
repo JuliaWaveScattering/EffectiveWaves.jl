@@ -2,7 +2,7 @@ using EffectiveWaves, Test
 using LinearAlgebra
 
 @testset "Check material definitions" begin
-    include("../src/materials.jl")
+    include("../src/acoustics/acoustic_mediums.jl")
     @test true
 end
 

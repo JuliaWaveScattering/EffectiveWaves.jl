@@ -16,7 +16,7 @@ function effective_medium(medium::Acoustic{T,Dim}, species::Species{T,Dim}) wher
 end
 
 "the reflection from a homogenious halfspace, which is also the low frequency reflection from a particulate material when using the effective_medium."
-function reflection_coefficient_halfspace(incident_medium::Acoustic{T,2}, reflect_medium::Acoustic{T,2};
+function reflection_coefficient(incident_medium::Acoustic{T,2}, reflect_medium::Acoustic{T,2};
         θin::T = zero(T), tol = 1e-8) where T<:Number
 
     k_in = T(1)/incident_medium.c

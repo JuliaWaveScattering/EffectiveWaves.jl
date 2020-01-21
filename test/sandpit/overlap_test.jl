@@ -24,7 +24,7 @@ XL = XJ - 8
 X_match = X[XL]
 
 # Calculate discretised average wave directly from governing equations
-avg_wave = AverageWave(ω, medium, specie; basis_order=ho, X=X)
+avg_wave = DiscretePlaneWaveMode(ω, medium, specie; basis_order=ho, X=X)
 
 # From effective wave theory
 k_effs = wavenumbers(ω, medium, [specie];
@@ -34,7 +34,7 @@ k_effs = wavenumbers(ω, medium, [specie];
 scatter(real.(k_effs),imag.(k_effs), title = "Effective wavenumbers", xlab = "Re k_eff", ylab = "Im k_eff")
 
 wave_effs = [
-    EffectiveWave(ω, k_eff, medium, [specie];
+    EffectivePlaneWaveMode(ω, k_eff, medium, [specie];
         basis_order = ho, extinction_rescale = true, tol=tol*10
     )
 for k_eff in k_effs]
@@ -45,8 +45,8 @@ for i in eachindex(k_effs)[2:end]
 end
 
 # Calculate the discretised wave from these effective wave
-avg_wave_effs = [AverageWave(X, wave_effs[1])]
-avg_wave_effs = [[AverageWave(X, wave) for wave in wave_effs[2:end]]; avg_wave_effs]
+avg_wave_effs = [DiscretePlaneWaveMode(X, wave_effs[1])]
+avg_wave_effs = [[DiscretePlaneWaveMode(X, wave) for wave in wave_effs[2:end]]; avg_wave_effs]
 
 species = [specie]
 include("match_waves.jl")
@@ -93,7 +93,7 @@ norm((sum(w_vec .* αs) - (qA + im*k^2))/sum(w_vec .* αs))
 
 # check matching
 amplitudes_eff = sum(αs[i] * avg_wave_effs[i].amplitudes[XL:end,:,:] for i in eachindex(avg_wave_effs))
-avg_wave_eff = AverageWave(ho, X[XL:end], amplitudes_eff)
+avg_wave_eff = DiscretePlaneWaveMode(ho, X[XL:end], amplitudes_eff)
 
 plot(xlab = "X", ylab = "Re amplitude")
 for n = -ho:ho

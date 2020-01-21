@@ -24,7 +24,7 @@ using EffectiveWaves, Test
 
     function Rerror(θ)
 
-        match_ws = MatchWave(ω, medium, specie;
+        match_ws = MatchPlaneWaveMode(ω, medium, specie;
             basis_order = basis_order,
             tol = tol, wave_effs = ws[1:15],
             θin=θ,
@@ -76,7 +76,7 @@ end
             num_wavenumbers = 2,
             extinction_rescale = true);
         R1 = reflection_coefficient(ω, ws[1], medium, [specie]; θin = θ)
-        R_low = reflection_coefficient_halfspace(medium, eff_medium; θin = θ)
+        R_low = reflection_coefficient(medium, eff_medium; θin = θ)
         Rw = wienerhopf_reflection_coefficient(ω, medium, [specie];
                 θin = θ,
                 tol=tol,

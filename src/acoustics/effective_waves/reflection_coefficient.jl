@@ -1,5 +1,5 @@
 "The average reflection coefficient"
-function reflection_coefficient(ω::T, wave_eff::EffectiveWave{T}, medium::Acoustic{T,2}, species::Species{T,2};
+function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, medium::Acoustic{T,2}, species::Species{T,2};
         θin::T = zero(T), x::T = zero(T), kws...) where T<:Number
 
     k = ω/medium.c

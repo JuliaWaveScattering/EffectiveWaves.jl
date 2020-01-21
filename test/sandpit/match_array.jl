@@ -27,7 +27,7 @@ k_effs = [w.k_eff/k for w in wave_effs]
 
 L, X = x_mesh_match(wave_effs; tol = tol/10, a12=a12k)
 
-avg_wave_effs = [AverageWave(X[L:L+1], wave) for wave in wave_effs]
+avg_wave_effs = [DiscretePlaneWaveMode(X[L:L+1], wave) for wave in wave_effs]
 for i in eachindex(k_effs)
     wave_effs[i].amplitudes = wave_effs[i].amplitudes / norm(avg_wave_effs[i].amplitudes[1,:,1])
 end
@@ -38,7 +38,7 @@ errs = map(Ls) do l
     # α = YT*A
     YT = match_only_arrays(ω, wave_effs[1:end-1], l, X, medium, [specie]; θin = θin);
     # the most attenuating wave is added as an error!
-    amps = sum(AverageWave(X, w).amplitudes for w in wave_effs[1:2:(end-1)]);
+    amps = sum(DiscretePlaneWaveMode(X, w).amplitudes for w in wave_effs[1:2:(end-1)]);
     # plus a random distributed error
     amps = amps + tol*rand(size(amps)...)/mean(abs.(amps))
 

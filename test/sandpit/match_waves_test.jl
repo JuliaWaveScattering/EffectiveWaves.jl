@@ -62,7 +62,7 @@ L, x = x_mesh_match(wave_effs[1:num_wavenumbers]; a12 = a12, max_size = 220, tol
 
 x = x_mesh(wave_effs[1], wave_effs[2]; a12 = a12, max_size = 1600, tol=1e-8)
 
-avg_wave_x = AverageWave(ω, medium, specie;
+avg_wave_x = DiscretePlaneWaveMode(ω, medium, specie;
     basis_order=ho, θin=θin, x = x,
     wave_effs = wave_effs[1:num_wavenumbers],
     radius_multiplier = radius_multiplier, tol = 1e-8)
@@ -75,7 +75,7 @@ scatter(avg_wave_x)
 L, x = x_mesh_match(wave_effs[1:num_wavenumbers]; a12 = a12, max_size = 220, tol=1e-9);
 x_short = x[1:Int(round(length(x)/3))]
 
-match_w = MatchWave(ω, medium, specie;
+match_w = MatchPlaneWaveMode(ω, medium, specie;
     x = x_short, L_match = 20,
     radius_multiplier = radius_multiplier,
     basis_order=ho,
@@ -94,7 +94,7 @@ plot(match_w, hankel_indexes = 0:1)
 plot(avg_wave_x, hankel_indexes = 0:1, seriestype=:scatter, xlims = (0.,5.))
 plot!(match_w, hankel_indexes = 0:1, seriestype=:line, xlims = (0.,5.))
 
-avg_wave_small = AverageWave(ω, medium, specie; basis_order=ho, θin=θin, x=match_w.discrete_wave.x,
+avg_wave_small = DiscretePlaneWaveMode(ω, medium, specie; basis_order=ho, θin=θin, x=match_w.discrete_wave.x,
     radius_multiplier = radius_multiplier, tol = 1e-6, max_size=500)
 plot!(avg_wave_small, seriestype=:line, linestyle=:dash)
 
@@ -106,7 +106,7 @@ i_max = findmin(abs.(X .- X_max))[2]
 
 
 # # If we assume the average wave is a sum of plane waves everywhere, then we can estimate which of these effectives waves will have decayed too much already, and therefore discard them
-avg_wave_effs = [AverageWave(X[L:L+1], wave) for wave in wave_effs]
+avg_wave_effs = [DiscretePlaneWaveMode(X[L:L+1], wave) for wave in wave_effs]
 ref_norm = norm(avg_wave_effs[1].amplitudes[end,:,:])/norm(wave_effs[1].amplitudes)
 eff_inds = find(
     norm(avg_wave_effs[i].amplitudes[end,:,:])/norm(wave_effs[i].amplitudes) > ref_norm*tol
@@ -117,7 +117,7 @@ wave_effs = wave_effs[eff_inds];
 
 J = L + 3*length(k_effs) # double number of points than waves to avoid overfitting
 X_match = X[L:J]
-avg_wave = AverageWave(ho, X[1:J], avg_wave_x.amplitudes[1:J,:,:])
+avg_wave = DiscretePlaneWaveMode(ho, X[1:J], avg_wave_x.amplitudes[1:J,:,:])
 
 # rescale to lessen roundoff errors
 for i in eachindex(k_effs)[2:end]
@@ -149,13 +149,13 @@ scatter([abs.(exp.(im*k_effs./k)), sign.(real.(k_effs)).*abs.(αs)], lab = ["exp
 # check matching
     αs_match = Y*avg_wave.amplitudes[:]
     # Calculate the discretised wave from these effective wave
-    avg_wave_effs = [AverageWave(X[L:i_max], wave) for wave in wave_effs]
+    avg_wave_effs = [DiscretePlaneWaveMode(X[L:i_max], wave) for wave in wave_effs]
 
     amplitudes_eff = sum(αs[i] * avg_wave_effs[i].amplitudes[:,:,:] for i in eachindex(avg_wave_effs))
-    avg_wave_eff = AverageWave(ho, avg_wave_effs[1].x, amplitudes_eff)
+    avg_wave_eff = DiscretePlaneWaveMode(ho, avg_wave_effs[1].x, amplitudes_eff)
 
     amplitudes_eff = sum(αs_match[i] * avg_wave_effs[i].amplitudes[:,:,:] for i in eachindex(avg_wave_effs))
-    avg_wave_eff_match = AverageWave(ho, avg_wave_effs[1].x, amplitudes_eff)
+    avg_wave_eff_match = DiscretePlaneWaveMode(ho, avg_wave_effs[1].x, amplitudes_eff)
 
     ps = map(0:ho) do n
         max_w = maximum(real.(avg_wave.amplitudes[L:end,n+ho+1]))

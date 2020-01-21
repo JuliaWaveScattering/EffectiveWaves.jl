@@ -20,7 +20,7 @@ scatter(k_effs, lab="Effective wavenumbers")
 
 # We can calculate the resulting effective field form each of these effective wavenumbers but just choosing an amplitude of 1 for each wave.
 
-waves = [EffectiveWave(ω, k_eff, medium, species; extinction_rescale=false) for k_eff in k_effs]
+waves = [EffectivePlaneWaveMode(ω, k_eff, medium, species; extinction_rescale=false) for k_eff in k_effs]
 
 # choose the mesh the size of the lowest attenuating effective wavenumber
 x = range(0.; length=100, stop=2pi/abs(k_effs[1]))

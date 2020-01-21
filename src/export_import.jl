@@ -1,9 +1,12 @@
 # Here are the main exported functions and types. Note there are other exported functions and types in files such as "effective_waves/effective_waves_export" and "discrete_wave/export.jl."
 
-export  EffectiveWave, AverageWave # the two main types
-export  MatchWave # a combination of the two types above
+export  EffectivePlaneWaveMode, DiscretePlaneWaveMode # the two main types
+export  MatchPlaneWaveMode # a combination of the two types above
 
-# for MatchWave
+export Specie, Species, number_density, volume_fraction
+export Material
+
+# for MatchPlaneWaveMode
 export  match_error, x_mesh_match
 
 # for discrete method
@@ -19,7 +22,7 @@ export  wavenumbers, wavenumber, effective_waves, transmission_angle,
 
 export  reflection_coefficient, reflection_coefficients
 
-export  effective_medium, reflection_coefficient_halfspace
+export  effective_medium
 
 # List of shorthand for some materials
 export  Brick, IronArmco, LeadAnnealed, RubberGum, FusedSilica, GlassPyrex,

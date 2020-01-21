@@ -13,15 +13,14 @@ using Reexport
 
 include("specialfunctions.jl")
 
+include("material.jl")
+
 include("effective_wave/export.jl")
-include("discrete_wave/export.jl")
+include("acoustics/export.jl")
+
 include("match_waves/match_waves.jl")
 include("match_waves/match_arrays.jl")
 include("match_waves/reflection.jl")
-
-include("acoustics/export.jl")
-
-include("materials.jl")
 
 include("plot/graphics.jl")
 include("plot/plot.jl")

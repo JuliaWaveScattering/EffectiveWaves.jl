@@ -28,14 +28,14 @@ using EffectiveWaves, Test
     @test abs(k_eff - k_eff_low)/norm(k_eff_low) < 10*tol
 
     R = begin
-        wave = EffectiveWave(ω, k_eff, medium, species)
+        wave = EffectivePlaneWaveMode(ω, k_eff, medium, species)
         reflection_coefficient(ω, wave, medium, species)
     end
     R_low2 = begin
-        wave = EffectiveWave(ω, k_eff_low, medium, species)
+        wave = EffectivePlaneWaveMode(ω, k_eff_low, medium, species)
         reflection_coefficient(ω, wave, medium, species)
     end
-    R_low = reflection_coefficient_halfspace(medium, eff_medium)
+    R_low = reflection_coefficient(medium, eff_medium)
 
     @test norm(R_low - R) < tol
     @test norm(R_low2 - R) < tol

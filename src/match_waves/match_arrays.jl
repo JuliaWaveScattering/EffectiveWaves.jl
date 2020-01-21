@@ -2,7 +2,7 @@
 Returns (LT, ER, (im*k^2*inv_w).*invV*conj(w_vec)), which connect the effective and average wave through α = LT*A + (im*k^2*inv_w).*invV*conj(w_vec).
 The matching region is X[L:end].
 "
-function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, L::Int, X::AbstractVector{T}, medium::Acoustic{T,2}, species::Species{T,2};
+function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T}}, L::Int, X::AbstractVector{T}, medium::Acoustic{T,2}, species::Species{T,2};
         # a12k::T = 1.005*T(2)*real(specie.r*ω/medium.c),
         scheme::Symbol = :trapezoidal, θin::T = 0.0) where T<:Number
 
@@ -39,7 +39,7 @@ function match_arrays(ω::T, wave_effs::Vector{EffectiveWave{T}}, L::Int, X::Abs
             T(2) * (-im)^T(m-1) * number_density(species[s]) * exp(im*m*θin - im*X[j]*cos(θin)) * σ[j] / cos(θin)
     for j = 1:(J+1), m = -ho:ho, s = 1:S]
 
-    avg_wave_effs = [AverageWave(X, wave) for wave in wave_effs]
+    avg_wave_effs = [DiscretePlaneWaveMode(X, wave) for wave in wave_effs]
     vs = [
         [w.amplitudes[j,n+ho+1,1] for w in avg_wave_effs]
     for j = L:(J+1), n = -ho:ho]
