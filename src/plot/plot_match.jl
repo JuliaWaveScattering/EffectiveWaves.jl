@@ -41,7 +41,7 @@ end
         hankel_indexes --> hankel_indexes
         # markeralpha --> 0.2
         markersize --> 4.0
-        match_wave.average_wave
+        match_wave.discrete_wave
     end
 
     @series begin

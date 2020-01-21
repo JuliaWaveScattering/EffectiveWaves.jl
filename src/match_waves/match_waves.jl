@@ -1,17 +1,17 @@
 "A type for matched waves."
 mutable struct MatchWave{T<:AbstractFloat}
     effective_waves::Vector{EffectiveWave{T}}
-    average_wave::AverageWave{T}
-    x_match::Vector{T} # waves are matched between average_wave.x_match
+    discrete_wave::AverageWave{T}
+    x_match::Vector{T} # waves are matched between discrete_wave.x_match
 end
 
-"Calculates the difference between the match of MatchWave.effective_waves and MatchWave.average_wave. This can be used as a proxi for convergence. "
+"Calculates the difference between the match of MatchWave.effective_waves and MatchWave.discrete_wave. This can be used as a proxi for convergence. "
 function match_error(m_wave::MatchWave{T}; apply_norm::Function=norm) where T<:AbstractFloat
     avg_eff = AverageWave(m_wave.x_match, m_wave.effective_waves)
-    j0 = findmin(abs.(m_wave.average_wave.x .- m_wave.x_match[1]))[2]
+    j0 = findmin(abs.(m_wave.discrete_wave.x .- m_wave.x_match[1]))[2]
     len = length(m_wave.x_match)
 
-    return apply_norm(m_wave.average_wave.amplitudes[j0:end,:,:][:] - avg_eff.amplitudes[:])/len
+    return apply_norm(m_wave.discrete_wave.amplitudes[j0:end,:,:][:] - avg_eff.amplitudes[:])/len
 end
 
 function MatchWave(ω::T, medium::Acoustic{T,2}, specie::Specie{T,2};
@@ -59,7 +59,7 @@ function MatchWave(ω::T, medium::Acoustic{T,2}, specie::Specie{T,2};
     J = length(collect(X)) - 1
     len = (J + 1)  * (2basis_order + 1)
 
-    (MM_quad,b_mat) = average_wave_system(ω, X, medium, specie; tol=tol,
+    (MM_quad,b_mat) = discrete_wave_system(ω, X, medium, specie; tol=tol,
         basis_order=basis_order, θin=θin,  kws...);
     MM_mat = reshape(MM_quad, (len, len));
     b = reshape(b_mat, (len));

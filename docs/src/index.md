@@ -42,7 +42,7 @@ For a list of other materials go to [examples/materials.jl](examples/materials.j
 ```julia
 # angular frequencies
 ωs = LinRange(0.01,1.0,60)*30.0e6
-ks = wavenumber_low_volfrac(ωs, background, species)
+ks = wavenumber_low_volumefraction(ωs, background, species)
 
 speeds = ωs ./ real.(ks)
 attenuations = imag.(ks)

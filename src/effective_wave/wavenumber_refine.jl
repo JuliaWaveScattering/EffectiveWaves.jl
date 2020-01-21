@@ -1,18 +1,17 @@
 function wavenumbers_refine(ω::T, medium::Medium{T}, species::Species{T};
-        dim = 2,
-        tol::T = 1e-8,
+        tol::T = 1e-7,
         k_effs::Vector{Complex{T}} = Complex{T}[],
         kws...) where T<:Number
 
     # the dispersion equation is given by: `dispersion(k1,k2) = 0` where k_eff = k1 + im*k2.
-    dispersion = dispersion_equation(ω, medium, species; tol = tol, dim=dim, kws...)
+    dispersion = dispersion_equation(ω, medium, species; tol = tol, kws...)
 
     # add any specified keffs
     k_vecs = [[real(kp),imag(kp)] for kp in k_effs]
 
     k_vecs = map(k_vecs) do k_vec
        res = optimize(dispersion, k_vec, Optim.Options(iterations = 10 * Int(abs(round(log(tol)))), g_tol = tol^3.0, x_tol=tol))
-       if res.minimum > T(20)*tol
+       if res.minimum > T(100)*tol
            [zero(T),-one(T)]
        else
            res.minimizer

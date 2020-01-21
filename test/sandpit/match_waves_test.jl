@@ -94,7 +94,7 @@ plot(match_w, hankel_indexes = 0:1)
 plot(avg_wave_x, hankel_indexes = 0:1, seriestype=:scatter, xlims = (0.,5.))
 plot!(match_w, hankel_indexes = 0:1, seriestype=:line, xlims = (0.,5.))
 
-avg_wave_small = AverageWave(ω, medium, specie; basis_order=ho, θin=θin, x=match_w.average_wave.x,
+avg_wave_small = AverageWave(ω, medium, specie; basis_order=ho, θin=θin, x=match_w.discrete_wave.x,
     radius_multiplier = radius_multiplier, tol = 1e-6, max_size=500)
 plot!(avg_wave_small, seriestype=:line, linestyle=:dash)
 

@@ -18,7 +18,7 @@ using EffectiveWaves, Test
     ω = real(k*medium.c)
 
     # From effective wave theory
-    k_eff0 = wavenumber_low_volfrac(ω, medium, [specie]; tol = 1e-12, basis_order = ho)
+    k_eff0 = wavenumber_low_volumefraction(ω, medium, [specie]; tol = 1e-12, basis_order = ho)
     max_x = 15.0*k/imag(k_eff0)
     x = 0.0:0.001:max_x
 

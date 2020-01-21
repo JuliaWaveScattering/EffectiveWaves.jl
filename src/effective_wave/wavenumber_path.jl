@@ -2,14 +2,14 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T}, species::Species{T};
         tol::T = 1e-6,
         mesh_points::Int = 2, mesh_size::T = one(T),
         num_wavenumbers = 3,
-        max_Imk::T = T(2) + T(20) * imag(wavenumber_low_volfrac(ω, medium, species)),
+        max_Imk::T = T(2) + T(20) * imag(wavenumber_low_volumefraction(ω, medium, species)),
         verbose::Bool = false,
         k_effs::Vector{Complex{T}} = Complex{T}[],
         kws...) where T<:AbstractFloat
 
 
     # find at least one root to use as a scale for dk_x and dk_y
-        kφ = wavenumber_low_volfrac(ω, medium, species; verbose = false)
+        kφ = wavenumber_low_volumefraction(ω, medium, species; verbose = false)
         eff_medium = effective_medium(medium, species)
         k0 = ω/eff_medium.c
         if isnan(k0) k0 = kφ end

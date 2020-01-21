@@ -1,6 +1,6 @@
 using EffectiveWaves
 
-include("../average_waves/integral_form.jl")
+include("../discrete_wave/integral_form.jl")
 
 # physical parameters
 medium = Medium(1.0,1.0+0.0im)

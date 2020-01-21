@@ -16,8 +16,7 @@ end
 The function returns an array A, where
 AA(x,y,m,s) = im^m*exp(-im*m*θ_eff)*A[m + max_basis_order +1,s]*exp(im*k_eff*(cos(θ_eff)*x + sin(θin)*y))
 where (x,y) are coordinates in the halfspace, m-th hankel order, s-th species,  and AA is the ensemble average scattering coefficient."
-function effective_wavevectors(ω::T, k_eff::Complex{T}, medium::Acoustic{T,2}, species::Species{T};
-        # dim = 2,
+function effective_wavemodes(ω::T, k_eff::Complex{T}, medium::Acoustic{T,2}, species::Species{T};
         tol::T = 1e-5,
         kws...) where T<:Number
 
@@ -56,16 +55,16 @@ function scale_amplitudes_effective(ω::T, wave_eff::EffectiveWave{T},
     return a
 end
 
-function wienerhopf_wavevectors(ω::T, k_eff::Complex{T}, medium::Acoustic{T,2}, species::Species{T}; kws...) where T<:AbstractFloat
-    return wienerhopf_wavevectors(ω, [k_eff], medium, species; kws...)
+function wienerhopf_wavemodes(ω::T, k_eff::Complex{T}, medium::Acoustic{T,2}, species::Species{T}; kws...) where T<:AbstractFloat
+    return wienerhopf_wavemodes(ω, [k_eff], medium, species; kws...)
 end
 
 
-"The average effective transmitted wavevectors according to the Wiener-Hopf method.
+"The average effective transmitted wavemodes according to the Wiener-Hopf method.
 The function returns an array A, where
 AA(x,y,0,1) = A[1,1]*exp(im*k_eff*(cos(θ_eff)*x + sin(θin)*y))
 where (x,y) are coordinates in the halfspace  and AA is the ensemble average scattering coefficient. Method currently only implemented for 1 species and for monopole scatterers."
-function wienerhopf_wavevectors(ω::T, k_effs::Vector{Complex{T}}, medium::Acoustic{T,2}, species::Species{T};
+function wienerhopf_wavemodes(ω::T, k_effs::Vector{Complex{T}}, medium::Acoustic{T,2}, species::Species{T};
         tol::T = 1e-6, θin::T = 0.0,
         basis_order::Int = 0,
         num_coefs::Int = 10000,

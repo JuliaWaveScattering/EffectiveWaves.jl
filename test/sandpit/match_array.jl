@@ -83,7 +83,7 @@ Es = [
 for m = -ho:ho]
 E_mat = vcat(Es...);
 
-σ =  trap_scheme(X2) # integration scheme: trapezoidal
+σ =  trapezoidal_scheme(X2) # integration scheme: trapezoidal
 
 scalar = 2*specie.num_density/cos(θin)
 EE = scalar*[

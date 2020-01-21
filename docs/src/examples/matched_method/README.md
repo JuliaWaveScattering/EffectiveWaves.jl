@@ -38,9 +38,9 @@ To determine the amplitude of these effective waves we used the newly developed 
 
 We can compare this results against a purely numerical method, which requires a much larger mesh.
 ```julia
-  average_wave = AverageWave(ω, medium, specie; θin = θin, max_size=700)
+  discrete_wave = AverageWave(ω, medium, specie; θin = θin, max_size=700)
 
-  plot(average_wave, ylim=(-0.1,0.3), xlab = "x", hankel_indexes=0:1)
+  plot(discrete_wave, ylim=(-0.1,0.3), xlab = "x", hankel_indexes=0:1)
   plot!(match_wave, seriestype=:line, match_region=false, hankel_indexes=0:1)
   savefig("compare_match_wave.png")
 ```

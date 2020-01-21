@@ -38,7 +38,7 @@ plot(hs, [sumg])
 
 ints_trap = map(hs) do h
     x = y1:h:y2
-    σ = trap_scheme(x; x0 = y1, xn = y2)
+    σ = trapezoidal_scheme(x; x0 = y1, xn = y2)
     sum(g(x[i])*σ[i] for i in eachindex(x))
 end
 

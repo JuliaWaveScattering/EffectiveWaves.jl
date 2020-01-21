@@ -10,16 +10,16 @@ function integration_scheme(x::AbstractVector{T}; scheme::Symbol = :trapezoidal,
     end
 
     if scheme == :trapezoidal
-        trap_scheme(x; kws...)
+        trapezoidal_scheme(x; kws...)
     elseif scheme == :simpson
         simpson_scheme(x; kws...)
     else
         @warn("Integration scheme $scheme unknown, will use trapezoidal")
-        trap_scheme(x; kws...)
+        trapezoidal_scheme(x; kws...)
     end
 end
 
-function trap_scheme(x::AbstractVector{T}; x0::T = first(x), xn::T = last(x)) where T<:AbstractFloat
+function trapezoidal_scheme(x::AbstractVector{T}; x0::T = first(x), xn::T = last(x)) where T<:AbstractFloat
 
     inds = axes(x,1)
 

@@ -12,14 +12,14 @@ using Reexport
 @reexport using MultipleScattering
 
 include("specialfunctions.jl")
-# include("particle.jl")
-# include("t-matrix.jl")
 
-include("effective_waves/effective_waves_export.jl")
-include("average_waves/average_waves_export.jl")
+include("effective_wave/export.jl")
+include("discrete_wave/export.jl")
 include("match_waves/match_waves.jl")
 include("match_waves/match_arrays.jl")
 include("match_waves/reflection.jl")
+
+include("acoustics/export.jl")
 
 include("materials.jl")
 

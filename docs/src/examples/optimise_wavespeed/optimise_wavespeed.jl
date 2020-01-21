@@ -40,7 +40,7 @@ end
 # species = load("data/$f.jld")["species"]
 #
 # kTs_arr = [
-#     [ sqrt(wavenumber_low_volfrac(ω,medium, sps)) for ω in ωs]
+#     [ sqrt(wavenumber_low_volumefraction(ω,medium, sps)) for ω in ωs]
 # for sps in [[species[1]],[species[2]],species]];
 #
 # speed_arr = [ ωs./real(kTs) for kTs in kTs_arr]

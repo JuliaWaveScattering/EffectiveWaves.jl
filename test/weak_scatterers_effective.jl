@@ -19,7 +19,7 @@
     eff_medium = effective_medium(medium, species)
 
     k_eff_lows = ωs./eff_medium.c
-    k_eff_φs = wavenumber_low_volfrac(ωs, medium, species; tol=1e-9)
+    k_eff_φs = wavenumber_low_volumefraction(ωs, medium, species; tol=1e-9)
 
     k_effs = [
         wavenumbers(ω, medium, species;
@@ -66,7 +66,7 @@
     R_low = reflection_coefficient_halfspace(medium, eff_medium; tol=1e-9)
     Rs_φs = reflection_coefficients(ωs, wave_effs_φs, medium, species; tol=1e-9)
     # the below takes a low-volfrac expansion for both the wavenumber and reflection coefficient
-    Rs_φs2 = reflection_coefficient_low_volfrac(ωs, medium, species; tol=1e-9)
+    Rs_φs2 = reflection_coefficient_low_volumefraction(ωs, medium, species; tol=1e-9)
 
     @test maximum(abs.(Rs_φs - Rs1)) < 1e-4 # already relative to incident wave amplitude = 1
     @test maximum(abs.(Rs_φs2 - Rs1)) < 1e-3
@@ -87,7 +87,7 @@
         reflection_coefficients(ωs, wave_effs_2, medium, species; θin = θ)
     end
     Rs_φs = [
-        reflection_coefficient_low_volfrac(ωs, medium, species; θin = θ, tol = 1e-9, basis_order =7)
+        reflection_coefficient_low_volumefraction(ωs, medium, species; θin = θ, tol = 1e-9, basis_order =7)
     for θ in θs];
 
     len = length(ωs)

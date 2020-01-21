@@ -29,7 +29,7 @@ using EffectiveWaves
   sp2 = Specie(ρ=inclusion2.ρ ,r=r2, c=inclusion2.c, volfrac = volfrac-vol1)
 
   # True wavenumber
-  kTs  = wavenumber_low_volfrac(ωs, medium, [sp1,sp2]; tol=0.5e-5);
+  kTs  = wavenumber_low_volumefraction(ωs, medium, [sp1,sp2]; tol=0.5e-5);
   # Approximate challis
   kTCs = wavenumber_challis(ωs, medium, [sp1,sp2]; basis_order=10);
 

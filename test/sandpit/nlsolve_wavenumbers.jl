@@ -49,7 +49,7 @@ function wavenumbers(ω::T, medium::Medium{T}, species::Species{T}; tol::T = 1e-
         F[2] = imag(detM) + cons
     end
 
-    kφ = wavenumber_low_volfrac(ω, medium, species; verbose = false)
+    kφ = wavenumber_low_volumefraction(ω, medium, species; verbose = false)
     eff_medium = effective_medium(medium, species)
     k0 = ω/eff_medium.c
     if isnan(k0) k0 = kφ end

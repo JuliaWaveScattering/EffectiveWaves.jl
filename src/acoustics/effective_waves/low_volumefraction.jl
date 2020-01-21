@@ -1,13 +1,13 @@
-wavenumber_low_volfrac(ω::Number, medium::PhysicalMedium, specie::Specie; kws...) =
-  wavenumber_low_volfrac(ω, medium, [specie]; kws...)
+wavenumber_low_volumefraction(ω::Number, medium::PhysicalMedium, specie::Specie; kws...) =
+  wavenumber_low_volumefraction(ω, medium, [specie]; kws...)
 
-wavenumber_low_volfrac(ωs::AbstractVector{T}, medium::PhysicalMedium{T}, species::Species{T}; kws...) where T<:Number =
-  [wavenumber_low_volfrac(ω, medium, species; kws...) for ω in ωs]
+wavenumber_low_volumefraction(ωs::AbstractVector{T}, medium::PhysicalMedium{T}, species::Species{T}; kws...) where T<:Number =
+  [wavenumber_low_volumefraction(ω, medium, species; kws...) for ω in ωs]
 
-wavenumber_low_volfrac(ωs::AbstractVector{T}, medium::PhysicalMedium{T}, specie::Specie{T}; kws...) where T<:Number = [wavenumber_low_volfrac(ω, medium, [specie]; kws...) for ω in ωs]
+wavenumber_low_volumefraction(ωs::AbstractVector{T}, medium::PhysicalMedium{T}, specie::Specie{T}; kws...) where T<:Number = [wavenumber_low_volumefraction(ω, medium, [specie]; kws...) for ω in ωs]
 
 "Explicit formula for one effective wavenumber based on a low particle volume fraction expasion."
-function wavenumber_low_volfrac(ω::T, medium::Acoustic{T,2}, species::Species{T,2}; tol::T =1e-6, basis_order::Int = 2, #maximum_basis_order(ω, medium, species; tol=tol), radius_multiplier::T = 1.005,
+function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,2}, species::Species{T,2}; tol::T =1e-6, basis_order::Int = 2, #maximum_basis_order(ω, medium, species; tol=tol), radius_multiplier::T = 1.005,
     verbose::Bool = true) where T <: Number
 
   volfrac = sum(volume_fraction.(species))
@@ -25,11 +25,11 @@ function wavenumber_low_volfrac(ω::T, medium::Acoustic{T,2}, species::Species{T
   return (imag(sqrt(kT2)) > zero(T)) ? sqrt(kT2) : -sqrt(kT2)
 end
 
-reflection_coefficient_low_volfrac(ωs::AbstractVector{T}, medium::PhysicalMedium{T}, species::Species{T}; kws... ) where T<:Number =
-    [reflection_coefficient_low_volfrac(ω, medium, species; kws... ) for ω in ωs]
+reflection_coefficient_low_volumefraction(ωs::AbstractVector{T}, medium::PhysicalMedium{T}, species::Species{T}; kws... ) where T<:Number =
+    [reflection_coefficient_low_volumefraction(ω, medium, species; kws... ) for ω in ωs]
 
 "An explicit formula for the refleciton coefficient based on a low particle volume fraction."
-function reflection_coefficient_low_volfrac(ω::T, medium::Acoustic{T,2}, species::Species{T,2};
+function reflection_coefficient_low_volumefraction(ω::T, medium::Acoustic{T,2}, species::Species{T,2};
         θin::T = zero(T), kws... ) where T<:Number
 
     θ_ref = T(π) - T(2)*θin
@@ -48,7 +48,7 @@ function reflection_coefficient_low_volfrac(ω::T, medium::Acoustic{T,2}, specie
     return R
 end
 
-function wavenumber_very_low_volfrac(ω::Number, medium::Acoustic{T,2}, species::Species{T,2}; tol=1e-6, verbose = false) where T<:Number
+function wavenumber_very_low_volumefraction(ω::Number, medium::Acoustic{T,2}, species::Species{T,2}; tol=1e-6, verbose = false) where T<:Number
 
   volume_fraction = sum(sp.volume_fraction for sp in species)
   if volume_fraction >= 0.4

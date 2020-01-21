@@ -27,7 +27,7 @@ x_mesh_match
 
 ```@docs
 wavenumbers
-wavenumber_low_volfrac
+wavenumber_low_volumefraction
 effective_medium
 ```
 
@@ -35,7 +35,7 @@ effective_medium
 
 ```@docs
 reflection_coefficient
-reflection_coefficient_low_volfrac
+reflection_coefficient_low_volumefraction
 reflection_coefficient_halfspace
 transmission_angle
 ```

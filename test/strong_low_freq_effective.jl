@@ -20,7 +20,7 @@ using EffectiveWaves, Test
     eff_medium = effective_medium(medium, species)
     k_eff_lows = ωs./eff_medium.c
 
-    k_eff_φs = wavenumber_low_volfrac(ωs, medium, species, basis_order=1)
+    k_eff_φs = wavenumber_low_volumefraction(ωs, medium, species, basis_order=1)
     # num_wavenumbers =1 almost always finds the wavenubmer with the smallest attenuation
 
     k_effs_arr = [

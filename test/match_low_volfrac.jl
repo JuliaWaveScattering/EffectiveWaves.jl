@@ -30,7 +30,7 @@ using LinearAlgebra
             , extinction_rescale = false)
     for ω in ωs]
 
-    k_eff_φs = wavenumber_low_volfrac(ωs, medium, species; tol=tol,
+    k_eff_φs = wavenumber_low_volumefraction(ωs, medium, species; tol=tol,
         basis_order=basis_order)
 
     wave_eff_φs = [
@@ -58,10 +58,10 @@ using LinearAlgebra
     @test maximum(match_error.(match_ws)) < 1e-6
 
     avg_wave_φs = [
-        AverageWave(match_ws[i].average_wave.x, wave_eff_φs[i])
+        AverageWave(match_ws[i].discrete_wave.x, wave_eff_φs[i])
     for i in eachindex(ωs)]
 
-    Rs_near = [reflection_coefficient(ωs[i], match_ws[i].average_wave, medium, specie) for i in eachindex(ωs)]
+    Rs_near = [reflection_coefficient(ωs[i], match_ws[i].discrete_wave, medium, specie) for i in eachindex(ωs)]
     Rs_near_φ = [reflection_coefficient(ωs[i], avg_wave_φs[i], medium, specie) for i in eachindex(ωs)]
     @test maximum(abs.(Rs_near_φ - Rs_near)) < 5e-6
 
@@ -70,6 +70,6 @@ using LinearAlgebra
     @test maximum(abs.(Rs_near_φ - Rs_near)) < 5e-6
 
     @test maximum(
-        norm(match_ws[i].average_wave.amplitudes[:] .- avg_wave_φs[i].amplitudes[:])/norm(avg_wave_φs[i].amplitudes[:])
+        norm(match_ws[i].discrete_wave.amplitudes[:] .- avg_wave_φs[i].amplitudes[:])/norm(avg_wave_φs[i].amplitudes[:])
     for i in eachindex(ωs)) < 1e-3
 end

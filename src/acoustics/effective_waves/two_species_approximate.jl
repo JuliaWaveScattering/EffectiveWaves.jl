@@ -10,9 +10,9 @@ function two_species_approx_wavenumber(ω::Number, medium, species)
   rhoeff =  medium.ρ*(medium.ρ + sp1.particle.medium.ρ - vol*(medium.ρ - sp1.particle.medium.ρ)) /
   (medium.ρ + sp1.particle.medium.ρ + vol*(medium.ρ - sp1.particle.medium.ρ))
 
-  kTS = wavenumber_low_volfrac(ω, medium, [sp1])
+  kTS = wavenumber_low_volumefraction(ω, medium, [sp1])
   mS = Acoustic(2; ρ=rhoeff, c= ω/kTS)
-  wavenumber_low_volfrac(ω, mS, [sp2])
+  wavenumber_low_volumefraction(ω, mS, [sp2])
 end
 
 function two_species_approx_wavenumber(ωs::AbstractArray, medium, species)
@@ -26,11 +26,11 @@ function two_species_approx_wavenumber(ωs::AbstractArray, medium, species)
   rhoeff =  medium.ρ*(medium.ρ + sp1.particle.medium.ρ - vol*(medium.ρ - sp1.particle.medium.ρ))/
   (medium.ρ + sp1.particle.medium.ρ + vol*(medium.ρ - sp1.particle.medium.ρ))
 
-  kTSs = wavenumber_low_volfrac(ωs, medium, [sp1])
+  kTSs = wavenumber_low_volumefraction(ωs, medium, [sp1])
   kTLs = [
   begin
     mS = Acoustic(2; ρ=rhoeff, c= ωs[i]/kTSs[i])
-    wavenumber_low_volfrac(ωs[i], mS, [sp2])
+    wavenumber_low_volumefraction(ωs[i], mS, [sp2])
   end
   for i in eachindex(ωs)]
 end

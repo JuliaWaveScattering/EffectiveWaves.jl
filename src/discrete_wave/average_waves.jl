@@ -80,7 +80,7 @@ function AverageWave(ω::T, medium::Acoustic{T,2}, specie::Specie{T};
     end
 
     X = x.*k
-    (MM_quad,b_mat) = average_wave_system(ω, X, medium, specie; tol = tol, kws...);
+    (MM_quad,b_mat) = discrete_wave_system(ω, X, medium, specie; tol = tol, kws...);
 
     M = Int( (size(b_mat,2) - 1)/2 )
     J = length(collect(X)) - 1
@@ -96,7 +96,7 @@ function AverageWave(ω::T, medium::Acoustic{T,2}, specie::Specie{T};
 end
 
 "note that this uses the non-dimensional X = k*depth"
-function average_wave_system(ω::T, X::AbstractVector{T}, medium::Acoustic{T,2}, specie::Specie{T,2};
+function discrete_wave_system(ω::T, X::AbstractVector{T}, medium::Acoustic{T,2}, specie::Specie{T,2};
         θin::Float64 = 0.0, tol::T = 1e-6,
         scheme::Symbol = :trapezoidal,
         basis_order::Int = 2,#maximum_basis_order(ω, medium, [specie]; tol = tol),

@@ -35,7 +35,7 @@ function one_species_low_wavenumber(ωs, medium::Acoustic{T,2}, sp::Specie{T,2})
   (ωs./medium.c).*(1 - (φ/2)*(P+2*Q)-(φ^2/8)*(2*P^2-(P+2*Q)^2))
 end
 
-function wavenumber_far_field_low_volfrac(ω::Complex{T}, medium::Acoustic{T,2}, species::Species{T,2};
+function wavenumber_far_field_low_volumefraction(ω::Complex{T}, medium::Acoustic{T,2}, species::Species{T,2};
         tol=0.0002, #radius_multiplier = 1.005,
         verbose = false) where T<:AbstractFloat
   # tol=0.004; radius_multiplier = 1.005

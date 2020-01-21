@@ -46,7 +46,7 @@ Calculate effective wavenumbers:
 
 # angular frequencies
 ωs = LinRange(0.01,1.0,60)*30.0e6
-wavenumbers = wavenumber_low_volfrac(ωs, background, species)
+wavenumbers = wavenumber_low_volumefraction(ωs, background, species)
 
 speeds = ωs./real(wavenumbers)
 attenuations = imag(wavenumbers)

@@ -40,8 +40,8 @@ using LinearAlgebra
 
     inds = Int.(round.(LinRange(1,length(wave_effs),5)))
     errors = map(inds) do i
-        avg_WH = AverageWave(match_ws.average_wave.x[1:200], wave_effs[1:i]);
-        norm(avg_WH.amplitudes - match_ws.average_wave.amplitudes[1:200,:,:])/norm(match_ws.average_wave.amplitudes[1:200,:,:])
+        avg_WH = AverageWave(match_ws.discrete_wave.x[1:200], wave_effs[1:i]);
+        norm(avg_WH.amplitudes - match_ws.discrete_wave.amplitudes[1:200,:,:])/norm(match_ws.discrete_wave.amplitudes[1:200,:,:])
     end
 
     # errors should be monotonically decreasing

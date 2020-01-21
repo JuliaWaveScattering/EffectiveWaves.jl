@@ -1,4 +1,4 @@
-# Here are the main exported functions and types. Note there are other exported functions and types in files such as "effective_waves/effective_waves_export" and "average_waves/average_waves_export.jl."
+# Here are the main exported functions and types. Note there are other exported functions and types in files such as "effective_waves/effective_waves_export" and "discrete_wave/export.jl."
 
 export  EffectiveWave, AverageWave # the two main types
 export  MatchWave # a combination of the two types above
@@ -15,7 +15,7 @@ export  Nn, p_speed#, maximum_basis_order
 
 # for effective waves
 export  wavenumbers, wavenumber, effective_waves, transmission_angle,
-        effective_wavevectors, scattering_amplitudes_average, scale_amplitudes_effective
+        effective_wavemodes, scattering_amplitudes_average, scale_amplitudes_effective
 
 export  reflection_coefficient, reflection_coefficients
 

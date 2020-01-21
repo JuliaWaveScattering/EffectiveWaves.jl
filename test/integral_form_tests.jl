@@ -16,7 +16,7 @@ function test_integral_form()
     specie2 = Specie(ρ=2.0, r=1.0, c=0.1, volfrac=0.15)
 
     # From effective wave theory
-    k_eff0 = wavenumber_low_volfrac(ω, medium, [specie]; basis_order = ho)
+    k_eff0 = wavenumber_low_volumefraction(ω, medium, [specie]; basis_order = ho)
     k_effs = wavenumbers(ω, medium, [specie]; mesh_points = 10, tol = 1e-8, basis_order = ho)
     k_effs = sort(k_effs, by=imag)
 
@@ -28,9 +28,9 @@ function test_integral_form()
     using OffsetArrays, ApproxFun, IterTools
     include("src/integral_form/integral_form.jl")
 
-    # (x, (MM_quad,b_mat)) = average_wave_system(ω, medium, specie; θin = θin, mesh_points = 501, basis_order=ho);
+    # (x, (MM_quad,b_mat)) = discrete_wave_system(ω, medium, specie; θin = θin, mesh_points = 501, basis_order=ho);
     X = 0.0:0.005:30.0
-    (MM_quad,b_mat) = average_wave_system(ω, X, medium, specie;θin = θin, basis_order=ho);
+    (MM_quad,b_mat) = discrete_wave_system(ω, X, medium, specie;θin = θin, basis_order=ho);
 
     # discretization parameters
     J = length(collect(x)) - 1
@@ -171,7 +171,7 @@ function check_integration(k_eff::Complex{Float64} = 1.0+1.0im; k=1.,a=1., h = a
     x[0:J] = (0:J)*h
 
     # trapezoidal
-    σ =  OffsetArray(trap_scheme(collect(x); xn=max_x), 0:J)
+    σ =  OffsetArray(trapezoidal_scheme(collect(x); xn=max_x), 0:J)
 
     PQ_quad = intergrand_kernel(x, a*k; θin = θin, M = M)
 

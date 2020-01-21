@@ -17,7 +17,7 @@ vols = LinRange(0.0,1.0,N)*volfrac
 ks_arr = map(1:N) do i
     sp1 = Specie(0.0, r1; volfrac=vols[i])
     sp2 = Specie(Inf, r1; volfrac=volfrac-vols[i])
-    [ wavenumber_low_volfrac(ω, background, [sp1,sp2]) for ω in ωs]
+    [ wavenumber_low_volumefraction(ω, background, [sp1,sp2]) for ω in ωs]
 end
 
 speeds = [ ωs ./ real(ks) for ks in ks_arr]
