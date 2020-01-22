@@ -18,7 +18,6 @@ using EffectiveWaves
     # a halfspace with outward normal [-1.0,0.0] and filled with specie
     material = Material(Halfspace([-1.0,0.0]), specie)
 
-
     ω = 1.0
     θin = 0.3 # angle made between incident wave direction and the material boundary
 
