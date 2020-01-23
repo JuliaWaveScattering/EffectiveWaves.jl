@@ -3,6 +3,25 @@ using LinearAlgebra
 
 @testset "Special functions" begin
 
+    @testset "complex radial coordiantes" begin
+
+    @test maximum(map(1:1000) do i
+            x = rand(-1.01:0.1:1.0,3) + rand(-1.01:0.1:1.0,3)*im
+            norm(x - radial_to_cartesian_coordiantes(cartesian_to_radial_coordiantes(x)))
+          end) < 1e-14
+
+    @test maximum(
+            map(1:1000) do i
+                x = rand(-1.01:0.1:1.0) + rand(-1.01:0.1:1.0)*im
+                y = rand(-1.01:0.1:1.0) + rand(-1.01:0.1:1.0)*im
+                r = sqrt(x^2 + y^2)
+                θ = atan(y,x)
+                norm( [x,y] -  r .* [cos(θ),sin(θ)] )
+            end
+          ) < 1e-14
+    end       
+
+
     @testset "spherical bessel functions" begin
         x = 1.1 + 1.1im
         @test sbesselj(1, x) ≈ sin(x)/x^2 - cos(x)/x

@@ -69,7 +69,7 @@ function test_integral_form()
     amps2_eff = scattering_amplitudes_average(ω, x, medium, [specie];
             k_eff = k_effs2[2], basis_order = ho, θin=θin)
     error2_eff = reshape( abs.(MM_mat*amps2_eff.amplitudes[:] .- b), (J+1, 2ho+1))
-    # scale_amplitudes_effective(ω, k_effs[1], amps2_eff.amplitudes, medium, [specie]; θin = θin)
+    # scale_mode_amplitudes(ω, k_effs[1], amps2_eff.amplitudes, medium, [specie]; θin = θin)
 
     error = reshape( abs.((MM_mat*As)./b .- 1.0+0.0im), (J+1, 2ho+1))
 

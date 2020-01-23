@@ -2,7 +2,7 @@
 
 export intergrand_kernel, discrete_wave_system, integrate_S, integrate_B
 export integration_scheme, trapezoidal_scheme, simpson_scheme
-export discretewave_error
+export discretewave_error, x_mesh
 
 include("discrete_wave.jl")
 include("numerical_integration.jl")

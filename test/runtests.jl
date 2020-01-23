@@ -7,6 +7,7 @@ using LinearAlgebra
 end
 
 include("specialfunctions.jl")
+include("complex.jl")
 
 @testset "Single effective wave" begin
     include("strong_low_freq_effective.jl")

@@ -35,7 +35,7 @@ num_wavenumbers = 40;
 # X = 0.0:0.04:12.
 
 
-wave_effs = effective_waves(ω, medium, [specie];
+wave_effs = effective_wavemodes(ω, medium, [specie];
     basis_order=ho, tol = 1e-7,  θin = θin, verbose = true,
     num_wavenumbers = num_wavenumbers,
     apply_meshing = true,

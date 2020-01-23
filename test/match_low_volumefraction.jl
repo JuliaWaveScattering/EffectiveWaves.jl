@@ -24,7 +24,7 @@ using LinearAlgebra
     ωs = [0.2,1.2]
 
     wave_effs_arr = [
-        effective_waves(ω, medium, [specie];
+        effective_wavemodes(ω, medium, [specie];
             basis_order=basis_order, tol = tol,  θin = θin,
             num_wavenumbers = 1
             #, mesh_points = 10, mesh_size = 2.0 #, max_Rek = 20.0, max_Imk = 20.0

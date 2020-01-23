@@ -1,13 +1,13 @@
 "A type for matched waves."
 mutable struct MatchPlaneWaveMode{T<:AbstractFloat}
-    effective_waves::Vector{EffectivePlaneWaveMode{T}}
+    effective_wavemodes::Vector{EffectivePlaneWaveMode{T}}
     discrete_wave::DiscretePlaneWaveMode{T}
     x_match::Vector{T} # waves are matched between discrete_wave.x_match
 end
 
-"Calculates the difference between the match of MatchPlaneWaveMode.effective_waves and MatchPlaneWaveMode.discrete_wave. This can be used as a proxi for convergence. "
+"Calculates the difference between the match of MatchPlaneWaveMode.effective_wavemodes and MatchPlaneWaveMode.discrete_wave. This can be used as a proxi for convergence. "
 function match_error(m_wave::MatchPlaneWaveMode{T}; apply_norm::Function=norm) where T<:AbstractFloat
-    avg_eff = DiscretePlaneWaveMode(m_wave.x_match, m_wave.effective_waves)
+    avg_eff = DiscretePlaneWaveMode(m_wave.x_match, m_wave.effective_wavemodes)
     j0 = findmin(abs.(m_wave.discrete_wave.x .- m_wave.x_match[1]))[2]
     len = length(m_wave.x_match)
 
@@ -26,7 +26,7 @@ function MatchPlaneWaveMode(ω::T, medium::Acoustic{T,2}, specie::Specie{T,2};
     k = real(ω/medium.c)
 
     if maximum(abs(w.k_eff) for w in wave_effs) == zero(T)
-        wave_effs = effective_waves(k, medium, [specie];
+        wave_effs = effective_wavemodes(k, medium, [specie];
             # radius_multiplier=radius_multiplier,
             extinction_rescale = false,
             tol = T(10)*tol, θin=θin,

@@ -22,7 +22,7 @@ using EffectiveWaves, Test
     basis_order = 2
 
     wave_effs_arr = [
-        effective_waves(ω, medium, [s];
+        effective_wavemodes(ω, medium, [s];
             basis_order=basis_order,
             mesh_points=5,
             num_wavenumbers=5,
@@ -53,9 +53,9 @@ using EffectiveWaves, Test
     R_ms = [reflection_coefficient(ω, match_ws[i], medium, species[i]) for i in eachindex(species)]
     R_ds = [reflection_coefficient(ω, avgs[i], medium, species[i]) for i in eachindex(species)]
 
-    avg_eff = DiscretePlaneWaveMode(match_ws[2].x_match[end]:0.002:40, match_ws[2].effective_waves);
+    avg_eff = DiscretePlaneWaveMode(match_ws[2].x_match[end]:0.002:40, match_ws[2].effective_wavemodes);
     R1 = reflection_coefficient(ω, avg_eff, medium, species[2])
-    R2 = reflection_coefficient(ω, match_ws[2].effective_waves, medium, [species[2]]; x=avg_eff.x[1])
+    R2 = reflection_coefficient(ω, match_ws[2].effective_wavemodes, medium, [species[2]]; x=avg_eff.x[1])
     @test norm(R1 - R2) < 1e-7
 
     @test maximum(abs.(R_ms - R_ds)) < 8e-4
@@ -63,7 +63,7 @@ using EffectiveWaves, Test
     map(eachindex(species)) do i
         j0 = findmin(abs.(avgs[i].x .- match_ws[i].x_match[1]))[2]
         x0 = avgs[i].x[j0+1:end]
-        avg_m = DiscretePlaneWaveMode(x0, match_ws[i].effective_waves)
+        avg_m = DiscretePlaneWaveMode(x0, match_ws[i].effective_wavemodes)
         maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:]))
         @test norm(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])/norm(avg_m.amplitudes[:]) < 6e-3
         @test maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])) < 2e-3

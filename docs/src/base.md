@@ -14,7 +14,7 @@ There are currently three main types used.
 
 ```@docs
 EffectiveWave
-effective_waves
+effective_wavemodes
 DiscretePlaneWaveMode
 discretewave_error
 x_mesh

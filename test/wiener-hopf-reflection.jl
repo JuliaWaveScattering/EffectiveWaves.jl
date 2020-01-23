@@ -16,7 +16,7 @@ using EffectiveWaves, Test
     tol = 1e-9
     basis_order=0
 
-    ws = effective_waves(ω, medium, [specie];
+    ws = effective_wavemodes(ω, medium, [specie];
         tol=tol, basis_order = basis_order,
         apply_meshing = false,
         num_wavenumbers = 20,
@@ -70,7 +70,7 @@ end
     eff_medium = effective_medium(medium, [specie])
 
     function Rerror(θ)
-        ws = effective_waves(ω, medium, [specie];
+        ws = effective_wavemodes(ω, medium, [specie];
             tol=tol, θin = θ,
             basis_order = basis_order,
             num_wavenumbers = 2,

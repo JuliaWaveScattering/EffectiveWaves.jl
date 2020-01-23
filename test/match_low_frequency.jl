@@ -27,7 +27,7 @@
     for i in eachindex(species)]
 
     wave_effs_arr = [
-        effective_waves(ω, medium, [s];
+        effective_wavemodes(ω, medium, [s];
             basis_order=basis_order,
             num_wavenumbers = 1,
             tol = tol,  θin = θin,
@@ -46,9 +46,9 @@
    @test maximum(match_error.(match_ws)) < tol
 
     map(eachindex(species)) do i
-        x = LinRange(match_ws[i].x_match[end],2pi/real(match_ws[i].effective_waves[1].k_eff),200)
+        x = LinRange(match_ws[i].x_match[end],2pi/real(match_ws[i].effective_wavemodes[1].k_eff),200)
         avg_low = DiscretePlaneWaveMode(x, wave_eff_lows[i])
-        avg = DiscretePlaneWaveMode(x, match_ws[i].effective_waves)
+        avg = DiscretePlaneWaveMode(x, match_ws[i].effective_wavemodes)
         @test norm(avg.amplitudes[:] - avg_low.amplitudes[:]) < tol
         @test maximum(abs.(avg.amplitudes[:] - avg_low.amplitudes[:])) < tol
     end
