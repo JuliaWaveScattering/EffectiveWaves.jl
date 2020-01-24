@@ -1,37 +1,6 @@
+
 "returns a number a, such that a*As_eff will cancel an incident wave plane wave with incident angle θin."
 function scale_mode_amplitudes(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, material::Material{Dim,Halfspace{T,Dim}}; tol = 1e-8) where {T<:Number,Dim}
-
-# We need to determine θ_eff such that:
-#    k_eff * cos(θ_eff) = dot(- material.normal, wave_eff.wavevector)
-# and
-#    n_p = wave_eff.wavevector - dot(- material.normal, wave_eff.wavevector)
-
- # k_eff * sin(θ_eff) =
-# where k_eff = sqrt(sum(x^2 for x in k_vec));
-
-    # dot(- material.normal, wave_eff.wavevector) .* (- material.normal)
-    #
-    # normal = [1.0,0.];
-    # normal = normal / norm(normal);
-    #
-    # in_vec = normal + rand(-0.9:0.1:0.1,2);
-    # k_vec = [rand(-1.0:0.01:1.1) + rand(0.:0.1:1.0) * im, in_vec[2]];
-    #
-    #
-    # k_eff = sqrt(sum(x^2 for x in k_vec));
-    # θ_eff = acos(dot(normal,k_vec) / k_eff);
-    #
-    # k_vec2 = radial_to_cartesian_coordiantes([k_eff,θ_eff,0.0])
-    #
-    # norm(k_eff .* [cos(θ_eff),sin(θ_eff)] - k_vec)
-    #
-    # k_eff * cos(θ_eff) - dot(normal,k_vec)
-    #
-    # k = sqrt(sum(x^2 for x in in_vec));
-    # θin = acos(dot(normal,in_vec) / k);
-    #
-    # norm(k .* [cos(θin),sin(θin)] - in_vec)
-    # k*sin(θin) - k_eff*sin(θ_eff)
 
     k = ω/psource.medium.c
 
@@ -67,13 +36,13 @@ function effective_wavemode(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,Dim
     else
         amps = mode_amplitudes(ω, k_eff, psource, material; tol = tol, kws...)
     end
-    plane_mode = EffectivePlaneWaveMode(ω,amps, k_vec)
+    plane_mode = EffectivePlaneWaveMode(ω, k_eff, k_vec, amps)
 
     if extinction_rescale && method != :WienerHopf
         amps = amps.*scale_mode_amplitudes(ω, plane_mode, psource.medium, material.species; tol = tol, θin=θin)
     end
 
-    return EffectivePlaneWaveMode(ω, plane_mode.basis_order, amps, k_vec)
+    return EffectivePlaneWaveMode(ω, k_eff, k_vec, plane_mode.basis_order, amps)
 end
 
 

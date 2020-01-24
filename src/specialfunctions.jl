@@ -9,27 +9,19 @@ cartesian_to_radial_coordiantes(x::Vector) = cartesian_to_radial_coordiantes(SVe
 radial_to_cartesian_coordiantes(θ::Vector) = radial_to_cartesian_coordiantes(SVector(θ...))
 
 import Base.atan
-atan(y::Complex,x::Complex) = - im * log( (x+y*im)/sqrt(x^2+y^2) )
+atan(y::Complex,x::Complex) = - im * log( (x+y*im) / sqrt(x^2+y^2) )
 
 function cartesian_to_radial_coordiantes(x::SVector{3,CT}) where CT
-    r = sqrt(sum(x1 -> x1^2, x)) # note this should be complex if x is complex
-    θ = atan(sqrt(x[1]^2+x[2]^2), x[3])
+    r = sqrt(sum(x .^2)) # note this should be complex if x is complex
+    θ = atan(sqrt(x[1]^2+x[2]^2),x[3])
     φ = atan(x[2], x[1])
     return [r,θ,φ]
 end
 
 function cartesian_to_radial_coordiantes(x::SVector{2,CT}) where CT
-    r = sqrt(x[1]^2+x[2]^2) # note this should be complex if x is complex
+    r = sqrt(sum(x .^2)) # note this should be complex if x is complex
     θ = atan(x[2], x[1])
     return [r,θ]
-end
-
-function radial_to_cartesian_coordiantes(rθ::SVector{2,CT}) where CT
-    r, θ = rθ
-    x = r * sin(θ)
-    y = r * cos(θ)
-
-    return [x,y]
 end
 
 function radial_to_cartesian_coordiantes(rθφ::SVector{3,CT}) where CT
@@ -39,6 +31,14 @@ function radial_to_cartesian_coordiantes(rθφ::SVector{3,CT}) where CT
     z = r * cos(θ)
 
     return [x,y,z]
+end
+
+function radial_to_cartesian_coordiantes(rθ::SVector{2,CT}) where CT
+    r, θ = rθ
+    x = r * cos(θ)
+    y = r * sin(θ)
+
+    return [x,y]
 end
 
 """

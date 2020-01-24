@@ -1,25 +1,30 @@
 using GSL
-using LinearAlgebra
+using Test, LinearAlgebra
 
 @testset "Special functions" begin
 
     @testset "complex radial coordiantes" begin
 
-    @test maximum(map(1:1000) do i
-            x = rand(-1.01:0.1:1.0,3) + rand(-1.01:0.1:1.0,3)*im
-            norm(x - radial_to_cartesian_coordiantes(cartesian_to_radial_coordiantes(x)))
-          end) < 1e-14
+    # Test 3-dimensional transforms
+        xs = [rand(-1.01:0.1:1.0,3) + rand(-1.01:0.1:1.0,3)*im for i = 1:100]
+        rθφs = cartesian_to_radial_coordiantes.(xs)
+        @test maximum(norm.(xs - radial_to_cartesian_coordiantes.(rθφs))) < 1e-14
 
-    @test maximum(
-            map(1:1000) do i
-                x = rand(-1.01:0.1:1.0) + rand(-1.01:0.1:1.0)*im
-                y = rand(-1.01:0.1:1.0) + rand(-1.01:0.1:1.0)*im
-                r = sqrt(x^2 + y^2)
-                θ = atan(y,x)
-                norm( [x,y] -  r .* [cos(θ),sin(θ)] )
-            end
-          ) < 1e-14
-    end       
+        xs = [rand(-1.01:0.1:1.0,3) for i = 1:100]
+        rθφs = cartesian_to_radial_coordiantes.(xs)
+
+        @test maximum(rθφ[2] for rθφ in rθφs) <= pi
+        @test minimum(rθφ[2] for rθφ in rθφs) >= 0.0
+
+        @test pi/2 < maximum(rθφ[3] for rθφ in rθφs) <= pi
+        @test -pi <= minimum(rθφ[3] for rθφ in rθφs) < -pi/2
+
+    # Test 2-dimensional transforms
+        xs = [rand(-1.01:0.1:1.0,2) + rand(-1.01:0.1:1.0,2)*im for i = 1:100]
+        rθs = cartesian_to_radial_coordiantes.(xs)
+
+        @test maximum(norm.(xs - radial_to_cartesian_coordiantes.(rθs))) < 1e-14
+    end
 
 
     @testset "spherical bessel functions" begin
