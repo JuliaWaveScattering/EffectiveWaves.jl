@@ -54,15 +54,10 @@ function transmission_angle(wavevector::SVector{3,CT} where CT <: Union{T,Comple
 end
 
 function transmission_angle(wavevector::SVector{2,CT} where CT <: Union{T,Complex{T}}, surface_normal::SVector{2,T}) where {T<:AbstractFloat}
-    n = - surface_normal / norm(surface_normal)
+    n = - surface_normal
     no = [-n[2], n[1]] # guarantee θ grows anti-clockwise
 
     θ = atan(dot(conj(no),wavevector),dot(n,wavevector))
-
-    # here we assume that the wave transmits into the material
-    # if !(-pi/T(2) <= real(θ) <= pi/T(2))
-    #     θ = pi - θ
-    # end
 
     return θ
 end
