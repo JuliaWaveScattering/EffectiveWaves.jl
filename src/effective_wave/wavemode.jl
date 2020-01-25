@@ -36,26 +36,21 @@ function transmission_angle(wavevector::SVector{3,CT} where CT <: Union{T,Comple
 # and orthogonal component:
     # vo = wavevector - vn => no = vo / sqrt(sum(vo.^2))
 # then need to determine θ_eff such that:
-    # k_eff = ± sqrt(sum(wavevector .^2))
-    # wavevector = k_eff .* (n .* cos(θ_eff) + no .* sin(θ_eff))
-    # => dot(n,wavevector) = k_eff * cos(θ_eff) and dot(conj(no),wavevector) = k_eff * sin(θ_eff)
-    # => θ_eff = atan(dot(conj(no),wavevector),dot(n,wavevector))
+    # k = ± sqrt(sum(wavevector .^2))
+    # wavevector = k .* (n .* cos(θ) + no .* sin(θ)) =>
+    # k * cos(θ) = dot(conj(n),wavevector)
+# and
+    # k * sin(θ) = dot(conj(no),wavevector) = dot(conj(no),vo) = sqrt(sum(vo.^2))
+    # => θ = atan(sqrt(sum(vo.^2)),dot(n,wavevector))
 # where we assume that dot(v,w) = conj(v[i])*w[i]
 
     n = - surface_normal / norm(surface_normal)
-
     kcosθ = dot(n,wavevector)
 
     vo = wavevector - kcosθ .* n
     ksinθ = sqrt(sum(vo.^2))
 
-    # normvo = sqrt(sum(vo.^2))
-    #
-    # # guarantee positive real(θ)
-    # no = (abs(normvo) > zero(T)) ? vo / normvo : vo
-
     return θ = atan(ksinθ,kcosθ)
-
 end
 
 function transmission_angle(wavevector::SVector{2,CT} where CT <: Union{T,Complex{T}}, surface_normal::SVector{2,T}) where {T<:AbstractFloat}
