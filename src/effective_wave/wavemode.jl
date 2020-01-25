@@ -38,20 +38,23 @@ function transmission_angle(wavevector::SVector{3,CT} where CT <: Union{T,Comple
 # then need to determine θ_eff such that:
     # k_eff = ± sqrt(sum(wavevector .^2))
     # wavevector = k_eff .* (n .* cos(θ_eff) + no .* sin(θ_eff))
-    # => dot(n,wavevector) = k_eff * cos(θ_eff) and dot(conj(no),wavevector) = k_eff * cos(θ_eff)
     # => dot(n,wavevector) = k_eff * cos(θ_eff) and dot(conj(no),wavevector) = k_eff * sin(θ_eff)
     # => θ_eff = atan(dot(conj(no),wavevector),dot(n,wavevector))
 # where we assume that dot(v,w) = conj(v[i])*w[i]
 
-    n = - surface_normal
+    n = - surface_normal / norm(surface_normal)
 
-    vn = dot(n,wavevector) .* n
-    vo = wavevector - vn
+    kcosθ = dot(n,wavevector)
 
-    # guarantee positive real(θ)
-    no = vo / sqrt(sum(vo.^2))
+    vo = wavevector - kcosθ .* n
+    ksinθ = sqrt(sum(vo.^2))
 
-    return θ = atan(dot(conj(no),wavevector),dot(n,wavevector))
+    # normvo = sqrt(sum(vo.^2))
+    #
+    # # guarantee positive real(θ)
+    # no = (abs(normvo) > zero(T)) ? vo / normvo : vo
+
+    return θ = atan(ksinθ,kcosθ)
 
 end
 
@@ -62,9 +65,9 @@ function transmission_angle(wavevector::SVector{2,CT} where CT <: Union{T,Comple
     θ = atan(dot(conj(no),wavevector),dot(n,wavevector))
 
     # here we assume that the wave transmits into the material
-    if !(-pi/T(2) <= real(θ) <= pi/T(2))
-        θ = pi - θ
-    end
+    # if !(-pi/T(2) <= real(θ) <= pi/T(2))
+    #     θ = pi - θ
+    # end
 
     return θ
 end
