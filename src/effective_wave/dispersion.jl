@@ -1,25 +1,19 @@
+function dispersion_equation(ω::T, medium::PhysicalMedium{T,Dim}, species::Species{T,Dim}; kws...) where {T<:Number, Dim}
 
+    # An incident plane wave on a halfspace can generate all possible effective wavenumbers, and is a simpler dispersion equation than other sources and materials.
 
-function dispersion_equation(ω::T, medium::Ph, species::Species{T};
-        tol::T = 1e-4, symmetry = :plane,
-        kws...) where {T<:Number, Ph<:PhysicalMedium}
+    return dispersion_equation(ω,
+        PlaneSource(medium, zeros(T,Dim)),
+        Material(Halfspace(zeros(T,Dim)),species); kws...
+    )
+
+end
+
+function dispersion_equation(ω::T, source::AbstractSource{T}, material::Material{Dim}; tol::T = 1e-4, kws...) where {T<:Number, Dim}
 
     low_tol = max(1e-4, tol) # a tolerance used for a first pass with time_limit
 
-    MM = effectivewave_system(ω, medium, species; tol=tol, kws...)
-
-    # MM = if dim == 2 && symmetry == :plane
-    #     effectivewave_system(ω, medium, species; tol=tol, kws...)
-    # elseif dim == 3 && symmetry == :plane
-    #     wavematrix3DPlane(ω, medium, species; tol=tol, kws...)
-    # elseif dim == 3 && symmetry == :azimuth
-    #     wavematrix3DAzimuth(ω, medium, species; tol=tol, kws...)
-    # elseif dim == 3 && symmetry == :planeazimuth
-    #     wavematrix3DPlaneAzimuth(ω, medium, species; tol=tol, kws...)
-    # elseif dim == 3 && symmetry == :none
-    #     wavematrix3D(ω, medium, species; tol=tol, kws...)
-    # else error("the dimension dim = $dim has no dispersion function implemented.")
-    # end
+    MM = effectivewave_system(ω, source, material; kws... )
 
     # the constraint uses keff_vec[2] < -low_tol to better specify solutions where imag(k_effs)<0
     constraint(keff_vec::Array{T}) = (keff_vec[2] < -low_tol) ? (-one(T) + exp(-T(100.0)*keff_vec[2])) : zero(T)
@@ -31,24 +25,39 @@ function dispersion_equation(ω::T, medium::Ph, species::Species{T};
     return detMM
 end
 
-function effectivewave_system(ω::T, medium::Acoustic{T,2}, species::Species{T,2};
+# MM = if dim == 2 && symmetry == :plane
+#     effectivewave_system(ω, medium, species; tol=tol, kws...)
+# elseif dim == 3 && symmetry == :plane
+#     wavematrix3DPlane(ω, medium, species; tol=tol, kws...)
+# elseif dim == 3 && symmetry == :azimuth
+#     wavematrix3DAzimuth(ω, medium, species; tol=tol, kws...)
+# elseif dim == 3 && symmetry == :planeazimuth
+#     wavematrix3DPlaneAzimuth(ω, medium, species; tol=tol, kws...)
+# elseif dim == 3 && symmetry == :none
+#     wavematrix3D(ω, medium, species; tol=tol, kws...)
+# else error("the dimension dim = $dim has no dispersion function implemented.")
+# end
+
+function effectivewave_system(ω::T, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
         tol::T = 1e-4,
         basis_order::Int = 2, #maximum_basis_order(ω, medium, species; tol=tol),
         kws...) where {T<:AbstractFloat}
 
-    t_matrices = get_t_matrices(medium, species, ω, basis_order)
-
-    k = real(ω/medium.c)
-    S = length(species)
+    k = ω / psource.medium.c
+    sps = material.species
+    S = length(sps)
     ho = basis_order
+
+    t_matrices = get_t_matrices(psource.medium, sps, ω, ho)
+
 
     len = (2ho+1) * S
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     function M_component(keff,j,l,m,n)
-        ajl = species[j].exclusion_distance * outer_radius(species[j]) + species[l].exclusion_distance * outer_radius(species[l])
+        ajl = sps[j].exclusion_distance * outer_radius(sps[j]) + sps[l].exclusion_distance * outer_radius(sps[l])
 
-        (n == m ? 1.0 : 0.0)*(j == l ? 1.0 : 0.0) - 2.0pi * number_density(species[l]) * t_matrices[l][m+ho+1,m+ho+1] * kernelN(n-m,k*ajl,keff*ajl) / (k^2.0-keff^2.0)
+        (n == m ? 1.0 : 0.0)*(j == l ? 1.0 : 0.0) - 2.0pi * number_density(sps[l]) * t_matrices[l][m+ho+1,m+ho+1] * kernelN(n-m,k*ajl,keff*ajl) / (k^2.0-keff^2.0)
     end
 
     # this matrix is needed to calculate the eigenvectors

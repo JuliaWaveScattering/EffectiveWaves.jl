@@ -27,6 +27,8 @@ function transmission_wavevector(k_eff::Complex{T}, incident_wavevector::Abstrac
     return wnp + α .* surface_normal
 end
 
+transmission_angle(pwave::Union{EffectivePlaneWaveMode,PlaneSource}, material::Material) = transmission_angle(pwave.wavevector, material.shape.normal)
+
 transmission_angle(wavevector::Vector,surface_normal::Vector) = transmission_angle(SVector(wavevector...),SVector(surface_normal...))
 
 function transmission_angle(wavevector::SVector{3,CT} where CT <: Union{T,Complex{T}}, surface_normal::SVector{3,T}) where {T<:AbstractFloat}
@@ -65,7 +67,7 @@ end
 """
 calculate effective transmission angle θ_eff. We restrict -pi/2 < Re θ_eff < pi/2 for 2 dimensions.
 """
-function transmission_angle(k::Complex{T}, k_eff::Complex{T}, θin) where T<:Number
+function transmission_angle_wiener(k::Complex{T}, k_eff::Complex{T}, θin) where T<:Number
     # snell(θ::Array{T}) = abs(k*sin(θin) - k_eff*sin(θ[1] + im*θ[2]))
     # result = optimize(snell, [θin,0.]; x_tol= tol, g_tol= tol^2.0)
 

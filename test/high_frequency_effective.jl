@@ -2,6 +2,10 @@ using EffectiveWaves, Test
 using LinearAlgebra
 
 @testset "high frequency effective" begin
+    # using EffectiveWaves, Test
+    # using LinearAlgebra
+
+
         medium = Acoustic(2; ρ=1.0, c=1.0)
 
         # Large weak scatterers with low volume fraciton
@@ -14,19 +18,29 @@ using LinearAlgebra
             Specie(p1; volume_fraction=0.04),
             Specie(p2; volume_fraction=0.02)
         ]
+
         ωs2 = [120.]
 
         tol = 1e-6
         k_eff_φs = wavenumber_low_volumefraction(ωs2, medium, species; tol=tol)
         k_effs = [wavenumbers(ω, medium, species; tol=tol, num_wavenumbers=1) for ω in ωs2]
+
         inds = [argmin(abs.(k_effs[i] .- k_eff_φs[i])) for i in eachindex(ωs2)]
         k_effs2 = [k_effs[i][inds[i]] for i in eachindex(inds)]
 
         @test norm(k_effs2 - k_eff_φs)/norm(k_effs2) < tol
 
+        # let's now assume the particles are fill a halfspace. Then we can calculate a reflection coefficent from this halfspace
+
+        normal = [-1.0,0.0] # an outward normal to the surface
+        material = Material(Halfspace(normal),species)
+
+        # define a plane wave source travelling directly towards the material
+        source = PlaneSource(medium, -normal)
+
         Rs = map(eachindex(ωs2)) do i
-            wave = EffectivePlaneWaveMode(ωs2[i], k_effs2[i], medium, species)
-            reflection_coefficient(ωs2[i], wave, medium, species)
+            wave = effective_wavemode(ωs2[i], k_effs2[i], source, material)
+            reflection_coefficient(ωs2[i], wave, source, material)
         end
         # warning is expected, as k_eff_φs are assymptotic approximations.
         Rs_φs = map(eachindex(ωs2)) do i
