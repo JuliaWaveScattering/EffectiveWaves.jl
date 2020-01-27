@@ -23,6 +23,6 @@ function reflection_coefficient(incident_medium::Acoustic{T,2}, reflect_medium::
     k_r = T(1)/reflect_medium.c
 
     q = real(reflect_medium.c*reflect_medium.ρ/(incident_medium.c*incident_medium.ρ))
-    θ_trans = transmission_angle(k_in, k_r, θin; tol=tol)
+    θ_trans = transmission_angle(k_in, k_r, θin)
     R = (q*cos(θin) - cos(θ_trans))/(q*cos(θin) + cos(θ_trans))
 end

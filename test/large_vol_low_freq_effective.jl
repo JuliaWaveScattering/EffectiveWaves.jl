@@ -27,13 +27,20 @@ using EffectiveWaves, Test
 
     @test abs(k_eff - k_eff_low)/norm(k_eff_low) < 10*tol
 
+    # let's now assume the particles are fill a halfspace. Then we can calculate a reflection coefficent from this halfspace
+    normal = [-1.0,0.0] # an outward normal to the surface
+    material = Material(Halfspace(normal),species)
+
+    # define a plane wave source travelling directly towards the material
+    source = PlaneSource(medium, -normal)
+
     R = begin
-        wave = EffectivePlaneWaveMode(ω, k_eff, medium, species)
-        reflection_coefficient(ω, wave, medium, species)
+        wave = effective_wavemode(ω, k_eff, source, material)
+        reflection_coefficient(ω, wave, source, material)
     end
     R_low2 = begin
-        wave = EffectivePlaneWaveMode(ω, k_eff_low, medium, species)
-        reflection_coefficient(ω, wave, medium, species)
+        wave = effective_wavemode(ω, k_eff_low, source, material)
+        reflection_coefficient(ω, wave, source, material)
     end
     R_low = reflection_coefficient(medium, eff_medium)
 

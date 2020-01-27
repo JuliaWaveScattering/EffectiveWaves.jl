@@ -5,7 +5,7 @@ function scale_mode_amplitudes(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psour
     θin = transmission_angle(wave_eff, material)
     θ_eff = transmission_angle(psource, material)
 
-    kcos_in =  dot(- conj(material.shape.normal), psource.wavevector)
+    kcos_in = (ω / psource.medium.c) * dot(- conj(material.shape.normal), psource.wavedirection)
     kcos_eff = dot(- conj(material.shape.normal), wave_eff.wavevector)
 
     ho = wave_eff.basis_order
@@ -30,7 +30,7 @@ function effective_wavemode(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,Dim
 
     k = ω/psource.medium.c
 
-    k_vec = transmission_wavevector(k_eff, psource.wavevector, material.shape.normal)
+    k_vec = transmission_wavevector(k_eff, psource.wavedirection, material.shape.normal)
 
     if method == :WienerHopf
         amps = wienerhopf_mode_amplitudes(ω, k_eff, psource, material; tol = tol, kws...)

@@ -2,9 +2,8 @@ using EffectiveWaves, Test
 using LinearAlgebra
 
 @testset "high frequency effective" begin
-    # using EffectiveWaves, Test
-    # using LinearAlgebra
-
+    using EffectiveWaves, Test
+    using LinearAlgebra
 
         medium = Acoustic(2; ρ=1.0, c=1.0)
 
@@ -31,7 +30,6 @@ using LinearAlgebra
         @test norm(k_effs2 - k_eff_φs)/norm(k_effs2) < tol
 
         # let's now assume the particles are fill a halfspace. Then we can calculate a reflection coefficent from this halfspace
-
         normal = [-1.0,0.0] # an outward normal to the surface
         material = Material(Halfspace(normal),species)
 
@@ -44,10 +42,10 @@ using LinearAlgebra
         end
         # warning is expected, as k_eff_φs are assymptotic approximations.
         Rs_φs = map(eachindex(ωs2)) do i
-            wave = EffectivePlaneWaveMode(ωs2[i], k_eff_φs[i], medium, species)
-            reflection_coefficient(ωs2[i], wave, medium, species)
+            wave = effective_wavemode(ωs2[i], k_eff_φs[i], source, material)
+            reflection_coefficient(ωs2[i], wave, source, material)
         end
-        Rs_φs2 = reflection_coefficient_low_volumefraction(ωs2, medium, species)
+        Rs_φs2 = reflection_coefficient_low_volumefraction(ωs2, source, material)
 
         # the incident wave has amplitude 1, so this is already a relative difference
         @test maximum(abs.(Rs_φs - Rs)) < tol

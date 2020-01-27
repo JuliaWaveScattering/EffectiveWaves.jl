@@ -41,7 +41,7 @@
     @test norm( (k_effs2 - k_eff_lows) ./ norm.(k_eff_lows) ) < 0.01
     @test norm(k_effs2[1] - k_eff_lows[1])/norm(k_effs[1]) < 1e-7
 
-    wave_effs_2 = [EffectivePlaneWaveMode(ωs[i], k_effs2[i], medium, species; tol = 1e-9) for i in eachindex(ωs)]
+    # wave_effs_2 = [EffectivePlaneWaveMode(ωs[i], k_effs2[i], medium, species; tol = 1e-9) for i in eachindex(ωs)]
     wave_effs_φs = [EffectivePlaneWaveMode(ωs[i], k_eff_φs[i], medium, species; tol = 1e-9) for i in eachindex(ωs)]
 
     # reflection coefficient

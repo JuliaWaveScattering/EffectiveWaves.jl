@@ -25,25 +25,24 @@ function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,2}, species::Sp
   return (imag(sqrt(kT2)) > zero(T)) ? sqrt(kT2) : -sqrt(kT2)
 end
 
-reflection_coefficient_low_volumefraction(ωs::AbstractVector{T}, medium::PhysicalMedium{T}, species::Species{T}; kws... ) where T<:Number =
-    [reflection_coefficient_low_volumefraction(ω, medium, species; kws... ) for ω in ωs]
+reflection_coefficient_low_volumefraction(ωs::AbstractVector{T},psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}}; kws... ) where T<:Number =
+    [reflection_coefficient_low_volumefraction(ω, psource, material; kws... ) for ω in ωs]
 
 "An explicit formula for the refleciton coefficient based on a low particle volume fraction."
-function reflection_coefficient_low_volumefraction(ω::T, medium::Acoustic{T,2}, species::Species{T,2};
-        θin::T = zero(T), kws... ) where T<:Number
+function reflection_coefficient_low_volumefraction(ω::T, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}}; kws...) where T<:Number
 
+    θin = transmission_angle(psource,material)
     θ_ref = T(π) - T(2)*θin
-    fo = far_field_pattern(ω, medium, species; kws...)
-    dfo = diff_far_field_pattern(ω, medium, species; kws...)
-    foo = pair_field_pattern(ω, medium, species; kws...)
+    fo = far_field_pattern(ω, psource.medium, material.species; kws...)
+    dfo = diff_far_field_pattern(ω, psource.medium, material.species; kws...)
+    foo = pair_field_pattern(ω, psource.medium, material.species; kws...)
 
-    k = ω/medium.c
+    k = ω / psource.medium.c
     α = k*cos(θin)
     R1 = im*fo(θ_ref)
-    R2 = 2.0*fo(zero(T))/(α^2.0)
-    R2 = im*foo(θ_ref) + R2*(sin(θin)*cos(θin)*dfo(θ_ref) - fo(θ_ref))
+    R2 = im*foo(θ_ref) + T(2)*fo(zero(T)) / (α^2.0) * (sin(θin)*cos(θin)*dfo(θ_ref) - fo(θ_ref))
 
-    num_density = sum(number_density.(species))
+    num_density = sum(number_density.(material.species))
     R = (R1 + num_density*R2)*num_density/(α^2.0)
     return R
 end

@@ -27,7 +27,9 @@ function transmission_wavevector(k_eff::Complex{T}, incident_wavevector::Abstrac
     return wnp + α .* surface_normal
 end
 
-transmission_angle(pwave::Union{EffectivePlaneWaveMode,PlaneSource}, material::Material) = transmission_angle(pwave.wavevector, material.shape.normal)
+transmission_angle(pwave::EffectivePlaneWaveMode, material::Material) = transmission_angle(pwave.wavevector, material.shape.normal)
+
+transmission_angle(pwave::PlaneSource, material::Material) = transmission_angle(pwave.wavedirection, material.shape.normal)
 
 transmission_angle(wavevector::Vector,surface_normal::Vector) = transmission_angle(SVector(wavevector...),SVector(surface_normal...))
 

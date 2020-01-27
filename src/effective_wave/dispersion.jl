@@ -3,8 +3,8 @@ function dispersion_equation(ω::T, medium::PhysicalMedium{T,Dim}, species::Spec
     # An incident plane wave on a halfspace can generate all possible effective wavenumbers, and is a simpler dispersion equation than other sources and materials.
 
     return dispersion_equation(ω,
-        PlaneSource(medium, zeros(T,Dim)),
-        Material(Halfspace(zeros(T,Dim)),species); kws...
+        PlaneSource(medium),
+        Material(Halfspace([-one(T); zeros(T,Dim-1)]),species); kws...
     )
 
 end

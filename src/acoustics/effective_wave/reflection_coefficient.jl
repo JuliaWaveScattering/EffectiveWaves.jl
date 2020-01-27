@@ -1,8 +1,8 @@
 "The average reflection coefficient"
-function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T}};
+function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
         x::T = zero(T), kws...) where T<:Number
 
-    k = ω/medium.c
+    k = ω / psource.medium.c
     θ_eff = transmission_angle(wave_eff,material)
     θin = transmission_angle(psource,material)
 
@@ -11,7 +11,7 @@ function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psou
     ho = wave_eff.basis_order
 
     kcos_eff = dot(- conj(material.shape.normal), wave_eff.wavevector)
-    kcos_in = dot(- conj(material.shape.normal), psource.wavevector)
+    kcos_in = k * dot(- conj(material.shape.normal), psource.wavedirection)
 
     kθ = kcos_in + kcos_eff
     R = 2.0im / (kcos_in * kθ)
@@ -35,7 +35,7 @@ function wienerhopf_reflection_coefficient(ω::T, psource::PlaneSource{T,2,1,Aco
 
     t_vecs = get_t_matrices(psource.medium, material.species, ω, ho)
 
-    θin = transmission_angle(psource.wavevector,material.shape.normal)
+    θin = transmission_angle(psource.wavedirection, material.shape.normal)
     kcos = k*cos(θin)
     ksin = k*sin(θin)
 
