@@ -20,9 +20,8 @@ function scale_mode_amplitudes(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psour
     return scale
 end
 
-
 function effective_wavemode(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, material::Material{Dim,Halfspace{T,Dim}};
-        tol::T = 1e-6, #θin::T = 0.0,
+        tol::T = 1e-6,
         method::Symbol = :none,
         extinction_rescale::Bool = true,
         kws...
@@ -30,7 +29,7 @@ function effective_wavemode(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,Dim
 
     k = ω/psource.medium.c
 
-    k_vec = transmission_wavevector(k_eff, psource.wavedirection, material.shape.normal)
+    k_vec = transmission_wavevector(k_eff, (ω / psource.medium.c) * psource.wavedirection, material.shape.normal; tol = tol)
 
     if method == :WienerHopf
         amps = wienerhopf_mode_amplitudes(ω, k_eff, psource, material; tol = tol, kws...)

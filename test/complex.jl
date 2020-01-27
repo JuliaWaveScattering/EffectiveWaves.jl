@@ -27,7 +27,7 @@ using Test, LinearAlgebra
     k_eff = rand(-1:0.1:1.0) + rand() * im
     k = rand()
     θin = rand(-pi/2.0:0.2:pi/2.0)
-    θeff = transmission_angle_wiener(k+0.0im, k_eff, θin)
+    θeff = transmission_angle_wiener(k, k_eff, θin)
 
     k_vec2 = k_eff .* [cos(θeff+pi/2.0),sin(θeff+pi/2.0)]
 

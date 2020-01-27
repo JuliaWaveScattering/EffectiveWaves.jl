@@ -15,14 +15,20 @@ function effective_medium(medium::Acoustic{T,Dim}, species::Species{T,Dim}) wher
     return Acoustic(Dim; ρ=ρ_eff, c=sqrt(β_eff/ρ_eff))
 end
 
-"the reflection from a homogenious halfspace, which is also the low frequency reflection from a particulate material when using the effective_medium."
-function reflection_coefficient(incident_medium::Acoustic{T,2}, reflect_medium::Acoustic{T,2};
-        θin::T = zero(T), tol = 1e-8) where T<:Number
+"
+reflection_coefficient(PlaneSource, Acoustic[, Halfspace = Halfspace(-psource.wavedirection)])
 
-    k_in = T(1)/incident_medium.c
+caculates the reflection coefficient from a homogenious halfspace (assumed to direct incidence if not given), which is also the low frequency reflection from a particulate material when using the effective_medium."
+function reflection_coefficient(psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, reflect_medium::Acoustic{T,Dim}, halfspace::Halfspace{T,Dim} = Halfspace(-psource.wavedirection)) where {T<:Number,Dim}
+
+    k_in = T(1)/psource.medium.c
     k_r = T(1)/reflect_medium.c
 
-    q = real(reflect_medium.c*reflect_medium.ρ/(incident_medium.c*incident_medium.ρ))
-    θ_trans = transmission_angle(k_in, k_r, θin)
-    R = (q*cos(θin) - cos(θ_trans))/(q*cos(θin) + cos(θ_trans))
+    θin = transmission_angle(psource, halfspace)
+
+    vtran = transmission_wavevector(k_r, k_in * psource.wavedirection, halfspace.normal)
+    θtran = transmission_angle(vtran, halfspace.normal)
+
+    q = real(reflect_medium.c*reflect_medium.ρ/(psource.medium.c*psource.medium.ρ))
+    R = (q*cos(θin) - cos(θtran))/(q*cos(θin) + cos(θtran))
 end

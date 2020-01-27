@@ -39,8 +39,7 @@ end
 # end
 
 function effectivewave_system(ω::T, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
-        tol::T = 1e-4,
-        basis_order::Int = 2, #maximum_basis_order(ω, medium, species; tol=tol),
+        basis_order::Int = 2, 
         kws...) where {T<:AbstractFloat}
 
     k = ω / psource.medium.c
@@ -49,7 +48,6 @@ function effectivewave_system(ω::T, psource::PlaneSource{T,2,1,Acoustic{T,2}}, 
     ho = basis_order
 
     t_matrices = get_t_matrices(psource.medium, sps, ω, ho)
-
 
     len = (2ho+1) * S
     MM_mat = Matrix{Complex{T}}(undef,len,len)

@@ -7,8 +7,7 @@ wavenumber_low_volumefraction(ωs::AbstractVector{T}, medium::PhysicalMedium{T},
 wavenumber_low_volumefraction(ωs::AbstractVector{T}, medium::PhysicalMedium{T}, specie::Specie{T}; kws...) where T<:Number = [wavenumber_low_volumefraction(ω, medium, [specie]; kws...) for ω in ωs]
 
 "Explicit formula for one effective wavenumber based on a low particle volume fraction expasion."
-function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,2}, species::Species{T,2}; tol::T =1e-6, basis_order::Int = 2, #maximum_basis_order(ω, medium, species; tol=tol), radius_multiplier::T = 1.005,
-    verbose::Bool = true) where T <: Number
+function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,2}, species::Species{T,2}; basis_order::Int = 2, verbose::Bool = true) where T <: Number
 
   volfrac = sum(volume_fraction.(species))
   if volfrac >= 0.4 && verbose

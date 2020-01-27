@@ -31,18 +31,18 @@ using EffectiveWaves, Test
     normal = [-1.0,0.0] # an outward normal to the surface
     material = Material(Halfspace(normal),species)
 
-    # define a plane wave source travelling directly towards the material
-    source = PlaneSource(medium, -normal)
+    # define a plane wave source travelling at a 45 degree angle in relation to the material
+    source = PlaneSource(medium, [cos(pi/4.0),sin(pi/4.0)])
 
     R = begin
         wave = effective_wavemode(ω, k_eff, source, material)
         reflection_coefficient(ω, wave, source, material)
     end
     R_low2 = begin
-        wave = effective_wavemode(ω, k_eff_low, source, material)
-        reflection_coefficient(ω, wave, source, material)
+        wave2 = effective_wavemode(ω, k_eff_low, source, material)
+        reflection_coefficient(ω, wave2, source, material)
     end
-    R_low = reflection_coefficient(medium, eff_medium)
+    R_low = reflection_coefficient(source, eff_medium, material.shape)
 
     @test norm(R_low - R) < tol
     @test norm(R_low2 - R) < tol
