@@ -1,6 +1,6 @@
 
 "returns a number a, such that a*As_eff will cancel an incident wave plane wave with incident angle θin."
-function scale_mode_amplitudes(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, material::Material{Dim,Halfspace{T,Dim}}; tol = 1e-8) where {T<:Number,Dim}
+function scale_mode_amplitudes(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, material::Material{Dim,Halfspace{T,Dim}}) where {T<:Number,Dim}
 
     θin = transmission_angle(wave_eff, material)
     θ_eff = transmission_angle(psource, material)
@@ -39,7 +39,7 @@ function effective_wavemode(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,Dim
     plane_mode = EffectivePlaneWaveMode(ω, k_vec, amps)
 
     if extinction_rescale && method != :WienerHopf
-        amps = amps.*scale_mode_amplitudes(ω, plane_mode, psource, material; tol = tol)
+        amps = amps.*scale_mode_amplitudes(ω, plane_mode, psource, material)
     end
 
     return EffectivePlaneWaveMode(ω, k_vec, amps)

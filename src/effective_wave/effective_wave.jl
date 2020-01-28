@@ -24,16 +24,16 @@ function EffectivePlaneWaveMode(ω::T, wavevector::SVector{Dim,Complex{T}}, amps
     EffectivePlaneWaveMode(ω, Int( (size(amps,1) - 1) / 2 ), wavevector, amps)
 end
 
-zero(W::Type{EffectivePlaneWaveMode{T}}) where {T<:AbstractFloat} = EffectivePlaneWaveMode(zero(T),0,zeros(Complex{T},1),zeros(Complex{T},1))
+import Base.zero
 
-# effective_wavemodes(ω::T, medium::PhysicalMedium{T}, specie::Specie{T}; kws...) where T<:AbstractFloat =  effective_wavemodes(ω, medium, [specie]; kws...)
+zero(W::Type{EffectivePlaneWaveMode{T,Dim}}) where {T<:AbstractFloat,Dim} = EffectivePlaneWaveMode(zero(T),0,zeros(Complex{T},Dim),zeros(Complex{T},1))
 
 "Calculates the effective wavenumbers and return Vector{EffectivePlaneWaveMode}."
-function effective_wavemodes(ω::T, source::AbstractSource, material::Material; kws...) where {T<:AbstractFloat,Dim}
+function effective_wavemodes(ω::T, source::AbstractSource{T}, material::Material{Dim,S,Sps}; kws...) where {T,Dim,S<:Shape{T,Dim},Sps<:Species{T,Dim}} # without the parametric types we get a "Unreachable reached" error
 
     k_effs = wavenumbers(ω, source.medium, material.species; kws... )
     wave_effs = [
-        effective_wavemode(ω, k_eff, psource, material; kws...)
+        effective_wavemode(ω, k_eff, source, material; kws...)
     for k_eff in k_effs]
 
     return wave_effs

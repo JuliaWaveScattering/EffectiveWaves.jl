@@ -2,7 +2,6 @@ using EffectiveWaves, Test
 
 @testset "match wave low volfrac" begin
 
-using LinearAlgebra
 ## Low volume fraction
     medium = Acoustic(2; ρ=1.0, c=1.0)
     ms = MultipleScattering
@@ -15,33 +14,39 @@ using LinearAlgebra
         exclusion_distance=exclusion_distance
     )
 
-    species = [specie]
-
     θin = 0.2
     tol = 1e-8
     basis_order = 2
 
+    normal = [-1.0,0.0] # an outward normal to the surface
+    material = Material(Halfspace(normal),[specie])
+    source = PlaneSource(medium, [cos(θin),sin(θin)])
+
     ωs = [0.2,1.2]
 
-    wave_effs_arr = [
-        effective_wavemodes(ω, medium, [specie];
-            basis_order=basis_order, tol = tol,  θin = θin,
-            num_wavenumbers = 1
-            #, mesh_points = 10, mesh_size = 2.0 #, max_Rek = 20.0, max_Imk = 20.0
-            , extinction_rescale = false)
-    for ω in ωs]
+    wave_effs_arr = map(ωs) do ω
+        effective_wavemodes(ω, source, material;
+            basis_order=basis_order, tol = tol,
+            extinction_rescale = false,
+            # , mesh_points = 10, mesh_size = 2.0 #, max_Rek = 20.0, max_Imk = 20.0
+            num_wavenumbers = 1)
+    end
 
-    k_eff_φs = wavenumber_low_volumefraction(ωs, medium, species; tol=tol,
-        basis_order=basis_order)
+    k_eff_φs = wavenumber_low_volumefraction(ωs, medium, [specie]; basis_order=basis_order)
 
     wave_eff_φs = [
-        EffectivePlaneWaveMode(ωs[i], k_eff_φs[i], medium, species; tol = tol,
-            basis_order=basis_order, θin = θin,
+        effective_wavemode(ωs[i], k_eff_φs[i], source, material; tol = tol,
+            basis_order=basis_order,
             extinction_rescale = true)
     for i in eachindex(ωs)]
 
-    @test maximum(abs(wave_effs_arr[i][1].k_eff/k_eff_φs[i] - 1.0) for i in eachindex(ωs)) < 1e-7
+    k_effs = map(wave_effs_arr) do ws
+        sqrt(sum(ws[1].wavevector .^2)) # note that this can be plus or minus
+    end
 
+    @test maximum(abs.(k_effs - k_eff_φs)) < 1e-7
+
+    # Check that the eigenmodes point the same direction
     ds = [
         abs(dot(wave_eff_φs[i].amplitudes[:], wave_effs_arr[i][1].amplitudes[:]))
     for i in eachindex(ωs)]
@@ -51,23 +56,23 @@ using LinearAlgebra
     @test maximum(ds./ds2 .- 1.0) < tol
 
     match_ws = [
-        MatchPlaneWaveMode(ωs[i], medium, specie; θin = θin,
+        MatchPlaneWaveMode(ωs[i], source, material;
             max_size=150,
             tol = tol, wave_effs = wave_effs_arr[i][1:1])
     for i in eachindex(ωs)]
 
-    @test maximum(match_error.(match_ws)) < 1e-6
+    @test maximum(match_error(m,material.shape) for m in match_ws) < 1e-6
 
     avg_wave_φs = [
-        DiscretePlaneWaveMode(match_ws[i].discrete_wave.x, wave_eff_φs[i])
+        DiscretePlaneWaveMode(match_ws[i].discrete_wave.x, wave_eff_φs[i], material.shape)
     for i in eachindex(ωs)]
 
-    Rs_near = [reflection_coefficient(ωs[i], match_ws[i].discrete_wave, medium, specie) for i in eachindex(ωs)]
-    Rs_near_φ = [reflection_coefficient(ωs[i], avg_wave_φs[i], medium, specie) for i in eachindex(ωs)]
+    Rs_near = [reflection_coefficient(ωs[i], match_ws[i].discrete_wave, source, material) for i in eachindex(ωs)]
+    Rs_near_φ = [reflection_coefficient(ωs[i], avg_wave_φs[i], source, material) for i in eachindex(ωs)]
     @test maximum(abs.(Rs_near_φ - Rs_near)) < 5e-6
 
-    Rs = [reflection_coefficient(ωs[i], match_ws[i], medium, specie) for i in eachindex(ωs)]
-    Rs_φ = [reflection_coefficient(ωs[i], wave_eff_φs[i], medium, species) for i in eachindex(ωs)]
+    Rs = [reflection_coefficient(ωs[i], match_ws[i], source, material) for i in eachindex(ωs)]
+    Rs_φ = [reflection_coefficient(ωs[i], wave_eff_φs[i], source, material) for i in eachindex(ωs)]
     @test maximum(abs.(Rs_near_φ - Rs_near)) < 5e-6
 
     @test maximum(

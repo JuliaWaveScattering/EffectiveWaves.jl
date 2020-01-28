@@ -100,7 +100,7 @@ function mode_amplitudes(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,Dim,1,
 
     # calculate effective amplitudes
     MM_svd = svd(MM(k_eff))
-    if MM_svd.S[end] > tol*T(100) # no analytic guarantee on this tolerance.
+    if MM_svd.S[end] > tol*T(100)
         @warn("The effective wavenumber gave an eigenvalue $(MM_svd.S[end]), which would be zero if the solution was exact.")
     end
 

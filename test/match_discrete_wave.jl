@@ -21,27 +21,39 @@ using EffectiveWaves, Test
     tol = 1e-7
     basis_order = 2
 
+    normal = [-1.0,0.0] # an outward normal to the surface
+    materials = [Material(Halfspace(normal),s) for s in species]
+    source = PlaneSource(medium, [cos(θin),sin(θin)])
+
     wave_effs_arr = [
-        effective_wavemodes(ω, medium, [s];
+        effective_wavemodes(ω, source, materials[1];
             basis_order=basis_order,
             mesh_points=5,
             num_wavenumbers=5,
-            tol = tol,  θin = θin,
+            tol = tol,
             extinction_rescale = false)
-    for s in species];
+        ,
+        effective_wavemodes(ω, source, materials[2];
+            basis_order=basis_order,
+            mesh_points=5,
+            num_wavenumbers=5,
+            tol = tol,
+            extinction_rescale = false)
+    # for i in eachindex(species)];
+    ]
 
    # use only 5 least attenuating
    wave_effs_arr = [w[1:5] for w in wave_effs_arr]
 
     match_ws = [
-        MatchPlaneWaveMode(ω, medium, species[i];
+        MatchPlaneWaveMode(ω, source, materials[i];
             basis_order=basis_order,
-            θin = θin, tol = tol,
+            tol = tol,
             wave_effs = wave_effs_arr[i],
             max_size=80)
     for i in eachindex(species)];
 
-    @test maximum(match_error.(match_ws)) < 1e-4
+    @test maximum(match_error(match_ws[i],materials[i].shape) for i in eachindex(species)) < tol
 
     avgs = [
         DiscretePlaneWaveMode(ω, medium, species[i];

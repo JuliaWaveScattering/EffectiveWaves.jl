@@ -6,7 +6,7 @@
 #     return 2.0*(-1.0)^n*sum(K.(Ys).*σs)
 # end
 
-function integrate_B_full(n::Int, X, Y0; Y1 =1000000, θin = 0.0, num_coefs = 10000)
+function integrate_B_full(n::Int, X, Y0; Y1 = 1000000, θin = 0.0 + 0.0im, num_coefs = 10000)
     K(Y) = cos(Y*sin(θin) + n*atan(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
     # approximate function with Chebyshev polynomial (to high precision) then integrate from Y0 to Y1
     return 2.0*(-1.0)^n*sum(Fun(K,Y0..Y1, num_coefs))
@@ -14,7 +14,7 @@ end
 
 # Y0 = sqrt(k^a12^2 - X^2)
 function integrate_B(n::Int, X::T, Y0::T;
-        θin::T = 0.0, num_coefs::Int = 10000,
+        θin::Complex{T} = 0.0, num_coefs::Int = 10000,
         Y1::T = max(T(2000)*X, T(4000)) # note Y1 is non-dimensional!
     ) where T<:AbstractFloat
 
@@ -26,13 +26,13 @@ function integrate_B(n::Int, X::T, Y0::T;
 end
 
 # for only whole-correction, this doesn't involve an integral
-function integrate_S(n::Int, X::T; θin::T = 0.0) where T <: AbstractFloat
+function integrate_S(n::Int, X::T; θin::Complex{T} = 0.0) where T <: AbstractFloat
     S = 2.0*(im^T(n))*exp(-im*n*θin)*exp(im*X*cos(θin))/cos(θin)
     if X<0 S = conj(S) end
     S
 end
 
-function BS_matrices(X::AbstractVector{T}, a12k::T; θin::T = 0.0,
+function BS_matrices(X::AbstractVector{T}, a12k::T; θin::Complex{T} = 0.0 + 0.0im,
         M::Int = 2, num_coefs::Int = 10000) where T<:AbstractFloat
 
     dX = X[2] - X[1]

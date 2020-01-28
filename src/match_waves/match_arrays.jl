@@ -2,14 +2,23 @@
 Returns (LT, ER, (im*k^2*inv_w).*invV*conj(w_vec)), which connect the effective and average wave through α = LT*A + (im*k^2*inv_w).*invV*conj(w_vec).
 The matching region is X[L:end].
 "
-function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T}}, L::Int, X::AbstractVector{T}, medium::Acoustic{T,2}, species::Species{T,2};
-        # a12k::T = 1.005*T(2)*real(specie.r*ω/medium.c),
-        scheme::Symbol = :trapezoidal, θin::T = 0.0) where T<:Number
+function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T,2}}, L::Int, X::AbstractVector{T}, source::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
+        scheme::Symbol = :trapezoidal) where T<:Number
 
-    a12k = T(2)*real(species[1].exclusion_distance * outer_radius(species[1]) * ω/medium.c)
+    species = material.species
+
+    a12k = T(2)*real(species[1].exclusion_distance * outer_radius(species[1]) * ω / source.medium.c)
+
+    θin = transmission_angle(source,material)
+    cos_in = dot(-conj(material.shape.normal), source.wavedirection)
+
+    θ_effs = [transmission_angle(w,material) for w in wave_effs]
+    kcos_effs = [
+        dot(-conj(material.shape.normal), w.wavevector)
+    for w in wave_effs]
 
     J = length(X) - 1
-    k = ω/medium.c
+    k = ω / source.medium.c
     hos = union(w.basis_order for w in wave_effs)
 
     if length(hos) > 1
@@ -22,24 +31,24 @@ function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T}}, L::In
     ho = minimum(hos)
     S = length(species)
 
-    t_vecs = get_t_matrices(medium, species, ω, ho)
+    t_vecs = get_t_matrices(source.medium, species, ω, ho)
 
     σ = integration_scheme(X[1:L]; scheme=scheme) # integration scheme: trapezoidal
 
     w_vec = T(2) .*
         [
             sum(
-                exp(im*m*(θin - w.θ_eff) + im*X[L]*(w.k_eff*cos(w.θ_eff) - cos(θin))) *
-                number_density(species[s]) *  w.amplitudes[m+ho+1,s]
-            for m = -ho:ho, s = 1:S) / (cos(θin)*(w.k_eff*cos(w.θ_eff) - cos(θin)))
-        for w in wave_effs]
+                exp(im*m*(θin - θ_effs[i]) + im*X[L]*(kcos_effs[i] - cos_in)) *
+                number_density(species[s]) * wave_effs[i].amplitudes[m+ho+1,s]
+            for m = -ho:ho, s = 1:S) / (cos_in * (kcos_effs[i] - cos_in))
+        for i in eachindex(wave_effs)]
 
     G_arr = [
         (j > L) ? zero(Complex{T}) :
-            T(2) * (-im)^T(m-1) * number_density(species[s]) * exp(im*m*θin - im*X[j]*cos(θin)) * σ[j] / cos(θin)
+            T(2) * (-im)^T(m-1) * number_density(species[s]) * exp(im*m*θin - im*X[j] * cos_in) * σ[j] / cos_in
     for j = 1:(J+1), m = -ho:ho, s = 1:S]
 
-    avg_wave_effs = [DiscretePlaneWaveMode(X, wave) for wave in wave_effs]
+    avg_wave_effs = [DiscretePlaneWaveMode(X, wave, material.shape) for wave in wave_effs]
     vs = [
         [w.amplitudes[j,n+ho+1,1] for w in avg_wave_effs]
     for j = L:(J+1), n = -ho:ho]
@@ -62,8 +71,8 @@ function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T}}, L::In
         [
             sum(
                 (number_density(species[s])/(k^2)) * t_vecs[s][m+ho+1,m+ho+1] * im^T(n+1) * S_mat[J-l,n-m] *
-                exp(im*X[J+1]*wave_effs[p].k_eff*cos(wave_effs[p].θ_eff) - im*n*wave_effs[p].θ_eff) *
-                 wave_effs[p].amplitudes[n+ho+1] / (wave_effs[p].k_eff*cos(wave_effs[p].θ_eff) + cos(θin))
+                exp(im*X[J+1] * kcos_effs[p] - im*n*θ_effs[p]) *
+                 wave_effs[p].amplitudes[n+ho+1] / (kcos_effs[p] + cos_in)
             for n = -ho:ho, s = 1:S)
         for l = 0:J, p in eachindex(wave_effs)]
     for m = -ho:ho]
@@ -74,9 +83,24 @@ function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T}}, L::In
         B_mat[j,m] = integrate_B(m, X[j+1], sqrt(abs(a12k^2 -X[j+1]^2)); θin = θin)
     end
     XR = OffsetArray((J:(J+q))*(X[2]-X[1]), J:(J+q));
+
     # the integration scheme changes with the domain
+    data = [
+        integration_scheme(XR[J:l+q]; scheme=scheme)
+    for l = (J-q+1):J]
+
+OffsetArray(data[end], J:(J+q))
+
+schs =  map((J-q+1):J) do l
+    sch = integration_scheme(XR[J:l+q]; scheme=scheme)
+    # println("l:$l")
+    # OffsetArray(sch, J:(l+q))
+end
+
     σs = OffsetArray(
-        [OffsetArray(integration_scheme(XR[J:l+q]; scheme=scheme), J:(l+q)) for l = (J-q+1):J]
+        [
+            OffsetArray(integration_scheme(XR[J:l+q]; scheme=scheme), J:(l+q))
+        for l = (J-q+1):J]
     , (J-q+1):J)
 
     Rs = [
@@ -85,7 +109,7 @@ function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T}}, L::In
             zero(Complex{T}) :
             sum(
                 (number_density(species[s])/(k^2)) * t_vecs[s][m+ho+1,m+ho+1] * im^T(n) * wave_effs[p].amplitudes[n+ho+1] *
-                exp(im*XR[j]*wave_effs[p].k_eff*cos(wave_effs[p].θ_eff) - im*n*wave_effs[p].θ_eff) *
+                exp(im*XR[j] * kcos_effs[p] - im*n*θ_effs[p]) *
                 (B_mat[j-l,n-m] - S_mat[j-l,n-m]) * σs[l][j]
             for j = J:(l+q), n = -ho:ho, s = 1:S)
         for l = 0:J, p in eachindex(wave_effs)]

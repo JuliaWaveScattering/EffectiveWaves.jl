@@ -3,6 +3,9 @@
     # angular frequencies
     ωs = [0.001,20.]
 
+    # tolerance
+    tol = 1e-8; basis_order = 2;
+
     # background medium
     medium = Acoustic(2; ρ=1.0, c=1.0)
     ms = MultipleScattering
@@ -19,14 +22,14 @@
     eff_medium = effective_medium(medium, species)
 
     k_eff_lows = ωs./eff_medium.c
-    k_eff_φs = wavenumber_low_volumefraction(ωs, medium, species; tol=1e-9, basis_order = 5)
+    k_eff_φs = wavenumber_low_volumefraction(ωs, medium, species; basis_order = basis_order)
 
-    k_effs = [
+    k_effs_arr = [
         wavenumbers(ω, medium, species;
-            num_wavenumbers=1, tol = 1e-8, basis_order = 5)
+            num_wavenumbers=1, tol = tol, basis_order = basis_order)
     for ω in ωs]
 
-    inds = [argmin(abs.(k_effs[i] .- k_eff_φs[i])) for i in eachindex(ωs)]
+    inds = [argmin(abs.(k_effs_arr[i] .- k_eff_φs[i])) for i in eachindex(ωs)]
     k_effs2 = [k_effs[i][inds[i]] for i in eachindex(inds)]
 
     # 0.0010101407549128578 + 7.824113157942236e-13im
@@ -43,21 +46,21 @@
     # define a plane wave source travelling at a 45 degree angle in relation to the material
     source = PlaneSource(medium, -normal)
 
-
-    wave_effs_φs = [effective_wavemode(ωs[i], k_eff_φs[i], source, material; tol = 1e-9) for i in eachindex(ωs)]
+    wave_effs_φs = [effective_wavemode(ωs[i], k_eff_φs[i], source, material; tol = tol) for i in eachindex(ωs)]
 
     # reflection coefficient
-    Rs2 = reflection_coefficients(ωs, source, material; tol=1e-9, num_wavenumbers=1, basis_order = 5)
+    Rs2 = reflection_coefficients(ωs, source, material; tol = tol, num_wavenumbers = 1, basis_order = basis_order)
 
     # if the wavenumber k_effs are already calculated, the below is faster
     # pairs each ω in ωs with each wave in wave_effs2 to calculate the refleciton coefficients
-
     Rs = map(eachindex(ωs)) do i
-        w_effs = [effective_wavemode(ωs[i], k_eff, source, material; tol = 1e-9) for k_eff in k_effs[i]]
-        reflection_coefficient(ωs[i], w_effs, source, material; tol = 1e-9)
+        w_effs = [
+            effective_wavemode(ωs[i], k_eff, source, material; tol = tol, basis_order=basis_order)
+        for k_eff in k_effs_arr[i]]
+        reflection_coefficient(ωs[i], w_effs, source, material; tol = tol)
     end
 
-    @test norm(Rs - Rs2)/norm(Rs) < 1e-6
+    @test Rs ≈ Rs2 # same keywords should lead to exactly the same reflection coefficient
 
     Rs1 = map(eachindex(ωs)) do i
         w_eff = effective_wavemode(ωs[i], k_effs[i][1], source, material; tol = 1e-9)
@@ -68,7 +71,7 @@
     R_low = reflection_coefficient(source, eff_medium, material.shape)
     Rs_φs = reflection_coefficients(ωs, wave_effs_φs, source, material; tol=1e-9)
     # the below takes a low-volfrac expansion for both the wavenumber and reflection coefficient
-    Rs_φs2 = reflection_coefficient_low_volumefraction(ωs, source, material; tol=1e-9)
+    Rs_φs2 = reflection_coefficient_low_volumefraction(ωs, source, material; basis_order = basis_order)
 
     @test maximum(abs.(Rs_φs - Rs1)) < 1e-4 # already relative to incident wave amplitude = 1
     @test maximum(abs.(Rs_φs2 - Rs1)) < 1e-3
@@ -82,14 +85,14 @@
         reflection_coefficient(s, eff_medium, material.shape)
     end
 
-    Rs = map(sources) do s  # , basis_order =7
+    Rs = map(sources) do s
         wave_effs_2 = [
-            effective_wavemode(ωs[i], k_effs2[i], s, material; tol = 1e-9)
+            effective_wavemode(ωs[i], k_effs2[i], s, material; tol = tol, basis_order = basis_order)
         for i in eachindex(ωs)]
         reflection_coefficients(ωs, wave_effs_2, s, material)
     end
     Rs_φs = [
-        reflection_coefficient_low_volumefraction(ωs, s, material; tol = 1e-9, basis_order =7)
+        reflection_coefficient_low_volumefraction(ωs, s, material; basis_order = basis_order)
     for s in sources]
 
     len = length(ωs)

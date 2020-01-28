@@ -2,12 +2,8 @@
 
 d(x,m) = diffbesselj(m,x)*diffhankelh1(m,x) + (1.0 - (m/x)^2)*besselj(m,x)*hankelh1(m,x)
 
-function far_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{T}; tol=1e-6, basis_order = 2, #maximum_basis_order(ω, medium, species; tol=tol),
-        verbose = false, kws...) where T<:Number
+function far_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{T}; basis_order = 2) where T<:Number
 
-    if verbose
-        println("$basis_order was the largest hankel order used for the far field pattern")
-    end
     Zs = - get_t_matrices(medium, species, ω, basis_order)
     # Zs = Zn_matrix(ω, medium, species; basis_order = basis_order)
     num_density_inv = one(T)/sum(number_density.(species))
@@ -19,14 +15,9 @@ function far_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{T}; to
     return far_field
 end
 
-function diff_far_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{T}; tol=1e-6, basis_order = 2, #maximum_basis_order(ω, medium, species; tol=tol),
-        verbose = false, kws...) where T<:Number
+function diff_far_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{T}; tol=1e-6, basis_order = 2, verbose = false, kws...) where T<:Number
 
-    if verbose
-        println("$basis_order was the largest hankel order used for the far field pattern")
-    end
     Zs = - get_t_matrices(medium, species, ω, basis_order)
-    # Zs = Zn_matrix(ω, medium, species; basis_order = basis_order)
     num_density_inv = one(T) / sum(number_density.(species))
 
     far_field(θ::T) where T <: Number = -num_density_inv*sum(
@@ -36,13 +27,9 @@ function diff_far_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{T
     return far_field
 end
 
-function pair_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{T}; tol::T = T(1e-6),
-        basis_order = 2, #maximum_basis_order(ω, medium, species; tol=tol),
-        verbose = false, kws...) where T<:Number
+function pair_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{T}; tol::T = T(1e-6), basis_order = 2) where T<:Number
 
-    # Zs = Zn_matrix(ω, medium, species; basis_order = basis_order)
     Zs = - get_t_matrices(medium, species, ω, basis_order)
-
     num_density_inv = one(T)/sum(number_density.(species))
 
     pair_field(θ::T) where T <: Number = -T(π)*num_density_inv^(2.0)*sum(

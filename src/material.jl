@@ -17,12 +17,15 @@ Species{T<:AbstractFloat,Dim,P} = Vector{S} where S<:Specie{T,Dim,P}
 
 "Returns the volume fraction of the specie."
 volume_fraction(s::Specie) = s.volume_fraction
+volume_fraction(ss::Species) = sum(volume_fraction.(ss))
 
 import MultipleScattering.outer_radius
 
 "Returns the number density of the specie."
-number_density(s::Specie{T,2,P}) where {T,P} = s.volume_fraction / (outer_radius(s.particle)^2 * pi)
-number_density(s::Specie{T,3,P}) where {T,P} = s.volume_fraction / (T(4/3) * outer_radius(s.particle)^3 * pi)
+number_density(s::Specie{T,2}) where {T} = s.volume_fraction / (outer_radius(s.particle)^2 * pi)
+number_density(s::Specie{T,3}) where {T} = s.volume_fraction / (T(4/3) * outer_radius(s.particle)^3 * pi)
+number_density(ss::Species) = sum(number_density.(ss))
+
 
 outer_radius(s::Specie) = outer_radius(s.particle)
 

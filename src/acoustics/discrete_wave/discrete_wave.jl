@@ -31,35 +31,36 @@ function discretewave_error(avg_w::DiscretePlaneWaveMode)
 end
 
 "Calculates an DiscretePlaneWaveMode from one EffectiveWave"
-function DiscretePlaneWaveMode(xs::AbstractVector{T}, wave_eff::EffectivePlaneWaveMode{T}) where T<:Number
+function DiscretePlaneWaveMode(xs::AbstractVector{T}, wave_eff::EffectivePlaneWaveMode{T}, halfspace::Halfspace{T}) where T<:Number
 
     amps = wave_eff.amplitudes
-    ho = Int( (size(amps,1) - 1) / 2 )
-    θ_eff = wave_eff.θ_eff
+    ho = wave_eff.basis_order
+
+    θ_eff = transmission_angle(wave_eff, halfspace)
+    kcos_eff = dot(-conj(halfspace.normal), wave_eff.wavevector)
 
     S = size(amps,2)
 
     average_amps = [
-        im^T(m)*exp(-im*m*θ_eff)*amps[m+ho+1,s]*exp(im*wave_eff.k_eff*cos(θ_eff)*x)
+        im^T(m)*exp(-im*m*θ_eff)*amps[m+ho+1,s]*exp(im*kcos_eff*x)
     for x in xs, m=-ho:ho, s=1:S]
 
     return DiscretePlaneWaveMode(ho,xs,average_amps)
 end
 
 "Calculates an DiscretePlaneWaveMode from a vector of EffectiveWave"
-function DiscretePlaneWaveMode(xs::AbstractVector{T}, wave_effs::Vector{EffectivePlaneWaveMode{T}}) where T<:Number
+function DiscretePlaneWaveMode(xs::AbstractVector{T}, wave_effs::Vector{EffectivePlaneWaveMode{T,Dim}}, halfspace::Halfspace{T}) where {T<:Number,Dim}
 
     ho = wave_effs[1].basis_order
-    avg_wave_effs = [DiscretePlaneWaveMode(xs, wave) for wave in wave_effs]
+    avg_wave_effs = [DiscretePlaneWaveMode(xs, wave, halfspace) for wave in wave_effs]
     amps = sum(avg_wave_effs[i].amplitudes[:,:,:] for i in eachindex(avg_wave_effs))
 
     return DiscretePlaneWaveMode(ho, xs, amps)
 end
 
 
-"Numerically solved the integral equation governing the average wave. Optionally can use wave_eff to approximate the wave away from the boundary."
+"Numerically solve the integral equation governing ensemble average waves. Optionally can use wave_eff to approximate the wave away from the boundary."
 function DiscretePlaneWaveMode(ω::T, medium::Acoustic{T,2}, specie::Specie{T};
-        # radius_multiplier::T = 1.005,
         x::AbstractVector{T} = [zero(T)],
         tol::T = T(1e-4),
         wave_effs::Vector{EffectivePlaneWaveMode{T}} = [zero(EffectivePlaneWaveMode{T})],
@@ -97,9 +98,9 @@ end
 
 "note that this uses the non-dimensional X = k*depth"
 function discrete_wave_system(ω::T, X::AbstractVector{T}, medium::Acoustic{T,2}, specie::Specie{T,2};
-        θin::Float64 = 0.0, tol::T = 1e-6,
+        θin::Complex{T} = 0.0, tol::T = 1e-6,
         scheme::Symbol = :trapezoidal,
-        basis_order::Int = 2,#maximum_basis_order(ω, medium, [specie]; tol = tol),
+        basis_order::Int = 2,
         kws...
     ) where T<:AbstractFloat
 
@@ -130,14 +131,16 @@ function x_mesh(wave_eff_long::EffectivePlaneWaveMode{T}, wave_eff_short::Effect
         tol::T = T(1e-5),  a12::T = T(Inf),
         max_size::Int = 1000,
         min_size::Int = 5,
-        max_x::T = (-log(tol))/abs(cos(wave_eff_long.θ_eff)*imag(wave_eff_long.k_eff))
+        max_x::T = -log(tol) / abs(imag(sqrt(sum(wave_eff_short.wavevector .^2))))
+        # max_x::T = (-log(tol))/abs(cos(wave_eff_long.θ_eff)*imag(wave_eff_long.k_eff))
 ) where T<:AbstractFloat
 
-    #= The default min_X result in:
-        abs(exp(im*min_X*cos(θ_effs[end])*k_effs[end]/k)) < tol
+    #= The default max_x result in:
+        abs(exp(im*max_x*cos(θ_effs[end])*k_effs[end]/k)) < tol
     =#
     # estimate a reasonable derivative based on more rapidly varying wave_eff_short.
-    df = abs(wave_eff_short.k_eff * cos(wave_eff_short.θ_eff))
+    df = abs(sqrt(sum(wave_eff_short.wavevector .^2)))
+    # NOTE was: df = abs(wave_eff_short.k_eff * cos(wave_eff_short.θ_eff))
 
     # Based on Simpson's rule
         # dX  = (tol*90 / (df^4))^(1/5)

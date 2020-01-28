@@ -14,41 +14,54 @@
 
     ω = 0.002
     θin = -0.2
-    tol = 1e-8
+    tol = 1e-7
     basis_order = 1
 
     k_eff_lows = map(species) do s
         med_eff = effective_medium(medium, [s])
         ω/med_eff.c
     end
+
+    normal = [-1.0,0.0] # an outward normal to the surface
+    materials = [Material(Halfspace(normal),s) for s in species]
+    source = PlaneSource(medium, [cos(θin),sin(θin)])
+
     wave_eff_lows = [
-        EffectivePlaneWaveMode(ω, k_eff_lows[i], medium, [species[i]]; tol = tol,
-            basis_order=basis_order, θin = θin)
+        effective_wavemode(ω, k_eff_lows[i], source, materials[i]; tol = tol,
+            basis_order=basis_order)
     for i in eachindex(species)]
 
     wave_effs_arr = [
-        effective_wavemodes(ω, medium, [s];
-            basis_order=basis_order,
+        effective_wavemodes(ω, source, materials[1];
+            basis_order = basis_order,
             num_wavenumbers = 1,
-            tol = tol,  θin = θin,
+            tol = tol,
+            extinction_rescale = false),
+        effective_wavemodes(ω, source, materials[2];
+            basis_order = basis_order,
+            num_wavenumbers = 1,
+            tol = tol,
             extinction_rescale = false)
-    for s in species]
+    ]
+    # for i in eachindex(species)]
+    # Using the error causes a segmentation fault
 
-    @test norm([ws[1].k_eff for ws in wave_effs_arr] - k_eff_lows) < tol
+    @test norm([sqrt(sum(ws[1].wavevector .^2)) for ws in wave_effs_arr] - k_eff_lows) < tol
 
     match_ws = [
-        MatchPlaneWaveMode(ω, medium, species[i]; basis_order=basis_order,
-        max_size = 60,
-        θin = θin, tol = tol,
-        wave_effs = wave_effs_arr[i])
+        MatchPlaneWaveMode(ω, source, materials[i]; basis_order=basis_order,
+            max_size = 60,
+            tol = tol,
+            wave_effs = wave_effs_arr[i])
     for i in eachindex(species)]
 
-   @test maximum(match_error.(match_ws)) < tol
+   @test maximum(match_error(match_ws[i],materials[i].shape) for i in eachindex(species)) < tol
 
     map(eachindex(species)) do i
-        x = LinRange(match_ws[i].x_match[end],2pi/real(match_ws[i].effective_wavemodes[1].k_eff),200)
-        avg_low = DiscretePlaneWaveMode(x, wave_eff_lows[i])
-        avg = DiscretePlaneWaveMode(x, match_ws[i].effective_wavemodes)
+        sx = abs(real(sqrt(sum(match_ws[i].effective_wavemodes[1].wavevector .^2))))
+        x = LinRange(match_ws[i].x_match[end],2pi / sx,200)
+        avg_low = DiscretePlaneWaveMode(x, wave_eff_lows[i], materials[i].shape)
+        avg = DiscretePlaneWaveMode(x, match_ws[i].effective_wavemodes, materials[i].shape)
         @test norm(avg.amplitudes[:] - avg_low.amplitudes[:]) < tol
         @test maximum(abs.(avg.amplitudes[:] - avg_low.amplitudes[:])) < tol
     end
