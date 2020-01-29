@@ -15,13 +15,14 @@ end
 function EffectivePlaneWaveMode(ω::T;
         basis_order::Int = 0,
         wavevector::AbstractArray{Complex{T}} = zeros(Complex{T},2),
-        amplitudes::AbstractArray{Complex{T}} = zeros(Complex{T},1)) where T<:AbstractFloat
+        amplitudes::AbstractArray{Complex{T}} = zeros(Complex{T},1)
+    ) where T<:AbstractFloat
 
-    EffectivePlaneWaveMode(ω, basis_order, wavevector, amplitudes)
+    EffectivePlaneWaveMode(ω, basis_order, SVector(wavevector...), amplitudes)
 end
 
 function EffectivePlaneWaveMode(ω::T, wavevector::SVector{Dim,Complex{T}}, amps::Array{Complex{T}}) where {T<:AbstractFloat, Dim}
-    EffectivePlaneWaveMode(ω, Int( (size(amps,1) - 1) / 2 ), wavevector, amps)
+    EffectivePlaneWaveMode{T,Dim}(ω, Int( (size(amps,1) - 1) / 2 ), wavevector, amps)
 end
 
 import Base.zero

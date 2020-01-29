@@ -16,33 +16,38 @@ using EffectiveWaves, Test
     tol = 1e-9
     basis_order=0
 
-    ws = effective_wavemodes(ω, medium, [specie];
+    normal = [-1.0,0.0] # an outward normal to the surface
+    material = Material(Halfspace(normal),specie)
+    psource(θin) = PlaneSource(medium, [cos(θin),sin(θin)])
+
+    k_effs = wavenumbers(ω, medium, material.species;
         tol=tol, basis_order = basis_order,
-        apply_meshing = false,
-        num_wavenumbers = 20,
-        mesh_points = 30, mesh_size = 2.);
+        num_wavenumbers = 15,
+        mesh_points = 30, mesh_size = 2.0)
 
     function Rerror(θ)
 
-        match_ws = MatchPlaneWaveMode(ω, medium, specie;
+        wave_effs = [
+            effective_wavemode(ω, k_eff, psource(θ), material; tol=tol, basis_order = basis_order)
+        for k_eff in k_effs]
+
+        match_ws = MatchPlaneWaveMode(ω, psource(θ), material;
             basis_order = basis_order,
-            tol = tol, wave_effs = ws[1:15],
-            θin=θ,
-            max_size = 600,
+            tol = tol, wave_effs = wave_effs,
+            max_size = 900,
         );
 
-        Rm = reflection_coefficient(ω, match_ws, medium, specie; θin = θ)
-        Rw = wienerhopf_reflection_coefficient(ω, medium, [specie];
-                θin = θ,
+        Rm = reflection_coefficient(ω, match_ws, psource(θ), material)
+        Rw = wienerhopf_reflection_coefficient(ω, psource(θ), material;
                 tol=tol,
                 basis_order = basis_order
         )
-        return abs(Rm-Rw)/abs(Rw)
+        return abs(Rm-Rw)
     end
 
-    Rerror(0.0) # 3.771528229242978e-5
-    Rerror(0.5) # 5.2531420000213484e-5
-    Rerror(1.4) # 0.0005018041373008065
+    Rerror(0.0) # 3.81062386937501e-5
+    Rerror(0.5) # 3.850176856470023e-5
+    Rerror(1.4) # 0.00039393481919100916
 
     @test Rerror(0.0) < 1e-4
     @test Rerror(0.5) < 1e-4
@@ -55,7 +60,7 @@ end
 
     medium = Acoustic(2; ρ=1.0, c=1.0)
     ms = MultipleScattering
-    
+
     # Always Dirichlet boundary conditions for basis_order=0!
     specie = Specie(Particle(
         Acoustic(2; ρ=0.0, c=6.0), ms.Circle(0.01));
@@ -69,16 +74,23 @@ end
 
     eff_medium = effective_medium(medium, [specie])
 
+    normal = [-1.0,0.0] # an outward normal to the surface
+    material = Material(Halfspace(normal),specie)
+    psource(θin) = PlaneSource(medium, [cos(θin),sin(θin)])
+
+    k_effs = wavenumbers(ω, medium, material.species;
+        tol=tol*100, basis_order = basis_order,
+        num_wavenumbers = 4)
+
     function Rerror(θ)
-        ws = effective_wavemodes(ω, medium, [specie];
-            tol=tol, θin = θ,
-            basis_order = basis_order,
-            num_wavenumbers = 2,
-            extinction_rescale = true);
-        R1 = reflection_coefficient(ω, ws[1], medium, [specie]; θin = θ)
-        R_low = reflection_coefficient(medium, eff_medium; θin = θ)
-        Rw = wienerhopf_reflection_coefficient(ω, medium, [specie];
-                θin = θ,
+
+        ws = [
+            effective_wavemode(ω, k_eff, psource(θ), material; tol=tol, basis_order = basis_order, extinction_rescale = true)
+        for k_eff in k_effs]
+
+        R1 = reflection_coefficient(ω, ws[1], source, material)
+        R_low = reflection_coefficient(source, eff_medium, material.shape)
+        Rw = wienerhopf_reflection_coefficient(ω, source, material;
                 tol=tol,
                 basis_order = basis_order,
                 num_coefs = 20000 + 200*Int(round(100*θ))

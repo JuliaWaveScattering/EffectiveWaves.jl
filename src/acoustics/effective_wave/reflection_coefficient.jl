@@ -24,7 +24,7 @@ function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psou
 end
 
 "The average reflection coefficient"
-function wienerhopf_reflection_coefficient(ω::T, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T}};
+function wienerhopf_reflection_coefficient(ω::T, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
         tol::T = T(1e-7),
         basis_order::Int = 0,
         num_coefs::Int = 20000
@@ -35,7 +35,7 @@ function wienerhopf_reflection_coefficient(ω::T, psource::PlaneSource{T,2,1,Aco
 
     t_vecs = get_t_matrices(psource.medium, material.species, ω, ho)
 
-    θin = transmission_angle(psource.wavedirection, material.shape.normal)
+    θin = transmission_angle(psource, material)
     kcos = k*cos(θin)
     ksin = k*sin(θin)
 
@@ -47,12 +47,12 @@ function wienerhopf_reflection_coefficient(ω::T, psource::PlaneSource{T,2,1,Aco
 
     function Ψ(s,j,l,m,n)
         (s^T(2) - (as[j,l]*kcos)^T(2)) * (n == m ? T(1) : T(0)) * (j == l ? T(1) : T(0)) +
-        T(2) * as[j,l]^T(2) * pi * number_density(species[l]) * t_vecs[l][m+ho+1,m+ho+1] *
+        T(2) * as[j,l]^T(2) * pi * number_density(material.species[l]) * t_vecs[l][m+ho+1,m+ho+1] *
         kernelN(n-m,k*as[j,l], sToS(s,j,l))
     end
 
     # kernelN(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*besselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z)
-    q(s,j,l,m,n) = Ψ(s,j,l,m,n) / (s^T(2) - (k*as[j,l]*cos(θin))^T(2))
+    q(s,j,l,m,n) = Ψ(s,j,l,m,n) / (s^T(2) - (as[j,l]*kcos)^T(2))
 
     Zs = LinRange(T(100),1/(10*tol),3000)
     maxZ = Zs[findfirst(Z -> abs(log(q(Z,1,1,0,0))) < 10*tol, Zs)]

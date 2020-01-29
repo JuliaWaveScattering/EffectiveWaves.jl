@@ -60,20 +60,20 @@ end
 
 
 "Numerically solve the integral equation governing ensemble average waves. Optionally can use wave_eff to approximate the wave away from the boundary."
-function DiscretePlaneWaveMode(ω::T, medium::Acoustic{T,2}, specie::Specie{T};
+function DiscretePlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
         x::AbstractVector{T} = [zero(T)],
         tol::T = T(1e-4),
-        wave_effs::Vector{EffectivePlaneWaveMode{T}} = [zero(EffectivePlaneWaveMode{T})],
+        wave_effs::Vector{EffectivePlaneWaveMode{T,2}} = EffectivePlaneWaveMode{T,2}[],
         max_size::Int = 1000,
         kws...
     ) where T<:Number
 
-    k = real(ω/medium.c)
+    k = real(ω/source.medium.c)
+    specie = material.species[1]
 
     if x == [zero(T)]
-        if maximum(abs(w.k_eff) for w in wave_effs) == zero(T)
-            wave_effs = effective_wavemodes(real(ω/medium.c), medium, [specie];
-                radius_multiplier=specie.exclusion_distance, tol=tol, mesh_points=2, kws...)
+        if isempty(wave_effs)
+            wave_effs = effective_wavemodes(ω, source, material; tol=tol, mesh_points=2, kws...)
         end
         # estimate a large coarse non-dimensional mesh based on the lowest attenuating effective wave
         a12 = T(2) * specie.exclusion_distance * outer_radius(specie)
@@ -81,7 +81,7 @@ function DiscretePlaneWaveMode(ω::T, medium::Acoustic{T,2}, specie::Specie{T};
     end
 
     X = x.*k
-    (MM_quad,b_mat) = discrete_wave_system(ω, X, medium, specie; tol = tol, kws...);
+    (MM_quad,b_mat) = discrete_wave_system(ω, X, source, material; tol = tol, kws...);
 
     M = Int( (size(b_mat,2) - 1)/2 )
     J = length(collect(X)) - 1
@@ -97,18 +97,21 @@ function DiscretePlaneWaveMode(ω::T, medium::Acoustic{T,2}, specie::Specie{T};
 end
 
 "note that this uses the non-dimensional X = k*depth"
-function discrete_wave_system(ω::T, X::AbstractVector{T}, medium::Acoustic{T,2}, specie::Specie{T,2};
-        θin::Complex{T} = 0.0, tol::T = 1e-6,
+function discrete_wave_system(ω::T, X::AbstractVector{T}, source::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
+        tol::T = 1e-6,
         scheme::Symbol = :trapezoidal,
         basis_order::Int = 2,
         kws...
     ) where T<:AbstractFloat
 
-    t_vec = t_matrix(specie, medium, ω, basis_order)
+    specie = material.species[1]
+    t_vec = t_matrix(specie, source.medium, ω, basis_order)
 
-    k = real(ω/medium.c)
+    k = real(ω / source.medium.c)
     a12k = specie.exclusion_distance * T(2)*real(k * outer_radius(specie));
     M = basis_order;
+
+    θin = transmission_angle(source,material)
 
     J = length(X) - 1
     h = X[2] - X[1]

@@ -63,7 +63,7 @@ function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, mat
     J = length(collect(X)) - 1
     len = (J + 1)  * (2basis_order + 1)
 
-    (MM_quad,b_mat) = discrete_wave_system(ω, X, source.medium, material.species[1]; tol=tol, basis_order=basis_order, θin=θin,  kws...);
+    (MM_quad,b_mat) = discrete_wave_system(ω, X, source, material; tol=tol, basis_order=basis_order, kws...);
     MM_mat = reshape(MM_quad, (len, len));
     b = reshape(b_mat, (len));
 
@@ -94,9 +94,11 @@ function x_mesh_match(wave_effs::Vector{EffectivePlaneWaveMode{T,Dim}}; kws... )
    # If there is only one wave, then it doesn't make sense to extend the mesh until it decays.
    # Instead we choose, arbitrarily, a quarter of the wavelength.
    # Note, having only one wave is very unusual, but tends to happen in the very low frequency limit.
-    x = (length(wave_effs) > 1) ?
-        x_mesh(wave_effs[end], wave_effs[1]; kws...) :
-        x_mesh(wave_effs[1]; max_x = (pi/2) / abs(sqrt(sum(wave_effs[1].wavevector .^2))), kws...)
+    x = if length(wave_effs) > 1
+            x_mesh(wave_effs[end], wave_effs[1]; kws...)
+        else
+            x_mesh(wave_effs[1]; max_x = (pi/2) / abs(sqrt(sum(wave_effs[1].wavevector .^2))), kws...)
+        end
     #NOTE previously used abs(cos(wave_effs[1].θ_eff)*abs(wave_effs[1].k_eff)) instead of abs(sqrt(sum(wave_effs[1].wavevector .^2)))
 
     x_match = x[end]
