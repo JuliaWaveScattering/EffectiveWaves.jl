@@ -1,6 +1,6 @@
 "The effective low frequency bulk modulus and density of a material filled with particles"
 function effective_medium(medium::Acoustic{T,Dim}, species::Species{T,Dim}) where {T<:AbstractFloat,Dim}
-    φ = sum(s.volume_fraction for s in species)
+    φ = sum(volume_fraction.(species))
 
     # calculate effective properties
     β = medium.ρ*medium.c^2 # medium bulk modulus

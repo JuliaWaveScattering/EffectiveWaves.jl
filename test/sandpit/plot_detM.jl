@@ -60,12 +60,20 @@ function detMM!(F,x)
     F[1] = abs(det(MM(x[1]+im*x[2])))
 end
 
+detMM2 = dispersion_equation(ω, medium, species; tol = low_tol, kws...)
+
 k0 = real(k)
 x = k0 .* LinRange(0.0,1.8,100)/10.
 y = k0 .* LinRange(0.,0.22,100)
 
-X = repmat(x',length(y),1)
-Y = repmat(y,1,length(x))
+x = LinRange(10.0,20.,50)
+y = LinRange(0.,0.5,50)
+
+# X = repmat(x',length(y),1)
+# Y = repmat(y,1,length(x))
+
+X = repeat(reshape(x, 1, :), length(y), 1)
+Y = repeat(y, 1, length(x))
 
 Z0 = map( (x,y) -> detMM2([x,y]),X,Y)
 Z = map( z -> (abs(z)> 2.) ? NaN : z, Z0)

@@ -63,7 +63,7 @@ end
 
     # Always Dirichlet boundary conditions for basis_order=0!
     specie = Specie(Particle(
-        Acoustic(2; ρ=0.0, c=6.0), ms.Circle(0.01));
+        Acoustic(2; ρ=0.001, c=0.01), ms.Circle(0.01));
         volume_fraction = 0.3
     )
 
@@ -79,8 +79,11 @@ end
     psource(θin) = PlaneSource(medium, [cos(θin),sin(θin)])
 
     k_effs = wavenumbers(ω, medium, material.species;
-        tol=tol*100, basis_order = basis_order,
-        num_wavenumbers = 4)
+        tol=tol*10, basis_order = basis_order,
+        num_wavenumbers = 10)
+
+        wavenumber_low_volumefraction(ω, medium, material.species;
+            basis_order = basis_order)
 
     function Rerror(θ)
 
