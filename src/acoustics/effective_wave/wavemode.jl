@@ -47,7 +47,7 @@ end
 
 
 
-function wienerhopf_mode_amplitudes(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,2,1,Acoustic{T}}, material::Material{2,Halfspace{T}}; kws...) where T<:AbstractFloat
+function wienerhopf_mode_amplitudes(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}}; kws...) where T<:AbstractFloat
     return wienerhopf_mode_amplitudes(ω, [k_eff], psource, material; kws...)
 end
 
@@ -56,7 +56,7 @@ end
 The function returns an array A, where
 AA(x,y,0,1) = A[1,1]*exp(im*k_eff*(cos(θ_eff)*x + sin(θin)*y))
 where (x,y) are coordinates in the halfspace  and AA is the ensemble average scattering coefficient. Method currently only implemented for 1 species and for monopole scatterers. Note also that the choices of branch cut for cos and sin of θ_eff restrict -pi/2 < Re θ_eff < pi/2."
-function wienerhopf_mode_amplitudes(ω::T, k_effs::Vector{Complex{T}}, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T}};
+function wienerhopf_mode_amplitudes(ω::T, k_effs::Vector{Complex{T}}, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
         tol::T = 1e-6,
         basis_order::Int = 0,
         num_coefs::Int = 10000,
@@ -126,7 +126,10 @@ function wienerhopf_mode_amplitudes(ω::T, k_effs::Vector{Complex{T}}, psource::
     # last term left out becuase Q0(k_eff,1,1,0,0) = 0.
 
     return map(k_effs) do k_eff
-        θ_eff = transmission_angle_wiener(k, k_eff, θin; tol = tol)
+        # kvec = transmission_wavevector(k_eff,psource, material; tol=tol)
+        # θ_eff = transmission_angle(kvec, material.shape.normal)
+
+        θ_eff = transmission_angle_wiener(k, k_eff, θin)
         Ψp_eff = Ψp(k_eff*as[1,1]*cos(θ_eff))
         t_vecs[1][ho+1,ho+1] * T(2)*k*as[1,1]*(cos(θin)/cos(θ_eff))*(Ψp_eff/Ψp_a)/dSΨ00(k_eff*as[1,1])
     end

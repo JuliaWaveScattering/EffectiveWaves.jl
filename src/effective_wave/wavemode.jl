@@ -27,9 +27,15 @@ function transmission_wavevector(k_eff::Complex{T}, incident_wavevector::Abstrac
         α = -α # leads to real(α) < 0
     elseif imag(α) > 0
         α = -α # leads to imag(α) < 0
+    elseif isnan(α)
+        α = -one(T) # covers the cases k_eff = Inf and k_eff = 0.0
     end
 
     return wnp + α .* surface_normal
+end
+
+function transmission_wavevector(k_eff::Complex{T},  psource::PlaneSource{T,Dim}, material::Material{Dim}; tol::T = sqrt(eps(T))) where {T,Dim}
+    transmission_wavevector(k_eff, psource.wavedirection, material.shape.normal; tol = tol)
 end
 
 transmission_angle(pwave::EffectivePlaneWaveMode, shape::Halfspace) = transmission_angle(pwave.wavevector, shape.normal)

@@ -58,12 +58,14 @@ end
 # Note the wiener-hopf method is inaccurate or takes along time to calculate a very low-frequency solution
 @testset "compare wienger-hopf for low-ish frequency" begin
 
+    using EffectiveWaves, Test
+    using LinearAlgebra
+
     medium = Acoustic(2; ρ=1.0, c=1.0)
     ms = MultipleScattering
 
-    # Always Dirichlet boundary conditions for basis_order=0!
     specie = Specie(Particle(
-        Acoustic(2; ρ=0.001, c=0.01), ms.Circle(0.01));
+        Acoustic(2; ρ=0.0, c=0.01), ms.Circle(0.01));
         volume_fraction = 0.3
     )
 
@@ -73,25 +75,27 @@ end
     tol = 1e-7
 
     eff_medium = effective_medium(medium, [specie])
+    k_eff_low = ω / eff_medium.c
 
-    normal = [-1.0,0.0] # an outward normal to the surface
-    material = Material(Halfspace(normal),specie)
-    psource(θin) = PlaneSource(medium, [cos(θin),sin(θin)])
+    k_eff_vol = wavenumber_low_volumefraction(ω, medium, material.species;
+        basis_order = basis_order)
+
+    normal = [-1.0,0.0]; # an outward normal to the surface
+    material = Material(Halfspace(normal),specie);
+
+    # Here we help the algorithm by giving some initial estimates. This is because k_eff_low does not work for either Dirichlet or when using basis_order = 0 (effective low frequency calculations assume basis_order = 1)
 
     k_effs = wavenumbers(ω, medium, material.species;
-        tol=tol*10, basis_order = basis_order,
-        num_wavenumbers = 10)
-
-        wavenumber_low_volumefraction(ω, medium, material.species;
-            basis_order = basis_order)
+        tol=tol, basis_order = basis_order,
+        num_wavenumbers = 5)
 
     function Rerror(θ)
+        source = PlaneSource(medium, [cos(θ),sin(θ)]);
 
-        ws = [
-            effective_wavemode(ω, k_eff, psource(θ), material; tol=tol, basis_order = basis_order, extinction_rescale = true)
-        for k_eff in k_effs]
+        wm = effective_wavemode(ω, k_effs[1], source, material; tol=tol, basis_order = basis_order, extinction_rescale = true)
 
-        R1 = reflection_coefficient(ω, ws[1], source, material)
+
+        R1 = reflection_coefficient(ω, wm, source, material)
         R_low = reflection_coefficient(source, eff_medium, material.shape)
         Rw = wienerhopf_reflection_coefficient(ω, source, material;
                 tol=tol,

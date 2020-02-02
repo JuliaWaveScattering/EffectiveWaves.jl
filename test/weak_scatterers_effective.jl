@@ -30,16 +30,16 @@
     for ω in ωs]
 
     inds = [argmin(abs.(k_effs_arr[i] .- k_eff_φs[i])) for i in eachindex(ωs)]
-    k_effs2 = [k_effs[i][inds[i]] for i in eachindex(inds)]
+    k_effs = [k_effs_arr[i][inds[i]] for i in eachindex(inds)]
 
     # 0.0010101407549128578 + 7.824113157942236e-13im
     # 20.207827596241156 + 0.11344062283733775im
 
-    @test norm( (k_effs2 - k_eff_φs) ./ norm.(k_eff_φs) ) < 0.001
-    @test norm( (k_effs2 - k_eff_lows) ./ norm.(k_eff_lows) ) < 0.01
-    @test norm(k_effs2[1] - k_eff_lows[1])/norm(k_effs[1]) < 1e-7
+    @test norm( (k_effs - k_eff_φs) ./ norm.(k_eff_φs) ) < 0.001
+    @test norm( (k_effs - k_eff_lows) ./ norm.(k_eff_lows) ) < 0.01
+    @test norm(k_effs[1] - k_eff_lows[1])/norm(k_effs[1]) < 1e-7
 
-    # wave_effs_2 = [EffectivePlaneWaveMode(ωs[i], k_effs2[i], medium, species; tol = 1e-9) for i in eachindex(ωs)]
+    # wave_effs_2 = [EffectivePlaneWaveMode(ωs[i], k_effs[i], medium, species; tol = 1e-9) for i in eachindex(ωs)]
     normal = [-1.0,0.0] # an outward normal to the surface
     material = Material(Halfspace(normal),species)
 
@@ -87,7 +87,7 @@
 
     Rs = map(sources) do s
         wave_effs_2 = [
-            effective_wavemode(ωs[i], k_effs2[i], s, material; tol = tol, basis_order = basis_order)
+            effective_wavemode(ωs[i], k_effs[i], s, material; tol = tol, basis_order = basis_order)
         for i in eachindex(ωs)]
         reflection_coefficients(ωs, wave_effs_2, s, material)
     end

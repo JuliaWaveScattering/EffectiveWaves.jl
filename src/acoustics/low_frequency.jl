@@ -22,7 +22,11 @@ caculates the reflection coefficient from a homogenious halfspace (assumed to di
 function reflection_coefficient(psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, reflect_medium::Acoustic{T,Dim}, halfspace::Halfspace{T,Dim} = Halfspace(-psource.wavedirection)) where {T<:Number,Dim}
 
     k_in = T(1)/psource.medium.c
-    k_r = T(1)/reflect_medium.c
+    k_r = if abs(reflect_medium.c) == zero(T)
+        T(Inf) + zero(T) * im
+    else
+        T(1)/reflect_medium.c
+    end
 
     θin = transmission_angle(psource, halfspace)
 
