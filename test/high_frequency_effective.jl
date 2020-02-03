@@ -4,7 +4,7 @@ using LinearAlgebra
 @testset "high frequency effective" begin
 
         medium = Acoustic(2; ρ=1.0, c=1.0)
-        basis_order = 10
+        basis_order = 8
 
         # Large weak scatterers with low volume fraciton
         ms = MultipleScattering
@@ -36,17 +36,17 @@ using LinearAlgebra
         source = PlaneSource(medium, -normal)
 
         Rs = map(eachindex(ωs2)) do i
-            wave = effective_wavemode(ωs2[i], k_effs2[i], source, material)
+            wave = effective_wavemode(ωs2[i], k_effs2[i], source, material; basis_order=basis_order)
             reflection_coefficient(ωs2[i], wave, source, material)
         end
         # warning is expected, as k_eff_φs are assymptotic approximations.
         Rs_φs = map(eachindex(ωs2)) do i
-            wave = effective_wavemode(ωs2[i], k_eff_φs[i], source, material)
-            reflection_coefficient(ωs2[i], wave, source, material)
+            wave = effective_wavemode(ωs2[i], k_eff_φs[i], source, material; basis_order=basis_order)
+            reflection_coefficient(ωs2[i], wave, source, material; basis_order=basis_order)
         end
-        Rs_φs2 = reflection_coefficient_low_volumefraction(ωs2, source, material)
+        Rs_φs2 = reflection_coefficient_low_volumefraction(ωs2, source, material; basis_order=basis_order)
 
         # the incident wave has amplitude 1, so this is already a relative difference
-        @test maximum(abs.(Rs_φs - Rs)) < tol
-        @test maximum(abs.(Rs_φs2 - Rs)) < tol
+        @test maximum(abs.(Rs_φs - Rs)) < 1e-10
+        @test maximum(abs.(Rs_φs2 - Rs)) < 1e-8
 end
