@@ -10,7 +10,7 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMed
         min_Imk::T = minimum(imag(k1) for k1 in k_effs),
         kws...) where T<:Number
 
-    low_tol = max(1e-4, tol)*minimum( (k1 == k2) ? Inf : abs(k1-k2) for k1 in k_effs, k2 in k_effs) # a tolerance used for a first pass with time_limit
+    low_tol = max(1e-4*minimum( (k1 == k2) ? Inf : abs(k1-k2) for k1 in k_effs, k2 in k_effs), tol) # a tolerance used for a first pass with time_limit
 
     # the dispersion equation is given by: `dispersion(k1,k2) = 0` where k_eff = k1 + im*k2.
     dispersion = dispersion_equation(ω, medium, species; tol = low_tol, dim=dim, kws...)

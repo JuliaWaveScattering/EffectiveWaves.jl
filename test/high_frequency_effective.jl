@@ -9,13 +9,10 @@ using LinearAlgebra
         # Large weak scatterers with low volume fraciton
         ms = MultipleScattering
 
-        p1 = Particle(Acoustic(2; ρ=10.0, c=12.0),ms.Circle(1.9))
-        p2 = Particle(Acoustic(2; ρ=3.0, c=2.0),ms.Circle(0.7))
+        s1 = Specie(Acoustic(2; ρ=10.0, c=12.0),ms.Circle(1.9); volume_fraction=0.04)
+        s2 = Specie(Acoustic(2; ρ=3.0, c=2.0),ms.Circle(0.7); volume_fraction=0.02)
 
-        species = [
-            Specie(p1; volume_fraction=0.04),
-            Specie(p2; volume_fraction=0.02)
-        ]
+        species = [s1, s2]
 
         ωs2 = [120.]
 

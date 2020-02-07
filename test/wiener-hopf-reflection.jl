@@ -64,10 +64,9 @@ end
     medium = Acoustic(2; ρ=1.0, c=1.0)
     ms = MultipleScattering
 
-    specie = Specie(Particle(
-        Acoustic(2; ρ=0.0, c=0.01), ms.Circle(0.01));
-        volume_fraction = 0.3
-    )
+    specie = Specie(Acoustic(2; ρ=0.0, c=0.01), ms.Circle(0.01); volume_fraction = 0.3)
+
+    s = ms.Circle(0.01)
 
     ω = 0.01
     basis_order=0

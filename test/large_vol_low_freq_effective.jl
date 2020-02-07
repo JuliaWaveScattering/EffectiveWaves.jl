@@ -9,13 +9,10 @@ using EffectiveWaves, Test
     medium = Acoustic(2; ρ=1.0, c=1.0)
     ms = MultipleScattering
 
-    p1 = Particle(Acoustic(2; ρ=5.0, c=1.2),ms.Circle(0.004))
-    p2 = Particle(Acoustic(2; ρ=0.3, c=0.4),ms.Circle(0.002))
+    s1 = Specie(Acoustic(2; ρ=5.0, c=1.2),ms.Circle(0.004); volume_fraction=0.4)
+    s2 = Specie(Acoustic(2; ρ=0.3, c=0.4),ms.Circle(0.002); volume_fraction=0.3)
 
-    species = [
-        Specie(p1; volume_fraction=0.4),
-        Specie(p2; volume_fraction=0.3)
-    ]
+    species = [s1, s2]
 
     eff_medium = effective_medium(medium, species)
 

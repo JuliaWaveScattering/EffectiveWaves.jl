@@ -19,8 +19,9 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T}, species::Species{T};
         push!(k_vecs,kin, [real(k0),zero(T)], [sqrt(eps(T)),sqrt(eps(T))])
 
     # non-dimensionlise tolerances using k0
-        low_tol = min(1e-5, sqrt(tol)) * abs(k0) # a tolerance used for a first pass with time_limit
-        tol = tol * abs(k0)
+    # NEED to non-dimensionlise the whole dispersion equation, for now not non-dimensionlising tol
+        low_tol = min(1e-5, sqrt(tol)) # * abs(ω) # a tolerance used for a first pass with time_limit
+        tol = tol # * abs(ω)
 
     # the dispersion equation is given by: `dispersion(k1,k2) = 0` where k_eff = k1 + im*k2.
         dispersion = dispersion_equation(ω, medium, species; tol = low_tol, kws...)

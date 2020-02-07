@@ -12,6 +12,11 @@ function Specie(p::AbstractParticle{T,Dim}; volume_fraction::T = 0.0, exclusion_
     Specie{T,Dim,typeof(p)}(p,volume_fraction,numberofparticles,exclusion_distance)
 end
 
+function Specie(medium::P,s::S; kws...) where {Dim,T,P<:PhysicalMedium{T,Dim},S<:Shape{T,Dim}}
+    Specie(Particle(medium, s); kws...)
+end
+
+
 # Shorthand for all Vectors of species
 Species{T<:AbstractFloat,Dim,P} = Vector{S} where S<:Specie{T,Dim,P}
 

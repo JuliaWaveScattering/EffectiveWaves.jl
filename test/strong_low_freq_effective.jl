@@ -7,13 +7,10 @@ using EffectiveWaves, Test
 
     ms = MultipleScattering # just in case Circle conflicts with a definition from another package.
 
-    p1 = Particle(Acoustic(spatial_dim; ρ=5.0, c=0.002),ms.Circle(0.004))
-    p2 = Particle(Acoustic(spatial_dim; ρ=0.3, c=0.01),ms.Circle(0.002))
+    s1 = Specie(Acoustic(spatial_dim; ρ=5.0, c=0.002),ms.Circle(0.004); volume_fraction=0.2)
+    s2 = Specie(Acoustic(spatial_dim; ρ=0.3, c=0.01),ms.Circle(0.002); volume_fraction=0.1)
 
-    species = [
-        Specie(p1; volume_fraction=0.2),
-        Specie(p2; volume_fraction=0.1)
-    ]
+    species = [s1, s2]
     tol=1e-7
     # ωs = [0.001,0.003]
     ωs = [0.001]
