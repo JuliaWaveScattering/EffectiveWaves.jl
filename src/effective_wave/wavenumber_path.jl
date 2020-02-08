@@ -1,36 +1,45 @@
 function wavenumbers_path(ω::T, medium::PhysicalMedium{T}, species::Species{T};
-        tol::T = 1e-6,
+        tol::T = 1e-5,
         mesh_points::Int = 2, mesh_size::T = one(T),
         num_wavenumbers = 3,
-        max_Imk::T = T(2) + T(20) * imag(wavenumber_low_volumefraction(ω, medium, species)),
+        max_Imk::T = T(2) + T(20) * imag(wavenumber_low_volumefraction(ω, medium, species; verbose = false)),
         verbose::Bool = false,
         k_effs::Vector{Complex{T}} = Complex{T}[],
         kws...) where T<:AbstractFloat
 
 
     # find at least one root to use as a scale for dk_x and dk_y
-        kφ = wavenumber_low_volumefraction(ω, medium, species; verbose = false)
         eff_medium = effective_medium(medium, species)
         k0 = ω/eff_medium.c
-        if isnan(k0) k0 = kφ end
+        if isnan(k0) k0 = ω + T(0)*im end
+        # abs(k0) can be used to non-dimensionlise k_vec
+        kscale = abs(k0)
+
+        kφ = wavenumber_low_volumefraction(ω, medium, species; verbose = false)
         kin = [min(real(k0),abs(real(kφ))),abs(imag(kφ))]
         dx = kin[1]*mesh_size
-        k_vecs = [[kin[1]+x,kin[2]] for x in LinRange(-dx,dx,mesh_points+1)]
-        push!(k_vecs,kin, [real(k0),zero(T)], [sqrt(eps(T)),sqrt(eps(T))])
+        k_dim_vecs = [[kin[1]+x,kin[2]] for x in LinRange(-dx,dx,mesh_points+1)]
+        push!(k_dim_vecs, kin, [real(kφ),abs(imag(kφ))], [real(k0),zero(T)], [sqrt(eps(T)),sqrt(eps(T))])
 
-    # non-dimensionlise tolerances using k0
-    # NEED to non-dimensionlise the whole dispersion equation, for now not non-dimensionlising tol
-        low_tol = min(1e-5, sqrt(tol)) # * abs(ω) # a tolerance used for a first pass with time_limit
-        tol = tol # * abs(ω)
+        # k_vecs is non-dimensional
+        k_vecs = k_dim_vecs ./ kscale
+
+        low_tol = min(1e-4, sqrt(tol))
+        tol = tol
 
     # the dispersion equation is given by: `dispersion(k1,k2) = 0` where k_eff = k1 + im*k2.
-        dispersion = dispersion_equation(ω, medium, species; tol = low_tol, kws...)
+        dispersion_dim = dispersion_equation(ω, medium, species; tol = low_tol, kws...)
+        dispersion(vec::Vector{T}) = dispersion_dim(vec .* kscale)
 
-        k_vecs = [optimize(dispersion, kvec, Optim.Options(x_tol=low_tol, g_tol = low_tol^3)).minimizer for kvec in k_vecs]
+        k_vecs = [
+            optimize(dispersion, kvec,
+                Optim.Options(x_tol=low_tol, g_tol = low_tol^3)
+            ).minimizer
+        for kvec in k_vecs]
         k_vecs = reduce_kvecs(k_vecs, low_tol/10)
 
         # add any specified keffs
-        k_vecs = [k_vecs; [[real(kp),imag(kp)] for kp in k_effs]]
+        k_vecs = [k_vecs; [[real(kp),imag(kp)] ./ kscale for kp in k_effs]]
 
         k_vecs = map(k_vecs) do k_vec
            res = optimize(dispersion, k_vec, Optim.Options(g_tol = tol^3.0, x_tol=tol))
@@ -183,7 +192,8 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T}, species::Species{T};
     # deleteat!(k_vecs, find(k_vec[2] < tol && k_vec[1] < tol for k_vec in k_vecs))
     deleteat!(k_vecs, findall([-low_tol < abs(k_vec[2])/k_vec[1] < zero(T) for k_vec in k_vecs]))
 
-    k_effs = [ k_vec[1] + k_vec[2]*im for k_vec in k_vecs]
+    # k_effs is dimensional
+    k_effs = kscale .* [ k_vec[1] + k_vec[2]*im for k_vec in k_vecs]
     k_effs = sort(k_effs, by=imag)
 
     return k_effs

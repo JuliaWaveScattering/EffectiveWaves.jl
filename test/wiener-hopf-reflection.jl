@@ -65,7 +65,6 @@ end
     ms = MultipleScattering
 
     specie = Specie(Acoustic(2; ρ=0.0, c=0.01), ms.Circle(0.01); volume_fraction = 0.3)
-
     s = ms.Circle(0.01)
 
     ω = 0.01
@@ -76,7 +75,7 @@ end
     eff_medium = effective_medium(medium, [specie])
     k_eff_low = ω / eff_medium.c
 
-    k_eff_vol = wavenumber_low_volumefraction(ω, medium, material.species;
+    k_eff_vol = wavenumber_low_volumefraction(ω, medium, [specie];
         basis_order = basis_order)
 
     normal = [-1.0,0.0]; # an outward normal to the surface

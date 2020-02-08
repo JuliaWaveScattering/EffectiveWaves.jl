@@ -9,21 +9,25 @@ end
 include("specialfunctions.jl")
 include("complex.jl")
 
-@testset "Single effective wave" begin
-    include("strong_low_freq_effective.jl")
-    include("high_frequency_effective.jl")
+# Single effective wavenumber tests
+@time    include("strong_low_freq_effective.jl")
+    @time include("high_frequency_effective.jl")
 
-    include("large_vol_low_freq_effective.jl")
-    include("weak_scatterers_effective.jl")
-end
+    @time include("large_vol_low_freq_effective.jl")
+    @time include("weak_scatterers_effective.jl")
 
-# test does not run on Julia version < 0.7 due to differences in Optim versions
-include("path_mesh_wavenumbers.jl")
+# test equivalence between methods for finding wavenumbers
+    # test does not run on Julia version < 0.7 due to differences in Optim versions
+    include("path_mesh_wavenumbers.jl")
 
-include("numerical_integration.jl")
-include("integrated_reflection.jl")
-include("average_integrand_kernel.jl")
+# Test functions used for the discretisation
+    include("numerical_integration.jl")
+    include("integrated_reflection.jl")
+    include("average_integrand_kernel.jl")
 
-include("match_wave.jl")
-include("wiener-hopf-reflection.jl")
-include("wiener-hopf-wave.jl")
+# Test matching method
+    include("match_wave.jl")
+
+# Test wiener hopf method for monopole scatterers
+    include("wiener-hopf-reflection.jl")
+    include("wiener-hopf-wave.jl")

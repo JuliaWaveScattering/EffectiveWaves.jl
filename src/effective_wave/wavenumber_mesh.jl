@@ -1,6 +1,5 @@
 function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMedium{T}, species::Species{T};
-        dim = 2,
-        tol::T = 1e-6,
+        tol::T = 1e-5,
         mesh_refine::T = T(0.4),
         inner_optimizer = LBFGS(),
         verbose::Bool = false,
@@ -10,17 +9,31 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMed
         min_Imk::T = minimum(imag(k1) for k1 in k_effs),
         kws...) where T<:Number
 
-    low_tol = max(1e-4*minimum( (k1 == k2) ? Inf : abs(k1-k2) for k1 in k_effs, k2 in k_effs), tol) # a tolerance used for a first pass with time_limit
+    eff_medium = effective_medium(medium, species)
+    k0 = ω/eff_medium.c
+    if isnan(k0) k0 = ω + T(0)*im end
+    # abs(k0) can be used to non-dimensionlise k_vec
+    kscale = abs(k0)
+
+    low_tol = 1e-2*minimum( (k1 == k2) ? Inf : abs(k1-k2) for k1 in k_effs, k2 in k_effs) / kscale
+    low_tol = max(low_tol, 1e-4, tol) # a tolerance used for a first pass with time_limit
 
     # the dispersion equation is given by: `dispersion(k1,k2) = 0` where k_eff = k1 + im*k2.
-    dispersion = dispersion_equation(ω, medium, species; tol = low_tol, dim=dim, kws...)
+    dispersion_dim = dispersion_equation(ω, medium, species; tol = low_tol, kws...)
+    dispersion(vec::Vector{T}) = dispersion_dim(vec .* kscale)
 
-    kx = LinRange(min_Rek, max_Rek, Int(round(length(k_effs)/(2*mesh_refine)))) # tree shape makes this division by 2 natural
+    # non-dimensionalise
+    min_Rek = min_Rek / kscale
+    min_Imk = min_Imk / kscale
+    max_Rek = max_Rek / kscale
+    max_Imk = max_Imk / kscale
+
+    kx = LinRange(min_Rek, max_Rek, Int(round(length(k_effs)/(2*mesh_refine))))# tree shape makes this division by 2 natural
     ky = LinRange(min_Imk, max_Imk, Int(round(length(k_effs)/(2*mesh_refine))))
     k_mesh = [[x,y] for x in kx, y in ky][:]
 
     # Include k_effs in the mesh, we do not assume these are solutions
-    k_vecs = [[real(keff),imag(keff)] for keff in k_effs]
+    k_vecs = [[real(keff),imag(keff)] for keff in k_effs] ./ kscale
     k_mesh = [k_mesh; k_vecs]
 
     # make slightly bigger box to be constrained within
@@ -28,6 +41,7 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMed
     min_Imk = (min_Imk < zero(T)) ? min_Imk*T(1.1) : min_Imk*T(0.9)
     max_Rek = (max_Rek > zero(T)) ? max_Rek*T(1.001) : max_Rek*T(0.999)
     max_Imk = (max_Imk > zero(T)) ? max_Imk*T(1.001) : max_Imk*T(0.999)
+
     filter!(keff -> min_Rek <= keff[1] <= max_Rek && min_Imk <= keff[2] <= max_Imk, k_mesh)
 
     # Find all wavenumbers
@@ -43,12 +57,6 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMed
 
     filter!(keff -> lower[1] <= keff[1] <= upper[1] && lower[2] <= keff[2] <= upper[2], new_ks)
 
-    # only keep targets which are not already in k_vecs
-    # new_ks = [
-    #         (findmin([norm(h - kvec) for kvec in k_vecs])[1] > low_tol) ? h : [zero(T),-one(T)]
-    # for h in new_ks]
-    # new_ks = reduce_kvecs(new_ks, low_tol)
-
     # Here we refine the new roots
     new_ks = map(new_ks) do k_vec
         # res = optimize(dispersion, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
@@ -61,12 +69,6 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMed
         end
     end
 
-    # only keep targets which are not already in k_vecs
-    # new_ks = [
-    #         (findmin([norm(h - kvec) for kvec in k_vecs])[1] > 10*tol) ? h : [zero(T),-one(T)]
-    # for h in new_ks]
-    # new_ks = reduce_kvecs(new_ks, T(10)*tol)
-
     if verbose println("New roots from mesh refiner:",new_ks) end
 
     # group together wavenumbers which are closer than tol
@@ -77,7 +79,7 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMed
     deleteat!(k_vecs, findall([-low_tol < abs(k_vec[2])/k_vec[1] < zero(T) for k_vec in k_vecs]))
     # deleteat!(k_vecs, find(k_vec[2] < tol && k_vec[1] < tol for k_vec in k_vecs))
 
-    k_effs = [k_vec[1] + k_vec[2]*im for k_vec in k_vecs]
+    k_effs = kscale .* [k_vec[1] + k_vec[2]*im for k_vec in k_vecs]
     k_effs = sort(k_effs, by=imag)
 
     return k_effs

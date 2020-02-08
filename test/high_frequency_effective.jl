@@ -4,7 +4,7 @@ using LinearAlgebra
 @testset "high frequency effective" begin
 
         medium = Acoustic(2; ρ=1.0, c=1.0)
-        basis_order = 8
+        basis_order = 3 # high frequency should use higher basis_order, but takes a while longer.
 
         # Large weak scatterers with low volume fraciton
         ms = MultipleScattering
@@ -16,7 +16,7 @@ using LinearAlgebra
 
         ωs2 = [120.]
 
-        tol = 1e-6
+        tol = 1e-5 # low tolerance to speed up wavenumbers
         k_eff_φs = wavenumber_low_volumefraction(ωs2, medium, species; basis_order=basis_order)
         k_effs = [wavenumbers(ω, medium, species; tol=tol, num_wavenumbers=1, basis_order=basis_order) for ω in ωs2]
 
@@ -39,7 +39,7 @@ using LinearAlgebra
         # warning is expected, as k_eff_φs are assymptotic approximations.
         Rs_φs = map(eachindex(ωs2)) do i
             wave = effective_wavemode(ωs2[i], k_eff_φs[i], source, material; basis_order=basis_order)
-            reflection_coefficient(ωs2[i], wave, source, material; basis_order=basis_order)
+            reflection_coefficient(ωs2[i], wave, source, material)
         end
         Rs_φs2 = reflection_coefficient_low_volumefraction(ωs2, source, material; basis_order=basis_order)
 

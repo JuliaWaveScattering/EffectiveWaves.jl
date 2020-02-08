@@ -11,7 +11,7 @@ using EffectiveWaves, Test
     ]
 
     ω = 0.6;
-    tol = 1e-9
+    tol = 1e-6
     num_wavenumbers = 8;
     basis_order = 2
 
@@ -23,6 +23,7 @@ using EffectiveWaves, Test
         basis_order=basis_order,
         tol = tol
     )
+    num_wavenumbers = min(num_wavenumbers, length(k_effs_path))
 
     k_effs_mesh = wavenumbers_mesh(ω, k_effs_path[1:num_wavenumbers], medium, species;
         basis_order=basis_order,

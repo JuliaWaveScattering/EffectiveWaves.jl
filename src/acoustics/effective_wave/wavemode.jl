@@ -25,7 +25,7 @@ function effective_wavemode(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,Dim
         method::Symbol = :none,
         extinction_rescale::Bool = true,
         kws...
-    ) where {T<:AbstractFloat,Dim}
+    )::EffectivePlaneWaveMode{T,Dim} where {T<:AbstractFloat,Dim}
 
     k = ω/psource.medium.c
 

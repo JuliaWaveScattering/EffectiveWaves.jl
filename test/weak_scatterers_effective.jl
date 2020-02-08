@@ -2,9 +2,11 @@
 
     # angular frequencies
     ωs = [0.001,20.]
+    # ωs = [20.] # use only one frequency to speed up test
 
     # tolerance
-    tol = 1e-8; basis_order = 2;
+    tol = 1e-6;
+    basis_order = 2;
 
     # background medium
     medium = Acoustic(2; ρ=1.0, c=1.0)
@@ -32,6 +34,7 @@
     inds = [argmin(abs.(k_effs_arr[i] .- k_eff_φs[i])) for i in eachindex(ωs)]
     k_effs = [k_effs_arr[i][inds[i]] for i in eachindex(inds)]
 
+    # k_effs =
     # 0.0010101407549128578 + 7.824113157942236e-13im
     # 20.207827596241156 + 0.11344062283733775im
 
@@ -39,7 +42,6 @@
     @test norm( (k_effs - k_eff_lows) ./ norm.(k_eff_lows) ) < 0.01
     @test norm(k_effs[1] - k_eff_lows[1])/norm(k_effs[1]) < 1e-7
 
-    # wave_effs_2 = [EffectivePlaneWaveMode(ωs[i], k_effs[i], medium, species; tol = 1e-9) for i in eachindex(ωs)]
     normal = [-1.0,0.0] # an outward normal to the surface
     material = Material(Halfspace(normal),species)
 
@@ -60,7 +62,7 @@
         reflection_coefficient(ωs[i], w_effs, source, material; tol = tol)
     end
 
-    @test Rs ≈ Rs2 # same keywords should lead to exactly the same reflection coefficient
+    @test Rs ≈ Rs2 # same keywords should lead to the same reflection coefficient, except for numerically rounding
 
     Rs1 = map(eachindex(ωs)) do i
         w_eff = effective_wavemode(ωs[i], k_effs[i][1], source, material; tol = 1e-9)

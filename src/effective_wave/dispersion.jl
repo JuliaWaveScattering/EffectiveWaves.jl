@@ -15,10 +15,10 @@ function dispersion_equation(ω::T, source::AbstractSource{T}, material::Materia
 
     MM = effectivewave_system(ω, source, material; kws... )
 
-    # the constraint uses keff_vec[2] < -low_tol to better specify solutions where imag(k_effs)<0
-    constraint(keff_vec::Array{T}) = (keff_vec[2] < -low_tol) ? (-one(T) + exp(-T(100.0)*keff_vec[2])) : zero(T)
+    # the constraint uses keff_vec[2] < -low_tol to better specify solutions where imag(k_effs)~0 and imag(k_effs)<0
+    constraint(keff_vec::Vector{T}) = (keff_vec[2] < -low_tol) ? (-one(T) + exp(-T(100.0)*keff_vec[2])) : zero(T)
 
-    function detMM(keff_vec::Array{T})
+    function detMM(keff_vec::Vector{T})
         constraint(keff_vec) + sqrt(abs(det(MM(keff_vec[1]+im*keff_vec[2]))))
     end
 
@@ -39,7 +39,7 @@ end
 # end
 
 function effectivewave_system(ω::T, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
-        basis_order::Int = 2, 
+        basis_order::Int = 2,
         kws...) where {T<:AbstractFloat}
 
     k = ω / psource.medium.c

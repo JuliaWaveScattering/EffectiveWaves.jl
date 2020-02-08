@@ -18,7 +18,7 @@ using EffectiveWaves, Test
     ω = 1.1
     k = ω/medium.c
     θin = 0.3
-    tol = 1e-7
+    tol = 1e-8
     basis_order = 2
 
     normal = [-1.0,0.0] # an outward normal to the surface
@@ -85,15 +85,15 @@ using EffectiveWaves, Test
             basis_order=basis_order,
             tol = tol,
             wave_effs = wave_effs_arr2[i],
-            max_size=180)
+            max_size=280)
     for i in eachindex(species)];
 
-    @test maximum(match_error(match_ws[i],materials[i].shape) for i in eachindex(species)) < 20*tol
+    @test maximum(match_error(match_ws[i],materials[i].shape) for i in eachindex(species)) < 100*tol
 
     avgs = [
         DiscretePlaneWaveMode(ω, source, materials[i];
                 basis_order=basis_order,
-                tol = tol, max_size=800,
+                tol = tol, max_size=900,
                 wave_effs = wave_effs_arr2[i])
     for i in eachindex(species)]
 
@@ -109,9 +109,9 @@ using EffectiveWaves, Test
     map(eachindex(species)) do i
         j0 = findmin(abs.(avgs[i].x .- match_ws[i].x_match[1]))[2]
         x0 = avgs[i].x[j0+1:end]
-        avg_m = DiscretePlaneWaveMode(x0, match_ws[i].effective_wavemodes,materials[i].shape)
+        avg_m = DiscretePlaneWaveMode(x0, match_ws[i].effective_wavemodes, materials[i].shape)
         maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:]))
         @test norm(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])/norm(avg_m.amplitudes[:]) < 1e-2
-        @test maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])) < 2e-3
+        @test maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])) < 1e-4
     end
 end
