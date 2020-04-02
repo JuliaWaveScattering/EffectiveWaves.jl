@@ -8,13 +8,12 @@ wavenumbers(ω::T, medium::PhysicalMedium{T}, specie::Specie{T}; kws...) where T
 
 function wavenumbers(ω::T, medium::PhysicalMedium{T}, species::Species{T};
         num_wavenumbers = 8,
-        apply_meshing::Bool = true,
         kws...) where T<:Number
 
     k_effs = wavenumbers_path(ω, medium, species; num_wavenumbers=num_wavenumbers, kws...)
     num_wavenumbers = min(length(k_effs),num_wavenumbers)
 
-    if num_wavenumbers > 1 && apply_meshing
+    if num_wavenumbers > 1
         k_effs = wavenumbers_mesh(ω, k_effs[1:num_wavenumbers], medium, species; kws...)
     end
 

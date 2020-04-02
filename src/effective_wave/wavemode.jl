@@ -88,9 +88,11 @@ function transmission_angle_wiener(k::Union{T,Complex{T}}, k_eff::Union{T,Comple
 
     θ_eff = asin(k * sin(θin) / k_eff)
 
-    if !(abs(real(θ_eff - θin)) <= pi/T(2))
+    # if !(abs(real(θ_eff - θin)) <= pi/T(2))
+    if sign(real(k_eff * cos(θ_eff))) != sign(real(k_eff))
         θ_eff = pi - θ_eff
     end
+
     return θ_eff
 end
 
@@ -102,7 +104,7 @@ function mode_amplitudes(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,Dim,1,
         tol::T = 1e-5,
         kws...) where {T<:Number,Dim}
 
-    MM = effectivewave_system(ω, psource, material; kws...)
+    MM = eigensystem(ω, psource, material; kws...)
 
     # calculate effective amplitudes
     MM_svd = svd(MM(k_eff))

@@ -29,7 +29,7 @@ function wavematrix3D_allocate(ω::T, medium::Medium{T}, species::Species{T};
         sum(cs[:,n,dn] .* cs[:,n1,n2] .* Ns[ls[:].+1,s1,s2]) / (keff^2.0 - k^2.0)
     end
     function MM2(keff::Complex{T})
-        Ns = [kernelN(l3,k*as[s1,s2],keff*as[s1,s2]; dim = dim) for l3 = 0:ho, s1 = 1:S, s2 = 1:S]
+        Ns = [kernelN2D(l3,k*as[s1,s2],keff*as[s1,s2]; dim = dim) for l3 = 0:ho, s1 = 1:S, s2 = 1:S]
         ind2 = 1
         for s2 = 1:S for dn = 1:n_max for n1 = 1:n_max
             ind1 = 1

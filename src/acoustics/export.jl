@@ -8,12 +8,17 @@ include("acoustic_mediums.jl")
 
 include("low_frequency.jl")
 
+include("effective_wave/halfspace/eigensystem.jl")
+include("effective_wave/halfspace/reflection_coefficient.jl")
+include("effective_wave/halfspace/wavemode.jl")
+
+# regular means a smooth field assumption and includes cases such as a sphere filled with particles.
+include("effective_wave/regular/eigensystem.jl")
+
 include("effective_wave/far_fields.jl")
 include("effective_wave/low_volumefraction.jl")
 include("effective_wave/alternative_wavenumbers.jl")
 include("effective_wave/two_species_approximate.jl")
 
-include("effective_wave/reflection_coefficient.jl")
-include("effective_wave/wavemode.jl")
 
 include("discrete_wave/export.jl")

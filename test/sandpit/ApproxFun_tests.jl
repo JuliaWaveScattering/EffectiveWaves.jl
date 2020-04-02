@@ -9,7 +9,7 @@ Y0 = 0.0; Y1 = 2.0;
 d = Domain(0..2)
 
 K2D(X,Y) = cos((Y+X*im)*sin(θin) * n*dot(Y,X))*sin(sqrt(X^2+Y^2+ X*Y*im))
-# K(Y) = cos((Y+X*im)*sin(θin) * n*dot(Y,X))*hankelh1(n,sqrt(X^2+Y^2+ X*Y*im))
+K(Y) = cos((Y+X*im)*sin(θin) * n*dot(Y,X))*hankelh1(n,sqrt(X^2+Y^2+ X*Y*im))
 K2Dreal(X,Y) = real(cos((Y+X*im)*sin(θin) * n*dot(Y,X))*sin(sqrt(X^2+Y^2+ X*Y*im)))
 K2Dimag(X,Y) = imag(cos((Y+X*im)*sin(θin) * n*dot(Y,X))*sin(sqrt(X^2+Y^2+ X*Y*im)))
 

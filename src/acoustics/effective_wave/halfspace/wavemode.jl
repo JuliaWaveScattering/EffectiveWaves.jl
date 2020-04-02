@@ -76,7 +76,6 @@ function wienerhopf_mode_amplitudes(ω::T, k_effs::Vector{Complex{T}}, psource::
 
     t_vecs = get_t_matrices(medium, material.species, ω, basis_order)
 
-    # t_vecs = t_vectors(ω, medium, species; basis_order = ho)
     as = [
         (outer_radius(s1) * s1.exclusion_distance + outer_radius(s2) * s2.exclusion_distance)
     for s1 in material.species, s2 in material.species]
@@ -94,15 +93,15 @@ function wienerhopf_mode_amplitudes(ω::T, k_effs::Vector{Complex{T}}, psource::
         )
     end
 
-    # kernelN(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*besselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z)
-    # DZkernelN(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*diffbesselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z,2) -
+    # kernelN2D(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*besselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z)
+    # DZkernelN2D(0,k*a12,Z) = k*a12*diffhankelh1(0,k*a12)*diffbesselj(0,Z) - Z*hankelh1(0,k*a12)*diffbesselj(0,Z,2) -
 
     sToS(s,j::Int,l::Int) = (real(s) >= 0) ? sqrt(s^2 + (k*as[j,l]*sin(θin))^2) : -sqrt(s^2 + (k*as[j,l]*sin(θin))^2)
 
     function q(s,j,l,m,n)
         (n == m ? T(1) : T(0)) * (j == l ? T(1) : T(0)) +
         T(2) * pi * as[j,l]^T(2) * number_density(material.species[l]) * t_vecs[l][m+ho+1,m+ho+1] *
-        kernelN(n-m, k*as[j,l], sToS(s,j,l)) / (s^T(2) - (k*as[j,l]*cos(θin))^T(2))
+        kernelN2D(n-m, k*as[j,l], sToS(s,j,l)) / (s^T(2) - (k*as[j,l]*cos(θin))^T(2))
     end
 
     Zs = LinRange(T(100),1/(10*tol),3000)

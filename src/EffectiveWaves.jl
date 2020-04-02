@@ -5,7 +5,7 @@ module EffectiveWaves
 
 export  EffectivePlaneWaveMode, DiscretePlaneWaveMode # the two main types
 export  MatchPlaneWaveMode # a combination of the two types above
-export Material, Specie, Species, number_density, volume_fraction
+export  Material, Specie, Species, SetupSymmetry, number_density, volume_fraction
 
 # for MatchPlaneWaveMode
 export  match_error, x_mesh_match
@@ -14,7 +14,7 @@ export  match_error, x_mesh_match
 # for effective waves
 export  wavenumbers, wavenumber, effective_wavemodes, effective_wavemode
 
-export dispersion_equation, effectivewave_system # supplies a matrix used for the disperision equation and effective eignvectors
+export dispersion_equation, eigensystem # supplies a matrix used for the disperision equation and effective eignvectors
 
 export transmission_angle, transmission_angle_wiener, transmission_wavevector, scattering_amplitudes_average, scale_mode_amplitudes
 
@@ -32,16 +32,19 @@ import SpecialFunctions: besselj, hankelh1
 import StaticArrays: SVector
 import Statistics: mean, std
 
-using RecipesBase, OffsetArrays, LinearAlgebra
-using Optim, ApproxFun # Heavy packages
-using WignerSymbols, GSL
-
 using Reexport
 @reexport using MultipleScattering
 
+using RecipesBase, OffsetArrays, LinearAlgebra
+
+# Heavy packages
+using Optim: optimize, Optim, Optim.Options, LBFGS, Fminbox
+using ApproxFun: ApproxFun.(..), Fun, Segment, Domain, Chebyshev, DefiniteIntegral, LowRankFun, Interval, Legendre
+
+
 include("specialfunctions.jl")
 
-include("material.jl")
+include("material_types.jl")
 
 include("effective_wave/export.jl")
 include("acoustics/export.jl")

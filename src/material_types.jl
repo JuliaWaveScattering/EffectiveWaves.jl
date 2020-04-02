@@ -1,3 +1,31 @@
+"""
+    AbstractSetupSymmetry
+
+An abstract types which dictates the symmetry of the setup. That is, the symmetry shared between the incident wave and the shape of the material.
+"""
+abstract type AbstractSetupSymmetry end
+struct WithoutSymmetry <: AbstractSetupSymmetry end
+
+"""
+An incident plane-wave and halfspace material will result in all fields being plane-waves.
+"""
+abstract type AbstractPlanarSymmetry <: AbstractSetupSymmetry end
+struct PlanarSymmetry <: AbstractPlanarSymmetry end
+
+"""
+For spatial dimension > 2, we can consider problems that have azimuthal symmetry. For example, a plane-wave incident on a sphere.
+"""
+abstract type AbstractAzimuthalSymmetry <: AbstractSetupSymmetry end
+struct AzimuthalSymmetry <: AbstractAzimuthalSymmetry end
+
+"""
+For example, a plane-wave with direct incidence on a halfspace will have both azimuthal and plane-wave symmetry.
+"""
+struct PlanarAzimuthalSymmetry <: AbstractPlanarSymmetry end
+
+# """Extract the dimension of the space that this physical property lives in"""
+# dim(p::AbstractSetupSymmetry{Dim}) where {Dim} = Dim
+
 
 "Represents a set of particles."
 struct Specie{T<:AbstractFloat,Dim,P<:AbstractParticle{T,Dim}}
@@ -62,4 +90,21 @@ end
 
 function Material(shape::S,specie::Sp) where {T,Dim,S<:Shape{T,Dim},Sp<:Specie{T,Dim}}
     Material{Dim,S,Vector{Sp}}(shape,[specie])
+end
+
+setupsymmetry(source::AbstractSource, material::Material) where Dim = WithoutSymmetry()
+
+setupsymmetry(source::PlaneSource{T,3,1}, material::Material{3,Sphere{T}}) where T = AzimuthalSymmetry()
+
+function setupsymmetry(psource::PlaneSource{T,Dim}, material::Material{Dim,Halfspace{T,Dim}}) where {T<:AbstractFloat, Dim}
+
+    hv = material.shape.normal
+    kv = psource.wavedirection
+
+    if abs(dot(hv, kv)^2) ≈ abs(dot(hv, hv) * dot(kv, kv))
+        # for direct incidence
+        return PlanarAzimuthalSymmetry()
+    else
+        return PlanarSymmetry()
+    end
 end

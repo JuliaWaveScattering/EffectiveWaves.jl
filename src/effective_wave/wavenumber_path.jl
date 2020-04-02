@@ -27,8 +27,8 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T}, species::Species{T};
         low_tol = min(1e-4, sqrt(tol))
         tol = tol
 
-    # the dispersion equation is given by: `dispersion(k1,k2) = 0` where k_eff = k1 + im*k2.
-        dispersion_dim = dispersion_equation(ω, medium, species; tol = low_tol, kws...)
+    # The dispersion equation is given by: `dispersion(k1,k2) = 0` where k_eff = k1 + im*k2. NOTE: PlanarAzimuthalSymmetry() does not included all possible wavenumbers
+        dispersion_dim = dispersion_equation(ω, medium, species, PlanarAzimuthalSymmetry(); tol = low_tol, kws...)
         dispersion(vec::Vector{T}) = dispersion_dim(vec .* kscale)
 
         k_vecs = [
