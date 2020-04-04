@@ -5,7 +5,7 @@ function scale_mode_amplitudes(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psour
     θin = transmission_angle(wave_eff, material)
     θ_eff = transmission_angle(psource, material)
 
-    kcos_in = (ω / psource.medium.c) * dot(- conj(material.shape.normal), psource.wavedirection)
+    kcos_in = (ω / psource.medium.c) * dot(- conj(material.shape.normal), psource.direction)
     kcos_eff = dot(- conj(material.shape.normal), wave_eff.wavevector)
 
     ho = wave_eff.basis_order
@@ -15,7 +15,7 @@ function scale_mode_amplitudes(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psour
     sumAs = T(2)*sum(
         exp(im*n*(θin - θ_eff)) * number_density(material.species[l]) * amps[n+ho+1,l]
     for n = -ho:ho, l = 1:S)
-    scale = im * kcos_in * (kcos_eff - kcos_in) / sumAs
+    scale = im * field(psource,zeros(T,Dim),ω) * kcos_in * (kcos_eff - kcos_in) / sumAs
 
     return scale
 end
@@ -29,7 +29,7 @@ function effective_wavemode(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,Dim
 
     k = ω/psource.medium.c
 
-    k_vec = transmission_wavevector(k_eff, (ω / psource.medium.c) * psource.wavedirection, material.shape.normal; tol = tol)
+    k_vec = transmission_wavevector(k_eff, (ω / psource.medium.c) * psource.direction, material.shape.normal; tol = tol)
 
     if method == :WienerHopf
         amps = wienerhopf_mode_amplitudes(ω, k_eff, psource, material; tol = tol, kws...)
@@ -124,12 +124,14 @@ function wienerhopf_mode_amplitudes(ω::T, k_effs::Vector{Complex{T}}, psource::
     dSΨ00(S) = (S^2 - (k*as[1,1])^2)*dSQ0_eff(S,1,1) # + T(2) * S * Q0(S,1,1,0,0)
     # last term left out becuase Q0(k_eff,1,1,0,0) = 0.
 
-    return map(k_effs) do k_eff
+    amp = field(psource,zeros(T,2),ω) * t_vecs[1][ho+1,ho+1] * T(2) * k * as[1,1]
+
+    return amp .* map(k_effs) do k_eff
         # kvec = transmission_wavevector(k_eff,psource, material; tol=tol)
         # θ_eff = transmission_angle(kvec, material.shape.normal)
 
         θ_eff = transmission_angle_wiener(k, k_eff, θin)
         Ψp_eff = Ψp(k_eff*as[1,1]*cos(θ_eff))
-        t_vecs[1][ho+1,ho+1] * T(2)*k*as[1,1]*(cos(θin)/cos(θ_eff))*(Ψp_eff/Ψp_a)/dSΨ00(k_eff*as[1,1])
+        (cos(θin) / cos(θ_eff)) * (Ψp_eff / Ψp_a) / dSΨ00(k_eff*as[1,1])
     end
 end

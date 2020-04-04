@@ -30,7 +30,7 @@ using LinearAlgebra
         material = Material(Halfspace(normal),species)
 
         # define a plane wave source travelling directly towards the material
-        source = PlaneSource(medium, -normal)
+        source = PlaneSource(medium; direction = -normal)
 
         Rs = map(eachindex(ωs2)) do i
             wave = effective_wavemode(ωs2[i], k_effs2[i], source, material; basis_order=basis_order)

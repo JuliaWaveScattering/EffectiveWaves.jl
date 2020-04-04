@@ -35,12 +35,12 @@ function transmission_wavevector(k_eff::Complex{T}, incident_wavevector::Abstrac
 end
 
 function transmission_wavevector(k_eff::Complex{T},  psource::PlaneSource{T,Dim}, material::Material{Dim}; tol::T = sqrt(eps(T))) where {T,Dim}
-    transmission_wavevector(k_eff, psource.wavedirection, material.shape.normal; tol = tol)
+    transmission_wavevector(k_eff, psource.direction, material.shape.normal; tol = tol)
 end
 
 transmission_angle(pwave::EffectivePlaneWaveMode, shape::Halfspace) = transmission_angle(pwave.wavevector, shape.normal)
 
-transmission_angle(pwave::PlaneSource, shape::Halfspace) = transmission_angle(pwave.wavedirection, shape.normal)
+transmission_angle(pwave::PlaneSource, shape::Halfspace) = transmission_angle(pwave.direction, shape.normal)
 
 transmission_angle(pwave::Union{PlaneSource,EffectivePlaneWaveMode}, material::Material) = transmission_angle(pwave, material.shape)
 

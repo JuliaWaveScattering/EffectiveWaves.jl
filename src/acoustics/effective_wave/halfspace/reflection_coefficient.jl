@@ -11,7 +11,7 @@ function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psou
     ho = wave_eff.basis_order
 
     kcos_eff = dot(- conj(material.shape.normal), wave_eff.wavevector)
-    kcos_in = k * dot(- conj(material.shape.normal), psource.wavedirection)
+    kcos_in = k * dot(- conj(material.shape.normal), psource.direction)
 
     kθ = kcos_in + kcos_eff
     R = 2.0im / (kcos_in * kθ)
@@ -96,7 +96,7 @@ function wienerhopf_reflection_coefficient(ω::T, psource::PlaneSource{T,2,1,Aco
         @warn "Analytic split recovers original function with $err tolerance, instead of the specified tolernace: $tol"
     end
 
-    R = Ψ(as[1,1] * kcos,1,1,0,0) / (Ψp(as[1,1] * kcos,maxZ,num_coefs))^2
+    R = field(psource,zeros(T,2),ω) * Ψ(as[1,1] * kcos,1,1,0,0) / (Ψp(as[1,1] * kcos,maxZ,num_coefs))^2
 
     return R
 end

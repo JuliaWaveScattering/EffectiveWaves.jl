@@ -99,7 +99,7 @@ setupsymmetry(source::PlaneSource{T,3,1}, material::Material{3,Sphere{T}}) where
 function setupsymmetry(psource::PlaneSource{T,Dim}, material::Material{Dim,Halfspace{T,Dim}}) where {T<:AbstractFloat, Dim}
 
     hv = material.shape.normal
-    kv = psource.wavedirection
+    kv = psource.direction
 
     if abs(dot(hv, kv)^2) ≈ abs(dot(hv, hv) * dot(kv, kv))
         # for direct incidence
