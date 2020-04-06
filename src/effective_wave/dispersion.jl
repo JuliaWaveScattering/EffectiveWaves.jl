@@ -8,10 +8,10 @@ function dispersion_equation(ω::T, medium::PhysicalMedium{T,Dim}, species::Spec
     MM = eigensystem(ω, medium, species, symmetry; kws... )
 
     # the constraint uses keff_vec[2] < -low_tol to better specify solutions where imag(k_effs)~0 and imag(k_effs)<0
-    constraint(keff_vec::Vector{T}) = (keff_vec[2] < -low_tol) ? (-one(T) + exp(-T(100.0)*keff_vec[2])) : zero(T)
+    constraint(k_eff::Complex{T}) = (imag(k_eff) < -low_tol) ? (-one(T) + exp(-T(100.0) * imag(k_eff))) : zero(T)
 
-    function detMM(keff_vec::Vector{T})
-        constraint(keff_vec) + sqrt(abs(det(MM(keff_vec[1]+im*keff_vec[2]))))
+    function detMM(k_eff::Complex{T})
+        constraint(k_eff) + sqrt(abs(det(MM(k_eff))))
     end
 
     return detMM

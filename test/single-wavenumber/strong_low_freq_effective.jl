@@ -26,7 +26,7 @@ using EffectiveWaves, Test
 
     k_effs_arr = [
         wavenumbers(ω, medium, species; tol=tol, num_wavenumbers=1, basis_order=1)
-        # num_wavenumbers =1 usually finds the wavenubmer with the smallest attenuation
+        # num_wavenumbers = 1 usually finds the wavenubmer with the smallest attenuation
     for ω in ωs]
 
     inds = [argmin(abs.(k_effs_arr[i] .- k_eff_φs[i])) for i in eachindex(ωs)]

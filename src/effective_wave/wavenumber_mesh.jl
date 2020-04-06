@@ -1,4 +1,5 @@
 function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMedium{T}, species::Species{T};
+        symmetry::AbstractSetupSymmetry = PlanarSymmetry(),
         tol::T = 1e-5,
         mesh_refine::T = T(0.4),
         inner_optimizer = LBFGS(),
@@ -19,8 +20,8 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMed
     low_tol = max(low_tol, 1e-4, tol) # a tolerance used for a first pass with time_limit
 
     # the dispersion equation is given by: `dispersion(k1,k2) = 0` where k_eff = k1 + im*k2.
-    dispersion_dim = dispersion_equation(ω, medium, species; tol = low_tol, kws...)
-    dispersion(vec::Vector{T}) = dispersion_dim(vec .* kscale)
+    dispersion_dim = dispersion_equation(ω, medium, species, symmetry; tol = low_tol, kws...)
+    dispersion(vec::Vector{T}) = dispersion_dim((vec[1] + vec[2] * im) .* kscale)
 
     # non-dimensionalise
     min_Rek = min_Rek / kscale
@@ -84,27 +85,6 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMed
 
     return k_effs
 end
-
-# Alternative grouping
-# all_inds = collect(eachindex(k_vecs))
-# k_vecs = map(k_vecs) do k_vec
-#     nk = norm(k_vec)*sqrt(tol)
-#     ind_ins = find(norm(ks - k_vec) < nk for ks in k_vecs[all_inds])
-#     inds = all_inds[ind_ins]
-#     deleteat!(all_inds,ind_ins)
-#     isempty(inds) ? [zero(T),-one(T)] :  mean(k_vecs[inds])
-# end
-
-# alternative grouping methods
-
-    # digs = 3 - Int(round(log(10,sqrt(tol)))) # number of digits to round to check if equal
-    # k_vecs = map(groupby(k_vec -> round.(k_vec,digs), k_vecs)) do g
-    #     mean(g)
-    # end
-
-# function detMM!(F,x)
-#     F[1] = abs(det(MM(x[1]+im*x[2])))
-# end
 
 # Alternative solvers
 # res = nlsolve(detMM!,initial_k_eff; iterations = 10000, factor=2.0)

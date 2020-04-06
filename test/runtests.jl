@@ -16,6 +16,10 @@ include("complex.jl")
     @time include("single-wavenumber/large_vol_low_freq_effective.jl")
     @time include("single-wavenumber/weak_scatterers_effective.jl")
 
+
+# Eigensystems for different symmetries (i.e. a sphere fille with particles or a halfspace filled with particles)
+    @time include("eigensystem/equivalent-symmetries.jl")
+
 # test equivalence between methods for finding wavenumbers
     # test does not run on Julia version < 0.7 due to differences in Optim versions
     include("path_mesh_wavenumbers.jl")

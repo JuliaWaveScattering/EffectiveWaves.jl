@@ -39,8 +39,8 @@ end
 
 function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, ::AbstractPlanarSymmetry;
         basis_order::Int = 2,
-        θp::Complex{T} = zero(Complex{T}),
-        φp::Complex{T} = zero(Complex{T}),
+        θp::Union{T,Complex{T}} = zero(T),
+        φp::Union{T,Complex{T}} = zero(T),
         kws...) where {T<:AbstractFloat}
 
     k = real(ω/medium.c)
@@ -49,15 +49,15 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
     len = (ho+1)^2 * S
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
-    Ys = spherical_harmonics(L1, θp, φp);
+    Ys = spherical_harmonics(2ho, θp, φp);
     lm_to_n = lm_to_spherical_harmonic_index
 
-    t_matrices = get_t_matrices(medium, sps, ω, ho)
+    t_matrices = get_t_matrices(medium, species, ω, ho)
 
     as = [ s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2) for s1 in species, s2 in species]
     function M_component(keff::Complex{T},Ns::Array{Complex{T}},l::Int,m::Int,s1::Int,dl::Int,dm::Int,s2::Int)::Complex{T}
         (m == dm && l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
-        4pi * as[s1,s2] * number_density(species[s2]) * t_matrices[s1][l+ho+1,l+ho+1] *
+        4pi * as[s1,s2] * number_density(species[s2]) * t_matrices[s1][l+1,l+1] *
         sum(
             Complex{T}(im)^(-l1) * Ys[lm_to_n(l1,dm-m)] * Ns[l1+1,s1,s2] *
             gaunt_coefficients(dl,dm,l,m,l1,dm-m)
@@ -81,11 +81,9 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
     return MM
 end
 
-function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T}, ::PlanarAzimuthalSymmetry;
+function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::PlanarAzimuthalSymmetry;
         basis_order::Int = 2,
         kws...) where {T<:AbstractFloat}
-
-
 
     k = real(ω/medium.c)
     S = length(species)
@@ -93,12 +91,12 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T}, ::Planar
     len = (ho+1) * S
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
-    t_matrices = get_t_matrices(medium, sps, ω, ho)
+    t_matrices = get_t_matrices(medium, species, ω, ho)
 
     as = [ s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2) for s1 in species, s2 in species]
     function M_component(keff::Complex{T},Ns::Array{Complex{T}},l,s1,dl,s2)::Complex{T}
         (l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
-        4pi * as[s1,s2] * number_density(species[s2]) * t_matrices[s1][l+ho+1,l+ho+1] *
+        4pi * as[s1,s2] * number_density(species[s2]) * t_matrices[s1][l+1,l+1] *
         sum(
             Complex{T}(im)^(-l1) * sqrt((2*l1+1)/(4pi) ) * Ns[l1+1,s1,s2] *
             gaunt_coefficients(dl,0,l,0,l1,0)
