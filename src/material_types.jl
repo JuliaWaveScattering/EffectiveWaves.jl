@@ -1,3 +1,4 @@
+export setupsymmetry
 export WithoutSymmetry, PlanarSymmetry, PlanarAzimuthalSymmetry, AzimuthalSymmetry
 
 """

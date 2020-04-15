@@ -1,6 +1,7 @@
 # Effective waves are related to the ansatz u ~ amps.*exp(im*k_eff*x), where k_eff is the effective wavenumber with Im(k_eff) > 0.
 
-export wavenumbers_path, wavenumbers_mesh, reduce_kvecs
+# methods to find the wavenumbers.
+export wavenumbers_bisection, wavenumbers_bisection_robust, wavenumbers_path, wavenumbers_mesh, reduce_kvecs, box_keff, NelderMeadparameters
 
 export gray_square!, gray_square
 
@@ -10,7 +11,8 @@ include("effective_wave.jl")
 include("wavemode.jl")
 include("reflection_coefficient.jl")
 include("dispersion.jl")
-include("wavenumber.jl")
+include("wavenumbers.jl")
+include("wavenumbers_bisection.jl")
 include("wavenumber_path.jl")
 include("wavenumber_mesh.jl")
 include("utils.jl")

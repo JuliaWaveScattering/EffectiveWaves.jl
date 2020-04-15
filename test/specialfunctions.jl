@@ -8,7 +8,7 @@ using Test, LinearAlgebra
     # Test 3-dimensional transforms
         xs = [rand(-1.01:0.1:1.0,3) + rand(-1.01:0.1:1.0,3)*im for i = 1:100]
         rθφs = cartesian_to_radial_coordiantes.(xs)
-        @test maximum(norm.(xs - radial_to_cartesian_coordiantes.(rθφs))) < 1e-14
+        @test maximum(norm.(xs - radial_to_cartesian_coordiantes.(rθφs))) < 2e-14
 
         xs = [rand(-1.01:0.1:1.0,3) for i = 1:100]
         rθφs = cartesian_to_radial_coordiantes.(xs)

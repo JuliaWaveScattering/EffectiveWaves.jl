@@ -11,6 +11,7 @@ include("low_frequency.jl")
 include("effective_wave/halfspace/eigensystem.jl")
 include("effective_wave/halfspace/reflection_coefficient.jl")
 include("effective_wave/halfspace/wavemode.jl")
+include("effective_wave/halfspace/wavemode-wienerhopf.jl")
 
 # regular means a smooth field assumption and includes cases such as a sphere filled with particles.
 include("effective_wave/regular/eigensystem.jl")

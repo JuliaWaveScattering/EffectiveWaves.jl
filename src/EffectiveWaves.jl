@@ -13,10 +13,11 @@ export  match_error, x_mesh_match
 
 # for effective waves
 export  wavenumbers, wavenumber, effective_wavemodes, effective_wavemode
+export  effective_wavemode_wienerhopf
 
-export dispersion_equation, eigensystem # supplies a matrix used for the disperision equation and effective eignvectors
+export dispersion_equation, dispersion_complex, eigensystem # supplies a matrix used for the disperision equation and effective eignvectors
 
-export transmission_angle, transmission_angle_wiener, transmission_wavevector, scattering_amplitudes_average, scale_mode_amplitudes
+export scattering_amplitudes_average, scale_mode_amplitudes
 
 export  reflection_coefficient, reflection_coefficients
 export  effective_medium
@@ -37,14 +38,20 @@ using Reexport
 
 using RecipesBase, OffsetArrays, LinearAlgebra
 
-# Heavy packages
-using Optim: optimize, Optim, Optim.Options, LBFGS, Fminbox
+# Heavy package
+using Optim: optimize, Optim, FixedParameters, Options, LBFGS, Fminbox, NelderMead
+# Below doesn't work on Julia 1.1
+# @reexport using Optim: optimize, FixedParameters, Options, LBFGS, Fminbox, NelderMead
+import Optim: simplexer
+
+# Heavy package
 using ApproxFun: ApproxFun.(..), Fun, Segment, Domain, Chebyshev, DefiniteIntegral, LowRankFun, Interval, Legendre
 
-
-include("specialfunctions.jl")
+using MDBM
 
 include("material_types.jl")
+include("wave_types.jl")
+include("specialfunctions.jl")
 
 include("effective_wave/export.jl")
 include("acoustics/export.jl")

@@ -21,21 +21,23 @@ using LinearAlgebra
     material = Material(Halfspace(normal),specie);
     source = PlaneSource(medium, [cos(θ),sin(θ)]);
 
+    # the position of the wavenumbers for basis_order=0 is really spread out. Ultimately need to rewrite box_keff based on asymptotics roots.
     k_effs = wavenumbers(ω, medium, [specie];
-        tol=tol, basis_order = basis_order,
-        num_wavenumbers = 20);
+        tol = tol,
+        box_k = [[-65.0,65.0],[0.0,7.5]],
+        basis_order = basis_order,
+        num_wavenumbers = 30);
 
     wave_effs = [
-        effective_wavemode(ω, k_eff, source, material;
+        effective_wavemode_wienerhopf(ω, k_eff, source, material;
             basis_order = basis_order,
-            tol = tol, extinction_rescale=false,
-            method = :WienerHopf
+            tol = tol
         )
     for k_eff in k_effs];
 
     match_ws = MatchPlaneWaveMode(ω, source, material;
         basis_order = basis_order,
-        tol = tol/10., wave_effs = wave_effs[1:15],
+        tol = tol/10., wave_effs = wave_effs,
         max_size = 1000,
     );
 

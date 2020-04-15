@@ -16,17 +16,21 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,2}, species::Species{T,2}, 
         s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
     for s1 in sps, s2 in sps]
 
-    function M_component(keff,j,l,m,n)
-        (n == m ? 1.0 : 0.0)*(j == l ? 1.0 : 0.0) - 2.0pi * number_density(sps[l]) * t_matrices[l][m+ho+1,m+ho+1] * kernelN2D(n-m,k*as[j,l],keff*as[j,l]) / (k^2.0-keff^2.0)
+    function M_component(keff,Ns,j,l,m,n)
+        (n == m ? 1.0 : 0.0)*(j == l ? 1.0 : 0.0) - 2.0pi * number_density(sps[l]) * t_matrices[l][m+ho+1,m+ho+1] * Ns[n-m + 2ho+1,j,l] / (k^2.0-keff^2.0)
     end
 
     # this matrix is needed to calculate the eigenvectors
     function MM(keff::Complex{T})
+        Ns = [
+            kernelN2D(m,k*as[s1,s2],keff*as[s1,s2])
+        for m = (-2ho):2ho, s1 = 1:S, s2 = 1:S]
+
         ind2 = 1
         for l = 1:S for n = -ho:ho
             ind1 = 1
             for s = 1:S for m = -ho:ho
-                MM_mat[ind1,ind2] = M_component(keff,s,l,m,n)
+                MM_mat[ind1,ind2] = M_component(keff,Ns,s,l,m,n)
                 ind1 += 1
         end end
             ind2 += 1
@@ -54,7 +58,9 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
 
     t_matrices = get_t_matrices(medium, species, ω, ho)
 
-    as = [ s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2) for s1 in species, s2 in species]
+    as = [
+        s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
+    for s1 in species, s2 in species]
     function M_component(keff::Complex{T},Ns::Array{Complex{T}},l::Int,m::Int,s1::Int,dl::Int,dm::Int,s2::Int)::Complex{T}
         (m == dm && l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
         4pi * as[s1,s2] * number_density(species[s2]) * t_matrices[s1][l+1,l+1] *
@@ -93,7 +99,10 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::Plan
 
     t_matrices = get_t_matrices(medium, species, ω, ho)
 
-    as = [ s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2) for s1 in species, s2 in species]
+    as = [
+        s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
+    for s1 in species, s2 in species]
+
     function M_component(keff::Complex{T},Ns::Array{Complex{T}},l,s1,dl,s2)::Complex{T}
         (l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
         4pi * as[s1,s2] * number_density(species[s2]) * t_matrices[s1][l+1,l+1] *

@@ -59,9 +59,9 @@ uuid = "2a0f44e3-6c83-55bd-87e4-b1978d98bd5f"
 
 [[BinDeps]]
 deps = ["Libdl", "Pkg", "SHA", "URIParser", "Unicode"]
-git-tree-sha1 = "66158ad56b4bf6cc8413b37d0b7bc52402682764"
+git-tree-sha1 = "46cf2c1668ad07aba5a9d331bdeea994a1f13856"
 uuid = "9e28174c-4ba2-5203-b857-d8d62c4213ee"
-version = "1.0.0"
+version = "1.0.1"
 
 [[BinaryProvider]]
 deps = ["Libdl", "SHA"]
@@ -101,9 +101,9 @@ version = "1.4.1"
 
 [[DSP]]
 deps = ["FFTW", "IterTools", "LinearAlgebra", "Polynomials", "Random", "Reexport", "SpecialFunctions", "Statistics"]
-git-tree-sha1 = "e10f3c579404419c172a8aa8d83a12fde99e9964"
+git-tree-sha1 = "aecdff28c8de62744791a92ce95ff5aebac088be"
 uuid = "717857b8-e6f2-59f4-9121-6e50c889abd2"
-version = "0.6.3"
+version = "0.6.4"
 
 [[DataAPI]]
 git-tree-sha1 = "674b67f344687a88310213ddfa8a2b3c76cc4252"
@@ -112,9 +112,9 @@ version = "1.1.0"
 
 [[DataStructures]]
 deps = ["InteractiveUtils", "OrderedCollections"]
-git-tree-sha1 = "73eb18320fe3ba58790c8b8f6f89420f0a622773"
+git-tree-sha1 = "4dead20a1606a60292529023d6eac18a1ef6432e"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
-version = "0.17.11"
+version = "0.17.12"
 
 [[Dates]]
 deps = ["Printf"]
@@ -153,6 +153,17 @@ deps = ["Calculus", "LinearAlgebra", "NaNMath", "SpecialFunctions", "Test"]
 git-tree-sha1 = "e178a6768dad879ff1abfc1c612406856bb06ce0"
 uuid = "fa6b7ba4-c1ee-5f82-b5fc-ecf0adba8f74"
 version = "0.6.2"
+
+[[ExprTools]]
+git-tree-sha1 = "6f0517056812fd6aa3af23d4b70d5325a2ae4e95"
+uuid = "e2ba6199-217a-4e67-a87a-7c52f15ade04"
+version = "0.1.1"
+
+[[EzXML]]
+deps = ["BinaryProvider", "Libdl", "Printf"]
+git-tree-sha1 = "ed53ce1ddb862193b2bd3851dfa108513aab2d5c"
+uuid = "8f5d6c58-4d21-5cfd-889c-e3ad7ee6a615"
+version = "1.0.0"
 
 [[FFTW]]
 deps = ["AbstractFFTs", "BinaryProvider", "Conda", "Libdl", "LinearAlgebra", "Reexport"]
@@ -212,6 +223,12 @@ git-tree-sha1 = "4214b48a62eb8f2c292b2ee34a508c256c0cdbc9"
 uuid = "8197267c-284f-5f27-9208-e0e47529a953"
 version = "0.3.2"
 
+[[Intervals]]
+deps = ["Dates", "Printf", "TimeZones"]
+git-tree-sha1 = "30bce135cd5856edc91f146e3b7e60d736bd067b"
+uuid = "d8418881-c3e1-53bb-8760-2df7ec849ed5"
+version = "1.0.0"
+
 [[IterTools]]
 git-tree-sha1 = "05110a2ab1fc5f932622ffea2a003221f4782c18"
 uuid = "c8e1da08-722c-5040-9ed9-7db0dc04731e"
@@ -254,6 +271,12 @@ git-tree-sha1 = "1963361c4e8a837b9ca7cca3f45372f953e6b0ed"
 uuid = "898213cb-b102-5a47-900c-97e73b919f73"
 version = "0.4.0"
 
+[[MDBM]]
+deps = ["LinearAlgebra", "Reexport", "StaticArrays", "Test"]
+git-tree-sha1 = "f81f80af4b2b38fd48bc4c1e71add65495e33a93"
+uuid = "dd61e66b-39ce-57b0-8813-509f78be4b4d"
+version = "0.1.4"
+
 [[MacroTools]]
 deps = ["Markdown", "Random"]
 git-tree-sha1 = "f7d2e3f654af75f01ec49be82c231c382214223a"
@@ -278,6 +301,12 @@ version = "0.4.3"
 
 [[Mmap]]
 uuid = "a63ad114-7e13-5084-954f-fe012c677804"
+
+[[Mocking]]
+deps = ["ExprTools"]
+git-tree-sha1 = "916b850daad0d46b8c71f65f719c49957e9513ed"
+uuid = "78c3b35d-d492-501b-9361-3d52fe80e533"
+version = "0.7.1"
 
 [[MultipleScattering]]
 deps = ["LinearAlgebra", "OffsetArrays", "Printf", "ProgressMeter", "Random", "RecipesBase", "SpecialFunctions", "StaticArrays", "Statistics"]
@@ -335,10 +364,10 @@ deps = ["Dates", "LibGit2", "Markdown", "Printf", "REPL", "Random", "SHA", "UUID
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [[Polynomials]]
-deps = ["LinearAlgebra", "RecipesBase"]
-git-tree-sha1 = "1185511cac8ab9d0b658b663eae34fe9a95d4332"
+deps = ["Intervals", "LinearAlgebra", "RecipesBase"]
+git-tree-sha1 = "a88e0eddef9202b651f4b60b37b59ca67bb49516"
 uuid = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
-version = "0.6.1"
+version = "0.7.0"
 
 [[PositiveFactorizations]]
 deps = ["LinearAlgebra", "Test"]
@@ -429,6 +458,12 @@ version = "0.32.2"
 [[Test]]
 deps = ["Distributed", "InteractiveUtils", "Logging", "Random"]
 uuid = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+
+[[TimeZones]]
+deps = ["Dates", "EzXML", "Mocking", "Printf", "Serialization", "Unicode"]
+git-tree-sha1 = "f60a33649ef8380bafe6be7d1af1eeb8a3a3ea92"
+uuid = "f269a46b-ccf7-5d73-abea-4c690281aa53"
+version = "1.0.1"
 
 [[ToeplitzMatrices]]
 deps = ["AbstractFFTs", "FFTW", "LinearAlgebra", "StatsBase"]

@@ -15,6 +15,7 @@ include("complex.jl")
 
     @time include("single-wavenumber/large_vol_low_freq_effective.jl")
     @time include("single-wavenumber/weak_scatterers_effective.jl")
+    @time include("single-wavenumber/low_volume_fraction.jl")
 
 
 # Eigensystems for different symmetries (i.e. a sphere fille with particles or a halfspace filled with particles)

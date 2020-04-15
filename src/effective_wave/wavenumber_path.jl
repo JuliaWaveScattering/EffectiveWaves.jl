@@ -6,6 +6,8 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species
         num_wavenumbers = 3,
         max_Imk::T = T(2) + T(20) * imag(wavenumber_low_volumefraction(ω, medium, species; verbose = false)),
         verbose::Bool = false,
+        inner_optimizer = NelderMead(; parameters = NelderMeadparameters()),
+        optimoptions::Optim.Options{T} = Optim.Options(g_tol = tol^T(3),x_tol=tol^T(2)),
         k_effs::Vector{Complex{T}} = Complex{T}[],
         kws...) where {T,Dim}
 
@@ -34,8 +36,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species
         dispersion(vec::Vector{T}) = dispersion_dim((vec[1] + vec[2]*im) .* kscale)
 
         k_vecs = [
-            optimize(dispersion, kvec,
-                Optim.Options(x_tol=low_tol, g_tol = low_tol^3)
+            optimize(dispersion, kvec, Optim.Options(x_tol=low_tol, g_tol = low_tol^3)
             ).minimizer
         for kvec in k_vecs]
         k_vecs = reduce_kvecs(k_vecs, low_tol/10)
@@ -44,7 +45,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species
         k_vecs = [k_vecs; [[real(kp),imag(kp)] ./ kscale for kp in k_effs]]
 
         k_vecs = map(k_vecs) do k_vec
-           res = optimize(dispersion, k_vec, Optim.Options(g_tol = tol^3.0, x_tol=tol))
+           res = optimize(dispersion, k_vec, inner_optimizer, optimoptions)
            if res.minimum < T(100)*tol || (Optim.converged(res) && res.minimum < T(10)*low_tol)
                res.minimizer
            else
@@ -74,14 +75,14 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species
         # Find the first two roots that lead to the two branches of the root tree
         while !two_roots && (length(k_vecs) < num_wavenumbers) && ky <= max_Imk
             hits = [
-                optimize(dispersion, [kx, ky], Optim.Options(x_tol = low_tol, g_tol = low_tol^3)).minimizer
+                optimize(dispersion, [kx, ky], inner_optimizer, Optim.Options(x_tol = low_tol, g_tol = low_tol^3)).minimizer
             for kx in kxs]
             hits = reduce_kvecs(hits, low_tol)
 
             # Here we refine the hits
             hits = map(hits) do k_vec
                 # res = optimize(dispersion, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
-                res = optimize(dispersion, k_vec, Optim.Options(g_tol = tol^3.0, x_tol=tol))
+                res = optimize(dispersion, k_vec, inner_optimizer, optimoptions)
                 if res.minimum < T(100)*tol || (Optim.converged(res) && res.minimum < T(10)*low_tol)
                     res.minimizer
                 else
@@ -151,7 +152,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species
 
             # search for roots from this mesh
                 new_targets = map(mesh) do kin
-                   optimize(dispersion, kin, Optim.Options(x_tol = low_tol, g_tol = low_tol^3)).minimizer
+                   optimize(dispersion, kin, inner_optimizer, Optim.Options(x_tol = low_tol, g_tol = low_tol^3)).minimizer
                 end
                 new_targets = reduce_kvecs(new_targets, low_tol/10)
                 deleteat!(new_targets, findall(dispersion.(new_targets) .> low_tol))
@@ -166,7 +167,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species
                 # Here we refine the new roots
                 new_targets = map(new_targets) do k_vec
                     # res = optimize(dispersion, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
-                    res = optimize(dispersion, k_vec, Optim.Options(g_tol = tol^3.0, x_tol=tol))
+                    res = optimize(dispersion, k_vec, inner_optimizer, optimoptions)
                     if res.minimum < T(100)*tol || (Optim.converged(res) && res.minimum < T(10)*low_tol)
                         res.minimizer
                     else

@@ -50,22 +50,26 @@ using EffectiveWaves, Test
     # for i in eachindex(species)]
 
     wave_effs_arr = Vector{Vector{EffectivePlaneWaveMode{Float64,2}}}(undef,length(species))
-
+    
     i = 1
     wave_effs_arr[i] = effective_wavemodes(ω, source, materials[i];
         basis_order=basis_order,
-        mesh_points=5,
-        num_wavenumbers=5,
-        tol = tol,
-        extinction_rescale = false)
+        box_k = [[-18.0,18.0],[0.0,20.0]],
+        num_wavenumbers = 6,
+        tol = tol)
+
+    # k_effs = wavenumbers_bisection(ω, medium, [species[1]];
+    #     basis_order = basis_order,
+    #     box_k = [[-18.0,18.0],[0.0,20.0]],
+    #     num_wavenumbers = 8,
+    #     tol = tol)
 
     i = 2
     wave_effs_arr[i] = effective_wavemodes(ω, source, materials[i];
         basis_order=basis_order,
-        mesh_points=5,
-        num_wavenumbers=5,
-        tol = tol,
-        extinction_rescale = false)
+        num_wavenumbers=6,
+        tol = tol)
+        # extinction_rescale = false)
 
     # Causes unreachable error..
     # for i in eachindex(species)
@@ -77,8 +81,8 @@ using EffectiveWaves, Test
     #         extinction_rescale = false)
     # end
 
-   # use only 5 least attenuating
-   wave_effs_arr2 = [w[1:5] for w in wave_effs_arr]
+   # use only 6 least attenuating
+   wave_effs_arr2 = [w[1:6] for w in wave_effs_arr]
 
     match_ws = [
         MatchPlaneWaveMode(ω, source, materials[i];
@@ -113,5 +117,6 @@ using EffectiveWaves, Test
         maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:]))
         @test norm(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])/norm(avg_m.amplitudes[:]) < 1e-2
         @test maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])) < 1e-4
+        maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:]))
     end
 end

@@ -22,8 +22,8 @@ using EffectiveWaves, Test
 
     k_effs = wavenumbers(ω, medium, material.species;
         tol=tol, basis_order = basis_order,
-        num_wavenumbers = 15,
-        mesh_points = 30, mesh_size = 2.0)
+        num_wavenumbers = 15)
+        # , mesh_points = 30, mesh_size = 2.0)
 
     function Rerror(θ)
 

@@ -5,7 +5,7 @@
     # ωs = [20.] # use only one frequency to speed up test
 
     # tolerance
-    tol = 1e-6;
+    tol = 1e-5;
     basis_order = 2;
 
     # background medium
