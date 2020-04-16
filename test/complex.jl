@@ -9,33 +9,33 @@ using Test, LinearAlgebra
     surface_normal = rand(-1:0.1:1.0,3)
     surface_normal = surface_normal / norm(surface_normal)
 
-    k_vec = transmission_wavevector(k_eff, incident_wavevector, surface_normal)
+    normal_eff = transmission_direction(k_eff, incident_wavevector, surface_normal)
 
-    @test sum(x^2 for x in k_vec) ≈ k_eff^2
-    @test imag(dot(-surface_normal, k_vec)) > 0
+    @test sum(normal_eff .^2) ≈ 1.0 + 0.0im
+    @test imag(k_eff * dot(-surface_normal, normal_eff)) > 0
 
     k_eff = rand(-1:0.1:1.0) + rand(-1:0.1:1.0) * im
     incident_wavevector = rand(-1:0.1:1.0,2) + rand(-1:0.1:1.0,2) .* im
     surface_normal = rand(-1:0.1:1.0,2)
     surface_normal = surface_normal / norm(surface_normal)
 
-    k_vec = transmission_wavevector(k_eff, incident_wavevector, surface_normal)
+    normal_eff = transmission_direction(k_eff, incident_wavevector, surface_normal)
 
-    @test sum(x^2 for x in k_vec) ≈ k_eff^2
-    @test imag(dot(-surface_normal, k_vec)) > 0
+    @test sum(normal_eff .^2) ≈ 1.0 + 0.0im
+    @test imag(k_eff * dot(-surface_normal, normal_eff)) > 0
 
     k_eff = rand(-1:0.1:1.0) + rand() * im
     k = rand()
     θin = rand(-pi/2.0:0.2:pi/2.0)
     θeff = transmission_angle_wiener(k, k_eff, θin)
 
-    k_vec2 = k_eff .* [cos(θeff+pi/2.0),sin(θeff+pi/2.0)]
+    normal2 = [cos(θeff+pi/2.0),sin(θeff+pi/2.0)]
 
     surface_normal = [0.0,-1.0];
     incident_wavevector = k*[cos(θin+pi/2.0),sin(θin+pi/2.0)]
-    k_vec = transmission_wavevector(k_eff, incident_wavevector, surface_normal)
+    normal_eff = transmission_direction(k_eff, incident_wavevector, surface_normal)
 
-    @test norm(k_vec - k_vec2) < 1e-10
+    @test norm(normal_eff - normal2) < 1e-10
 
 end
 
@@ -59,7 +59,7 @@ end
     θ_ins = transmission_angle.(v_ins, ns)
 
     k_effs = rand(-1.01:0.1:1.0,N) + rand(-1.01:0.1:1.0,N) .* im
-    v_effs = transmission_wavevector.(k_effs, v_ins, ns)
+    v_effs = k_effs .* transmission_direction.(k_effs, v_ins, ns)
     θ_effs = transmission_angle.(v_effs, ns)
 
     # Check snells law, i.e. that the components orthogonal to the surface are the same for the two wavevectors
@@ -82,7 +82,7 @@ end
 
     # choose positive real part
     k_effs = rand(0.01:0.1:1.0,N) + rand(-1.1:0.1:1.0,N) .* im
-    v_effs = transmission_wavevector.(k_effs, v_ins, ns)
+    v_effs = k_effs .* transmission_direction.(k_effs, v_ins, ns)
     θ_effs = transmission_angle.(v_effs, ns)
 
     @test maximum(abs.(k_effs  .* sin.(θ_effs) - norm.(v_ins)  .* sin.(θ_ins)) ) < 1e-10
@@ -101,7 +101,7 @@ end
     v_ins = [rand(-1.01:0.1:1.0,3) for i = is]
     θ_ins = transmission_angle.(v_ins, ns)
 
-    v_effs = transmission_wavevector.(k_effs, v_ins, ns)
+    v_effs = k_effs .* transmission_direction.(k_effs, v_ins, ns)
     θ_effs = transmission_angle.(v_effs, ns)
 
     # Check snells law, i.e. that the components orthogonal to the surface are the same for the two wavevectors

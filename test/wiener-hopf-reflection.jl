@@ -58,9 +58,6 @@ end
 # Note the wiener-hopf method is inaccurate or takes along time to calculate a very low-frequency solution
 @testset "compare wienger-hopf for low-ish frequency" begin
 
-    using EffectiveWaves, Test
-    using LinearAlgebra
-
     medium = Acoustic(2; ρ=1.0, c=1.0)
     ms = MultipleScattering
 
@@ -85,13 +82,13 @@ end
 
     k_effs = wavenumbers(ω, medium, material.species;
         tol=tol, basis_order = basis_order,
+        box_k = [[-70.0,70.0],[0.0,50.0]] .* 6,
         num_wavenumbers = 5)
 
     function Rerror(θ)
         source = PlaneSource(medium, [cos(θ),sin(θ)]);
 
         wm = effective_wavemode(ω, k_effs[1], source, material; tol=tol, basis_order = basis_order, extinction_rescale = true)
-
 
         R1 = reflection_coefficient(ω, wm, source, material)
         R_low = reflection_coefficient(source, eff_medium, material.shape)
@@ -103,6 +100,6 @@ end
         return abs(2*R_low-Rw-R1)/abs(2*R_low)
     end
 
-    @test Rerror(0.5) < 1e-3
-    @test Rerror(1.0) < 1e-3
+    @test Rerror(0.5) < 5e-4
+    @test Rerror(1.0) < 5e-4
 end

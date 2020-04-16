@@ -10,7 +10,7 @@ function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psou
     S = length(material.species)
     ho = wave_eff.basis_order
 
-    kcos_eff = dot(- conj(material.shape.normal), wave_eff.wavevector)
+    kcos_eff = wave_eff.wavenumber * dot(- conj(material.shape.normal), wave_eff.direction)
     kcos_in = k * dot(- conj(material.shape.normal), psource.direction)
 
     kθ = kcos_in + kcos_eff

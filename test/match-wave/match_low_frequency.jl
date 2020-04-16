@@ -46,7 +46,7 @@
     # for i in eachindex(species)]
     # Using the error causes a segmentation fault
 
-    @test norm([sqrt(sum(ws[1].wavevector .^2)) for ws in wave_effs_arr] - k_eff_lows) < tol
+    @test norm([ws[1].wavenumber for ws in wave_effs_arr] - k_eff_lows) < tol
 
     match_ws = [
         MatchPlaneWaveMode(ω, source, materials[i]; basis_order=basis_order,
@@ -58,7 +58,7 @@
    @test maximum(match_error(match_ws[i],materials[i].shape) for i in eachindex(species)) < tol
 
     map(eachindex(species)) do i
-        sx = abs(real(sqrt(sum(match_ws[i].effective_wavemodes[1].wavevector .^2))))
+        sx = abs(real(match_ws[i].effective_wavemodes[1].wavenumber))
         x = LinRange(match_ws[i].x_match[end],2pi / sx,200)
         avg_low = DiscretePlaneWaveMode(x, wave_eff_lows[i], materials[i].shape)
         avg = DiscretePlaneWaveMode(x, match_ws[i].effective_wavemodes, materials[i].shape)

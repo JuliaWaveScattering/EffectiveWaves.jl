@@ -40,11 +40,7 @@ using EffectiveWaves, Test
             extinction_rescale = true)
     for i in eachindex(ωs)]
 
-    k_effs = map(wave_effs_arr) do ws
-        sqrt(sum(ws[1].wavevector .^2)) # note that this can be plus or minus
-    end
-
-    @test maximum(abs.(k_effs - k_eff_φs)) < 1e-7
+    @test maximum(abs.([w[1].wavenumber for w in wave_effs_arr] - k_eff_φs)) < 1e-7
 
     # Check that the eigenmodes point the same direction
     ds = [

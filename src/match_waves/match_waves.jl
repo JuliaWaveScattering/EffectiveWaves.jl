@@ -36,7 +36,7 @@ function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, mat
 
     # use non-dimensional effective waves
     wave_non_effs = map(wave_effs) do w
-        EffectivePlaneWaveMode(ω,w.basis_order,w.wavevector ./ k, w.amplitudes)
+        EffectivePlaneWaveMode(ω, w.wavenumber / k, w.basis_order, w.direction, w.amplitudes)
     end
 
     if first(x) == - one(T)
@@ -57,7 +57,7 @@ function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, mat
     wave_non_effs = map(eachindex(wave_non_effs)) do i
         w = wave_non_effs[i]
         amps = w.amplitudes / norm(avg_wave_effs[i].amplitudes[1,:,1])
-        EffectivePlaneWaveMode(ω,w.basis_order,w.wavevector, amps)
+        EffectivePlaneWaveMode(ω, w.wavenumber, w.basis_order, w.direction, amps)
     end
 
     J = length(collect(X)) - 1
@@ -79,8 +79,7 @@ function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, mat
     wave_non_effs = map(eachindex(wave_effs)) do i
         w = wave_non_effs[i]
         amps = αs[i] .* w.amplitudes
-        vec = k .* w.wavevector
-        EffectivePlaneWaveMode(ω,w.basis_order,vec, amps)
+        EffectivePlaneWaveMode(ω, k * w.wavenumber, w.basis_order, w.direction, amps)
     end
 
     # return MatchPlaneWaveMode(wave_effs, DiscretePlaneWaveMode(basis_order, collect(X)./k, As_mat), collect(X[L_match:end])./k)
@@ -97,9 +96,9 @@ function x_mesh_match(wave_effs::Vector{EffectivePlaneWaveMode{T,Dim}}; kws... )
     x = if length(wave_effs) > 1
             x_mesh(wave_effs[end], wave_effs[1]; kws...)
         else
-            x_mesh(wave_effs[1]; max_x = (pi/2) / abs(sqrt(sum(wave_effs[1].wavevector .^2))), kws...)
+            x_mesh(wave_effs[1]; max_x = (pi/2) / abs(wave_effs[1].wavenumber), kws...)
         end
-    #NOTE previously used abs(cos(wave_effs[1].θ_eff)*abs(wave_effs[1].k_eff)) instead of abs(sqrt(sum(wave_effs[1].wavevector .^2)))
+    #NOTE previously used abs(cos(wave_effs[1].θ_eff)*abs(wave_effs[1].k_eff)) instead of abs(wave_effs[1].wavenumber)
 
     x_match = x[end]
     x_max = (length(x) < length(wave_effs)*T(1.5)) ?

@@ -5,7 +5,7 @@ function source_extinction_system(ω::T, psource::PlaneSource{T,Dim,1,Acoustic{T
     θ_eff = transmission_angle(psource, material)
 
     kcos_in = (ω / psource.medium.c) * dot(- conj(material.shape.normal), psource.direction)
-    kcos_eff = dot(- conj(material.shape.normal), wave_eff.wavevector)
+    kcos_eff = wave_eff.wavenumber * dot(- conj(material.shape.normal), wave_eff.direction)
 
     ho = wave_eff.basis_order
 
@@ -28,7 +28,7 @@ function scale_mode_amplitudes(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psour
     θ_eff = transmission_angle(psource, material)
 
     kcos_in = (ω / psource.medium.c) * dot(- conj(material.shape.normal), psource.direction)
-    kcos_eff = dot(- conj(material.shape.normal), wave_eff.wavevector)
+    kcos_eff = wave_eff.wavenumber * dot(- conj(material.shape.normal), wave_eff.direction)
 
     ho = wave_eff.basis_order
 
@@ -53,11 +53,11 @@ function effective_wavemode(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,Dim
 
     k = ω/psource.medium.c
 
-    k_vec = transmission_wavevector(k_eff, (ω / psource.medium.c) * psource.direction, material.shape.normal; tol = tol)
+    direction = transmission_direction(k_eff, (ω / psource.medium.c) * psource.direction, material.shape.normal; tol = tol)
 
     amps = mode_amplitudes(ω, k_eff, psource, material; tol = tol, kws...)
-    plane_mode = EffectivePlaneWaveMode(ω, k_vec, amps)
+    plane_mode = EffectivePlaneWaveMode(ω, k_eff, direction, amps)
     amps = amps.*scale_mode_amplitudes(ω, plane_mode, psource, material)
 
-    return EffectivePlaneWaveMode(ω, k_vec, amps)
+    return EffectivePlaneWaveMode(ω, k_eff, direction, amps)
 end

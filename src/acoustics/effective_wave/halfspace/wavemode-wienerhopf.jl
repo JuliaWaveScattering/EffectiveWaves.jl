@@ -5,11 +5,11 @@ function effective_wavemode_wienerhopf(ω::T, k_eff::Complex{T}, psource::PlaneS
 
     k = ω/psource.medium.c
 
-    k_vec = transmission_wavevector(k_eff, (ω / psource.medium.c) * psource.direction, material.shape.normal; tol = tol)
+    direction = transmission_direction(k_eff, (ω / psource.medium.c) * psource.direction, material.shape.normal; tol = tol)
 
     amps = wienerhopf_mode_amplitudes(ω, k_eff, psource, material; tol = tol, kws...)
 
-    return EffectivePlaneWaveMode(ω, k_vec, amps)
+    return EffectivePlaneWaveMode(ω, k_eff, direction, amps)
 end
 
 
@@ -93,7 +93,7 @@ function wienerhopf_mode_amplitudes(ω::T, k_effs::Vector{Complex{T}}, psource::
     amp = field(psource,zeros(T,2),ω) * t_vecs[1][ho+1,ho+1] * T(2) * k * as[1,1]
 
     return amp .* map(k_effs) do k_eff
-        # kvec = transmission_wavevector(k_eff,psource, material; tol=tol)
+        # kvec = k_eff .* transmission_direction(k_eff,psource, material; tol=tol)
         # θ_eff = transmission_angle(kvec, material.shape.normal)
 
         θ_eff = transmission_angle_wiener(k, k_eff, θin)

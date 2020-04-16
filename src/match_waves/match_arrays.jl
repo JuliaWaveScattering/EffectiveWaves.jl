@@ -14,7 +14,7 @@ function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T,2}}, L::
 
     θ_effs = [transmission_angle(w,material) for w in wave_effs]
     kcos_effs = [
-        dot(-conj(material.shape.normal), w.wavevector)
+        w.wavenumber * dot(-conj(material.shape.normal), w.direction)
     for w in wave_effs]
 
     J = length(X) - 1

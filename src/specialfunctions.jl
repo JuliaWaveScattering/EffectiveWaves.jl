@@ -1,7 +1,7 @@
 export kernelN2D, kernelN3D # haven't figured out how best to dispath for kernelN
 export cartesian_to_radial_coordiantes, radial_to_cartesian_coordiantes
 export atan
-export transmission_angle_wiener, transmission_angle, transmission_wavevector
+export transmission_angle_wiener, transmission_angle, transmission_direction
 
 cartesian_to_radial_coordiantes(x::Vector) = cartesian_to_radial_coordiantes(SVector(x...))
 radial_to_cartesian_coordiantes(θ::Vector) = radial_to_cartesian_coordiantes(SVector(θ...))
@@ -53,17 +53,10 @@ function kernelN3D(n::Int,x::Union{T,Complex{T}},y::Union{T,Complex{T}}) where T
     return x * dh * j - y * h * dj
 end
 
-transmission_angle(pwave::EffectivePlaneWaveMode, shape::Halfspace) = transmission_angle(pwave.wavevector, shape.normal)
-
-transmission_angle(pwave::PlaneSource, shape::Halfspace) = transmission_angle(pwave.direction, shape.normal)
-
-transmission_angle(pwave::Union{PlaneSource,EffectivePlaneWaveMode}, material::Material) = transmission_angle(pwave, material.shape)
-
-
 """
-    transmission_wavevector(k_eff::Complex, incident_wavevector::AbstractArray, surface_normal::AbstractArray)
+    transmission_direction(k_eff::Complex, incident_wavevector::AbstractArray, surface_normal::AbstractArray)
 
-Gives the effective wavevector `k_eff_vec` where `sum(x^2 for x in k_eff_vec) = k_eff` and the components of `k_eff_vec` and `incident_wavevector` which are orthogonal to the surface are the same. Note `surface_normal` is the outward pointing normal and the incident medium's wavenumber `k = sqrt(sum(incident_wavevector .^2))`. Below we deduce the result.
+Gives the effective direction `direction` where `sum(x^2 for x in direction) = 1.0` and the components of `k_eff .* direction` and `incident_wavevector` which are orthogonal to the surface are the same. Note `surface_normal` is the outward pointing normal and the incident medium's wavenumber `k = sqrt(sum(incident_wavevector .^2))`. Below we deduce the result.
 
 Assume that `dot(v,w) = conj(v[i])w[i]` and `surface_normal[i]*surface_normal[i] = 1`. Let `wnp` be orthogonal to `surface_normal`
 
@@ -77,7 +70,7 @@ where α is determined so that
 
     sum(x^2 for x in wnp) + α^2  = sum(x^2 for x in k_eff_vec) = k_eff^2
 """
-function transmission_wavevector(k_eff::Complex{T}, incident_wavevector::AbstractArray{CT} where CT <: Union{T,Complex{T}}, surface_normal::AbstractArray{T};
+function transmission_direction(k_eff::Complex{T}, incident_wavevector::AbstractArray{CT} where CT <: Union{T,Complex{T}}, surface_normal::AbstractArray{T};
         tol::T = sqrt(eps(T))) where {T<:AbstractFloat,Dim}
 
     surface_normal = surface_normal / norm(surface_normal)
@@ -91,14 +84,19 @@ function transmission_wavevector(k_eff::Complex{T}, incident_wavevector::Abstrac
         α = -α # leads to imag(α) < 0
     elseif isnan(α)
         α = -one(T) # covers the cases k_eff = Inf and k_eff = 0.0
+        return wnp + α .* surface_normal
     end
 
-    return wnp + α .* surface_normal
+    return (wnp + α .* surface_normal) ./ k_eff
 end
 
-function transmission_wavevector(k_eff::Complex{T},  psource::PlaneSource{T,Dim}, material::Material{Dim}; tol::T = sqrt(eps(T))) where {T,Dim}
-    transmission_wavevector(k_eff, psource.direction, material.shape.normal; tol = tol)
+function transmission_direction(k_eff::Complex{T},  psource::PlaneSource{T,Dim}, material::Material{Dim}; tol::T = sqrt(eps(T))) where {T,Dim}
+    transmission_direction(k_eff, psource.direction, material.shape.normal; tol = tol)
 end
+
+transmission_angle(pwave::Union{PlaneSource,EffectivePlaneWaveMode}, material::Material) = transmission_angle(pwave, material.shape)
+
+transmission_angle(pwave::Union{PlaneSource,EffectivePlaneWaveMode}, shape::Halfspace) = transmission_angle(pwave.direction, shape.normal)
 
 transmission_angle(wavevector::Vector,surface_normal::Vector) = transmission_angle(SVector(wavevector...),SVector(surface_normal...))
 
