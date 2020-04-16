@@ -35,12 +35,12 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
         end
     end
 
-    # The order of the indices below is important
     function MM(keff::Complex{T})::Matrix{Complex{T}}
         Ns = [
             kernelN3D(l3,k*as[s1,s2],keff*as[s1,s2])
         for l3 = 0:min(2L1,2L), s1 = 1:S, s2 = 1:S] ./  (keff^2.0 - k^2.0)
 
+        # The order of the indices below is important
         ind2 = 1
         for s2 = 1:S for dl = 0:L for dm = -dl:dl for l1 = 0:L1 for m1 = -l1:l1
             ind1 = 1
@@ -68,7 +68,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
     L = basis_order
     L1 = basis_order_field
 
-    len = Int(1 - L*(2 + L)*(L - 3*L1 - 2)/3 + L1)
+    len = Int(1 - L*(2 + L)*(L - 3*L1 - 2)/3 + L1) * S
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     t_matrices = get_t_matrices(medium, sps, ω, L)

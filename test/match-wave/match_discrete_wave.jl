@@ -50,7 +50,7 @@ using EffectiveWaves, Test
     # for i in eachindex(species)]
 
     wave_effs_arr = Vector{Vector{EffectivePlaneWaveMode{Float64,2}}}(undef,length(species))
-    
+
     i = 1
     wave_effs_arr[i] = effective_wavemodes(ω, source, materials[i];
         basis_order=basis_order,

@@ -2,7 +2,7 @@
 
 using Test, LinearAlgebra
 
-@testset "Tests for complex transmission wavevector" begin
+@testset "Tests for complex transmission direction" begin
 
     k_eff = rand(-1:0.1:1.0) + rand(-1:0.1:1.0) * im
     incident_wavevector = rand(-1:0.1:1.0,3) + rand(-1:0.1:1.0,3) .* im

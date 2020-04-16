@@ -12,12 +12,13 @@ export  match_error, x_mesh_match
 # export  Nn, p_speed#, maximum_basis_order
 
 # for effective waves
-export  wavenumbers, wavenumber, effective_wavemodes, effective_wavemode
+export  wavenumbers, wavenumber, eigenvectors, effective_wavemodes, effective_wavemode
+export boundary_condition_system
 export  effective_wavemode_wienerhopf
 
 export dispersion_equation, dispersion_complex, eigensystem # supplies a matrix used for the disperision equation and effective eignvectors
 
-export scattering_amplitudes_average, scale_mode_amplitudes
+export scattering_amplitudes_average
 
 export  reflection_coefficient, reflection_coefficients
 export  effective_medium

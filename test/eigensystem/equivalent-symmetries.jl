@@ -11,6 +11,10 @@ s1 = Specie(
     Acoustic(spatial_dim; ρ=0.2, c=0.1), Sphere(0.4);
     volume_fraction=0.2
 );
+# s2 = Specie(
+#     Acoustic(spatial_dim; ρ=10.2, c=10.1), Sphere(0.2);
+#     volume_fraction=0.1
+# );
 species = [s1]
 
 ω = 0.9
