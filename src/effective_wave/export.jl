@@ -7,12 +7,11 @@ export gray_square!, gray_square
 
 export reflection_coefficient_low_volumefraction, wavenumber_low_volumefraction, wavenumber_very_low_volumefraction
 
-include("effective_wave.jl")
 include("wavemode.jl")
 include("reflection_coefficient.jl")
 include("dispersion.jl")
 include("wavenumbers.jl")
-include("wavenumbers_bisection.jl")
-include("wavenumber_path.jl")
-include("wavenumber_mesh.jl")
-include("utils.jl")
+include("solvers/wavenumbers_bisection.jl")
+include("solvers/wavenumber_path.jl")
+include("solvers/wavenumber_mesh.jl")
+include("solvers/utils.jl")

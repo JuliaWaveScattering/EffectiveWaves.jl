@@ -1,7 +1,7 @@
 # Loads all files
 module EffectiveWaves
 
-# Here are the main exported functions and types. Note there are other exported functions and types in files such as "effective_wavemodes/effective_wavemodes_export" and "discrete_wave/export.jl."
+# Here are the main exported functions and types. Note there are other exported functions and types in files such as "effective_wave/export.jl" and "discrete_wave/export.jl"
 
 export  EffectivePlaneWaveMode, DiscretePlaneWaveMode # the two main types
 export  MatchPlaneWaveMode # a combination of the two types above
@@ -12,9 +12,9 @@ export  match_error, x_mesh_match
 # export  Nn, p_speed#, maximum_basis_order
 
 # for effective waves
-export  wavenumbers, wavenumber, eigenvectors, effective_wavemodes, effective_wavemode
+export wavenumbers, wavenumber, eigenvectors
+export wavemodes, wavemode, wavemode_wienerhopf
 export boundary_condition_system
-export  effective_wavemode_wienerhopf
 
 export dispersion_equation, dispersion_complex, eigensystem # supplies a matrix used for the disperision equation and effective eignvectors
 

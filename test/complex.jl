@@ -4,9 +4,9 @@ using Test, LinearAlgebra
 
 @testset "Tests for complex transmission direction" begin
 
-    k_eff = rand(-1:0.1:1.0) + rand(-1:0.1:1.0) * im
-    incident_wavevector = rand(-1:0.1:1.0,3) + rand(-1:0.1:1.0,3) .* im
-    surface_normal = rand(-1:0.1:1.0,3)
+    k_eff = rand(-1:0.11:1.0) + rand(-1:0.11:1.0) * im
+    incident_wavevector = rand(-1:0.11:1.0,3) + rand(-1:0.11:1.0,3) .* im
+    surface_normal = rand(-1:0.11:1.0,3)
     surface_normal = surface_normal / norm(surface_normal)
 
     normal_eff = transmission_direction(k_eff, incident_wavevector, surface_normal)

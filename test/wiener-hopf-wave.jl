@@ -29,7 +29,7 @@ using LinearAlgebra
         num_wavenumbers = 30);
 
     wave_effs = [
-        effective_wavemode_wienerhopf(ω, k_eff, source, material;
+        wavemode_wienerhopf(ω, k_eff, source, material;
             basis_order = basis_order,
             tol = tol
         )

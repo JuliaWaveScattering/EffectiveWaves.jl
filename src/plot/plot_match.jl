@@ -6,12 +6,12 @@
     @series (x, match_wave)
 end
 
-@recipe function plot(x::AbstractVector{T}, match_wave::MatchPlaneWaveMode{T}; basis_order = match_wave.effective_wavemodes[1].basis_order,
+@recipe function plot(x::AbstractVector{T}, match_wave::MatchPlaneWaveMode{T}; basis_order = match_wave.wavemodes[1].basis_order,
         hankel_indexes = 0:basis_order,
         apply = real, match_region = true) where T <: AbstractFloat
 
     ho = basis_order
-    wave_eff = DiscretePlaneWaveMode(match_wave.x_match, match_wave.effective_wavemodes)
+    wave_eff = DiscretePlaneWaveMode(match_wave.x_match, match_wave.wavemodes)
     max_amp = maximum(apply.(wave_eff.amplitudes[:,(hankel_indexes) .+ (ho+1),:]))
     min_amp = minimum(apply.(wave_eff.amplitudes[:,(hankel_indexes) .+ (ho+1),:]))
 
@@ -47,7 +47,7 @@ end
     @series begin
         apply --> apply
         hankel_indexes --> hankel_indexes
-        (x, match_wave.effective_wavemodes)
+        (x, match_wave.wavemodes)
     end
 
 end

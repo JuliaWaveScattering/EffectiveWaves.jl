@@ -1,7 +1,7 @@
-function boundary_condition_system(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, material::Material{Dim,Halfspace{T,Dim}};
+function boundary_condition_system(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
         basis_order::Int = 2,
         kws...
-    ) where {T<:Number,Dim}
+    ) where T
 
     direction = transmission_direction(k_eff, (ω / psource.medium.c) * psource.direction, material.shape.normal)
 
@@ -17,13 +17,13 @@ function boundary_condition_system(ω::T, k_eff::Complex{T}, psource::PlaneSourc
         for n = -basis_order:basis_order, s in material.species]
     ))
 
-    forcing = [im * field(psource,zeros(T,Dim),ω) * kcos_in * (kcos_eff - kcos_in)]
+    forcing = [im * field(psource,zeros(T,2),ω) * kcos_in * (kcos_eff - kcos_in)]
 
     return extinction_matrix, forcing
 
 end
 
-function effective_wavemode(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, material::Material{Dim,Halfspace{T,Dim}};
+function wavemode(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, material::Material{Dim,Halfspace{T,Dim}};
         tol::T = 1e-6,
         kws...
     )::EffectivePlaneWaveMode{T,Dim} where {T<:AbstractFloat,Dim}

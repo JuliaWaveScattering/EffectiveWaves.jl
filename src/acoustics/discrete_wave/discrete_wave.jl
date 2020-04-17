@@ -73,7 +73,7 @@ function DiscretePlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, 
 
     if x == [zero(T)]
         if isempty(wave_effs)
-            wave_effs = effective_wavemodes(ω, source, material; tol=tol, mesh_points=2, kws...)
+            wave_effs = wavemodes(ω, source, material; tol=tol, mesh_points=2, kws...)
         end
         # estimate a large coarse non-dimensional mesh based on the lowest attenuating effective wave
         a12 = T(2) * specie.exclusion_distance * outer_radius(specie)

@@ -33,11 +33,11 @@ using EffectiveWaves, Test
     source = PlaneSource(medium, [cos(pi/4.0),sin(pi/4.0)])
 
     R = begin
-        wave = effective_wavemode(ω, k_eff, source, material; basis_order=basis_order)
+        wave = wavemode(ω, k_eff, source, material; basis_order=basis_order)
         reflection_coefficient(ω, wave, source, material)
     end
     R_low2 = begin
-        wave2 = effective_wavemode(ω, k_eff_low, source, material; basis_order=basis_order)
+        wave2 = wavemode(ω, k_eff_low, source, material; basis_order=basis_order)
         reflection_coefficient(ω, wave2, source, material)
     end
     R_low = reflection_coefficient(source, eff_medium, material.shape)

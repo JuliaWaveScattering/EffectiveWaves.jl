@@ -1,4 +1,4 @@
-function boundary_condition_system(ω::T, k_eff::Complex{T}, source::AbstractSource{T,Dim,1,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}};
+function boundary_condition_system(ω::T, k_eff::Complex{T}, source::AbstractSource{T,3,1,Acoustic{T,3}}, material::Material{3,Sphere{T}};
         basis_order::Int = 2,
         basis_field_order::Int = 4,
         kws...
@@ -6,23 +6,26 @@ function boundary_condition_system(ω::T, k_eff::Complex{T}, source::AbstractSou
 
     k = real(ω / source.medium.c)
 
+    R = outer_radius(material.shape)
+
     Ns = [
         kernelN3D(l3,k*R,keff*R)
     for l3 = 0:basis_field_order] ./ (k^T(2) - keff^T(2))
 
+    # we take the transpose so that extinction_matrix behaves like a matrix and extinction_matrix * scattering_coefficients will be a dot product.
     extinction_matrix = T(2) .* transpose(vec(
         [
             exp(im*n*(θin - θ_eff)) * number_density(s)
         for n = -ho:ho, s in material.species]
     ))
 
-    forcing = [im * field(psource,zeros(T,Dim),ω) * kcos_in * (kcos_eff - kcos_in)]
+    forcing = [im * field(psource,zeros(T,3),ω) * kcos_in * (kcos_eff - kcos_in)]
 
     return extinction_matrix, forcing
 
 end
 
-function effective_wavemode(ω::T, k_eff::Complex{T}, source::Source{T,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T}};
+function wavemode(ω::T, k_eff::Complex{T}, source::Source{T,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T}};
         tol::T = 1e-6, kws...
     ) where {T<:AbstractFloat,Dim}
 

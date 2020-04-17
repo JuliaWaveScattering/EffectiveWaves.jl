@@ -1,4 +1,4 @@
-function effective_wavemode_wienerhopf(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, material::Material{Dim,Halfspace{T,Dim}};
+function wavemode_wienerhopf(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, material::Material{Dim,Halfspace{T,Dim}};
         tol::T = 1e-6,
         kws...
     )::EffectivePlaneWaveMode{T,Dim} where {T<:AbstractFloat,Dim}

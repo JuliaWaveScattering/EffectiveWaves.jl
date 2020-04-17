@@ -26,7 +26,7 @@ using EffectiveWaves, Test
     material = Material(Halfspace(normal),[specie])
     source = PlaneSource(medium, [cos(θin),sin(θin)])
 
-    wave0 = effective_wavemode(ω, k_eff0, source, material; basis_order = ho)
+    wave0 = wavemode(ω, k_eff0, source, material; basis_order = ho)
 
     # wave0 = EffectivePlaneWaveMode(ω, k_eff0, medium, [specie]; θin = θin, basis_order = ho, tol=1e-8)
     wave_avg0 = DiscretePlaneWaveMode(x, wave0, material.shape)
@@ -53,7 +53,7 @@ using EffectiveWaves, Test
         basis_order = ho, num_wavenumbers = num_wavenumbers)
 
     rel_errors = map(k_effs[1:end]) do k_eff
-        wave = effective_wavemode(ω, k_eff, source, material;basis_order = ho)
+        wave = wavemode(ω, k_eff, source, material;basis_order = ho)
         wave_avg = DiscretePlaneWaveMode(x, wave, material.shape)
         R = reflection_coefficient(ω, wave_avg, source, material)
         R_eff = reflection_coefficient(ω, wave, source, material)
