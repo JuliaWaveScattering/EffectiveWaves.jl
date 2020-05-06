@@ -50,7 +50,7 @@ struct EffectiveAzimuthalWaveMode{T<:AbstractFloat,Dim,P<:PhysicalMedium{T,Dim}}
 
         S = numberofspecies
         L = basis_order
-        L1 = basis_order_field
+        L1 = basis_field_order
 
         len = Int(1 - L*(2 + L)*(L - 3*L1 - 2)/3 + L1)
 

@@ -1,4 +1,4 @@
-function boundary_condition_system(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigenvectors::Array{Complex{T}}, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
         basis_order::Int = 2,
         kws...
     ) where T
@@ -19,7 +19,10 @@ function boundary_condition_system(ω::T, k_eff::Complex{T}, psource::PlaneSourc
 
     forcing = [im * field(psource,zeros(T,2),ω) * kcos_in * (kcos_eff - kcos_in)]
 
-    return extinction_matrix, forcing
+    # where extinction_matrix * eigenvectors * α = forcing
+    α = (extinction_matrix * eigenvectors) \ forcing
+
+    return α
 
 end
 

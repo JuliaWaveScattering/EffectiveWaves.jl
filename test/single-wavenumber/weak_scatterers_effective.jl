@@ -99,6 +99,6 @@
 
     len = length(ωs)
 
-    @test maximum(abs(R_low[i] - Rs[i][1]) for i in 1:length(R_low)) < 1e-7
+    @test maximum(abs(R_low[i] - Rs[i][1]) for i in eachindex(R_low)) < 1e-7
     @test maximum(norm(R)/len for R in (Rs_φs - Rs)[2:end-2]) < 5e-3
 end

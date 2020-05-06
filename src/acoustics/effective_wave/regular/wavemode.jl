@@ -1,23 +1,64 @@
-function boundary_condition_system(ω::T, k_eff::Complex{T}, source::AbstractSource{T,3,1,Acoustic{T,3}}, material::Material{3,Sphere{T}};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::Source{T,Acoustic{T,3}}, material::Material{3,Sphere{T}};
         basis_order::Int = 2,
         basis_field_order::Int = 4,
         kws...
     ) where {T<:Number,Dim}
 
+    L = basis_order
+    L1 = basis_field_order
+    L2 = L1
+    # or is it this:
+    # L2 = L + L1
+
     k = real(ω / source.medium.c)
+
+
+    species = material.species
+    S = length(species)
+    as = outer_radius.(species)
 
     R = outer_radius(material.shape)
 
     Ns = [
-        kernelN3D(l3,k*R,keff*R)
-    for l3 = 0:basis_field_order] ./ (k^T(2) - keff^T(2))
+        (R - as[j]) * kernelN3D(l1,k*(R - as[j]), k_eff*(R - as[j])) * number_density(species[j])
+    for l1 = 0:basis_field_order, j in eachindex(species)] ./ (k^T(2) - k_eff^T(2))
 
-    # we take the transpose so that extinction_matrix behaves like a matrix and extinction_matrix * scattering_coefficients will be a dot product.
-    extinction_matrix = T(2) .* transpose(vec(
-        [
-            exp(im*n*(θin - θ_eff)) * number_density(s)
-        for n = -ho:ho, s in material.species]
-    ))
+    # dim-1 is the (n,n1) indices, dim-2 is the speices, dim-3 are the different eigenvectors
+    eigvectors = reshape(eigvectors,(:,S,size(eigvectors,2)))
+
+    l1s = [l1 for l = 0:L for m = -l:l for l1 = 0:L1 for m1 = -l1:l1];
+
+    eigvectors = [
+        eigvectors[i] * Ns[l1s[i[1]]+1,i[2]]
+    for i in CartesianIndices(eigvectors)];
+
+    # sum over species
+    eigvectors = sum(eigvectors, dims=2)
+    eigvectors = reshape(eigvectors, size(eigvectors)[[1,3]])
+
+    # The extinction_matrix
+    function gaunt2(dl,dm,l1,m1,l,m,l2,m2)::Complex{T}
+        minl3 = max(abs(dl-l),abs(l2-l1),abs(dm-m))
+        maxl3 = min(abs(dl+l),abs(l2+l1))
+        return if minl3 < maxl3
+            - sum(l3 ->
+                gaunt_coefficients(dl,dm,l,m,l3,dm-m) *
+                gaunt_coefficients(l2,m2,l1,m1,l3,dm-m)
+            , minl3:maxl3)
+        else
+            zero(Complex{T})
+        end
+    end
+
+    B = [
+            gaunt2(dl,dm,l1,m1,l,m,l2,m2)
+        for dl = 0:L for dm = -dl:dl
+        for l1 = 0:L1 for m1 = -l1:l1
+    for l = 0:L for m = -l:l
+    for l2 = 0:L2 for m2 = -l2:l2]
+
+    len = (L1+1)^2 * (L+1)^2
+    B = reshape(B, (:,len))
 
     forcing = [im * field(psource,zeros(T,3),ω) * kcos_in * (kcos_eff - kcos_in)]
 
@@ -25,15 +66,15 @@ function boundary_condition_system(ω::T, k_eff::Complex{T}, source::AbstractSou
 
 end
 
-function wavemode(ω::T, k_eff::Complex{T}, source::Source{T,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T}};
-        tol::T = 1e-6, kws...
-    ) where {T<:AbstractFloat,Dim}
-
-    k = ω/psource.medium.c
-
-    direction = transmission_direction(k_eff, (ω / psource.medium.c) * psource.direction, material.shape.normal; tol = tol)
-
-    amps = eigenvectors(ω, k_eff, psource, material; tol= tol)
-
-    return EffectiveRegularWaveMode(ω, k_eff, direction, amps)
-end
+# function wavemode(ω::T, k_eff::Complex{T}, source::Source{T,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T}};
+#         tol::T = 1e-6, kws...
+#     ) where {T<:AbstractFloat,Dim}
+#
+#     k = ω/psource.medium.c
+#
+#     direction = transmission_direction(k_eff, (ω / psource.medium.c) * psource.direction, material.shape.normal; tol = tol)
+#
+#     amps = eigenvectors(ω, k_eff, psource, material; tol= tol)
+#
+#     return EffectiveRegularWaveMode(ω, k_eff, direction, amps)
+# end

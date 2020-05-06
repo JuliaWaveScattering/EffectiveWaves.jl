@@ -63,7 +63,7 @@ function wavenumber_far_field_low_volumefraction(ω::Complex{T}, medium::Acousti
   # second order number fraction, sum up too same hankel order
   kT2 += -8.0*sum(
     number_density(species[l1]) * number_density(species[l2]) * abs(m2-m1) / (ω/medium.c)^2 * Zns_vec[l1][m1+basis_order+1,m1+basis_order+1] * Zns_vec[l2][m2+basis_order+1,m2+basis_order+1]
-  for l1 = 1:length(species), l2 = 1:length(species), m1 = -basis_order:basis_order, m2 = -basis_order:basis_order)
+  for l1 in eachindex(species), l2 in eachindex(species), m1 = -basis_order:basis_order, m2 = -basis_order:basis_order)
 
   return sqrt(kT2)
 end

@@ -1,7 +1,7 @@
 # The eigensystem when no symmetry is present
 function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, ::WithoutSymmetry;
         basis_order::Int = 2,
-        basis_order_field::Int = 2*basis_order,
+        basis_field_order::Int = 2*basis_order,
         kws...) where {T<:AbstractFloat}
 
     k = real(ω/medium.c)
@@ -9,7 +9,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
 
     S = length(sps)
     L = basis_order
-    L1 = basis_order_field
+    L1 = basis_field_order
     len = (L1+1)^2 * (L+1)^2 * S
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
@@ -58,7 +58,7 @@ end
 
 function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, ::AbstractAzimuthalSymmetry;
         basis_order::Int = 2,
-        basis_order_field::Int = 2*basis_order,
+        basis_field_order::Int = 2*basis_order,
         kws...) where {T<:AbstractFloat}
 
     k = real(ω/medium.c)
@@ -66,7 +66,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
 
     S = length(sps)
     L = basis_order
-    L1 = basis_order_field
+    L1 = basis_field_order
 
     len = Int(1 - L*(2 + L)*(L - 3*L1 - 2)/3 + L1) * S
     MM_mat = Matrix{Complex{T}}(undef,len,len)

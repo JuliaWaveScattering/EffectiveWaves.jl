@@ -31,6 +31,7 @@ function wavenumbers_bisection_robust(ω::T, medium::PhysicalMedium{T,Dim}, spec
     solve!(prob_real,bisection_iteration);
     solve!(prob_imag,bisection_iteration);
 
+    # x_eval,y_eval=getevaluatedpoints(prob_real)
     xr_sol,yr_sol=getinterpolatedsolution(prob_real);
     xi_sol,yi_sol=getinterpolatedsolution(prob_imag)
 

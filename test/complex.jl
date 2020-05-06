@@ -44,11 +44,11 @@ end
 
     surface_normal = [0.0,0.0,-1.0]
     xs = [rand(-1.01:0.1:1.0,3) + rand(-1.01:0.1:1.0,3)*im for i = 1:100]
-    @test all(cartesian_to_radial_coordiantes(x)[2] == transmission_angle(x, surface_normal) for x in xs)
+    @test all(cartesian_to_radial_coordinates(x)[2] == transmission_angle(x, surface_normal) for x in xs)
 
     surface_normal = [-1.0,0.0]
     xs = [rand(-1.01:0.1:1.0,2) + rand(-1.01:0.1:1.0,2)*im for i = 1:100]
-    @test all(cartesian_to_radial_coordiantes(x)[2] == transmission_angle(x, surface_normal) for x in xs)
+    @test all(cartesian_to_radial_coordinates(x)[2] == transmission_angle(x, surface_normal) for x in xs)
 
     N = 100
     is = 1:N

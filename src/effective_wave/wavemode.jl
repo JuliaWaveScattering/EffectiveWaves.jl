@@ -29,12 +29,9 @@ function eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource, material
     #NOTE: MM(k_eff) ≈ MM_svd.U * diagm(0 => MM_svd.S) * MM_svd.Vt
     eigvectors = MM_svd.V[:,inds]
 
-    extinction_matrix, forcing = boundary_condition_system(ω, k_eff, source, material; kws...)
-    # extinction_matrix, forcing = boundary_condition_system(ω, k_eff, source, material; basis_order = basis_order)
+    α = solve_boundary_condition(ω, k_eff, eigvectors, source, material; kws...)
 
-    α = (extinction_matrix * eigvectors) \ forcing
-
-    # normalise the eigvectors such that their sum satisfies the boundary condition
+    # The sum of these normalised vectors will now satisfy the boundary conditions
     eigvectors = [eigvectors[i] * α[i[2]] for i in CartesianIndices(eigvectors)]
 
     # Reshape to separate different species and eigenvectors

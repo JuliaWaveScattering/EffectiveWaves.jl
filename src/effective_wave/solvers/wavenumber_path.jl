@@ -17,7 +17,8 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species
         k0 = ω/eff_medium.c
         if isnan(k0) k0 = ω + T(0)*im end
         # abs(k0) can be used to non-dimensionlise k_vec
-        kscale = abs(k0)
+        # kscale = abs(k0)
+        kscale = one(T)
 
         kφ = wavenumber_low_volumefraction(ω, medium, species; verbose = false)
 

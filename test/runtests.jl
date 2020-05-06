@@ -6,7 +6,6 @@ using LinearAlgebra
     @test true
 end
 
-include("specialfunctions.jl")
 include("complex.jl")
 
 # Single effective wavenumber tests
