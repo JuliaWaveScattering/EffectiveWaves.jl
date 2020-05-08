@@ -15,11 +15,11 @@ function wavematrix3D_allocate(ω::T, medium::Medium{T}, species::Species{T};
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
     cs = reshape(
         [
-            gaunt_coefficients(l1,m1,l2,m2,l3,m3)
+            gaunt_coefficient(l1,m1,l2,m2,l3,m3)
         for l1 = 0:ho for m1 = -l1:l1 for l2 = 0:ho for m2 = -l2:l2 for l3 = 0:ho for m3 = -l3:l3]
     , ((ho+1)^2,(ho+1)^2,(ho+1)^2));
 
-    # NOTE that cs[n3,n2,n1] == gaunt_coefficients(l1,m1,l2,m2,l3,m3)
+    # NOTE that cs[n3,n2,n1] == gaunt_coefficient(l1,m1,l2,m2,l3,m3)
     ls, ms = spherical_harmonics_indices(ho);
     n_max = length(ls)
 

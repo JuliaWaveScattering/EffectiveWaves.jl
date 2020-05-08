@@ -35,7 +35,8 @@ n2 = lm_to_spherical_harmonic_index(l2,m2)
 dn = lm_to_spherical_harmonic_index(dl,dm)
 n1 = lm_to_spherical_harmonic_index(l1,m1)
 
-@test eigF == [b[[3,4]] for b in B[(n - 1) * (L1+1)^2 + n2,:]]
+@test eigF == [b[3:4] for b in B[(n - 1) * (L1+1)^2 + n2,:]]
+@test eigF == [b[1:2] for b in B[:,(dn - 1) * (L1+1)^2 + n1]]
 
 @test ((l,m),(l2,m2),(dl,dm),(l1,m1)) == B[(n - 1) * (L1+1)^2 + n2, (dn - 1) * (L1+1)^2 + n1]
 

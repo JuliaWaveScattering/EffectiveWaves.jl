@@ -27,8 +27,8 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
         if minl3 <= maxl3
             as[s1,s2] * number_density(sps[s2]) * t_matrices[s1][l+1,l+1] *
             sum(l3 ->
-                gaunt_coefficients(l,m,dl,dm,l3,m1-m2) *
-                gaunt_coefficients(l1,m1,l2,m2,l3,m1-m2) * Ns[l3+1,s1,s2]
+                gaunt_coefficient(l,m,dl,dm,l3,m1-m2) *
+                gaunt_coefficient(l1,m1,l2,m2,l3,m1-m2) * Ns[l3+1,s1,s2]
             , minl3:maxl3)
         else
             zero(Complex{T})
@@ -86,8 +86,8 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
         if abs(dm) <= min(l1) && abs(m) <= min(l2) && minl3 <= maxl3
             as[s1,s2] * number_density(species[s2]) * t_matrices[s1][l+1,l+1] *
             sum(l3 ->
-                gaunt_coefficients(l,m,dl,dm,l3,m-dm) *
-                gaunt_coefficients(l1,-dm,l2,-m,l3,m-dm) * Ns[l3+1,s1,s2]
+                gaunt_coefficient(l,m,dl,dm,l3,m-dm) *
+                gaunt_coefficient(l1,-dm,l2,-m,l3,m-dm) * Ns[l3+1,s1,s2]
             , minl3:maxl3)
         else
             zero(Complex{T})

@@ -38,7 +38,7 @@ function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,3}, species::Sp
 
     # far-field multiple scattering pattern
     foo = sum(
-        sqrt((2l + 1)*(2dl + 1)*(2l1 + 1)) * Complex{T}(im)^(l-dl-l1+1) * gaunt_coefficients(l,0,dl,0,l1,0) *
+        sqrt((2l + 1)*(2dl + 1)*(2l1 + 1)) * Complex{T}(im)^(l-dl-l1+1) * gaunt_coefficient(l,0,dl,0,l1,0) *
         sum(
             kas[s1,s2] * d3D(kas[s1,s2],l1) *
             Ts[s1][l+1,l+1] * Ts[s2][dl+1,dl+1] *

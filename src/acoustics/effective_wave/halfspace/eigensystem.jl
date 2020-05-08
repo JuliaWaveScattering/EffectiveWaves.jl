@@ -66,7 +66,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
         4pi * as[s1,s2] * number_density(species[s2]) * t_matrices[s1][l+1,l+1] *
         sum(
             Complex{T}(im)^(-l1) * Ys[lm_to_n(l1,dm-m)] * Ns[l1+1,s1,s2] *
-            gaunt_coefficients(dl,dm,l,m,l1,dm-m)
+            gaunt_coefficient(dl,dm,l,m,l1,dm-m)
         for l1 in max(abs(dm-m),abs(dl-l)):(dl+l)) / (keff^2.0 - k^2.0)
     end
 
@@ -108,7 +108,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::Plan
         4pi * as[s1,s2] * number_density(species[s2]) * t_matrices[s1][l+1,l+1] *
         sum(
             Complex{T}(im)^(-l1) * sqrt((2*l1+1)/(4pi) ) * Ns[l1+1,s1,s2] *
-            gaunt_coefficients(dl,0,l,0,l1,0)
+            gaunt_coefficient(dl,0,l,0,l1,0)
         for l1 in abs(dl-l):(dl+l)) / (keff^2.0 - k^2.0)
     end
 
