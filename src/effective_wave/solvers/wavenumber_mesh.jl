@@ -1,5 +1,5 @@
-function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMedium{T}, species::Species{T};
-        symmetry::AbstractSetupSymmetry = PlanarSymmetry(),
+function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMedium{T,Dim}, species::Species{T};
+        symmetry::AbstractSetupSymmetry = PlanarSymmetry{Dim}(),
         tol::T = 1e-5,
         mesh_refine::T = T(0.4),
         inner_optimizer = LBFGS(),
@@ -8,7 +8,7 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMed
         min_Rek::T = minimum(real(k1) for k1 in k_effs),
         max_Imk::T = maximum(imag(k1) for k1 in k_effs),
         min_Imk::T = minimum(imag(k1) for k1 in k_effs),
-        kws...) where T<:Number
+        kws...) where {T<:Number,Dim}
 
     eff_medium = effective_medium(medium, species)
     k0 = ω/eff_medium.c

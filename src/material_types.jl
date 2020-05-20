@@ -6,25 +6,29 @@ export WithoutSymmetry, PlanarSymmetry, PlanarAzimuthalSymmetry, AzimuthalSymmet
 
 An abstract types which dictates the symmetry of the setup. That is, the symmetry shared between the incident wave and the shape of the material.
 """
-abstract type AbstractSetupSymmetry end
-struct WithoutSymmetry <: AbstractSetupSymmetry end
+abstract type AbstractSetupSymmetry{Dim} end
+struct WithoutSymmetry{Dim} <: AbstractSetupSymmetry{Dim} end
 
 """
 An incident plane-wave and halfspace material will result in all fields being plane-waves.
 """
-abstract type AbstractPlanarSymmetry <: AbstractSetupSymmetry end
-struct PlanarSymmetry <: AbstractPlanarSymmetry end
+abstract type AbstractPlanarSymmetry{Dim} <: AbstractSetupSymmetry{Dim} end
+struct PlanarSymmetry{Dim} <: AbstractPlanarSymmetry{Dim} end
 
 """
 For spatial dimension > 2, we can consider problems that have azimuthal symmetry. For example, a plane-wave incident on a sphere.
 """
-abstract type AbstractAzimuthalSymmetry <: AbstractSetupSymmetry end
-struct AzimuthalSymmetry <: AbstractAzimuthalSymmetry end
+abstract type AbstractAzimuthalSymmetry{Dim} <: AbstractSetupSymmetry{Dim} end
+struct AzimuthalSymmetry{Dim} <: AbstractAzimuthalSymmetry{Dim} end
+
+AzimuthalSymmetry() = AzimuthalSymmetry{3}()
 
 """
 For example, a plane-wave with direct incidence on a halfspace will have both azimuthal and plane-wave symmetry.
 """
-struct PlanarAzimuthalSymmetry <: AbstractPlanarSymmetry end
+struct PlanarAzimuthalSymmetry{Dim} <: AbstractPlanarSymmetry{Dim} end
+PlanarAzimuthalSymmetry() = PlanarAzimuthalSymmetry{3}()
+
 
 # """Extract the dimension of the space that this physical property lives in"""
 # dim(p::AbstractSetupSymmetry{Dim}) where {Dim} = Dim
@@ -95,9 +99,14 @@ function Material(shape::S,specie::Sp) where {T,Dim,S<:Shape{T,Dim},Sp<:Specie{T
     Material{Dim,S,Vector{Sp}}(shape,[specie])
 end
 
-setupsymmetry(source::AbstractSource, material::Material) where Dim = WithoutSymmetry()
+import MultipleScattering.PhysicalMedium
 
-setupsymmetry(source::PlaneSource{T,3,1}, material::Material{3,Sphere{T}}) where T = AzimuthalSymmetry()
+PhysicalMedium(s::Specie) = typeof(s.particle.medium)
+PhysicalMedium(m::Material) = PhysicalMedium(m.species[1])
+
+setupsymmetry(source::AbstractSource, material::Material{Dim}) where Dim = WithoutSymmetry{Dim}()
+
+setupsymmetry(source::PlaneSource{T,3,1}, material::Material{3,Sphere{T}}) where T = AzimuthalSymmetry{3}()
 
 function setupsymmetry(psource::PlaneSource{T,Dim}, material::Material{Dim,Halfspace{T,Dim}}) where {T<:AbstractFloat, Dim}
 
@@ -106,8 +115,8 @@ function setupsymmetry(psource::PlaneSource{T,Dim}, material::Material{Dim,Halfs
 
     if abs(dot(hv, kv)^2) ≈ abs(dot(hv, hv) * dot(kv, kv))
         # for direct incidence
-        return PlanarAzimuthalSymmetry()
+        return PlanarAzimuthalSymmetry{Dim}()
     else
-        return PlanarSymmetry()
+        return PlanarSymmetry{Dim}()
     end
 end

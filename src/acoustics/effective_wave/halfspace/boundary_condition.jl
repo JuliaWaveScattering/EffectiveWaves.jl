@@ -25,17 +25,3 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigenvectors::Array{
     return α
 
 end
-
-function wavemode(ω::T, k_eff::Complex{T}, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, material::Material{Dim,Halfspace{T,Dim}};
-        tol::T = 1e-6,
-        kws...
-    )::EffectivePlaneWaveMode{T,Dim} where {T<:AbstractFloat,Dim}
-
-    k = ω/psource.medium.c
-
-    direction = transmission_direction(k_eff, (ω / psource.medium.c) * psource.direction, material.shape.normal; tol = tol)
-
-    amps = eigenvectors(ω, k_eff, psource, material; kws...)
-
-    return EffectivePlaneWaveMode(ω, k_eff, direction, amps)
-end

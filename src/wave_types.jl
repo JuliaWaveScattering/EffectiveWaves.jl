@@ -2,6 +2,37 @@ abstract type AbstractWaveMode{T,Dim} end
 
 abstract type AbstractRegularWaveMode{T,Dim} <: AbstractWaveMode{T,Dim} end
 
+
+# Each type of symmetry leads to effective eigenvectors with a different length.
+eigenvector_length(::PlanarSymmetry{3}; basis_order::Int) =  Int((1 + basis_order)^2)
+eigenvector_length(::PlanarSymmetry{2}; basis_order::Int) =  Int((1 + 2*basis_order))
+
+eigenvector_length(::WithoutSymmetry{2}; basis_order::Int, basis_field_order::Int) =  Int( (1 + 2*basis_order) * (1 + 2*basis_field_order))
+
+eigenvector_length(::WithoutSymmetry{3}; basis_order::Int, basis_field_order::Int) =  Int( (1 + basis_order)^2 * (1 + basis_field_order)^2)
+
+eigenvector_length(::AzimuthalSymmetry{3}; basis_order::Int, basis_field_order::Int) =  Int(1 - basis_order*(2 + basis_order)*(basis_order - 3*basis_field_order - 2)/3 + basis_field_order)
+
+
+"""
+    WaveMode(ω::T, wavenumber::Complex{T}, eigenvectors::Array{Complex{T}}, ::SetupSymmetry; kws...)
+
+Returns a concrete subtype of AbstractWaveMode depending on the SetupSymmetry. The returned type should have all the necessary fields to calculate scattered waves (currently not true for EffectivePlanarWaves).
+"""
+function WaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource{T}, material::Material{Dim}, eigenvectors::Array{Complex{T}}; kws...) where {T,Dim}
+
+    return EffectiveRegularWaveMode(ω, wavenumber, source, material, eigenvectors; kws...)
+end
+
+function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, material::Material{Dim,Halfspace{T,Dim}}, eigenvectors::Array{Complex{T}};
+    tol::T = 1e-6, kws...) where {T,Dim}
+
+    direction = transmission_direction(wavenumber, (ω / psource.medium.c) * psource.direction, material.shape.normal; tol = tol)
+
+    return EffectivePlaneWaveMode(ω, wavenumber, direction, eigenvectors)
+end
+
+
 """
     EffectivePlaneWaveMode(ω::T, wavenumber::Complex{T}, direction::Array{Complex{T}},amps::Array{Complex{T}})
 
@@ -35,49 +66,27 @@ function EffectivePlaneWaveMode(ω::T, wavenumber::Complex{T}, direction::SVecto
     EffectivePlaneWaveMode{T,Dim}(ω, wavenumber, Int( (size(amps,1) - 1) / 2 ), direction, amps)
 end
 
-# import Base.zero
-#
-# zero(W::Type{EffectivePlaneWaveMode{T,Dim}}) where {T<:AbstractFloat,Dim} = EffectivePlaneWaveMode(zero(T), zero(Complex{T}), 0,zeros(Complex{T},Dim),zeros(Complex{T},1))
-
-struct EffectiveAzimuthalWaveMode{T<:AbstractFloat,Dim,P<:PhysicalMedium{T,Dim}} <: AbstractRegularWaveMode{T,Dim}
+struct EffectiveRegularWaveMode{T<:AbstractFloat,Dim,P<:PhysicalMedium{T,Dim},S<:AbstractSetupSymmetry{Dim}} <: AbstractRegularWaveMode{T,Dim}
     ω::T
     wavenumber::Complex{T}
+    medium::P
+    material::Material{Dim}
+    eigenvectors::Array{Complex{T}} # the effective eigenvectors, each column is one eigenvector
     basis_order::Int
     basis_field_order::Int
-    numberofspecies::Int
-    amplitudes::Matrix{Complex{T}} # the effective ampliudes, each column is one eigenvector
-    function EffectiveAzimuthalWaveMode{T,Dim,P}(ω::T, wavenumber::Complex{T}, basis_order::Int, basis_field_order::Int, numberofspecies::Int, amplitudes::Array{Complex{T}}) where {T,Dim,P<:PhysicalMedium{T,Dim}}
+    function EffectiveRegularWaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource{T}, material::Material{Dim}, eigenvectors::Array{Complex{T}};
+        basis_order::Int = 2, basis_field_order::Int = 4
+    ) where {T,Dim}
 
-        S = numberofspecies
-        L = basis_order
-        L1 = basis_field_order
+        S = setupsymmetry(source,material)
+        P = typeof(source.medium)
 
-        len = Int(1 - L*(2 + L)*(L - 3*L1 - 2)/3 + L1)
-
-        if size(ampliudes,1) != len
-            throw(DimensionMismatch("size(amplitudes,1) does not match the dimensions for a regular eigenvector with azimuthal symmetry."))
-        else
-            new{T,Dim,P}(ω, wavenumber, basis_order, basis_field_order, numberofspecies, amplitudes)
+        if size(eigenvectors,1) != eigenvector_length(S; basis_order = basis_order, basis_field_order = basis_field_order)
+            throw(DimensionMismatch("size(eigenvectors,1) does not match the dimensions for a regular eigenvector with symmetry: $S."))
+        elseif size(eigenvectors,2) != length(material.species)
+            throw(DimensionMismatch("size(eigenvectors,2) does not match the number of difference species length(material.species) = $(length(material.species)    )."))
         end
-    end
-end
 
-
-struct EffectiveRegularWaveMode{T<:AbstractFloat,Dim,P<:PhysicalMedium{T,Dim}} <: AbstractRegularWaveMode{T,Dim}
-    ω::T
-    wavenumber::Complex{T}
-    basis_order::Int
-    basis_field_order::Int
-    numberofspecies::Int
-    amplitudes::Matrix{Complex{T}} # the effective ampliudes, each column is one eigenvector
-    function EffectiveRegularWaveMode{T,Dim,P}(ω::T, wavenumber::Complex{T}, basis_order::Int, basis_field_order::Int, numberofspecies::Int, amplitudes::Array{Complex{T}}) where {T,Dim,P<:PhysicalMedium{T,Dim}}
-
-        len = (basis_order+1)^2 * (basis_field_order+1)^2 * numberofspecies
-
-        if size(ampliudes,1) != len
-            throw(DimensionMismatch("size(amplitudes,1) does not match the dimensions for a regular eigenvector with no symmetry."))
-        else
-            new{T,Dim,P}(ω, wavenumber, basis_order, basis_field_order, numberofspecies, amplitudes)
-        end
+        return new{T,Dim,P,typeof(S)}(ω, wavenumber, source.medium, material, eigenvectors, basis_order, basis_field_order)
     end
 end

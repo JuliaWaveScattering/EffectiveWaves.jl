@@ -1,5 +1,5 @@
 # The eigensystem when no symmetry is present
-function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, ::WithoutSymmetry;
+function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, ::WithoutSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         kws...) where {T<:AbstractFloat}
@@ -83,7 +83,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
         maxl3 = min(dl+l,l1+l2)
 
         (m == dm && l == dl && l1 == l2 && s1 == s2 ? 1.0 : 0.0) +
-        if abs(dm) <= min(l1) && abs(m) <= min(l2) && minl3 <= maxl3
+        if minl3 <= maxl3
             as[s1,s2] * number_density(species[s2]) * t_matrices[s1][l+1,l+1] *
             sum(l3 ->
                 gaunt_coefficient(l,m,dl,dm,l3,m-dm) *

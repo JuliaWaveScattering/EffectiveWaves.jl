@@ -20,10 +20,10 @@ species = [s1]
 ω = 0.9
 tol = 1e-7
 
-AP_det = dispersion_equation(ω, medium, species, PlanarAzimuthalSymmetry())
-P_det = dispersion_equation(ω, medium, species, PlanarSymmetry())
-AR_det = dispersion_equation(ω, medium, species, AzimuthalSymmetry())
-R_det = dispersion_equation(ω, medium, species, WithoutSymmetry())
+AP_det = dispersion_equation(ω, medium, species, PlanarAzimuthalSymmetry{spatial_dim}())
+P_det = dispersion_equation(ω, medium, species, PlanarSymmetry{spatial_dim}())
+AR_det = dispersion_equation(ω, medium, species, AzimuthalSymmetry{spatial_dim}())
+R_det = dispersion_equation(ω, medium, species, WithoutSymmetry{spatial_dim}())
 
 AP_kps = wavenumbers(ω, medium, species;
     num_wavenumbers = 6, tol = tol,
@@ -31,7 +31,7 @@ AP_kps = wavenumbers(ω, medium, species;
 
 P_kps = wavenumbers(ω, medium, species;
     num_wavenumbers = 6, tol = tol,
-    symmetry = PlanarSymmetry())
+    symmetry = PlanarSymmetry{3}())
 
 # The dispersion equations R_det become very unstable when using effective wavenumbers with higher dispersion.
 AP_kps = AP_kps[1:min(length(AP_kps),6)]
@@ -43,7 +43,7 @@ P_kps = P_kps[1:min(length(P_kps),6)]
 @test maximum(AR_det.(AP_kps)) < tol^2
 @test maximum(R_det.(AP_kps)) < tol^3
 
-P_disp = dispersion_complex(ω, medium, species,  PlanarSymmetry(); tol = tol)
+P_disp = dispersion_complex(ω, medium, species,  PlanarSymmetry{spatial_dim}(); tol = tol)
 
 # However, there do exist effective wavenumbers for plane-waves which have eigen-vectors that do not satisfy azimuthal symmetry. This is why maximum(AP_det.(P_kps)) != 0.0
 @test maximum(P_det.(P_kps)) < tol
@@ -55,7 +55,7 @@ P_disp = dispersion_complex(ω, medium, species,  PlanarSymmetry(); tol = tol)
 basis_order = 2
 basis_field_order = 2*basis_order
 
-R_MM = eigensystem(ω, medium, species,WithoutSymmetry();
+R_MM = eigensystem(ω, medium, species, WithoutSymmetry{spatial_dim}();
         basis_order = basis_order,
         basis_field_order = basis_field_order
 )
@@ -89,7 +89,7 @@ Pvs = [
 for vM in RvMs]
 
 
-P_MM = eigensystem(ω, medium, species, PlanarSymmetry();
+P_MM = eigensystem(ω, medium, species, PlanarSymmetry{spatial_dim}();
         θp = θp, φp = φp,
         basis_order = basis_order
 )

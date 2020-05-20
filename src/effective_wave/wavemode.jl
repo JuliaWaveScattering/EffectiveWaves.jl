@@ -11,6 +11,13 @@ function wavemodes(ω::T, source::AbstractSource, material::Material{Dim,S,Sps};
     return wave_effs
 end
 
+function wavemode(ω::T, wavenumber::Complex{T}, source::AbstractSource{T}, material::Material{Dim}; kws... ) where {T,Dim}
+
+    vecs = eigenvectors(ω, wavenumber, source, material; kws...)
+
+    return WaveMode(ω, wavenumber, source, material, vecs; kws...)
+end
+
 function eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource, material::Material;
         tol::T = 1e-4,
         kws...) where T<:Number
@@ -29,9 +36,11 @@ function eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource, material
     #NOTE: MM(k_eff) ≈ MM_svd.U * diagm(0 => MM_svd.S) * MM_svd.Vt
     eigvectors = MM_svd.V[:,inds]
 
-    α = solve_boundary_condition(ω, k_eff, eigvectors, source, material; kws...)
+    α = solve_boundary_condition(ω, k_eff, eigvectors, source, material;
+            kws...
+    )
 
-    # The sum of these normalised vectors will now satisfy the boundary conditions
+    # After this normalisation, sum(eigvectors, dims=2) will satisfy the boundary conditions
     eigvectors = [eigvectors[i] * α[i[2]] for i in CartesianIndices(eigvectors)]
 
     # Reshape to separate different species and eigenvectors

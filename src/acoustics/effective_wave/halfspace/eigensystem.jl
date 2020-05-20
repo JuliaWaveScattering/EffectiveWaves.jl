@@ -87,7 +87,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
     return MM
 end
 
-function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::PlanarAzimuthalSymmetry;
+function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::PlanarAzimuthalSymmetry{3};
         basis_order::Int = 2,
         kws...) where {T<:AbstractFloat}
 

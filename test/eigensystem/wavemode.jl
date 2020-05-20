@@ -20,7 +20,7 @@ species = [s1]
 ω = 1e-5
 # ω = 0.4
 tol = 1e-7
-basis_order = 1
+basis_order = 2
 
 k = ω / medium.c
 ko = k * medium.c / s1.particle.medium.c
@@ -41,6 +41,15 @@ AP_kps = wavenumbers(ω, medium, species;
     mesh_points = 10,
     symmetry = PlanarAzimuthalSymmetry())
 
+# A_kps = wavenumbers(ω, medium, species;
+#     basis_order = 0,
+#     basis_field_order = 0,
+#     num_wavenumbers = 2, tol = tol,
+#     mesh_size = 2.0,
+#     mesh_points = 10,
+#     symmetry = AzimuthalSymmetry())
+
+
 θ = 0.0
 material = Material(Sphere(4.0),species);
 psource = PlaneSource(medium, [sin(θ),0.0,cos(θ)]);
@@ -50,25 +59,8 @@ x = rand(3)
 field(source,x,ω) - field(psource,x,ω)
 
 k_eff = AP_kps[1]
+# k_eff = A_kps[1]
 (imag(k_eff) < -tol) && (k_eff = - k_eff)
-
-ρ = medium.ρ
-β = medium.c^2 * medium.ρ
-
-# φ = sum(volume_fraction.(species));
-φ = volume_fraction(species[1]);
-ρo = s1.particle.medium.ρ
-βo = s1.particle.medium.c^2 * s1.particle.medium.ρ
-
-Dρ = (ρ - ρo)/(ρ + 2.0*ρo)
-Dβ = (β - βo)/βo
-βp = ( 1.0/β + Dβ/β * φ )^(-1)
-ρp = ρ * (1.0 - Dρ * φ)/(1.0 + 2.0 * Dρ * φ)
-      # ρ*(1 - ρ_frac)/(1 + T(Dim - 1) * ρ_frac)
-
-cp = sqrt(
-    (1/β + Dβ/β * φ)^(-1) * (ρ * (1 - Dρ * φ)/( 1 + 2.0 * Dρ * φ ))^(-1)
-)
 
 eff_medium = effective_medium(medium, species)
 k_low = ω/eff_medium.c;
@@ -78,10 +70,30 @@ eff_medium.c
 
 R = outer_radius(material.shape)
 basis_field_order = estimate_regular_basisorder(typeof(source.medium), R * k_eff )
-basis_field_order = 2
+basis_field_order = 3
+# basis_field_order = 0
+# basis_order = 0
 
 setupsymmetry(source, material)
 setupsymmetry(psource, material)
+
+A_wave = wavemode(ω, k_eff, psource, material;
+    basis_order = basis_order, basis_field_order = basis_field_order)
+
+R_wave = wavemode(ω, k_eff, source, material;
+    basis_order = basis_order, basis_field_order = basis_field_order)
+
+
+MMvecs = eigenvectors(ω, k_eff, source, material;
+        basis_order = basis_order,
+        basis_field_order = basis_field_order)
+
+MAvecs = eigenvectors(ω, k_eff, psource, material;
+        tol::T = 1e-4,
+        basis_order = basis_order,
+        basis_field_order = basis_field_order)
+
+
 
 MA = eigensystem(ω, psource, material;
     basis_order = basis_order,
@@ -107,6 +119,14 @@ MM_svd = svd(MM(k_eff))
 MM_svd.S
 inds = findall(MM_svd.S .< 1e-4)
 eigvectors = MM_svd.V[:,inds]
+
+MM_svd = svd(MA(k_eff))
+MM_svd.S
+inds = findall(MM_svd.S .< 1e-4)
+eigvectors = MM_svd.V[:,inds]
+
+
+T = Float64
 
 norm(MM(k_eff) * eigvectors[:,1] - MM_svd.S[inds[1]] .* eigvectors[:,1]) / norm(eigvectors[:,1])
 
