@@ -4,7 +4,7 @@ function reflection_coefficients(ωs::Union{T,AbstractVector{T}}, psource::Plane
     Rs = map(ωs) do ω
         k_effs = wavenumbers(ω, psource.medium, material.species; kws...)
         w_effs = [
-            wavemode(ω, k_eff, psource, material; kws...)
+            WaveMode(ω, k_eff, psource, material; kws...)
         for k_eff in k_effs]
 
         reflection_coefficient(ω, w_effs, psource, material; kws...)

@@ -25,7 +25,7 @@ using EffectiveWaves, Test
     ωs = [0.2,1.2]
 
     wave_effs_arr = map(ωs) do ω
-        wavemodes(ω, source, material;
+        WaveModes(ω, source, material;
             basis_order=basis_order, tol = tol,
             extinction_rescale = false,
             # , mesh_points = 10, mesh_size = 2.0 #, max_Rek = 20.0, max_Imk = 20.0
@@ -35,7 +35,7 @@ using EffectiveWaves, Test
     k_eff_φs = wavenumber_low_volumefraction(ωs, medium, [specie]; basis_order=basis_order)
 
     wave_eff_φs = [
-        wavemode(ωs[i], k_eff_φs[i], source, material; tol = tol,
+        WaveMode(ωs[i], k_eff_φs[i], source, material; tol = tol,
             basis_order=basis_order,
             extinction_rescale = true)
     for i in eachindex(ωs)]

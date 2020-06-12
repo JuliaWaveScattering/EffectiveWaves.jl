@@ -22,7 +22,7 @@ using EffectiveWaves
     θin = 0.3 # angle made between incident wave direction and the material boundary
 
     # calculate the 4 effective waves with the smallest attenuation
-    wave_effs = wavemodes(ω, medium, specie;
+    wave_effs = WaveModes(ω, medium, specie;
           num_wavenumbers=5,
           θin = θin,
           extinction_rescale = false

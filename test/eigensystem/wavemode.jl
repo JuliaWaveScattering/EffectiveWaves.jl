@@ -77,10 +77,10 @@ basis_field_order = 3
 setupsymmetry(source, material)
 setupsymmetry(psource, material)
 
-A_wave = wavemode(ω, k_eff, psource, material;
+A_wave = WaveMode(ω, k_eff, psource, material;
     basis_order = basis_order, basis_field_order = basis_field_order)
 
-R_wave = wavemode(ω, k_eff, source, material;
+R_wave = WaveMode(ω, k_eff, source, material;
     basis_order = basis_order, basis_field_order = basis_field_order)
 
 

@@ -18,7 +18,7 @@ tol = 1e-5
 ho = 2
 a12k = k*radius_multiplier*2.0*specie.r
 
-wave_effs = wavemodes(ω, medium, [specie];
+wave_effs = WaveModes(ω, medium, [specie];
     basis_order=ho, tol = 100*tol,  θin = θin,
     radius_multiplier = radius_multiplier, mesh_points = 6
     , extinction_rescale = false

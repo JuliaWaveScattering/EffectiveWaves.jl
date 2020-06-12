@@ -18,7 +18,7 @@ function wienerhopf_mode_amplitudes(ω::T, k_eff::Complex{T}, psource::PlaneSour
 end
 
 
-"The average effective transmitted wavemodes according to the Wiener-Hopf method.
+"The average effective transmitted WaveModes according to the Wiener-Hopf method.
 The function returns an array A, where
 AA(x,y,0,1) = A[1,1]*exp(im*k_eff*(cos(θ_eff)*x + sin(θin)*y))
 where (x,y) are coordinates in the halfspace  and AA is the ensemble average scattering coefficient. Method currently only implemented for 1 species and for monopole scatterers. Note also that the choices of branch cut for cos and sin of θ_eff restrict -pi/2 < Re θ_eff < pi/2."

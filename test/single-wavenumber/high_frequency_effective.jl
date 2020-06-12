@@ -33,12 +33,12 @@ using LinearAlgebra
         source = PlaneSource(medium; direction = -normal)
 
         Rs = map(eachindex(ωs2)) do i
-            wave = wavemode(ωs2[i], k_effs2[i], source, material; basis_order=basis_order)
+            wave = WaveMode(ωs2[i], k_effs2[i], source, material; basis_order=basis_order)
             reflection_coefficient(ωs2[i], wave, source, material)
         end
         # warning is expected, as k_eff_φs are assymptotic approximations.
         Rs_φs = map(eachindex(ωs2)) do i
-            wave = wavemode(ωs2[i], k_eff_φs[i], source, material; basis_order=basis_order)
+            wave = WaveMode(ωs2[i], k_eff_φs[i], source, material; basis_order=basis_order)
             reflection_coefficient(ωs2[i], wave, source, material)
         end
         Rs_φs2 = reflection_coefficient_low_volumefraction(ωs2, source, material; basis_order=basis_order)

@@ -15,25 +15,6 @@ eigenvector_length(::AzimuthalSymmetry{3}; basis_order::Int, basis_field_order::
 
 
 """
-    WaveMode(ω::T, wavenumber::Complex{T}, eigenvectors::Array{Complex{T}}, ::SetupSymmetry; kws...)
-
-Returns a concrete subtype of AbstractWaveMode depending on the SetupSymmetry. The returned type should have all the necessary fields to calculate scattered waves (currently not true for EffectivePlanarWaves).
-"""
-function WaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource{T}, material::Material{Dim}, eigenvectors::Array{Complex{T}}; kws...) where {T,Dim}
-
-    return EffectiveRegularWaveMode(ω, wavenumber, source, material, eigenvectors; kws...)
-end
-
-function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, material::Material{Dim,Halfspace{T,Dim}}, eigenvectors::Array{Complex{T}};
-    tol::T = 1e-6, kws...) where {T,Dim}
-
-    direction = transmission_direction(wavenumber, (ω / psource.medium.c) * psource.direction, material.shape.normal; tol = tol)
-
-    return EffectivePlaneWaveMode(ω, wavenumber, direction, eigenvectors)
-end
-
-
-"""
     EffectivePlaneWaveMode(ω::T, wavenumber::Complex{T}, direction::Array{Complex{T}},amps::Array{Complex{T}})
 
 Is a struct that represents one mode of the effective scattering coefficients for plane wave symmetry.

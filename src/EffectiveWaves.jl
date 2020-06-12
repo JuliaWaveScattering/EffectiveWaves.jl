@@ -14,7 +14,7 @@ export  match_error, x_mesh_match
 
 # for effective waves
 export wavenumbers, wavenumber, eigenvectors
-export wavemodes, wavemode, wavemode_wienerhopf
+export WaveModes, WaveMode, wavemode_wienerhopf
 export solve_boundary_condition
 
 export dispersion_equation, dispersion_complex, eigensystem # supplies a matrix used for the disperision equation and effective eignvectors

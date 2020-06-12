@@ -48,7 +48,7 @@
     # define a plane wave source travelling at a 45 degree angle in relation to the material
     source = PlaneSource(medium, -normal)
 
-    wave_effs_φs = [wavemode(ωs[i], k_eff_φs[i], source, material; tol = tol) for i in eachindex(ωs)]
+    wave_effs_φs = [WaveMode(ωs[i], k_eff_φs[i], source, material; tol = tol) for i in eachindex(ωs)]
 
     # reflection coefficient
     Rs2 = reflection_coefficients(ωs, source, material; tol = tol, num_wavenumbers = 1, basis_order = basis_order)
@@ -57,7 +57,7 @@
     # pairs each ω in ωs with each wave in wave_effs2 to calculate the refleciton coefficients
     Rs = map(eachindex(ωs)) do i
         w_effs = [
-            wavemode(ωs[i], k_eff, source, material; tol = tol, basis_order=basis_order)
+            WaveMode(ωs[i], k_eff, source, material; tol = tol, basis_order=basis_order)
         for k_eff in k_effs_arr[i]]
         reflection_coefficient(ωs[i], w_effs, source, material; tol = tol)
     end
@@ -65,7 +65,7 @@
     @test Rs ≈ Rs2 # same keywords should lead to the same reflection coefficient, except for numerically rounding
 
     Rs1 = map(eachindex(ωs)) do i
-        w_eff = wavemode(ωs[i], k_effs[i][1], source, material; tol = 1e-9)
+        w_eff = WaveMode(ωs[i], k_effs[i][1], source, material; tol = 1e-9)
         reflection_coefficient(ωs[i], w_eff, source, material)
     end
 
@@ -89,7 +89,7 @@
 
     Rs = map(sources) do s
         wave_effs_2 = [
-            wavemode(ωs[i], k_effs[i], s, material; tol = tol, basis_order = basis_order)
+            WaveMode(ωs[i], k_effs[i], s, material; tol = tol, basis_order = basis_order)
         for i in eachindex(ωs)]
         reflection_coefficients(ωs, wave_effs_2, s, material)
     end

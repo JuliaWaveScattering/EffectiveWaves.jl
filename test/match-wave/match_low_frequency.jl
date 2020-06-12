@@ -27,17 +27,17 @@
     source = PlaneSource(medium, [cos(θin),sin(θin)])
 
     wave_eff_lows = [
-        wavemode(ω, k_eff_lows[i], source, materials[i]; tol = tol,
+        WaveMode(ω, k_eff_lows[i], source, materials[i]; tol = tol,
             basis_order=basis_order)
     for i in eachindex(species)]
 
     wave_effs_arr = [
-        wavemodes(ω, source, materials[1];
+        WaveModes(ω, source, materials[1];
             basis_order = basis_order,
             num_wavenumbers = 1,
             tol = tol,
             extinction_rescale = false),
-        wavemodes(ω, source, materials[2];
+        WaveModes(ω, source, materials[2];
             basis_order = basis_order,
             num_wavenumbers = 1,
             tol = tol,
@@ -58,10 +58,10 @@
    @test maximum(match_error(match_ws[i],materials[i].shape) for i in eachindex(species)) < tol
 
     map(eachindex(species)) do i
-        sx = abs(real(match_ws[i].wavemodes[1].wavenumber))
+        sx = abs(real(match_ws[i].PlaneWaveModes[1].wavenumber))
         x = LinRange(match_ws[i].x_match[end],2pi / sx,200)
         avg_low = DiscretePlaneWaveMode(x, wave_eff_lows[i], materials[i].shape)
-        avg = DiscretePlaneWaveMode(x, match_ws[i].wavemodes, materials[i].shape)
+        avg = DiscretePlaneWaveMode(x, match_ws[i].PlaneWaveModes, materials[i].shape)
         @test norm(avg.amplitudes[:] - avg_low.amplitudes[:]) < tol
         @test maximum(abs.(avg.amplitudes[:] - avg_low.amplitudes[:])) < tol
     end

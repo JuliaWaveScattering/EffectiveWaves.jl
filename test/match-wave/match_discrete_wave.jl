@@ -39,7 +39,7 @@ using EffectiveWaves, Test
     #         wavevector = rand(2) + rand(2) .* im
     #         basis_order = 2
     #         EffectivePlaneWaveMode(ω, basis_order, SVector(wavevector...), amp)
-    #         # wavemode(ω, k_eff, source, material; kws...)
+    #         # WaveMode(ω, k_eff, source, material; kws...)
     #     end
     #
     #     return wave_effs
@@ -52,7 +52,7 @@ using EffectiveWaves, Test
     wave_effs_arr = Vector{Vector{EffectivePlaneWaveMode{Float64,2}}}(undef,length(species))
 
     i = 1
-    wave_effs_arr[i] = wavemodes(ω, source, materials[i];
+    wave_effs_arr[i] = WaveModes(ω, source, materials[i];
         basis_order=basis_order,
         box_k = [[-18.0,18.0],[0.0,20.0]],
         num_wavenumbers = 6,
@@ -65,7 +65,7 @@ using EffectiveWaves, Test
     #     tol = tol)
 
     i = 2
-    wave_effs_arr[i] = wavemodes(ω, source, materials[i];
+    wave_effs_arr[i] = WaveModes(ω, source, materials[i];
         basis_order=basis_order,
         num_wavenumbers=6,
         tol = tol)
@@ -73,7 +73,7 @@ using EffectiveWaves, Test
 
     # Causes unreachable error..
     # for i in eachindex(species)
-    #     wave_effs_arr[i] = wavemodes(ω, source, materials[i];
+    #     wave_effs_arr[i] = WaveModes(ω, source, materials[i];
     #         basis_order=basis_order,
     #         mesh_points=5,
     #         num_wavenumbers=5,
@@ -105,15 +105,15 @@ using EffectiveWaves, Test
     R_ds = [reflection_coefficient(ω, avgs[i], source, materials[i]) for i in eachindex(species)]
     @test maximum(abs.(R_ms - R_ds)) < 8e-4
 
-    avg_eff = DiscretePlaneWaveMode(match_ws[2].x_match[end]:0.002:40, match_ws[2].wavemodes, material.shape);
+    avg_eff = DiscretePlaneWaveMode(match_ws[2].x_match[end]:0.002:40, match_ws[2].PlaneWaveModes, material.shape);
     R1 = reflection_coefficient(ω, avg_eff, source, materials[2])
-    R2 = reflection_coefficient(ω, match_ws[2].wavemodes, source, materials[2]; x=avg_eff.x[1])
+    R2 = reflection_coefficient(ω, match_ws[2].PlaneWaveModes, source, materials[2]; x=avg_eff.x[1])
     @test norm(R1 - R2) < 1e-7
 
     map(eachindex(species)) do i
         j0 = findmin(abs.(avgs[i].x .- match_ws[i].x_match[1]))[2]
         x0 = avgs[i].x[j0+1:end]
-        avg_m = DiscretePlaneWaveMode(x0, match_ws[i].wavemodes, materials[i].shape)
+        avg_m = DiscretePlaneWaveMode(x0, match_ws[i].PlaneWaveModes, materials[i].shape)
         maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:]))
         @test norm(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])/norm(avg_m.amplitudes[:]) < 1e-2
         @test maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])) < 1e-4
