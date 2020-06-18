@@ -56,7 +56,7 @@ struct EffectiveRegularWaveMode{T<:AbstractFloat,Dim,P<:PhysicalMedium{T,Dim},S<
     basis_order::Int
     basis_field_order::Int
     function EffectiveRegularWaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource{T}, material::Material{Dim}, eigenvectors::Array{Complex{T}};
-        basis_order::Int = 2, basis_field_order::Int = 4
+        basis_order::Int = 2, basis_field_order::Int = 4, kws...
     ) where {T,Dim}
 
         S = setupsymmetry(source,material)

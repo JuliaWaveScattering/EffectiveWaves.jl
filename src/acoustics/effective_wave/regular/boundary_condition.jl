@@ -1,7 +1,11 @@
 function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::Source{T,Acoustic{T,3}}, material::Material{3,Sphere{T}};
         basis_order::Int = 2,
+        basis_field_order::Int = 4,
+        source_basis_field_order::Int = Int(round(sqrt(size(eigvectors)[end]))) - 1,
         kws...
     ) where T
+    # source_basis_field_order is often chosen so that there is the same number of source coefficients a_n as the number of unknowns α_n
+    # Before was: source_basis_field_order = min(basis_field_order,Int(round(sqrt(size(eigvectors)[end])))) - 1
 
     k = real(ω / source.medium.c)
 
@@ -10,15 +14,15 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     as = outer_radius.(species)
 
     # dim 1 is the (n,n1) indices, dim 2 is the species, dim 3 are the different eigenvectors
-    eigvectors = reshape(eigvectors,(:,S,size(eigvectors,2)))
+    eigvectors = reshape(eigvectors,(:,S,size(eigvectors)[end]))
 
     R = outer_radius(material.shape)
 
+    # Set the maximmum order the basis functions
     L = basis_order
-    L1 = Int(sqrt(size(eigvectors,1) / (L+1)^2) - 1)
-
-    # setting Linc = P guarantees that there could be a one-to-one relationship between the incident wave and the solution.
-    Linc = Int(sqrt(size(eigvectors)[end]) - 1)
+    L1 = basis_field_order
+    # L1 = Int(sqrt(size(eigvectors,1) / (L+1)^2) - 1)
+    Linc = source_basis_field_order
     L2 = 2L + L1
 
     # the kernel use to wieight the species and the field's basis order.
@@ -28,13 +32,13 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     l1s = [l1 for l = 0:L for m = -l:l for l1 = 0:L1 for m1 = -l1:l1];
 
-    eigvectors = [
+    vecs = [
         eigvectors[i] * Ns[l1s[i[1]]+1,i[2]]
     for i in CartesianIndices(eigvectors)];
 
     # sum over species
-    eigvectors = sum(eigvectors, dims=2)
-    eigvectors = reshape(eigvectors, size(eigvectors)[[1,3]])
+    vecs = sum(vecs, dims=2)
+    vecs = reshape(vecs, size(eigvectors)[[1,3]])
 
     # The extinction_matrix
     function gaunt2(dl,dm,l1,m1,l,m,l2,m2)::Complex{T}
@@ -71,12 +75,12 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     for l = 0:L for m = -l:l
     for l2 = 0:L2 for m2 = -l2:l2]
 
-    α = (extinction_matrix * eigvectors) \ forcing
+    α = (extinction_matrix * vecs) \ forcing
 
-    err = norm(forcing - extinction_matrix * eigvectors * α) / norm(forcing)
+    err = norm(forcing - extinction_matrix * vecs * α) / norm(forcing)
 
     if err > sqrt(eps(T))
-        error("Extinction equation (like a boundary condition) was solved with an error: $err ")
+        @warn "Extinction equation (like a boundary condition) was solved with an error: $err for the effective wavenumber: $k_eff"
     end
 
     return α
@@ -85,8 +89,11 @@ end
 
 function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{3,Sphere{T}};
         basis_order::Int = 2,
+        basis_field_order::Int = 4,
+        source_basis_field_order::Int = size(eigvectors)[end] - 1,
         kws...
     ) where T
+    # source_basis_field_order is often chosen so that there is the same number of source coefficients a_n as the number of unknowns α_n. Before was: min(basis_field_order, size(eigvectors)[end]) - 1
 
     k = real(ω / psource.medium.c)
 
@@ -100,10 +107,11 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     R = outer_radius(material.shape)
 
     L = basis_order
-    L1 = Int((3 * size(eigvectors,1) - 3 - (2 - L) * L * (2 + L)) / (3 + 3*L*(2 + L)))
+    L1 = basis_field_order
+    # L1 = Int((3 * size(eigvectors,1) - 3 - (2 - L) * L * (2 + L)) / (3 + 3*L*(2 + L)))
+    Linc = source_basis_field_order
 
-    # Below guarantees that there is the same number of possible a_n as α_n
-    Linc = size(eigvectors,3) - 1
+    Linc = 2
     L2 = 2L + L1
 
     # the kernel use to wieight the species and the field's basis order.
@@ -113,13 +121,13 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     l1s = [l1 for l = 0:L for m = -l:l for l1 = abs(m):L1];
 
-    eigvectors = [
+    vecs = [
         eigvectors[i] * Ns[l1s[i[1]]+1,i[2]]
     for i in CartesianIndices(eigvectors)];
 
     # sum over species
-    eigvectors = sum(eigvectors, dims=2)
-    eigvectors = reshape(eigvectors, size(eigvectors)[[1,3]])
+    vecs = sum(vecs, dims=2)
+    vecs = reshape(vecs, size(vecs)[[1,3]])
 
     # The extinction_matrix
     function gaunt2(dl,dm,l1,l,m,l2)::Complex{T}
@@ -143,14 +151,13 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     for l = 0:L for m = -l:l
     for l2 = abs(m):L2]
 
-    len = Int(1 - L*(2 + L)*(L - 3*L1 - 2)/3 + L1)
-    extinction_matrix = reshape(extinction_matrix, (:,len))
+    extinction_matrix = reshape(extinction_matrix, (:,size(vecs,1)))
 
     # we expect the source direction to be aligned with the z-axis
     direction = SVector(zero(T),zero(T),one(T))
 
     if norm(abs.(psource.direction) - abs.(direction)) > eps(T)
-        warn("Plane wave source is not aligned with the z-axis. We return results with an axis that makes the source direction aligned with the z-axis")
+        warn("Plane wave source is not aligned with the z-axis. Will return results with an axis that makes the source direction aligned with the z-axis")
     end
 
     source = plane_source(psource.medium, psource.position, direction, psource.amplitude[1])
@@ -174,12 +181,12 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     # findall( abs.(forcing) .> 1e-4)
     # norm(forcing - forcing2) / norm(forcing2)
 
-    α = (extinction_matrix * eigvectors) \ forcing
+    α = (extinction_matrix * vecs) \ forcing
 
-    err = norm(forcing - extinction_matrix * eigvectors * α) / norm(forcing)
+    err = norm(forcing - extinction_matrix * vecs * α) / norm(forcing)
 
     if err > sqrt(eps(T))
-        error("Extinction equation (like a boundary condition) was solved with an error: $err ")
+        @warn "Extinction equation (like a boundary condition) was solved with an error: $err for the effective wavenumber: $k_eff"
     end
 
     return α

@@ -9,16 +9,18 @@ end
 include("complex.jl")
 
 # Single effective wavenumber tests
-    @time include("single-wavenumber/strong_low_freq_effective.jl")
-    @time include("single-wavenumber/high_frequency_effective.jl")
+    @time include("effective-2D/strong_low_freq_effective.jl")
+    @time include("effective-2D/high_frequency_effective.jl")
 
-    @time include("single-wavenumber/large_vol_low_freq_effective.jl")
-    @time include("single-wavenumber/weak_scatterers_effective.jl")
-    @time include("single-wavenumber/low_volume_fraction.jl")
+    @time include("effective-2D/large_vol_low_freq_effective.jl")
+    @time include("effective-2D/weak_scatterers_effective.jl")
 
 
 # Eigensystems for different symmetries (i.e. a sphere fille with particles or a halfspace filled with particles)
-    @time include("eigensystem/equivalent-symmetries.jl")
+    @time include("effective-3D/equivalent-symmetries.jl")
+    @time include("effective-3D/fourth-order-matrix.jl")
+    @time include("effective-3D/low_volume_fraction.jl")
+    @time include("effective-3D/low_frequency.jl")
 
 # test equivalence between methods for finding wavenumbers
     # test does not run on Julia version < 0.7 due to differences in Optim versions

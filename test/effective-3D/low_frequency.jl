@@ -1,0 +1,66 @@
+using EffectiveWaves, Test, LinearAlgebra
+
+@testset "low frequency 3D acoustics" begin
+
+spatial_dim = 3
+medium = Acoustic(spatial_dim; ρ=1.2, c=1.5)
+
+# ms = MultipleScattering # just in case Circle and Sphere conflict with definitions from other packages.
+
+s1 = Specie(
+    Acoustic(spatial_dim; ρ=10.2, c=10.1), Sphere(0.001);
+    volume_fraction=0.2
+);
+s2 = Specie(
+    Acoustic(spatial_dim; ρ=0.2, c=4.1), Sphere(0.0002);
+    volume_fraction=0.15
+);
+species = [s1,s2]
+
+ω = 1e-1
+tol = 1e-7
+basis_order = 1
+
+θ = 0.0
+psource = PlaneSource(medium, [sin(θ),0.0,cos(θ)]);
+source = plane_source(medium; direction = [sin(θ),0.0,cos(θ)])
+material = Material(Sphere(4.0),species);
+
+basis_field_order = 3
+
+k = ω / medium.c
+ko = k * medium.c / s1.particle.medium.c
+
+opts = Dict(
+    :tol => tol, :num_wavenumbers => 2,
+    :mesh_size => 2.0, :mesh_points => 20,
+    :basis_order => basis_order, :basis_field_order => basis_field_order
+);
+AP_kps = wavenumbers(ω, medium, species; symmetry = PlanarAzimuthalSymmetry(), opts...)
+
+k_eff = AP_kps[1]
+
+eff_medium = effective_medium(medium, species)
+effective_sphere = Particle(eff_medium, material.shape)
+
+k_low = ω/eff_medium.c
+
+@test abs(k_eff - k_low) / abs(k_low) < tol
+
+A_wave = WaveMode(ω, k_eff, psource, material;
+    basis_order = basis_order, basis_field_order = basis_field_order);
+
+scat_azi = material_scattering_coefficients(A_wave);
+
+Linc = basis_field_order + basis_order
+
+Tmat = MultipleScattering.t_matrix(effective_sphere, medium, ω, Linc)
+t_diag = [Tmat[i,i] for i in axes(Tmat,1)]
+
+n_to_l = [l for l = 0:Linc for m = -l:l];
+source_coefficients = source.coefficients(Linc,zeros(3),ω);
+
+@test norm(scat_azi - t_diag[n_to_l .+ 1] .* source_coefficients) / norm(source_coefficients) <
+maximum(outer_radius.(species)) * abs(k)
+
+end

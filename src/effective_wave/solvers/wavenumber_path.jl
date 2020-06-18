@@ -53,11 +53,11 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species
                [zero(T),-one(T)]
            end
         end
+        deleteat!(k_vecs, findall(v-> v == [zero(T),-one(T)], k_vecs) )
         k_vecs = reduce_kvecs(k_vecs, T(10)*tol)
 
         # Delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
-        # deleteat!(k_vecs, findall(dispersion.(k_vecs) .> low_tol))
-        deleteat!(k_vecs, findall([k_vec[2] < -sqrt(tol) for k_vec in k_vecs]))
+        # deleteat!(k_vecs, findall([k_vec[2] < -sqrt(tol) for k_vec in k_vecs]))
         # delete wave travelling in wrong direction with small attenuation
         deleteat!(k_vecs, findall([-low_tol < abs(k_vec[2])/k_vec[1] < zero(T) for k_vec in k_vecs]))
         # deleteat!(k_vecs, find(k_vec[2] < tol && k_vec[1] < tol for k_vec in k_vecs))
@@ -90,6 +90,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species
                     [zero(T),-one(T)]
                 end
             end
+            deleteat!(hits, findall(v-> v == [zero(T),-one(T)], hits) )
             k_vecs = reduce_kvecs([hits;k_vecs], T(10)*tol)
             sort!(k_vecs, by= kv -> kv[2])
 
@@ -163,6 +164,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species
                 new_targets = Vector{T}[
                         (findmin([norm(h - kvec) for kvec in k_vecs])[1] > low_tol) ? h : [zero(T),-one(T)]
                 for h in new_targets]
+                deleteat!(new_targets, findall(v-> v == [zero(T),-one(T)], new_targets))
                 new_targets = reduce_kvecs(new_targets, low_tol)
 
                 # Here we refine the new roots
@@ -179,6 +181,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species
                 new_targets = [
                         (findmin([norm(h - kvec) for kvec in k_vecs])[1] > 10*tol) ? h : [zero(T),-one(T)]
                 for h in new_targets]
+                deleteat!(new_targets, findall(v-> v == [zero(T),-one(T)], new_targets))
                 new_targets = reduce_kvecs(new_targets, T(10)*tol)
 
                 if verbose println("New roots: $(new_targets)") end
@@ -191,8 +194,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species
         end
 
     # Finally delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
-    # deleteat!(k_vecs, find(k_vec[2] < -T(10)*tol for k_vec in k_vecs))
-    deleteat!(k_vecs, findall([k_vec[2] < -sqrt(tol) for k_vec in k_vecs]))
+    # deleteat!(k_vecs, findall([k_vec[2] < -sqrt(tol) for k_vec in k_vecs]))
     # deleteat!(k_vecs, find(k_vec[2] < tol && k_vec[1] < tol for k_vec in k_vecs))
     deleteat!(k_vecs, findall([-low_tol < abs(k_vec[2])/k_vec[1] < zero(T) for k_vec in k_vecs]))
 

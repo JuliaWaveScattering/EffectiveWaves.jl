@@ -1,6 +1,6 @@
 using EffectiveWaves, Test
 
-# This case is numerically challenging, because wavenumber() has many roots close together. Make sure spacing in ωs is small to help the optimisation method
+# This case is numerically challenging, because wavenumber() has many roots close together. Make sure spacing in ω is small to help the optimisation method
 @testset "strong scatterers and low frequency" begin
     medium = Acoustic(2; ρ=1.0, c=1.0)
     spatial_dim = 2

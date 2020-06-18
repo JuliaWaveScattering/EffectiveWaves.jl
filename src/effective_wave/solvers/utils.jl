@@ -40,6 +40,10 @@ NelderMeadparameters(;α = 1.0, β = 1.0, γ = 1.0, δ = 0.5)::Optim.FixedParame
 reduce_kvecs(vec::Vector,tol) = vec
 
 function reduce_kvecs(vecs::Vector{Vector{T}},tol::T) where T<:AbstractFloat
+    # All wavenumbers should attenuate
+    inds = findall([w[2] < -tol for w in vecs])
+    vecs[inds] = - vecs[inds]
+
     all_inds = collect(eachindex(vecs))
     vecs = map(vecs) do w
         ind_ins = findall([norm(v - w) < tol for v in vecs[all_inds]])
@@ -47,32 +51,25 @@ function reduce_kvecs(vecs::Vector{Vector{T}},tol::T) where T<:AbstractFloat
         deleteat!(all_inds,ind_ins)
         isempty(inds) ? [zero(T),-one(T)] :  mean(vecs[inds])
     end
-    vecs = deleteat!(vecs,
-        findall(
-            [
-                w[2] < -tol || w == [zero(T),-one(T)]
-            for w in vecs]
-        )
-    )
+    vecs = deleteat!(vecs, findall(v-> v == [zero(T),-one(T)], vecs) )
 
     return vecs
 end
 
 function reduce_kvecs(ks::Vector{Complex{T}},tol::T) where T<:AbstractFloat
+    # All wavenumbers should attenuate
+    inds = findall(imag.(ks) .< -tol)
+    ks[inds] = - ks[inds]
+
     all_inds = collect(eachindex(ks))
-    vecs = map(ks) do w
+    ks = map(ks) do w
         ind_ins = findall([norm(v - w) < tol for v in ks[all_inds]])
         inds = all_inds[ind_ins]
         deleteat!(all_inds,ind_ins)
         isempty(inds) ? zero(T)-one(T)*im :  mean(ks[inds])
     end
-    ks = deleteat!(vecs,
-        findall(
-            [
-                imag(w) < -tol || w == zero(T)-one(T)*im
-            for w in vecs]
-        )
-    )
+
+    ks = deleteat!(ks, findall(ks .== zero(T)-one(T)*im))
 
     return ks
 end

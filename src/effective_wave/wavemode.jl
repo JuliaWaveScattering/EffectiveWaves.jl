@@ -3,7 +3,10 @@ eigensystem(ω::T, source::AbstractSource{T}, material::Material; kws...) where 
 "Calculates the effective wavenumbers and return Vector{EffectivePlaneWaveMode}."
 function WaveModes(ω::T, source::AbstractSource, material::Material{Dim,S,Sps}; kws...) where {T,Dim,S<:Shape{T,Dim},Sps<:Species{T,Dim}} # without the parametric types we get a "Unreachable reached" error
 
+    # The wavenumbers are calculated without knowledge of the materail symmetry. This is because the plane-wave symmetry leads to all possible wavenumbers and is simple to calculate.
     k_effs = wavenumbers(ω, source.medium, material.species; kws... )
+
+    # The wavemodes need to know the material symmetry as the eigenvectors do depend on material shape and symetry.
     wave_effs = [
         WaveMode(ω, k_eff, source, material; kws...)
     for k_eff in k_effs]

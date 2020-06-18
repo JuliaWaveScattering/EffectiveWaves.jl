@@ -7,7 +7,7 @@ using LinearAlgebra
     medium = Acoustic(2; ρ=1.0, c=1.0)
     ω = 1.0
 
-    tol = 1e-9
+    tol = 1e-8
     basis_order=0
     θ = pi/4
 
@@ -24,9 +24,9 @@ using LinearAlgebra
     # the position of the wavenumbers for basis_order=0 is really spread out. Ultimately need to rewrite box_keff based on asymptotics roots.
     k_effs = wavenumbers(ω, medium, [specie];
         tol = tol,
-        box_k = [[-65.0,65.0],[0.0,7.5]],
+        box_k = [[-65.0,65.0],[0.0,8.5]],
         basis_order = basis_order,
-        num_wavenumbers = 30);
+        num_wavenumbers = 40);
 
     wave_effs = [
         wavemode_wienerhopf(ω, k_eff, source, material;
@@ -37,8 +37,8 @@ using LinearAlgebra
 
     match_ws = MatchPlaneWaveMode(ω, source, material;
         basis_order = basis_order,
-        tol = tol/10., wave_effs = wave_effs,
-        max_size = 1000,
+        tol = tol, wave_effs = wave_effs,
+        max_size = 1400,
     );
 
     inds = Int.(round.(LinRange(1,length(wave_effs),5)))
@@ -49,5 +49,5 @@ using LinearAlgebra
 
     # errors should be monotonically decreasing
     @test sort(errors; rev=true) == errors
-    @test errors[end] < 0.07 # previously was < 0.05 before when transmission angle was limited to propagate into the material
+    @test errors[end] < 0.08 # previously was < 0.05 before when transmission angle was limited to propagate into the material
 end

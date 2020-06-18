@@ -13,14 +13,14 @@ function wavenumbers(ω::T, medium::PhysicalMedium{T}, species::Species{T};
 
     if num_wavenumbers > 2
         box_k = box_keff(ω, medium, species; tol = tol)
-        max_imag = 2.0 * maximum(imag.(k_effs))
+        max_imag = 3.0 * maximum(imag.(k_effs))
         max_imag = max(max_imag, box_k[2][2])
         max_real = 2.0 * maximum(real.(k_effs))
         max_real = max(max_real, box_k[1][2])
         box_k = [[-max_real,max_real], [0.0,max_imag]]
 
         k_effs2 = wavenumbers_bisection(ω, medium, species;
-            num_wavenumbers=num_wavenumbers,
+            # num_wavenumbers=num_wavenumbers,
             tol = tol, box_k = box_k,
             kws...)
         k_effs = [k_effs; k_effs2]

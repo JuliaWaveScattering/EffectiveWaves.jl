@@ -17,6 +17,7 @@ include("effective_wave/halfspace/wavemode-wienerhopf.jl")
 # regular means a smooth field assumption and includes cases such as a sphere filled with particles.
 include("effective_wave/regular/eigensystem.jl")
 include("effective_wave/regular/boundary_condition.jl")
+include("effective_wave/regular/material_scattering_coefficients.jl")
 
 include("effective_wave/far_fields.jl")
 include("effective_wave/low_volumefraction.jl")

@@ -6,21 +6,37 @@ medium = Acoustic(spatial_dim; ρ=1.2, c=1.5)
 # ms = MultipleScattering # just in case Circle and Sphere conflict with definitions from other packages.
 
 s1 = Specie(
-    Acoustic(spatial_dim; ρ=10.2, c=10.1), Sphere(0.4);
+    Acoustic(spatial_dim; ρ=10.2, c=10.1), Sphere(0.004);
+    # Acoustic(spatial_dim; ρ=10.2, c=10.1), Sphere(0.4);
     volume_fraction=0.2
     # volume_fraction=0.01
 );
 s2 = Specie(
-    Acoustic(spatial_dim; ρ=5.2, c=4.1), Sphere(0.3);
+    Acoustic(spatial_dim; ρ=5.2, c=4.1), Sphere(0.003);
+    # Acoustic(spatial_dim; ρ=5.2, c=4.1), Sphere(0.3);
     volume_fraction=0.1
 );
 species = [s1,s2]
 species = [s1]
 
-ω = 1e-5
-# ω = 0.4
+ω = 1e-1
+# ω = 0.2
 tol = 1e-7
-basis_order = 2
+basis_order = 1
+# basis_order = 2
+
+θ = 0.0
+psource = PlaneSource(medium, [sin(θ),0.0,cos(θ)]);
+source = plane_source(medium; direction = [sin(θ),0.0,cos(θ)])
+material = Material(Sphere(4.0),species);
+
+# x = rand(3)
+# field(source,x,ω) - field(psource,x,ω)
+
+R = outer_radius(material.shape)
+# basis_field_order = estimate_regular_basisorder(typeof(source.medium), R * k_eff )
+# basis_field_order = 3
+basis_field_order = 3
 
 k = ω / medium.c
 ko = k * medium.c / s1.particle.medium.c
@@ -34,29 +50,15 @@ k_phi = wavenumber_low_volumefraction(ω, medium, species;
 #     num_wavenumbers = 3, tol = tol,
 #     symmetry = PlanarAzimuthalSymmetry())
 
-AP_kps = wavenumbers(ω, medium, species;
-    basis_order = basis_order,
-    num_wavenumbers = 2, tol = tol,
-    mesh_size = 2.0,
-    mesh_points = 10,
-    symmetry = PlanarAzimuthalSymmetry())
 
-# A_kps = wavenumbers(ω, medium, species;
-#     basis_order = 0,
-#     basis_field_order = 0,
-#     num_wavenumbers = 2, tol = tol,
-#     mesh_size = 2.0,
-#     mesh_points = 10,
-#     symmetry = AzimuthalSymmetry())
+opts = Dict(
+    :tol => tol, :num_wavenumbers => 6,
+    :mesh_size => 2.0, :mesh_points => 20,
+    :basis_order => basis_order, :basis_field_order => basis_field_order
+);
+AP_kps = wavenumbers(ω, medium, species; symmetry = PlanarAzimuthalSymmetry(), opts...)
 
-
-θ = 0.0
-material = Material(Sphere(4.0),species);
-psource = PlaneSource(medium, [sin(θ),0.0,cos(θ)]);
-source = plane_source(medium; direction = [sin(θ),0.0,cos(θ)])
-
-x = rand(3)
-field(source,x,ω) - field(psource,x,ω)
+# wavemodes = WaveModes(ω, source, material; opts...)
 
 k_eff = AP_kps[1]
 # k_eff = A_kps[1]
@@ -68,31 +70,56 @@ eff_medium.c
 ω / k_eff
 ω / k_phi
 
-R = outer_radius(material.shape)
-basis_field_order = estimate_regular_basisorder(typeof(source.medium), R * k_eff )
-basis_field_order = 3
-# basis_field_order = 0
-# basis_order = 0
-
 setupsymmetry(source, material)
 setupsymmetry(psource, material)
 
+k_eff = AP_kps[2]
+k_eff = AP_kps[1]
+
 A_wave = WaveMode(ω, k_eff, psource, material;
-    basis_order = basis_order, basis_field_order = basis_field_order)
+    basis_order = basis_order, basis_field_order = basis_field_order);
+
+scat_azi = material_scattering_coefficients(A_wave);
 
 R_wave = WaveMode(ω, k_eff, source, material;
-    basis_order = basis_order, basis_field_order = basis_field_order)
+    basis_order = basis_order, basis_field_order = basis_field_order);
+
+scat_reg = material_scattering_coefficients(R_wave);
+
+norm(scat_azi - scat_reg) / norm(scat_azi)
+
+Linc = basis_field_order + basis_order
+
+effective_sphere = Particle(eff_medium, material.shape)
+
+medium3 = Acoustic(spatial_dim; ρ=0.2, c=0.1)
+medium3 = eff_medium
+effective_sphere = Particle(medium3, material.shape)
+
+Tmat = MultipleScattering.t_matrix(effective_sphere, medium, ω, Linc)
+t_diag = [Tmat[i,i] for i in axes(Tmat,1)]
 
 
-MMvecs = eigenvectors(ω, k_eff, source, material;
-        basis_order = basis_order,
-        basis_field_order = basis_field_order)
+# medium2 = Acoustic(2; ρ=0.2, c=0.1)
+# effective_sphere = Particle(medium2, Circle(outer_radius(material.shape)))
+# outer_medium2 = Acoustic(2; ρ=1.0, c=1.0)
+# Tmat = MultipleScattering.t_matrix(effective_sphere, outer_medium2, ω, Linc)
 
-MAvecs = eigenvectors(ω, k_eff, psource, material;
-        tol::T = 1e-4,
-        basis_order = basis_order,
-        basis_field_order = basis_field_order)
+p = effective_sphere
+outer_medium = medium
+basis_order = Linc
 
+n_to_l = [l for l = 0:Linc for m = -l:l];
+
+inds_azi = findall([
+    m == 0
+for l = 0:Linc for m = -l:l]);
+
+source_coefficients = source.coefficients(Linc,zeros(3),ω);
+
+t_diag = [Tmat[i,i] for i in axes(Tmat,1)];
+
+norm(scat_azi - t_diag[n_to_l .+ 1] .* source_coefficients) / norm(scat_azi)
 
 
 MA = eigensystem(ω, psource, material;
@@ -118,12 +145,28 @@ det(MA(k_phi))
 MM_svd = svd(MM(k_eff))
 MM_svd.S
 inds = findall(MM_svd.S .< 1e-4)
+# 9 -> 48
 eigvectors = MM_svd.V[:,inds]
 
 MM_svd = svd(MA(k_eff))
 MM_svd.S
 inds = findall(MM_svd.S .< 1e-4)
+# 3 -> 10
 eigvectors = MM_svd.V[:,inds]
+
+eigvectors = eigenvectors(ω, k_eff, source, material;
+        basis_order = basis_order,
+        basis_field_order = basis_field_order
+)
+
+eigvectors = eigenvectors(ω, k_eff, psource, material;
+        basis_order = basis_order,
+        basis_field_order = basis_field_order
+)
+
+sum(eigvectors[i] * α[i[2]] for i in CartesianIndices(eigvectors), dims = 2)
+
+
 
 
 T = Float64

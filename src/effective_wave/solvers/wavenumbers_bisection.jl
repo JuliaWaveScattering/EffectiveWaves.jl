@@ -75,6 +75,7 @@ function wavenumbers_bisection(ω::T, medium::PhysicalMedium{T,Dim}, species::Sp
             [zero(T),-one(T)]
         end
     end
+    sols = deleteat!(sols, findall(v-> v == [zero(T),-one(T)], sols))
     sols = reduce_kvecs(sols, T(10) * tol * ko)
 
     k_effs = [sol[1] + sol[2]*im for sol in sols]
