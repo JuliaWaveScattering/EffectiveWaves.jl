@@ -2,7 +2,7 @@
 function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species{T,Dim};
         symmetry::AbstractSetupSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(),
         tol::T = 1e-5,
-        mesh_points::Int = 2, mesh_size::T = one(T) * mesh_points / T(2),
+        mesh_points::Int = 2, mesh_size::Number = one(T) * mesh_points / T(2),
         num_wavenumbers = 3,
         max_Imk::T = T(2) + T(20) * imag(wavenumber_low_volumefraction(ω, medium, species; verbose = false)),
         verbose::Bool = false,
@@ -37,7 +37,8 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species
         dispersion(vec::Vector{T}) = dispersion_dim((vec[1] + vec[2]*im) .* kscale)
 
         k_vecs = [
-            optimize(dispersion, kvec, Optim.Options(x_tol=low_tol, g_tol = low_tol^3)
+            optimize(dispersion, kvec, #inner_optimizer,
+            Optim.Options(x_tol=low_tol, g_tol = low_tol^3)
             ).minimizer
         for kvec in k_vecs]
         k_vecs = reduce_kvecs(k_vecs, low_tol/10)
@@ -90,6 +91,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species
                     [zero(T),-one(T)]
                 end
             end
+            # deleteat!(hits, findall([-low_tol < abs(k_vec[2])/k_vec[1] < zero(T) for k_vec in hits]))
             deleteat!(hits, findall(v-> v == [zero(T),-one(T)], hits) )
             k_vecs = reduce_kvecs([hits;k_vecs], T(10)*tol)
             sort!(k_vecs, by= kv -> kv[2])

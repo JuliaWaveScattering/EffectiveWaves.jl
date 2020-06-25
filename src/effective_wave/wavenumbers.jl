@@ -11,6 +11,7 @@ function wavenumbers(ω::T, medium::PhysicalMedium{T}, species::Species{T};
     k_effs = wavenumbers_path(ω, medium, species;
     num_wavenumbers = 2, tol = tol, kws...)
 
+    # NOTE: these search methods would significantly improve if we used the asymptotic result for multiple wavenumbers and monopole scatterers. This would give a reasonable length scale and on where to search.
     if num_wavenumbers > 2
         box_k = box_keff(ω, medium, species; tol = tol)
         max_imag = 3.0 * maximum(imag.(k_effs))

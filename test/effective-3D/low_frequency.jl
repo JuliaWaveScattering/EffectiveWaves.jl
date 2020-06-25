@@ -17,7 +17,7 @@ s2 = Specie(
 );
 species = [s1,s2]
 
-ω = 1e-1
+ωs = LinRange(1e-2,1e-1,3)
 tol = 1e-7
 basis_order = 1
 
@@ -28,39 +28,47 @@ material = Material(Sphere(4.0),species);
 
 basis_field_order = 3
 
-k = ω / medium.c
-ko = k * medium.c / s1.particle.medium.c
+ks = ωs ./ medium.c
 
 opts = Dict(
     :tol => tol, :num_wavenumbers => 2,
-    :mesh_size => 2.0, :mesh_points => 20,
+    :mesh_size => 2.0, :mesh_points => 10,
     :basis_order => basis_order, :basis_field_order => basis_field_order
 );
-AP_kps = wavenumbers(ω, medium, species; symmetry = PlanarAzimuthalSymmetry(), opts...)
+AP_kps = [
+    wavenumbers(ω, medium, species; symmetry = PlanarAzimuthalSymmetry(), opts...)
+for ω in ωs]
 
-k_eff = AP_kps[1]
+k_effs = [kps[1] for kps in AP_kps]
 
 eff_medium = effective_medium(medium, species)
 effective_sphere = Particle(eff_medium, material.shape)
 
-k_low = ω/eff_medium.c
+k_lows = ωs ./ eff_medium.c
 
-@test abs(k_eff - k_low) / abs(k_low) < tol
+errs = abs.(k_effs - k_lows)
+@test errs[1] < errs[2] < errs[3]
+@test maximum(errs) < tol
+@test errs[1] < 10.0 * tol^2
 
-A_wave = WaveMode(ω, k_eff, psource, material;
-    basis_order = basis_order, basis_field_order = basis_field_order);
+A_waves = [
+    WaveMode(ωs[i], k_effs[i], psource, material;
+        basis_order = basis_order, basis_field_order = basis_field_order)
+for i in eachindex(k_effs)]
 
-scat_azi = material_scattering_coefficients(A_wave);
+scat_azis = material_scattering_coefficients.(A_waves);
 
 Linc = basis_field_order + basis_order
 
-Tmat = MultipleScattering.t_matrix(effective_sphere, medium, ω, Linc)
-t_diag = [Tmat[i,i] for i in axes(Tmat,1)]
-
 n_to_l = [l for l = 0:Linc for m = -l:l];
-source_coefficients = source.coefficients(Linc,zeros(3),ω);
 
-@test norm(scat_azi - t_diag[n_to_l .+ 1] .* source_coefficients) / norm(source_coefficients) <
-maximum(outer_radius.(species)) * abs(k)
+errs =  map(eachindex(ωs)) do i
+    source_coefficients = source.coefficients(Linc,zeros(3),ωs[i])
+    Tmat = MultipleScattering.t_matrix(effective_sphere, medium, ωs[i], Linc)
+    norm(scat_azis[i] - diag(Tmat)[n_to_l .+ 1] .* source_coefficients) / norm(source_coefficients)
+end
+
+@test sum(errs .< 10.0 *  maximum(outer_radius.(species)) .* abs.(ks)) == length(ks)
+@test errs[1] < tol
 
 end
