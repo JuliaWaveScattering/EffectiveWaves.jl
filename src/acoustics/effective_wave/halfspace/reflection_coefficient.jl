@@ -1,3 +1,5 @@
+reflection_coefficient(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim}, material::Material{Dim,Halfspace{T,Dim}}; kws...) where {T,Dim} = reflection_coefficient(ω, WaveMode(ω, wavenumber, psource, material), psource, material; kws...)
+
 "The average reflection coefficient"
 function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
         x::T = zero(T), kws...) where T<:Number
@@ -17,7 +19,7 @@ function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psou
     R = 2.0im / (kcos_in * kθ)
     R = R*sum(
         exp(im*n*θ_ref + im*x*kθ) * number_density(material.species[l]) *
-        wave_eff.amplitudes[n+ho+1,l]
+        sum(wave_eff.amplitudes[n+ho+1,l,:])
     for n=-ho:ho, l=1:S)
 
     return R

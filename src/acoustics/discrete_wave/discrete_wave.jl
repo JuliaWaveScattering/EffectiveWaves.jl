@@ -3,7 +3,7 @@ Here they are discretised in terms of the depth x of the halfspace"
 mutable struct DiscretePlaneWaveMode{T<:AbstractFloat}
     basis_order::Int # largest hankel order
     x::Vector{T} # spatial mesh
-    amplitudes::Array{Complex{T}} # a matrix of the scattering amplitudes, size(A_mat) = (length(x), 2basis_order +1)
+    amplitudes::Array{Complex{T}} # a matrix of the scattering amplitudes, size(A_mat) = (length(x), 2basis_order +1, number_of_species)
     # Enforce that the dimensions are correct
     function DiscretePlaneWaveMode{T}(basis_order::Int, x::Vector{T}, amplitudes::Array{Complex{T}}) where T <: AbstractFloat
         if (length(x), 2*basis_order+1) != size(amplitudes)[1:2]
@@ -40,9 +40,10 @@ function DiscretePlaneWaveMode(xs::AbstractVector{T}, wave_eff::EffectivePlaneWa
     kcos_eff = wave_eff.wavenumber * dot(-conj(halfspace.normal), wave_eff.direction)
 
     S = size(amps,2)
+    P = size(amps,3)
 
     average_amps = [
-        im^T(m)*exp(-im*m*θ_eff)*amps[m+ho+1,s]*exp(im*kcos_eff*x)
+        im^T(m)*exp(-im*m*θ_eff)*sum(amps[m+ho+1,s,:])*exp(im*kcos_eff*x)
     for x in xs, m=-ho:ho, s=1:S]
 
     return DiscretePlaneWaveMode(ho,xs,average_amps)

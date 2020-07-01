@@ -39,7 +39,8 @@ function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T,2}}, L::
         [
             sum(
                 exp(im*m*(θin - θ_effs[i]) + im*X[L]*(kcos_effs[i] - cos_in)) *
-                number_density(species[s]) * wave_effs[i].amplitudes[m+ho+1,s]
+                number_density(species[s]) *
+                sum(wave_effs[i].amplitudes[m+ho+1,s,:])
             for m = -ho:ho, s = 1:S) / (cos_in * (kcos_effs[i] - cos_in))
         for i in eachindex(wave_effs)]
 
@@ -48,16 +49,16 @@ function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T,2}}, L::
             T(2) * (-im)^T(m-1) * number_density(species[s]) * exp(im*m*θin - im*X[j] * cos_in) * σ[j] / cos_in
     for j = 1:(J+1), m = -ho:ho, s = 1:S]
 
-    avg_wave_effs = [DiscretePlaneWaveMode(X, wave, material.shape) for wave in wave_effs]
+    discrete_waves = [DiscretePlaneWaveMode(X, wave, material.shape) for wave in wave_effs]
     vs = [
-        [w.amplitudes[j,n+ho+1,1] for w in avg_wave_effs]
+        [w.amplitudes[j,n+ho+1,1] for w in discrete_waves]
     for j = L:(J+1), n = -ho:ho]
 
     invV = inv(sum(conj(vs)[inds] * transpose(vs[inds])  for inds in eachindex(vs)))
     inv_w = one(T)/(transpose(w_vec)*invV*conj(w_vec))
 
     YTs = [
-            invV * [(j < L) ? zero(Complex{T}) : conj(w.amplitudes[j,n+ho+1,1]) for w in avg_wave_effs]
+            invV * [(j < L) ? zero(Complex{T}) : conj(w.amplitudes[j,n+ho+1,1]) for w in discrete_waves]
         for j = 1:(J+1), n = -ho:ho]
     YT = hcat(YTs...)
 
@@ -72,7 +73,7 @@ function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T,2}}, L::
             sum(
                 (number_density(species[s])/(k^2)) * t_vecs[s][m+ho+1,m+ho+1] * im^T(n+1) * S_mat[J-l,n-m] *
                 exp(im*X[J+1] * kcos_effs[p] - im*n*θ_effs[p]) *
-                 wave_effs[p].amplitudes[n+ho+1] / (kcos_effs[p] + cos_in)
+                 wave_effs[p].amplitudes[n+ho+1,1,1] / (kcos_effs[p] + cos_in)
             for n = -ho:ho, s = 1:S)
         for l = 0:J, p in eachindex(wave_effs)]
     for m = -ho:ho]

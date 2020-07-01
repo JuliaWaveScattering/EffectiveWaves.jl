@@ -50,13 +50,13 @@ function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, mat
         end
     end
 
-    avg_wave_effs = [
+    discrete_waves = [
         DiscretePlaneWaveMode(X[L_match:L_match+1], w, material.shape)
     for w in wave_non_effs]
 
     wave_non_effs = map(eachindex(wave_non_effs)) do i
         w = wave_non_effs[i]
-        amps = w.amplitudes / norm(avg_wave_effs[i].amplitudes[1,:,1])
+        amps = w.amplitudes / norm(discrete_waves[i].amplitudes[1,:,1])
         EffectivePlaneWaveMode(ω, w.wavenumber, w.basis_order, w.direction, amps)
     end
 

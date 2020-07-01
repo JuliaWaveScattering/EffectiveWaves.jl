@@ -11,9 +11,11 @@ end
         apply = real, match_region = true) where T <: AbstractFloat
 
     ho = basis_order
-    wave_eff = DiscretePlaneWaveMode(match_wave.x_match, match_wave.PlaneWaveModes)
-    max_amp = maximum(apply.(wave_eff.amplitudes[:,(hankel_indexes) .+ (ho+1),:]))
-    min_amp = minimum(apply.(wave_eff.amplitudes[:,(hankel_indexes) .+ (ho+1),:]))
+    i1 = findmin(abs.(match_wave.discrete_wave.x .- match_wave.x_match[1]))[2]
+    i2 = findmin(abs.(match_wave.discrete_wave.x .- match_wave.x_match[end]))[2]
+
+    max_amp = maximum(apply.(match_wave.discrete_wave.amplitudes[i1:i2,(hankel_indexes) .+ (ho+1),:]))
+    min_amp = minimum(apply.(match_wave.discrete_wave.amplitudes[i1:i2,(hankel_indexes) .+ (ho+1),:]))
 
     max_amp = (max_amp > 0) ? 1.1*max_amp : 0.0
     min_amp = (min_amp < 0) ? 1.1*min_amp : 0.0
