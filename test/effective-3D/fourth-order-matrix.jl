@@ -1,4 +1,13 @@
 using EffectiveWaves, Test, LinearAlgebra
+
+# # Had to remove from testset block do to strange scoping error
+# function randlm(order)
+#     l = rand(0:order)
+#     m = rand(-l:l)
+#     return l, m
+# end
+
+
 @testset "fourth order matrix test" begin
 
     L = 2
@@ -20,8 +29,8 @@ using EffectiveWaves, Test, LinearAlgebra
     for l2 = 0:L1 for m2 = -l2:l2]
 
     function randlm(order)
-        l = rand(0:order)
-        m = rand(-l:l)
+        local l = rand(0:order) # need unique names due to scoping
+        local m = rand(-l:l)
         return l, m
     end
 
@@ -42,3 +51,19 @@ using EffectiveWaves, Test, LinearAlgebra
     @test ((l,m),(l2,m2),(dl,dm),(l1,m1)) == B[(n - 1) * (L1+1)^2 + n2, (dn - 1) * (L1+1)^2 + n1]
 
 end
+# @testset "MyTest" begin
+#
+#     function myfun(m)
+#         n = m
+#         return n
+#     end
+#
+#     n = myfun(1)
+#
+#     println("n = ", n)
+#
+#     myfun(3) # <-- changes n to 3
+#
+#     println("n = ", n)
+#
+# end

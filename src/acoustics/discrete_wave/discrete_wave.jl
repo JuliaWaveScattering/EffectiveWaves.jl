@@ -41,9 +41,12 @@ function DiscretePlaneWaveMode(xs::AbstractVector{T}, wave_eff::EffectivePlaneWa
 
     S = size(amps,2)
     P = size(amps,3)
+    if P > 1
+        @warn "The plane-wave has more than one eigenvector, which is unexpected. Using only the first. This occured for: ω = $(wave_eff.ω) and wavenumber = $(wave_eff.wavenumber)"
+    end
 
     average_amps = [
-        im^T(m)*exp(-im*m*θ_eff)*sum(amps[m+ho+1,s,:])*exp(im*kcos_eff*x)
+        im^T(m)*exp(-im*m*θ_eff) * amps[m+ho+1,s,1] * exp(im*kcos_eff*x)
     for x in xs, m=-ho:ho, s=1:S]
 
     return DiscretePlaneWaveMode(ho,xs,average_amps)
@@ -52,11 +55,15 @@ end
 "Calculates an DiscretePlaneWaveMode from a vector of EffectiveWave"
 function DiscretePlaneWaveMode(xs::AbstractVector{T}, wave_effs::Vector{EffectivePlaneWaveMode{T,Dim}}, halfspace::Halfspace{T}) where {T<:Number,Dim}
 
-    ho = wave_effs[1].basis_order
-    avg_wave_effs = [DiscretePlaneWaveMode(xs, wave, halfspace) for wave in wave_effs]
-    amps = sum(avg_wave_effs[i].amplitudes[:,:,:] for i in eachindex(avg_wave_effs))
+    N = wave_effs[1].basis_order
+    if !isempty(findall([w.basis_order != N for w in wave_effs]))
+        @error "The effective waves $wave_effs have different orders, so they can not be combined into a discrete wave"
+    end
 
-    return DiscretePlaneWaveMode(ho, xs, amps)
+    discrete_waves = [DiscretePlaneWaveMode(xs, wave, halfspace) for wave in wave_effs]
+    amps = sum(discrete_waves[i].amplitudes[:,:,:] for i in eachindex(discrete_waves))
+
+    return DiscretePlaneWaveMode(N, xs, amps)
 end
 
 
@@ -135,11 +142,12 @@ function x_mesh(wave_eff_long::EffectivePlaneWaveMode{T}, wave_eff_short::Effect
         tol::T = T(1e-5),  a12::T = T(Inf),
         max_size::Int = 1000,
         min_size::Int = 5,
-        max_x::T = -log(tol) / abs(imag(wave_eff_short.wavenumber))
+        max_x::T = -log(tol) / abs(imag(wave_eff_long.wavenumber))
+        # max_x::T = -log(tol) / abs(imag(wave_eff_short.wavenumber))
         # max_x::T = (-log(tol))/abs(cos(wave_eff_long.θ_eff)*imag(wave_eff_long.k_eff))
 ) where T<:AbstractFloat
 
-    #= The default max_x result in:
+    #= The default max_x results in:
         abs(exp(im*max_x*cos(θ_effs[end])*k_effs[end]/k)) < tol
     =#
     # estimate a reasonable derivative based on more rapidly varying wave_eff_short.

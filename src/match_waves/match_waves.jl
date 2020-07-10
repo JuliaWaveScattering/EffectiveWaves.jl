@@ -50,15 +50,18 @@ function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, mat
         end
     end
 
-    discrete_waves = [
-        DiscretePlaneWaveMode(X[L_match:L_match+1], w, material.shape)
-    for w in wave_non_effs]
+    # Normalise the amplitude of the effective waves
+    # discrete_waves = [
+    #     DiscretePlaneWaveMode(X[L_match:L_match+1], w, material.shape)
+    # for w in wave_non_effs]
 
-    wave_non_effs = map(eachindex(wave_non_effs)) do i
-        w = wave_non_effs[i]
-        amps = w.amplitudes / norm(discrete_waves[i].amplitudes[1,:,1])
-        EffectivePlaneWaveMode(ω, w.wavenumber, w.basis_order, w.direction, amps)
-    end
+    # We just scale w.amplitudes to avoid rounding errors
+    # wave_non_effs = map(eachindex(wave_non_effs)) do i
+    #     w = wave_non_effs[i]
+    #     # amps = w.amplitudes / norm(discrete_waves[i].amplitudes[1,:,1])
+    #     amps = w.amplitudes * abs(exp(- im * w.wavenumber * X[L_match]))
+    #     EffectivePlaneWaveMode(ω, w.wavenumber, w.basis_order, w.direction, amps)
+    # end;
 
     J = length(collect(X)) - 1
     len = (J + 1)  * (2basis_order + 1)
@@ -87,22 +90,22 @@ function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, mat
 end
 
 "Returns (x,L), where x[L:end] is the mesh used to match with wave_effs."
-function x_mesh_match(wave_effs::Vector{EffectivePlaneWaveMode{T,Dim}}; kws... ) where {T<:AbstractFloat,Dim}
+function x_mesh_match(wave_non_effs::Vector{EffectivePlaneWaveMode{T,Dim}}; kws... ) where {T<:AbstractFloat,Dim}
     # wave_effs[end] establishes how long X should be, while wave_effs[1] establishes how fine the mesh should be.
 
    # If there is only one wave, then it doesn't make sense to extend the mesh until it decays.
    # Instead we choose, arbitrarily, a quarter of the wavelength.
    # Note, having only one wave is very unusual, but tends to happen in the very low frequency limit.
-    x = if length(wave_effs) > 1
-            x_mesh(wave_effs[end], wave_effs[1]; kws...)
+    x = if length(wave_non_effs) > 1
+            x_mesh(wave_non_effs[end], wave_non_effs[1]; kws...)
         else
-            x_mesh(wave_effs[1]; max_x = (pi/2) / abs(wave_effs[1].wavenumber), kws...)
+            x_mesh(wave_non_effs[1]; max_x = (pi/2) / abs(wave_non_effs[1].wavenumber), kws...)
         end
     #NOTE previously used abs(cos(wave_effs[1].θ_eff)*abs(wave_effs[1].k_eff)) instead of abs(wave_effs[1].wavenumber)
 
     x_match = x[end]
-    x_max = (length(x) < length(wave_effs)*T(1.5)) ?
-         x[end] + T(1.5)*(x[2] - x[1])*length(wave_effs) :
+    x_max = (length(x) < length(wave_non_effs)*T(1.5)) ?
+         x[end] + T(1.5)*(x[2] - x[1])*length(wave_non_effs) :
          T(2) * x[end]
 
     x = 0.0:(x[2] - x[1]):x_max

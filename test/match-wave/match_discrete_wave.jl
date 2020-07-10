@@ -68,7 +68,7 @@ using EffectiveWaves, Test
     wave_effs_arr[i] = WaveModes(ω, source, materials[i];
         basis_order=basis_order,
         num_wavenumbers=6,
-        tol = tol)
+        tol = tol);
         # extinction_rescale = false)
 
     # Causes unreachable error..
@@ -82,14 +82,15 @@ using EffectiveWaves, Test
     # end
 
    # use only 6 least attenuating
-   wave_effs_arr2 = [w[1:6] for w in wave_effs_arr]
+   wave_effs_arr2 = [w[1:6] for w in wave_effs_arr];
 
     match_ws = [
         MatchPlaneWaveMode(ω, source, materials[i];
             basis_order=basis_order,
             tol = tol,
             wave_effs = wave_effs_arr2[i],
-            max_size=280)
+            max_size=480)
+            # max_size=280)
     for i in eachindex(species)];
 
     @test maximum(match_error(match_ws[i],materials[i].shape) for i in eachindex(species)) < 100*tol
@@ -116,7 +117,7 @@ using EffectiveWaves, Test
         avg_m = DiscretePlaneWaveMode(x0, match_ws[i].PlaneWaveModes, materials[i].shape)
         maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:]))
         @test norm(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])/norm(avg_m.amplitudes[:]) < 1e-2
-        @test maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])) < 1e-4
+        @test maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])) < 2e-4
         maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:]))
     end
 end

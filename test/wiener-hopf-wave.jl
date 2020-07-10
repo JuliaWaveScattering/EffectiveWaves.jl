@@ -24,9 +24,9 @@ using LinearAlgebra
     # the position of the wavenumbers for basis_order=0 is really spread out. Ultimately need to rewrite box_keff based on asymptotics roots.
     k_effs = wavenumbers(ω, medium, [specie];
         tol = tol,
-        box_k = [[-65.0,65.0],[0.0,8.5]],
+        box_k = [[-65.0,65.0],[0.0,40.0]],
         basis_order = basis_order,
-        num_wavenumbers = 40);
+        num_wavenumbers = 50);
 
     wave_effs = [
         wavemode_wienerhopf(ω, k_eff, source, material;
@@ -49,5 +49,5 @@ using LinearAlgebra
 
     # errors should be monotonically decreasing
     @test sort(errors; rev=true) == errors
-    @test errors[end] < 0.08 # previously was < 0.05 before when transmission angle was limited to propagate into the material
+    @test errors[end] < 0.07 # previously was < 0.05 before when transmission angle was limited to propagate into the material
 end

@@ -86,17 +86,11 @@ function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T,2}}, L::
     XR = OffsetArray((J:(J+q))*(X[2]-X[1]), J:(J+q));
 
     # the integration scheme changes with the domain
-    data = [
-        integration_scheme(XR[J:l+q]; scheme=scheme)
-    for l = (J-q+1):J]
-
-OffsetArray(data[end], J:(J+q))
-
-schs =  map((J-q+1):J) do l
-    sch = integration_scheme(XR[J:l+q]; scheme=scheme)
-    # println("l:$l")
-    # OffsetArray(sch, J:(l+q))
-end
+    # schs =  map((J-q+1):J) do l
+    #     sch = integration_scheme(XR[J:l+q]; scheme=scheme)
+    #     # println("l:$l")
+    #     # OffsetArray(sch, J:(l+q))
+    # end
 
     σs = OffsetArray(
         [
