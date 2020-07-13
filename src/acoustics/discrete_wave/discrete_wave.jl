@@ -42,7 +42,7 @@ function DiscretePlaneWaveMode(xs::AbstractVector{T}, wave_eff::EffectivePlaneWa
     S = size(amps,2)
     P = size(amps,3)
     if P > 1
-        @warn "The plane-wave has more than one eigenvector, which is unexpected. Using only the first. This occured for: ω = $(wave_eff.ω) and wavenumber = $(wave_eff.wavenumber)"
+        @warn "The plane-wave has more than one eigenvector per wavenumber. This case has not been implemented so using only the first. This occured for: ω = $(wave_eff.ω) and wavenumber = $(wave_eff.wavenumber)"
     end
 
     average_amps = [

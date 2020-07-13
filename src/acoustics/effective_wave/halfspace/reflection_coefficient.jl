@@ -19,7 +19,8 @@ function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psou
     R = 2.0im / (kcos_in * kθ)
     R = R*sum(
         exp(im*n*θ_ref + im*x*kθ) * number_density(material.species[l]) *
-        sum(wave_eff.amplitudes[n+ho+1,l,:])
+        # sum(wave_eff.amplitudes[n+ho+1,l,:])
+        wave_eff.amplitudes[n+ho+1,l,1]
     for n=-ho:ho, l=1:S)
 
     return R

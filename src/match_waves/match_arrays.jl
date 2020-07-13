@@ -40,7 +40,8 @@ function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T,2}}, L::
             sum(
                 exp(im*m*(θin - θ_effs[i]) + im*X[L]*(kcos_effs[i] - cos_in)) *
                 number_density(species[s]) *
-                sum(wave_effs[i].amplitudes[m+ho+1,s,:])
+                # sum(wave_effs[i].amplitudes[m+ho+1,s,:])
+                wave_effs[i].amplitudes[m+ho+1,s,1]
             for m = -ho:ho, s = 1:S) / (cos_in * (kcos_effs[i] - cos_in))
         for i in eachindex(wave_effs)]
 
@@ -73,7 +74,7 @@ function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T,2}}, L::
             sum(
                 (number_density(species[s])/(k^2)) * t_vecs[s][m+ho+1,m+ho+1] * im^T(n+1) * S_mat[J-l,n-m] *
                 exp(im*X[J+1] * kcos_effs[p] - im*n*θ_effs[p]) *
-                 wave_effs[p].amplitudes[n+ho+1,1,1] / (kcos_effs[p] + cos_in)
+                 wave_effs[p].amplitudes[n+ho+1,s,1] / (kcos_effs[p] + cos_in)
             for n = -ho:ho, s = 1:S)
         for l = 0:J, p in eachindex(wave_effs)]
     for m = -ho:ho]
@@ -103,7 +104,7 @@ function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T,2}}, L::
         (l+q <= J) ?
             zero(Complex{T}) :
             sum(
-                (number_density(species[s])/(k^2)) * t_vecs[s][m+ho+1,m+ho+1] * im^T(n) * wave_effs[p].amplitudes[n+ho+1] *
+                (number_density(species[s])/(k^2)) * t_vecs[s][m+ho+1,m+ho+1] * im^T(n) * wave_effs[p].amplitudes[n+ho+1,s,1] *
                 exp(im*XR[j] * kcos_effs[p] - im*n*θ_effs[p]) *
                 (B_mat[j-l,n-m] - S_mat[j-l,n-m]) * σs[l][j]
             for j = J:(l+q), n = -ho:ho, s = 1:S)
