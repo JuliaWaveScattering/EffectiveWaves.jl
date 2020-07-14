@@ -7,12 +7,15 @@ julia:
   # - "1.0"
   - "1.1"
   - "1.2"
-  # - nightly
+  - nightly
+matrix:
+  allow_failures:
+    - julia: nightly
 notifications:
   email: false
 git:
   depth: 99999999
-
+codecov: true
 # install: mvn install
 
 ## uncomment the following lines to allow failures on nightly julia
@@ -32,8 +35,9 @@ git:
 
 # uncomment the following lines to override the default test script
 script:
+  - while sleep 30; do echo "still alive"; done &
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
-  - travis_wait 20 julia --project -e 'using Pkg; Pkg.build(); Pkg.test(; coverage=true)';
+  - travis_wait 30 julia --project -e 'using Pkg; Pkg.build(); Pkg.test(; coverage=true)';
 
 after_success:
   # push coverage results to Coveralls
