@@ -8,21 +8,13 @@ julia:
   - "1.1"
   - "1.2"
   - nightly
-matrix:
-  allow_failures:
-    - julia: nightly
 notifications:
   email: false
 git:
   depth: 99999999
 codecov: true
+coveralls: true
 # install: mvn install
-
-## uncomment the following lines to allow failures on nightly julia
-## (tests will run but not make your overall status red)
-#matrix:
-#  allow_failures:
-#  - julia: nightly
 
 ## uncomment and modify the following lines to manually install system packages
 #addons:
@@ -39,13 +31,9 @@ script:
   - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
   - travis_wait 30 julia --project -e 'using Pkg; Pkg.build(); Pkg.test(; coverage=true)';
 
-after_success:
-  # push coverage results to Coveralls
-  - julia -e 'using Pkg; cd(Pkg.dir("EffectiveWaves")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
-  # push coverage results to Codecov
-  - julia -e 'using Pkg; cd(Pkg.dir("EffectiveWaves")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
-
 jobs:
+  allow_failures:
+    - julia: nightly
   include:
     - stage: "Documentation"
       os: linux
@@ -57,6 +45,12 @@ jobs:
         - julia --project=docs/ docs/make.jl
       name: "HTML"
       after_success: skip
+
+after_success:
+  # push coverage results to Coveralls
+  - julia -e 'using Pkg; cd(Pkg.dir("EffectiveWaves")); Pkg.add("Coverage"); using Coverage; Coveralls.submit(Coveralls.process_folder())'
+  # push coverage results to Codecov
+  - julia -e 'using Pkg; cd(Pkg.dir("EffectiveWaves")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
 
 
 # println("documenter_key=", get(ENV, "DOCUMENTER_KEY", ""), "\n",

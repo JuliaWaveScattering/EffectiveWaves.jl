@@ -68,7 +68,7 @@ errs =  map(eachindex(ωs)) do i
     norm(scat_azis[i] - diag(Tmat)[n_to_l .+ 1] .* source_coefficients) / norm(source_coefficients)
 end
 
-@test sum(errs .< 10.0 *  maximum(outer_radius.(species)) .* abs.(ks)) == length(ks)
+@test sum(errs .< maximum(outer_radius.(species)) .* abs.(ks)) == length(ks)
 @test errs[1] < tol
 
 end

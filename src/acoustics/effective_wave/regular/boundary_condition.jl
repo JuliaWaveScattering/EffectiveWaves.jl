@@ -111,7 +111,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     # L1 = Int((3 * size(eigvectors,1) - 3 - (2 - L) * L * (2 + L)) / (3 + 3*L*(2 + L)))
     Linc = source_basis_field_order
 
-    Linc = 2
+    # Linc = 2
     L2 = 2L + L1
 
     # the kernel use to wieight the species and the field's basis order.
