@@ -9,7 +9,7 @@ function wavenumbers(ω::T, medium::PhysicalMedium{T}, species::Species{T};
         kws...) where T<:Number
 
     # For very low attenuation, need to search close to assymptotic root with a path method.
-    k_effs = wavenumbers_path(ω, medium, species;
+    k_effs::Vector{Complex{T}} = wavenumbers_path(ω, medium, species;
     num_wavenumbers = 2, max_Imk=max_Imk, tol = tol, kws...)
 
     # NOTE: these search methods would significantly improve if we used the asymptotic result for multiple wavenumbers and monopole scatterers. This would give a reasonable length scale and on where to search.
@@ -30,5 +30,5 @@ function wavenumbers(ω::T, medium::PhysicalMedium{T}, species::Species{T};
         k_effs = sort(k_effs, by = imag)
     end
 
-    return k_effs
+    return Complex{Float64}.(k_effs)
 end

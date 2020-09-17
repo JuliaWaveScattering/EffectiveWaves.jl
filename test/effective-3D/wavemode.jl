@@ -186,28 +186,28 @@ L2 = L1
 # l2 <= L1 + L
 # l3 <= 2L # assuming L<= L1
 
-k1 = 1e-8
-k2 = 1e-8 + 1e-6im
-kernelN3D.(0:5, k1, k2) ./ (k2^2 - k1^2)
-
-
-outer_medium = medium
-p = s1.particle
-m = 0
-
-ak = outer_radius(p)*ω/outer_medium.c
-
-q = impedance(p.medium)/impedance(outer_medium) # Impedance ratio
-γ = outer_medium.c / p.medium.c #speed ratio
-numer = q * diffsbesselj(m, ak) * sbesselj(m, γ * ak) - sbesselj(m, ak)*diffsbesselj(m, γ * ak)
-denom = q * diffshankelh1(m, ak) * sbesselj(m, γ * ak) - shankelh1(m, ak)*diffsbesselj(m, γ * ak)
-
-- numer / denom
-t_matrix(s1.particle, medium, ω, 0)
-
-
--(SphericalBesselJ[0, z]/(2 z)) +
- 1/2 (SphericalBesselJ[-1, z] - SphericalBesselJ[1, z])
-
-m=0
-(- sbesselj(m,ak) + (ak) * (sbesselj(m-1,ak) - sbesselj(m+1,ak))) / (2 * (ak))
+# k1 = 1e-8
+# k2 = 1e-8 + 1e-6im
+# kernelN3D.(0:5, k1, k2) ./ (k2^2 - k1^2)
+#
+#
+# outer_medium = medium
+# p = s1.particle
+# m = 0
+#
+# ak = outer_radius(p)*ω/outer_medium.c
+#
+# q = impedance(p.medium)/impedance(outer_medium) # Impedance ratio
+# γ = outer_medium.c / p.medium.c #speed ratio
+# numer = q * diffsbesselj(m, ak) * sbesselj(m, γ * ak) - sbesselj(m, ak)*diffsbesselj(m, γ * ak)
+# denom = q * diffshankelh1(m, ak) * sbesselj(m, γ * ak) - shankelh1(m, ak)*diffsbesselj(m, γ * ak)
+#
+# - numer / denom
+# t_matrix(s1.particle, medium, ω, 0)
+#
+#
+# -(SphericalBesselJ[0, z]/(2 z)) +
+#  1/2 (SphericalBesselJ[-1, z] - SphericalBesselJ[1, z])
+#
+# m=0
+# (- sbesselj(m,ak) + (ak) * (sbesselj(m-1,ak) - sbesselj(m+1,ak))) / (2 * (ak))

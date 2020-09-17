@@ -5,79 +5,96 @@ pyplot()
 Maxtime=100.
 T=Float64
 
-"Derivative of Hankel function of the first kind"
-function diffhankelh1(n,z)
-  if n!=0
-    0.5*(hankelh1(-1 + n, z) - hankelh1(1 + n, z))
-  else
-    - hankelh1(1, z)
-  end
-end
+spatial_dim = 3
+medium = Acoustic(spatial_dim; ρ=1.0, c=1.0)
 
-"Derivative of Bessel function of first kind"
-function diffbesselj(n,z)
-  if n!=0
-    0.5*(besselj(-1 + n, z) - besselj(1 + n, z))
-  else
-    - besselj(1, z)
-  end
-end
+v = 1.0
+s1 = Specie(
+    Acoustic(spatial_dim; ρ=10.0, c=10.0), Sphere(1.0);
+    volume_fraction = v * 3/4
+);
+s2 = Specie(
+    Acoustic(spatial_dim; ρ=0.1, c=0.1), Sphere(1.0);
+    volume_fraction = v * 1/4
+);
+species = [s1,s2]
 
-# background medium
-medium = Medium(1.0,1.0+0.0im)
-radius_multiplier = 1.005
-max_basis_order=15
+k_low = ω ./ effective_medium(medium, species).c
 
-incident_medium = medium
-θin = 0.2
-ω = 15.
-k = ω/incident_medium.c
 
-## Strong scatterers
-species = [
-    Specie(ρ=0.8,r=0.1, c=0.2, volfrac=0.1),
-    Specie(ρ=0.2, r=0.2, c=0.1, volfrac=0.1)
-]
+## Swap a specie for the medium
 
-S = length(species)
-# @memoize Z_l_n(l,n) = Zn(ω,species[l],medium,n)
+    medium = Acoustic(spatial_dim; ρ=10.0, c=10.0)
 
-as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
-function M(keff,j,l,m,n)
-    (n==m ? 1.0+im*0.0:0.0+im*0.0)*(j==l ? 1.0+im*0.0:0.0+im*0.0) + 2.0pi*species[l].num_density*Z_l_n[l,n]*
-        kernelN2D(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
-end
+    v = 1.0
+    s2 = Specie(
+        Acoustic(spatial_dim; ρ=0.1, c=0.1), Sphere(1.0);
+        volume_fraction = v * 1/4
+    );
+    species = [s2]
 
-ho = -1 + sum([ tol .< norm([M(0.9*k + 0.1im,j,l,1,n) for j = 1:S, l = 1:S]) for n=0:max_basis_order ])
+    k_low = ω ./ effective_medium(medium, species).c
 
-# this matrix is needed to calculate the eigenvectors
-MM(keff::Complex{T}) = reshape(
-    [M(keff,j,l,m,n) for m in -ho:ho, j = 1:S, n in -ho:ho, l = 1:S]
-, ((2ho+1)*S, (2ho+1)*S))
-detMM2(keff_vec::Array{T}) = map(x -> real(x*conj(x)), det(MM(keff_vec[1]+im*keff_vec[2])))
+ω = 0.04187
+basis_order = 1
+tol = 1e-7
+k = ω/medium.c
 
-function detMM!(F,x)
-    F[1] = abs(det(MM(x[1]+im*x[2])))
-end
+opts = Dict(
+    :symmetry => PlanarAzimuthalSymmetry(),
+    :tol => tol,
+    # :num_wavenumbers => 4,
+    # :mesh_size => 2.0, :mesh_points => 20,
+    :basis_order => basis_order
+)
 
-detMM2 = dispersion_equation(ω, medium, species; tol = low_tol, kws...)
+detMM = dispersion_complex(ω, medium, species; opts...)
 
-k0 = real(k)
-x = k0 .* LinRange(0.0,1.8,100)/10.
-y = k0 .* LinRange(0.,0.22,100)
+kps =  wavenumbers(ω, medium,  species; opts...)
 
-x = LinRange(10.0,20.,50)
-y = LinRange(0.,0.5,50)
+k_low = ω ./ effective_medium(medium, species).c
 
-# X = repmat(x',length(y),1)
-# Y = repmat(y,1,length(x))
+# Explore around all the wavenumbers
+
+inds = 1:1
+x_max = maximum(abs.(real.(kps[inds])))
+y_max = maximum(abs.(imag.(kps[inds])))
+
+x = LinRange(-x_max,x_max,150)
+y = LinRange(0.,y_max,100)
 
 X = repeat(reshape(x, 1, :), length(y), 1)
 Y = repeat(y, 1, length(x))
 
-Z0 = map( (x,y) -> detMM2([x,y]),X,Y)
-Z = map( z -> (abs(z)> 2.) ? NaN : z, Z0)
+z_max = 2.0
+Z0 = map( (x,y) -> abs(detMM(x + y*im)),X,Y);
+Z = map( z -> (abs(z)> z_max) ? NaN : z, Z0);
 contour(x,y,Z,fill=true, xlab = "Re k*", ylab = "Im k*", title="Roots of secular det M - high ω - low φ")
+scatter!(kps[inds])
+
+
+# Explore around one wavenumber
+
+    k1 = abs(real(kps[1])) - imag(kps[1]) * im
+
+    scale = 0.01
+    x = LinRange(real(k1) - abs(real(k1)) * scale, real(k1) + abs(real(k1)) * scale,100)
+    y = LinRange(imag(k1) - abs(imag(k1)) * scale, imag(k1) + abs(imag(k1)) * scale,100)
+
+    X = repeat(reshape(x, 1, :), length(y), 1)
+    Y = repeat(y, 1, length(x))
+
+    Z0 = map( (x,y) -> abs(detMM(x + y*im)),X,Y);
+
+    z_max = 2 * scale
+    Z = map( z -> (abs(z)> z_max) ? NaN : z, Z0);
+    contour(x,y,Z,fill=true, xlab = "Re k*", ylab = "Im k*", title="Roots of secular det M - high ω - low φ")
+    scatter!([k1])
+
+
+# Old code below
+
+
 
 x = k0 .* LinRange(0.18,0.23,50)
 y = k0 .* LinRange(0.01,0.17,50)
