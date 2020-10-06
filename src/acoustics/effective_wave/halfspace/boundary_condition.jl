@@ -3,6 +3,10 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigenvectors::Array{
         kws...
     ) where T
 
+    if size(eigenvectors,2) > 1
+        @warn "The effective wavenumber: $k_eff has more than one eigenvector. For plane-waves this case has not been fully implemented"
+    end
+
     direction = transmission_direction(k_eff, (ω / psource.medium.c) * psource.direction, material.shape.normal)
 
     θin = transmission_angle(direction, material.shape.normal)

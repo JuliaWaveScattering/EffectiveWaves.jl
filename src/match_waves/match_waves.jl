@@ -27,7 +27,7 @@ function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, mat
     k = real(ω / source.medium.c)
 
     if isempty(wave_effs)
-        wave_effs = WaveModes(k, source, material;
+        wave_effs = WaveModes(ω, source, material;
             extinction_rescale = false,
             tol = T(10)*tol,
             kws...)
@@ -85,8 +85,16 @@ function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, mat
         EffectivePlaneWaveMode(ω, k * w.wavenumber, w.basis_order, w.direction, amps)
     end
 
+    mwave = MatchPlaneWaveMode(
+        wave_non_effs,
+        DiscretePlaneWaveMode(basis_order, real.( collect(X) ./ k), As_mat),
+        real.(collect(X[L_match:end]) ./ k)
+    )
+
+    println("The relative match error was: ", match_error(mwave, material.shape))
+
     # return MatchPlaneWaveMode(wave_effs, DiscretePlaneWaveMode(basis_order, collect(X)./k, As_mat), collect(X[L_match:end])./k)
-    return MatchPlaneWaveMode(wave_non_effs, DiscretePlaneWaveMode(basis_order, real.( collect(X) ./ k), As_mat), real.(collect(X[L_match:end]) ./ k))
+    return mwave
 end
 
 "Returns (x,L), where x[L:end] is the mesh used to match with wave_effs."

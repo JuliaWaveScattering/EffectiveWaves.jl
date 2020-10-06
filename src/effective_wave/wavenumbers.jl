@@ -5,14 +5,15 @@ wavenumbers(ω::T, medium::PhysicalMedium{T}, specie::Specie{T}; kws...) where T
 
 function wavenumbers(ω::T, medium::PhysicalMedium{T}, species::Species{T};
         num_wavenumbers::Int = 2, tol::T = 1e-5,
-        max_Imk::T = zero(T), max_Rek::T = zero(T),
+        max_Imk::T = T(2) + T(20) * imag(wavenumber_low_volumefraction(ω, medium, species; verbose = false)),
+        max_Rek::T = T(2) + T(20) * abs(real(wavenumber_low_volumefraction(ω, medium, species; verbose = false))),
         kws...) where T<:Number
 
     # For very low attenuation, need to search close to assymptotic root with a path method.
     k_effs::Vector{Complex{T}} = wavenumbers_path(ω, medium, species;
-    num_wavenumbers = 2, max_Imk=max_Imk, tol = tol, kws...)
+    num_wavenumbers = num_wavenumbers, max_Imk=max_Imk, tol = tol, kws...)
 
-    # NOTE: these search methods would significantly improve if we used the asymptotic result for multiple wavenumbers and monopole scatterers. This would give a reasonable length scale and on where to search.
+    # NOTE: these search methods would significantly improve if we used the asymptotic result for multiple wavenumbers and monopole scatterers. This would give a reasonable length scale for the mesh, and good estimates on where to start searching.
     if num_wavenumbers > 2
         box_k = box_keff(ω, medium, species; tol = tol)
         max_imag = max(3.0 * maximum(imag.(k_effs)), max_Imk)
