@@ -15,16 +15,25 @@ eigenvector_length(::AzimuthalSymmetry{3}; basis_order::Int, basis_field_order::
 
 
 """
-    EffectivePlaneWaveMode(ω::T, wavenumber::Complex{T}, direction::Array{Complex{T}},amps::Array{Complex{T}})
+    EffectivePlaneWaveMode{T<:AbstractFloat,Dim} <: AbstractWaveMode{T,Dim}
 
-Is a struct that represents one mode of the effective scattering coefficients for plane wave symmetry.
+Is a struct that represents a mode of the average scattering coefficients for plane wave symmetry. That is, when using an incident plane wave and a plate or halfspace for the material geometry.
 
-This wave mode has frequency ω and has has the value ``A e^{i k \\mathbf v \\cdot \\mathbf x }`` at the point ``\\mathbf x``, where ``A`` are the amplitudes, ``\\mathbf v`` is the direction and ``k`` is the effective wavenumber.
+This wave mode has frequency ``\\omega`` and has has the value ``A e^{i k \\mathbf v \\cdot \\mathbf x }`` at the point ``\\mathbf x``, where ``A`` are the amplitudes, ``\\mathbf v`` is the direction and ``k`` is the effective wavenumber. We represent these quantities as
 
-To recover the average scattering coefficients from a particle `F` use:
-    F_{ms} = i^m A[m + max_basis_order +1,s] e^{-i m  θ_eff} * e^{i k \\mathbf v \\cdot \\mathbf x}
+  * ``\\omega = `` `EffectivePlaneWaveMode.ω`
+  * ``k = `` `EffectivePlaneWaveMode.wavenumber`
+  * ``v = `` `EffectivePlaneWaveMode.direction`
+  * ``A = `` `EffectivePlaneWaveMode.amplitudes`
+  * ``M = `` `EffectivePlaneWaveMode.basis_order`
 
-where (x,y) are coordinates in the halfspace, m-th hankel order, and s-th species.
+To recover the average scattering coefficients ``F`` from a particle use:
+
+``F_{ns} = i^m A_{n s} e^{-i n  θ} ``
+
+where ``n`` is multi-index for 3 dimensions and ``s`` ranges from 1 to the number of species.
+
+In 2D, inconvieniently, an extra factor of ``e^{i k \\mathbf v \\cdot \\mathbf x}`` needs to be multiplied on the right of the above equation where `θ` is calculated from [`transmission_angle`](@ref).
 """
 struct EffectivePlaneWaveMode{T<:AbstractFloat,Dim} <: AbstractWaveMode{T,Dim}
     ω::T
@@ -43,10 +52,38 @@ function EffectivePlaneWaveMode(ω::T, wavenumber::Complex{T};
     EffectivePlaneWaveMode(ω, wavenumber, basis_order, SVector(direction...), amplitudes)
 end
 
+"""
+    EffectivePlaneWaveMode(ω, wavenumber::Complex, direction::Array{Complex}, amplitudes::Array{Complex})
+
+A convienient way to form the type `EffectivePlaneWaveMode`.
+"""
 function EffectivePlaneWaveMode(ω::T, wavenumber::Complex{T}, direction::SVector{Dim,Complex{T}}, amps::Array{Complex{T}}) where {T<:AbstractFloat, Dim}
     EffectivePlaneWaveMode{T,Dim}(ω, wavenumber, Int( (size(amps,1) - 1) / 2 ), direction, amps)
 end
 
+
+"""
+    EffectiveRegularWaveMode{T,Dim,P<:PhysicalMedium,S<:AbstractSetupSymmetry} <: AbstractRegularWaveMode{T,Dim}
+
+Is a struct that represents a mode of the average scattering coefficients ``F`` in the form
+
+``F_{n s} (\\mathbf r) =  \\sum_{n_1 p} A_{p n n_1 s} \\mathrm v_{n_1}(k \\mathbf r)``
+
+where ``\\mathbf r`` is a position vector in space, ``k`` the wavenumber, ``p`` is used to count the number of eigenvectors, ``s`` the number of species, ``n`` and ``n_1`` are multi-indices, and ``\\mathrm v_{n_1}`` is a regular spherical wave of order ``n_1`` which in 3D is given by
+
+``\\mathrm v_{n_1}(\\mathbf r) = \\mathrm j_{\\ell_1} (k r) \\mathrm Y_{\\ell_1 m_1}(\\hat{\\mathbf r})``
+
+and ``\\mathrm Y_{\\ell_1 m_1}`` is a spherical harmonic, ``n_1 = (\\ell_1,m_1)`` where we always have that ``\\ell_1 \\geq 0`` and ``\ell_1 \\geq |m_1|`` according to the conventions of [spherical harmonics](https://en.wikipedia.org/wiki/Spherical_harmonics).
+
+To translate the mathematics to Julia code we use
+
+  * ``\\omega = `` `EffectiveRegularWaveMode.ω`
+  * ``k = `` `EffectiveRegularWaveMode.wavenumber`
+  * ``A = `` `EffectiveRegularWaveMode.eigenvectors`
+  * ``n = `` `EffectiveRegularWaveMode.basis_order`
+  * ``n_1 = `` `EffectiveRegularWaveMode.basis_field_order`
+
+"""
 struct EffectiveRegularWaveMode{T<:AbstractFloat,Dim,P<:PhysicalMedium{T,Dim},S<:AbstractSetupSymmetry{Dim}} <: AbstractRegularWaveMode{T,Dim}
     ω::T
     wavenumber::Complex{T}

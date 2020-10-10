@@ -115,7 +115,7 @@ inds_azi = findall([
     m == 0
 for l = 0:Linc for m = -l:l]);
 
-source_coefficients = source.coefficients(Linc,zeros(3),ω);
+source_coefficients = regular_spherical_coefficients(source)(Linc,zeros(3),ω);
 
 t_diag = [Tmat[i,i] for i in axes(Tmat,1)];
 

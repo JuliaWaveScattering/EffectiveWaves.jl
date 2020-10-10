@@ -1,8 +1,17 @@
 # Here we calculate the effective wavenumber and effective wave amplitudes, without any restriction to the volume fraction of particles and incident wave frequency.
 
-" Returns all the transmitted effective wavenumbers"
+"""
+    wavenumbers(ω, medium, specie; kws...)
+
+Returns all the possible effective wavenumbers with positive imaginary part when using a single type of particle called `specie`.
+"""
 wavenumbers(ω::T, medium::PhysicalMedium{T}, specie::Specie{T}; kws...) where T<:Number = wavenumbers(ω, medium, [specie]; kws...)
 
+"""
+    wavenumbers(ω, medium, species; kws...)
+
+Returns all the possible effective wavenumbers with positive imaginary part. This function requires significantly numerical optimisation and so can be slow.
+"""
 function wavenumbers(ω::T, medium::PhysicalMedium{T}, species::Species{T};
         num_wavenumbers::Int = 2, tol::T = 1e-5,
         max_Imk::T = T(2) + T(20) * imag(wavenumber_low_volumefraction(ω, medium, species; verbose = false)),

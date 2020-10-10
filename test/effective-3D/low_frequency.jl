@@ -63,7 +63,7 @@ Linc = basis_field_order + basis_order
 n_to_l = [l for l = 0:Linc for m = -l:l];
 
 errs =  map(eachindex(ωs)) do i
-    source_coefficients = source.coefficients(Linc,zeros(3),ωs[i])
+    source_coefficients =  regular_spherical_coefficients(source)(Linc,zeros(3),ωs[i])
     Tmat = MultipleScattering.t_matrix(effective_sphere, medium, ωs[i], Linc)
     norm(scat_azis[i] - diag(Tmat)[n_to_l .+ 1] .* source_coefficients) / norm(source_coefficients)
 end

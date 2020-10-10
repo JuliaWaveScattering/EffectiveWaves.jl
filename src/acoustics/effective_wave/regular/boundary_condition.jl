@@ -65,7 +65,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     len = (L1+1)^2 * (L+1)^2
     extinction_matrix = reshape(extinction_matrix, (:,len))
 
-    source_coefficients = source.coefficients(Linc,zeros(3),ω)
+    source_coefficients = regular_spherical_coefficients(source)(Linc,zeros(3),ω)
 
     forcing = [
         - sum(
@@ -160,9 +160,10 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
         warn("Plane wave source is not aligned with the z-axis. Will return results with an axis that makes the source direction aligned with the z-axis")
     end
 
-    source = plane_source(psource.medium, psource.position, direction, psource.amplitude[1])
+    # source = plane_source(psource.medium, psource.position, direction, psource.amplitude[1])
+    # source.coefficients(Linc,zeros(3),ω)
 
-    source_coefficients = source.coefficients(Linc,zeros(3),ω)
+    source_coefficients = regular_spherical_coefficients(psource)(Linc,zeros(3),ω)
 
     forcing = [
         - sum(

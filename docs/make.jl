@@ -1,23 +1,28 @@
-using Documenter, EffectiveWaves
+using Documenter, EffectiveWaves, StaticArrays
 
 makedocs(
     format = Documenter.HTML(
         prettyurls = get(ENV, "CI", nothing) == "true"
     ),
     debug = true,
-    sitename="EffectiveWaves.jl",
+    sitename ="EffectiveWaves.jl",
     authors = "Artur L. Gower",
-    source= "src",
-    modules=[EffectiveWaves],
-    pages=[
+    source = "src",
+    # modules = [EffectiveWaves, MultipleScattering],
+    pages = [
         "Home" =>"index.md",
         "Manual" => [
-            "base.md"
-        ]
+            "manual/introduction.md",
+            "manual/background.md",
+            "manual/wavenumbers.md",
+            "manual/reflection.md",
+            "manual/sphere.md"
+        ],
+        "Library" => "library/library.md"
         ,
         "Examples" => [
             "examples/vary_two_species/README.md",
-            "examples/many_wavenumbers/README.md",
+            "examples/equivalent-symmetries/README.md",
             "examples/matched_method/README.md"
         ]
     ]
