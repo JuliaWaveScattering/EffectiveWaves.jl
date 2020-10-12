@@ -165,7 +165,7 @@ p_scat = plot!(leg = false, frame = :none
 ```julia
 plot(result,ω, seriestype = :contour, field_apply=abs
 , levels = 16, clims=(0.0,1.65)
-, title = "abs low freq. scat"
+, title = "abs scattered field"
 , color = :balance
 , colorbar = false
 )
