@@ -31,8 +31,7 @@ makedocs(
 deploydocs(
     branch = "gh-pages",
     target = "build",
-    devurl = "dev",
-    versions = ["stable" => "v^", "v#.#.#", devurl => devurl],
+    versions = ["stable" => "v^", "v#.#.#"],
     # forcepush = true,
     repo = "github.com/arturgower/EffectiveWaves.jl.git"
 )
