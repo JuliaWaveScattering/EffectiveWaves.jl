@@ -51,10 +51,10 @@ using EffectiveWaves, Test
     num_wavenumbers = 4
     k_effs = wavenumbers(ω, medium, [specie]; tol = 1e-8,
         basis_order = ho, num_wavenumbers = num_wavenumbers)
-    k_effs = k_effs[1:num_wavenumbers]    
+    k_effs = k_effs[1:num_wavenumbers]
 
     rel_errors = map(k_effs[1:end]) do k_eff
-        println("k_eff: ", k_eff)
+        # println("k_eff: ", k_eff)
         wave = WaveMode(ω, k_eff, source, material;basis_order = ho)
         wave_avg = DiscretePlaneWaveMode(x, wave, material.shape)
         R = reflection_coefficient(ω, wave_avg, source, material)

@@ -5,8 +5,8 @@ os:
   - osx
 julia:
   # - "1.0"
-  - "1.1"
-  - "1.5"
+  - 1.0
+  - 1.5
   - nightly
 notifications:
   email: false
@@ -36,6 +36,7 @@ jobs:
     - julia: nightly
   include:
     - stage: "Documentation"
+      julia: 1.5
       os: linux
       env:
         - DOCUMENTER_DEBUG=true
@@ -53,12 +54,12 @@ after_success:
   - julia -e 'using Pkg; cd(Pkg.dir("EffectiveWaves")); Pkg.add("Coverage"); using Coverage; Codecov.submit(Codecov.process_folder())'
 
 
-# println("documenter_key=", get(ENV, "DOCUMENTER_KEY", ""), "\n",
-# "travis_branch=", get(ENV, "TRAVIS_BRANCH", ""), "\n",
-# "travis_pull_request=", get(ENV, "TRAVIS_PULL_REQUEST", ""), "\n",
-# "travis_repo_slug=", get(ENV, "TRAVIS_REPO_SLUG", ""), "\n",
-# "travis_tag=", get(ENV, "TRAVIS_TAG", ""), "\n",
-# "travis_event_type=", get(ENV, "TRAVIS_EVENT_TYPE", ""))
+println("documenter_key=", get(ENV, "DOCUMENTER_KEY", ""), "\n",
+"travis_branch=", get(ENV, "TRAVIS_BRANCH", ""), "\n",
+"travis_pull_request=", get(ENV, "TRAVIS_PULL_REQUEST", ""), "\n",
+"travis_repo_slug=", get(ENV, "TRAVIS_REPO_SLUG", ""), "\n",
+"travis_tag=", get(ENV, "TRAVIS_TAG", ""), "\n",
+"travis_event_type=", get(ENV, "TRAVIS_EVENT_TYPE", ""))
 
 # "Deployment criteria:
 #     - $(marker(repo_ok)) ENV["TRAVIS_REPO_SLUG"]="$(travis_repo_slug)" occurs in repo="$(repo)"
