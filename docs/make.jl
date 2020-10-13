@@ -33,5 +33,5 @@ deploydocs(
     target = "build",
     versions = ["stable" => "v^", "v#.#.#"],
     # forcepush = true,
-    repo = "github.com/arturgower/EffectiveWaves.jl.git"
+    repo = "github.com/JuliaWaveScattering/EffectiveWaves.jl.git"
 )
