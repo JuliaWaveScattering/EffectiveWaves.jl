@@ -33,13 +33,13 @@ mediumname = "water"
   kTs = map(vols) do v
     sp1 = Specie(ρ=inclusion1.ρ ,r=r1, c=inclusion1.c, volfrac = v*vol_prop)
     sp2 = Specie(ρ=inclusion2.ρ ,r=r2, c=inclusion2.c, volfrac = v*(1.0 - vol_prop))
-    wavenumber_low_volfrac(ω, medium, [sp1,sp2])
+    wavenumber_low_volumefraction(ω, medium, [sp1,sp2])
   end
   # low volfrac wavenumber
   kT2s = map(vols) do v
     sp1 = Specie(ρ=inclusion1.ρ ,r=r1, c=inclusion1.c, volfrac = v*vol_prop)
     sp2 = Specie(ρ=inclusion2.ρ ,r=r2, c=inclusion2.c, volfrac = v*(1.0 - vol_prop))
-    wavenumber_very_low_volfrac(ω, medium, [sp1,sp2])
+    wavenumber_very_low_volumefraction(ω, medium, [sp1,sp2])
   end
 
   # Approximate wavenumber

@@ -24,7 +24,7 @@ height=500
   sp2 = Specie(ρ=inclusion2.ρ ,r=r2, c=inclusion2.c, volfrac = volfrac-vol1)
 
   # True wavenumber
-  kTs  = wavenumber_low_volfrac(ωs, medium, [sp1,sp2]);
+  kTs  = wavenumber_low_volumefraction(ωs, medium, [sp1,sp2]);
   # Approximate wavenumber
   kTLSs = two_species_approx_wavenumber(ωs, medium, [sp1,sp2]);
 
@@ -56,7 +56,7 @@ height=500
 ## Zoomed in version
   ωs = LinRange(real(medium.c/10000),ωs[m],100) # k from 0 to 1
   m = length(ωs);
-  kTs  = wavenumber_low_volfrac(ωs, medium, [sp1,sp2]);
+  kTs  = wavenumber_low_volumefraction(ωs, medium, [sp1,sp2]);
   kTLSs = two_species_approx_wavenumber(ωs, medium, [sp1,sp2]);
 
   speed_arr = [ ωs./real(kTs), ωs./real(kTLSs)]

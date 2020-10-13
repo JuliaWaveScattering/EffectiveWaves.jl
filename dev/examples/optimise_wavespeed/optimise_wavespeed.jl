@@ -4,23 +4,23 @@ using JLD
 
 include("optimise_wavenumber.jl")
 
-medium = Medium{Float64}(1.0,1.)
+medium = Acoustic(2; ρ=1.0,c=1.0)
 ωs = 0.01:0.01:1.0
 MaxTime = 10000.0
 
-function f_slow1(sps::Array{Specie{Float64}}, medium::Medium{Float64},ωs,kTs)
+function f_slow1(sps::Species, medium::PhysicalMedium,ωs,kTs)
   N = Int(round(length(ωs)/2))
   mean(imag(kTs[1:N])) + mean(ωs[1:N]./real(kTs[1:N]))
 end
-function f_slow2(sps::Array{Specie{Float64}}, medium::Medium{Float64},ωs,kTs)
+function f_slow2(sps::Species, medium::PhysicalMedium,ωs,kTs)
   N = Int(round(length(ωs)/2))
   mean(imag(kTs[N:end])) + mean(ωs[N:end]./real(kTs[N:end]))
 end
-function f_fast1(sps::Array{Specie{Float64}}, medium::Medium{Float64},ωs,kTs)
+function f_fast1(sps::Species, medium::PhysicalMedium,ωs,kTs)
   N = Int(round(length(ωs)/2))
   mean(imag(kTs[1:N])) - mean(ωs[1:N]./real(kTs[1:N]))
 end
-function f_fast2(sps::Array{Specie{Float64}}, medium::Medium{Float64},ωs,kTs)
+function f_fast2(sps::Species, medium::PhysicalMedium,ωs,kTs)
   N = Int(round(length(ωs)/2))
   mean(imag(kTs[N:end])) - mean(ωs[N:end]./real(kTs[N:end]))
 end
@@ -40,7 +40,7 @@ end
 # species = load("data/$f.jld")["species"]
 #
 # kTs_arr = [
-#     [ sqrt(wavenumber_low_volfrac(ω,medium, sps)) for ω in ωs]
+#     [ sqrt(wavenumber_low_volumefraction(ω,medium, sps)) for ω in ωs]
 # for sps in [[species[1]],[species[2]],species]];
 #
 # speed_arr = [ ωs./real(kTs) for kTs in kTs_arr]

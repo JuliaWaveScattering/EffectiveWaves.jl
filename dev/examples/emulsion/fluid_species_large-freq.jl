@@ -36,10 +36,10 @@ mediumname = "water"
   sp2 = Specie(ρ=inclusion2.ρ, r=r2, c=inclusion2.c, volfrac = volfrac-vol1)
 
   # True wavenumber
-  kTs  = wavenumber_low_volfrac(ωs, medium, [sp1,sp2]);
+  kTs  = wavenumber_low_volumefraction(ωs, medium, [sp1,sp2]);
 
   # Approximate Challis wavenumber
-  kTCs = wavenumber_challis(ωs, medium, [sp1,sp2]; hankel_order=5);
+  kTCs = wavenumber_challis(ωs, medium, [sp1,sp2]; basis_order=5);
 
   speed_arr = [ ωs./real(kTs), ωs./real(kTCs), 0 .*ωs .+ real(medium.c)]
   atten_arr = imag([kTs,kTCs])
