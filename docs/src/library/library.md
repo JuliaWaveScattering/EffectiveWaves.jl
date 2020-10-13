@@ -11,10 +11,10 @@ Pages = ["base.md"]
 ## Defining the material
 
 ```@docs
-PhysicalMedium
 Acoustic
 Specie
 Material
+PlaneSource
 Source
 ```
 Currently the physical medium can be [Acoustic](https://juliawavescattering.github.io/MultipleScattering.jl/dev/library/acoustics/)s. Both Acoustic, PlaneSource, and Source are all imported from the package [MultipleScattering](https://juliawavescattering.github.io/MultipleScattering.jl/dev/). In the future these will be moved to a new package WaveScatteringBase.
