@@ -37,6 +37,8 @@ There are two main types used.
 
 ```@docs
 EffectivePlaneWaveMode
+```
+```@docs
 EffectiveRegularWaveMode
 ```
 

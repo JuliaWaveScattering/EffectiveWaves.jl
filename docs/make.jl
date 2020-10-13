@@ -1,4 +1,4 @@
-using Documenter, EffectiveWaves, StaticArrays
+using Documenter, EffectiveWaves
 
 makedocs(
     format = Documenter.HTML(

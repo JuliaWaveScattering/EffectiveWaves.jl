@@ -12,11 +12,11 @@ We will assume that $u_\text{in}$ is arriving from $z<0$ ($x<0$ for 2D). If the 
 
 $u_\text{R} = R e^{i (k_x x + k_y y - k_z z)}.$
 
-The code below calculates $R$, which is called the reflection coefficient. Both reflection and transmission are simpler to calculate when there exists only [one effective wavenumber](@ref 2D-one-reflection). Currently, we have only implemented the reflection coefficient for multiple effective wavenumbers for [2D acoustics](@ref 2D-multiple-reflection).
+The code below calculates $R$, which is called the reflection coefficient. Both reflection and transmission are simpler to calculate when there exists only [one effective wavenumber](@ref two-dim-acoustics-one_reflection). Currently, we have only implemented the reflection coefficient for multiple effective wavenumbers for [2D acoustics](@ref two-dim-acoustic-multiple-reflection).
 
-# [2D acoustics](@id 2D-acoustics-reflection)
+# [2D acoustics](@id two-dim-acoustics-reflection)
 
-## [Low frequency reflection](@id 2D-low-reflection)
+## [Low frequency reflection](@id two-dim-acoustic-low-reflection)
 
 The simplest case is for low frequency, where the average reflection coefficient $R$ reduces to the reflection coefficient from a homogeneous material:
 
@@ -70,11 +70,11 @@ R = reflection_coefficient(source, eff_medium, material.shape)
 0.13666931757028777 + 0.0im
 ```
 
-## [One plane wave mode](@id 2D-one-reflection)
+## [One plane wave mode](@id two-dim-acoustics-one_reflection)
 
 Note that for there are formulas for low volume fraction expansions of the reflection coefficient, see [`reflection_coefficient_low_volumefraction`](@ref). However, it is almost better to use the exact expression, as the added computational cost is minimal.  
 
-As an example, we will use the same material defined for the [low frequency case](@ref 2D-low-reflection)
+As an example, we will use the same material defined for the [low frequency case](@ref two-dim-acoustic-low-reflection)
 ```julia 2
 
 k_effs = wavenumbers(ω, medium, species; tol = 1e-6, num_wavenumbers = 1, basis_order = 1)
@@ -89,7 +89,7 @@ R = reflection_coefficient(ω, wave1, source, material)
 0.13666931756494047 - 5.127394485569188e-14im
 ```
 
-## [Multiple effective modes](@id 2D-multiple-reflection)
+## [Multiple effective modes](@id two-dim-acoustic-multiple-reflection)
 
 See [A numerical matching method](@ref) for an example that uses multiple effective wave modes to calculate the reflection coefficient.
 
@@ -149,6 +149,6 @@ R = reflection_coefficient(source, eff_medium, material.shape)
 0.15901291515072696 + 1.9230884702465903e-17im
 ```
 
-## [One plane wave mode ](@id 3D-one-reflection)
+## [One plane wave mode ](@id three-dim-acoustic-one-reflection)
 
 Currently implementing... formulas from [Gower & Kristensson 2020](https://arxiv.org/pdf/2010.00934.pdf).
