@@ -33,6 +33,7 @@ script:
 
 jobs:
   allow_failures:
+    - os: osx
     - julia: nightly
   include:
     - stage: "Documentation"
