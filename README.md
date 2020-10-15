@@ -32,7 +32,7 @@ Contributions are very welcome.
 
 [[3]](https://royalsocietypublishing.org/doi/full/10.1098/rspa.2019.0344) Gower, Artur L., I. David Abrahams, and William J. Parnell. "A proof that multiple waves propagate in ensemble-averaged particulate materials." Proceedings of the Royal Society A 475.2229 (2019): 20190344.
 
-[[4](https://arxiv.org/abs/2010.00934) Gower, Artur Lewis, and Gerhard Kristensson. "Effective Waves for Random Three-dimensional Particulate Materials." arXiv preprint arXiv:2010.00934 (2020).]
+[[4]](https://arxiv.org/abs/2010.00934) Gower, Artur Lewis, and Gerhard Kristensson. "Effective Waves for Random Three-dimensional Particulate Materials." arXiv preprint arXiv:2010.00934 (2020).
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: https://JuliaWaveScattering.github.io/EffectiveWaves.jl/dev
