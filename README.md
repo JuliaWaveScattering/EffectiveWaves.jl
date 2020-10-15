@@ -9,7 +9,9 @@
 
 <!-- You can run Julia on [JuliaBox](https://www.juliabox.com/) in your browser without installation. -->
 
-At present, the package focuses on materails filled with randomly placed particles. You can calculate effective wavenumbers for 2D [1](https://arxiv.org/abs/1712.05427) and 3D [2](https://arxiv.org/abs/2010.00934) acoustics, wave transimission and wave reflection in 2D [1](https://arxiv.org/abs/1712.05427)[3](https://arxiv.org/abs/1810.10816)[4](https://arxiv.org/abs/1905.06996) and 3D [2](https://arxiv.org/abs/2010.00934), and scattering from an inhomogenious sphere [2](https://arxiv.org/abs/2010.00934). See [these notes](docs/src/theory/WavesInMultiSpecies.pdf) for brief formulas on effective wavenumbers.
+At present, the package focuses on materails filled with randomly placed particles. You can calculate effective wavenumbers for 2D [[1](https://arxiv.org/abs/1712.05427)] and 3D [[4](https://arxiv.org/abs/2010.00934)] acoustics, wave transimission and wave reflection in 2D [[1](https://arxiv.org/abs/1712.05427),[2](https://arxiv.org/abs/1810.10816),[3](https://arxiv.org/abs/1905.06996)] and 3D [[4](https://arxiv.org/abs/2010.00934)], and scattering from an inhomogenious sphere [[4](https://arxiv.org/abs/2010.00934)]. See [these notes](docs/src/theory/WavesInMultiSpecies.pdf) for brief formulas on effective wavenumbers.
+
+Together with [MultipleScattering.jl](https://github.com/JuliaWaveScattering/MultipleScattering.jl), this package has been setup to easily extend to other dimensions, materials, and types of waves, such as elastic and electromagnetic waves.
 
 
 ## Installation
@@ -68,6 +70,7 @@ Contributions are very welcome.
 
 [[3]](https://royalsocietypublishing.org/doi/full/10.1098/rspa.2019.0344) Gower, Artur L., I. David Abrahams, and William J. Parnell. "A proof that multiple waves propagate in ensemble-averaged particulate materials." Proceedings of the Royal Society A 475.2229 (2019): 20190344.
 
+[[4](https://arxiv.org/abs/2010.00934) Gower, Artur Lewis, and Gerhard Kristensson. "Effective Waves for Random Three-dimensional Particulate Materials." arXiv preprint arXiv:2010.00934 (2020).]
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: https://JuliaWaveScattering.github.io/EffectiveWaves.jl/dev
