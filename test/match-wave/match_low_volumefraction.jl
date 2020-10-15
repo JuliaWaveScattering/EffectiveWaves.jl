@@ -44,10 +44,10 @@ using EffectiveWaves, Test
 
     # Check that the eigenmodes point the same direction
     ds = [
-        abs(dot(wave_eff_φs[i].amplitudes[:], wave_effs_arr[i][1].amplitudes[:]))
+        abs(dot(wave_eff_φs[i].eigenvectors[:], wave_effs_arr[i][1].eigenvectors[:]))
     for i in eachindex(ωs)]
     ds2 = [
-        norm(wave_eff_φs[i].amplitudes[:])*norm(wave_effs_arr[i][1].amplitudes[:])
+        norm(wave_eff_φs[i].eigenvectors[:])*norm(wave_effs_arr[i][1].eigenvectors[:])
     for i in eachindex(ωs)]
     @test maximum(ds./ds2 .- 1.0) < tol
 

@@ -23,13 +23,13 @@ wave_effs = WaveModes(ω, medium, [specie];
     radius_multiplier = radius_multiplier, mesh_points = 6
     , extinction_rescale = false
     )
-k_effs = [w.k_eff/k for w in wave_effs]
+k_effs = [w.wavenumber/k for w in wave_effs]
 
 L, X = x_mesh_match(wave_effs; tol = tol/10, a12=a12k)
 
 avg_wave_effs = [DiscretePlaneWaveMode(X[L:L+1], wave) for wave in wave_effs]
 for i in eachindex(k_effs)
-    wave_effs[i].amplitudes = wave_effs[i].amplitudes / norm(avg_wave_effs[i].amplitudes[1,:,1])
+    wave_effs[i].eigenvectors = wave_effs[i].eigenvectors / norm(avg_wave_effs[i].amplitudes[1,:,1])
 end
 
 Ls = Int.(round.(LinRange(1,length(X) - length(wave_effs)/2,20)))
@@ -76,8 +76,8 @@ Es = [
     [
         sum(
             species[s].num_density * Z[n] * im^T(n+1) * S_mat[J-l,n-m] *
-            exp(im*X[J+1]*wave_effs[p].k_eff*cos(wave_effs[p].θ_eff) - im*n*wave_effs[p].θ_eff) *
-             wave_effs[p].amplitudes[n+ho+1] / (wave_effs[p].k_eff*cos(wave_effs[p].θ_eff) + cos(θin))
+            exp(im*X[J+1]*wave_effs[p].wavenumber*cos(wave_effs[p].θ_eff) - im*n*wave_effs[p].θ_eff) *
+             wave_effs[p].eigenvectors[n+ho+1] / (wave_effs[p].wavenumber*cos(wave_effs[p].θ_eff) + cos(θin))
         for n = -ho:ho, s = 1:S)
     for l = 0:J, p in eachindex(wave_effs)]
 for m = -ho:ho]
@@ -89,8 +89,8 @@ scalar = 2*specie.num_density/cos(θin)
 EE = scalar*[
     sum(
         (-1)^n*im^T(-m)*exp(im*(m-n)*θin)*exp(-im*n*wave_effs[p].θ_eff)*Z[n]*
-        wave_effs[p].amplitudes[n+ho+1,1] * exp(-im*xl*cos(θin)) *
-        sum(σ.*exp.(im.*X2.*wave_effs[p].k_eff*cos(wave_effs[p].θ_eff)/k .+ im.*X2.*cos(θin)))
+        wave_effs[p].eigenvectors[n+ho+1,1] * exp(-im*xl*cos(θin)) *
+        sum(σ.*exp.(im.*X2.*wave_effs[p].wavenumber*cos(wave_effs[p].θ_eff)/k .+ im.*X2.*cos(θin)))
     for n = -ho:ho, p in eachindex(wave_effs))
 for xl in XJ, m = -ho:ho]
 EE2 = sum(E_mat,2)[:]

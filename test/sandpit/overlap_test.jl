@@ -41,7 +41,7 @@ for k_eff in k_effs]
 
 # rescale to lessen roundoff errors
 for i in eachindex(k_effs)[2:end]
-    wave_effs[i].amplitudes = wave_effs[i].amplitudes * exp( -im*k_effs[i]*X_match) / norm(wave_effs[i].amplitudes)
+    wave_effs[i].eigenvectors = wave_effs[i].eigenvectors * exp( -im*k_effs[i]*X_match) / norm(wave_effs[i].eigenvectors)
 end
 
 # Calculate the discretised wave from these effective wave

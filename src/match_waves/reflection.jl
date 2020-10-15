@@ -1,3 +1,9 @@
+"""
+    reflection_coefficient(ω::T, m_wave::MatchPlaneWaveMode,
+        source::PlaneSource, material::Material{2,Halfspace{T,2}};
+
+Calculate the reflection coefficient from a matched wave. This requires using both the discrete part and effective wavemode of the matched wave.
+"""
 function reflection_coefficient(ω::T, m_wave::MatchPlaneWaveMode{T},
     source::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
      # medium::PhysicalMedium{T}, specie::Specie{T};

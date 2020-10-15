@@ -33,7 +33,7 @@ end
 "Calculates an DiscretePlaneWaveMode from one EffectiveWave"
 function DiscretePlaneWaveMode(xs::AbstractVector{T}, wave_eff::EffectivePlaneWaveMode{T}, halfspace::Halfspace{T}) where T<:Number
 
-    amps = wave_eff.amplitudes
+    amps = wave_eff.eigenvectors
     ho = wave_eff.basis_order
 
     θ_eff = transmission_angle(wave_eff, halfspace)
@@ -144,7 +144,7 @@ function x_mesh(wave_eff_long::EffectivePlaneWaveMode{T}, wave_eff_short::Effect
         min_size::Int = 5,
         max_x::T = -log(tol) / abs(imag(wave_eff_long.wavenumber))
         # max_x::T = -log(tol) / abs(imag(wave_eff_short.wavenumber))
-        # max_x::T = (-log(tol))/abs(cos(wave_eff_long.θ_eff)*imag(wave_eff_long.k_eff))
+        # max_x::T = (-log(tol))/abs(cos(wave_eff_long.θ_eff)*imag(wave_eff_long.wavenumber))
 ) where T<:AbstractFloat
 
     #= The default max_x results in:
@@ -152,7 +152,7 @@ function x_mesh(wave_eff_long::EffectivePlaneWaveMode{T}, wave_eff_short::Effect
     =#
     # estimate a reasonable derivative based on more rapidly varying wave_eff_short.
     df = abs(wave_eff_short.wavenumber)
-    # NOTE was: df = abs(wave_eff_short.k_eff * cos(wave_eff_short.θ_eff))
+    # NOTE was: df = abs(wave_eff_short.wavenumber * cos(wave_eff_short.θ_eff))
 
     # Based on Simpson's rule
         # dX  = (tol*90 / (df^4))^(1/5)

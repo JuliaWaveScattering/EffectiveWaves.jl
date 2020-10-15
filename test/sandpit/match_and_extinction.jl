@@ -56,9 +56,9 @@ function extinc_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T}},
     w_vec = (T(2)*k) .*
         [
             sum(
-                exp(im*m*(θin - w.θ_eff) + im*X[XL]*(w.k_eff*cos(w.θ_eff) - k*cos(θin))/k) *
-                species[l].num_density * w.amplitudes[m+ho+1,l]
-            for m = -ho:ho, l = 1:S) / (cos(θin)*(w.k_eff*cos(w.θ_eff) - k*cos(θin)))
+                exp(im*m*(θin - w.θ_eff) + im*X[XL]*(w.wavenumber*cos(w.θ_eff) - k*cos(θin))/k) *
+                species[l].num_density * w.eigenvectors[m+ho+1,l]
+            for m = -ho:ho, l = 1:S) / (cos(θin)*(w.wavenumber*cos(w.θ_eff) - k*cos(θin)))
         for w in wave_effs]
 
     q_arr = [

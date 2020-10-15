@@ -6,7 +6,8 @@
     @series (x, match_wave)
 end
 
-@recipe function plot(x::AbstractVector{T}, match_wave::MatchPlaneWaveMode{T}; basis_order = match_wave.PlaneWaveModes[1].basis_order,
+@recipe function plot(x::AbstractVector{T}, match_wave::MatchPlaneWaveMode{T};
+        basis_order = match_wave.PlaneWaveModes[1].basis_order,
         hankel_indexes = 0:basis_order,
         apply = real, match_region = true) where T <: AbstractFloat
 

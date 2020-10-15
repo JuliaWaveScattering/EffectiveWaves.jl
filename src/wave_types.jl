@@ -19,12 +19,12 @@ eigenvector_length(::AzimuthalSymmetry{3}; basis_order::Int, basis_field_order::
 
 Is a struct that represents a mode of the average scattering coefficients for plane wave symmetry. That is, when using an incident plane wave and a plate or halfspace for the material geometry.
 
-This wave mode has frequency ``\\omega`` and has has the value ``A e^{i k \\mathbf v \\cdot \\mathbf x }`` at the point ``\\mathbf x``, where ``A`` are the amplitudes, ``\\mathbf v`` is the direction and ``k`` is the effective wavenumber. We represent these quantities as
+This wave mode has frequency ``\\omega`` and has has the value ``A e^{i k \\mathbf v \\cdot \\mathbf x }`` at the point ``\\mathbf x``, where ``A`` are the eigenvectors, ``\\mathbf v`` is the direction and ``k`` is the effective wavenumber. We represent these quantities as
 
   * ``\\omega = `` `EffectivePlaneWaveMode.ω`
   * ``k = `` `EffectivePlaneWaveMode.wavenumber`
   * ``v = `` `EffectivePlaneWaveMode.direction`
-  * ``A = `` `EffectivePlaneWaveMode.amplitudes`
+  * ``A = `` `EffectivePlaneWaveMode.eigenvectors`
   * ``M = `` `EffectivePlaneWaveMode.basis_order`
 
 To recover the average scattering coefficients ``F`` from a particle use:
@@ -40,25 +40,25 @@ struct EffectivePlaneWaveMode{T<:AbstractFloat,Dim} <: AbstractWaveMode{T,Dim}
     wavenumber::Complex{T}
     basis_order::Int
     direction::SVector{Dim,Complex{T}} # the effective direction where sum(direction.^2) == 1
-    amplitudes::Array{Complex{T}} # the effective ampliudes
+    eigenvectors::Array{Complex{T}} # the effective ampliudes
 end
 
 function EffectivePlaneWaveMode(ω::T, wavenumber::Complex{T};
         basis_order::Int = 0,
         direction::AbstractArray{Complex{T}} = zeros(Complex{T},2),
-        amplitudes::AbstractArray{Complex{T}} = zeros(Complex{T},1)
+        eigenvectors::AbstractArray{Complex{T}} = zeros(Complex{T},1)
     ) where T<:AbstractFloat
 
-    EffectivePlaneWaveMode(ω, wavenumber, basis_order, SVector(direction...), amplitudes)
+    EffectivePlaneWaveMode(ω, wavenumber, basis_order, SVector(direction...), eigenvectors)
 end
 
 """
-    EffectivePlaneWaveMode(ω, wavenumber::Complex, direction::Array{Complex}, amplitudes::Array{Complex})
+    EffectivePlaneWaveMode(ω, wavenumber::Complex, direction::Array{Complex}, eigenvectors::Array{Complex})
 
 A convienient way to form the type `EffectivePlaneWaveMode`.
 """
-function EffectivePlaneWaveMode(ω::T, wavenumber::Complex{T}, direction::SVector{Dim,Complex{T}}, amps::Array{Complex{T}}) where {T<:AbstractFloat, Dim}
-    EffectivePlaneWaveMode{T,Dim}(ω, wavenumber, Int( (size(amps,1) - 1) / 2 ), direction, amps)
+function EffectivePlaneWaveMode(ω::T, wavenumber::Complex{T}, direction::SVector{Dim,Complex{T}}, eigenvectors::Array{Complex{T}}) where {T<:AbstractFloat, Dim}
+    EffectivePlaneWaveMode{T,Dim}(ω, wavenumber, Int( (size(eigenvectors,1) - 1) / 2 ), direction, eigenvectors)
 end
 
 

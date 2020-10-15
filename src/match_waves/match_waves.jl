@@ -40,7 +40,7 @@ function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, mat
 
     # use non-dimensional effective waves
     wave_non_effs = map(wave_effs) do w
-        EffectivePlaneWaveMode(ω, w.wavenumber / k, w.basis_order, w.direction, w.amplitudes)
+        EffectivePlaneWaveMode(ω, w.wavenumber / k, w.basis_order, w.direction, w.eigenvectors)
     end
 
     if first(x) == - one(T)
@@ -59,11 +59,11 @@ function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, mat
     #     DiscretePlaneWaveMode(X[L_match:L_match+1], w, material.shape)
     # for w in wave_non_effs]
 
-    # We just scale w.amplitudes to avoid rounding errors
+    # We just scale w.eigenvectors to avoid rounding errors
     # wave_non_effs = map(eachindex(wave_non_effs)) do i
     #     w = wave_non_effs[i]
-    #     # amps = w.amplitudes / norm(discrete_waves[i].amplitudes[1,:,1])
-    #     amps = w.amplitudes * abs(exp(- im * w.wavenumber * X[L_match]))
+    #     # amps = w.eigenvectors / norm(discrete_waves[i].eigenvectors[1,:,1])
+    #     amps = w.eigenvectors * abs(exp(- im * w.wavenumber * X[L_match]))
     #     EffectivePlaneWaveMode(ω, w.wavenumber, w.basis_order, w.direction, amps)
     # end;
 
@@ -85,7 +85,7 @@ function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, mat
     # and re-dimensionalise the effective wavenumbers
     wave_non_effs = map(eachindex(wave_effs)) do i
         w = wave_non_effs[i]
-        amps = αs[i] .* w.amplitudes
+        amps = αs[i] .* w.eigenvectors
         EffectivePlaneWaveMode(ω, k * w.wavenumber, w.basis_order, w.direction, amps)
     end
 
@@ -113,7 +113,7 @@ function x_mesh_match(wave_non_effs::Vector{EffectivePlaneWaveMode{T,Dim}}; kws.
         else
             x_mesh(wave_non_effs[1]; max_x = (pi/2) / abs(wave_non_effs[1].wavenumber), kws...)
         end
-    #NOTE previously used abs(cos(wave_effs[1].θ_eff)*abs(wave_effs[1].k_eff)) instead of abs(wave_effs[1].wavenumber)
+    #NOTE previously used abs(cos(wave_effs[1].θ_eff)*abs(wave_effs[1].wavenumber)) instead of abs(wave_effs[1].wavenumber)
 
     x_match = x[end]
     x_max = (length(x) < length(wave_non_effs)*T(1.5)) ?

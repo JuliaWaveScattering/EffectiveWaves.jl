@@ -44,7 +44,7 @@ wave_effs = WaveModes(ω, medium, [specie];
     extinction_rescale = false
 )
 
-# k_effs = [w.k_eff for w in wave_effs];
+# k_effs = [w.wavenumber for w in wave_effs];
 # mesh_ks = wavenumbers_mesh(ω, k_effs, medium, [specie];
 #     basis_order=ho, tol = 1e-7,  θin = θin, verbose = true,
 #     num_wavenumbers = num_wavenumbers,
@@ -107,9 +107,9 @@ i_max = findmin(abs.(X .- X_max))[2]
 
 # # If we assume the average wave is a sum of plane waves everywhere, then we can estimate which of these effectives waves will have decayed too much already, and therefore discard them
 avg_wave_effs = [DiscretePlaneWaveMode(X[L:L+1], wave) for wave in wave_effs]
-ref_norm = norm(avg_wave_effs[1].amplitudes[end,:,:])/norm(wave_effs[1].amplitudes)
+ref_norm = norm(avg_wave_effs[1].amplitudes[end,:,:])/norm(wave_effs[1].eigenvectors)
 eff_inds = find(
-    norm(avg_wave_effs[i].amplitudes[end,:,:])/norm(wave_effs[i].amplitudes) > ref_norm*tol
+    norm(avg_wave_effs[i].amplitudes[end,:,:])/norm(wave_effs[i].eigenvectors) > ref_norm*tol
 for i in eachindex(wave_effs))
 
 k_effs = k_effs[eff_inds]
@@ -121,7 +121,7 @@ avg_wave = DiscretePlaneWaveMode(ho, X[1:J], avg_wave_x.amplitudes[1:J,:,:])
 
 # rescale to lessen roundoff errors
 for i in eachindex(k_effs)[2:end]
-    wave_effs[i].amplitudes = wave_effs[i].amplitudes * exp(-im*k_effs[i]*cos(wave_effs[i].θ_eff)*X_match[1]/k) / norm(wave_effs[i].amplitudes)
+    wave_effs[i].eigenvectors = wave_effs[i].eigenvectors * exp(-im*k_effs[i]*cos(wave_effs[i].θ_eff)*X_match[1]/k) / norm(wave_effs[i].eigenvectors)
 end
 
 include("match_and_extinction.jl")
