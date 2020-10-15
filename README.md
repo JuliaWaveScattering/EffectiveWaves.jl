@@ -13,48 +13,10 @@ At present, the package focuses on materails filled with randomly placed particl
 
 Together with [MultipleScattering.jl](https://github.com/JuliaWaveScattering/MultipleScattering.jl), this package has been setup to easily extend to other dimensions, materials, and types of waves, such as elastic and electromagnetic waves.
 
-
-## Installation
-Type into Julia:
-```julia
-using Pkg
-Pkg.clone("https://github.com/arturgower/EffectiveWaves.jl.git")
-
-using EffectiveWaves
-```
-
 ## Documentation
 
 - [**STABLE**][docs-stable-url] &mdash; **documentation of the most recently tagged version.**
 - [**DEVEL**][docs-dev-url] &mdash; *documentation of the in-development version.*
-
-## Simple example
-Effective wavenumbers for two species randomly (uniformly) distributed in Glycerol.
-```julia
-#where: ρ = density, r = radius, c = wavespeed, and volfrac = volume fraction
-
-const WaterDistilled= Medium(ρ=0.998*1000, c = 1496.0)
-const Glycerol      = Medium(ρ=1.26*1000,  c = 1904.0)
-
-species = [
-    Specie(ρ=WaterDistilled.ρ,r=30.e-6, c=WaterDistilled.c, volfrac=0.1),
-    Specie(ρ=Inf, r=100.0e-6, c=2.0, volfrac=0.2)
-]
-# background medium
-background = Glycerol
-```
-
-Calculate effective wavenumbers:
-```julia
-
-# angular frequencies
-ωs = LinRange(0.01,1.0,60)*30.0e6
-wavenumbers = wavenumber_low_volumefraction(ωs, background, species)
-
-speeds = ωs./real(wavenumbers)
-attenuations = imag(wavenumbers)
-```
-For a list of possible materials go to [src/materials.jl](src/materials.jl).
 
 ## More examples
 For more examples and details go to [docs/src/examples/](docs/src/examples/).
