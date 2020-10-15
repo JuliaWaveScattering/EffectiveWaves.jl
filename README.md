@@ -9,7 +9,8 @@
 
 <!-- You can run Julia on [JuliaBox](https://www.juliabox.com/) in your browser without installation. -->
 
-At present, the packages calculates effective wavenumbers, wave transimission and wave reflection from random particulate materials in two-dimensions, see [arXiv preprint](https://arxiv.org/abs/1712.05427) for details on the mathematics, or [these notes](docs/src/theory/WavesInMultiSpecies.pdf) for the formulas.
+At present, the package focuses on materails filled with randomly placed particles. You can calculate effective wavenumbers for 2D [1](https://arxiv.org/abs/1712.05427) and 3D [2](https://arxiv.org/abs/2010.00934) acoustics, wave transimission and wave reflection in 2D [1](https://arxiv.org/abs/1712.05427)[3](https://arxiv.org/abs/1810.10816)[4](https://arxiv.org/abs/1905.06996) and 3D [2](https://arxiv.org/abs/2010.00934), and scattering from an inhomogenious sphere [2](https://arxiv.org/abs/2010.00934). See [these notes](docs/src/theory/WavesInMultiSpecies.pdf) for brief formulas on effective wavenumbers.
+
 
 ## Installation
 Type into Julia:
