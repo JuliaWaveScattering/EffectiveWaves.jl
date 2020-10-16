@@ -11,6 +11,7 @@ Pages = ["base.md"]
 ## Defining the material
 
 ```@docs
+PhysicalMedium
 Acoustic
 Specie
 Material
