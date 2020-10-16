@@ -10,7 +10,6 @@ export  Material, Specie, Species, SetupSymmetry, number_density, volume_fractio
 
 # for MatchPlaneWaveMode
 export  match_error, x_mesh_match
-# export  Nn, p_speed#, maximum_basis_order
 
 # for effective waves
 export wavenumbers, wavenumber, eigenvectors
