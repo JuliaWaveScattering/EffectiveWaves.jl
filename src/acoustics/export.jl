@@ -8,6 +8,8 @@ include("acoustic_mediums.jl")
 
 include("low_frequency.jl")
 
+include("effective_wave/asymptotics.jl")
+
 include("effective_wave/halfspace/eigensystem.jl")
 include("effective_wave/halfspace/reflection_coefficient.jl")
 # include("effective_wave/halfspace/wavemode.jl")

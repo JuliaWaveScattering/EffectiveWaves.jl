@@ -22,13 +22,18 @@ function wavenumbers(ω::T, medium::PhysicalMedium{T}, species::Species{T};
     k_effs::Vector{Complex{T}} = wavenumbers_path(ω, medium, species;
     num_wavenumbers = num_wavenumbers, max_Imk=max_Imk, tol = tol, kws...)
 
+    # Take only the num_wavenumbers wavenumbers with the smallest imaginary part.
+    k_effs = k_effs[1:num_wavenumbers]
+
     # NOTE: these search methods would significantly improve if we used the asymptotic result for multiple wavenumbers and monopole scatterers. This would give a reasonable length scale for the mesh, and good estimates on where to start searching.
     if num_wavenumbers > 2
-        box_k = box_keff(ω, medium, species; tol = tol)
-        max_imag = max(3.0 * maximum(imag.(k_effs)), max_Imk)
-        max_imag = max(max_imag, box_k[2][2])
-        max_real = max(2.0 * maximum(real.(k_effs)), max_Rek)
-        max_real = max(max_real, box_k[1][2])
+        # box_k = box_keff(ω, medium, species; tol = tol)
+        # max_imag = max(3.0 * maximum(imag.(k_effs)), max_Imk)
+        # max_imag = max(max_imag, box_k[2][2])
+        # max_real = max(2.0 * maximum(real.(k_effs)), max_Rek)
+
+        max_imag = maximum(imag.(k_effs))
+        max_real = maximum(real.(k_effs))
         box_k = [[-max_real,max_real], [0.0,max_imag]]
 
         k_effs2 = wavenumbers_bisection(ω, medium, species;

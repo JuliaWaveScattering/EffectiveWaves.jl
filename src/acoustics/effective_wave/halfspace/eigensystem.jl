@@ -1,4 +1,4 @@
-function eigensystem(ω::T, medium::PhysicalMedium{T,2}, species::Species{T,2}, ::AbstractPlanarSymmetry;
+function eigensystem(ω::T, medium::Acoustic{T,2}, species::Species{T,2}, ::AbstractPlanarSymmetry;
         basis_order::Int = 2,
         kws...) where {T<:AbstractFloat}
 
@@ -41,7 +41,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,2}, species::Species{T,2}, 
     return MM
 end
 
-function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, ::AbstractPlanarSymmetry;
+function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::AbstractPlanarSymmetry;
         basis_order::Int = 2,
         θp::Union{T,Complex{T}} = zero(T),
         φp::Union{T,Complex{T}} = zero(T),

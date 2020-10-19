@@ -1,4 +1,27 @@
 """
+    asymptotic_monopole_wavenumbers(ω, medium::PhysicalMedium, species; num_wavenumbers = 2)
+
+Estimates a box in complex k_eff space where all needed effective wavenumbers, for the given tolerance, are inside.
+""" # Should really use assymptotics for monopole scatterers to properly estimate box size. Would be more robust.
+function asymptotic_monopole_wavenumbers(ω::T, medium::PhysicalMedium{T}, species::Species{T};
+        num_wavenumbers = 2
+    ) where T
+
+    # eff_medium = effective_medium(medium, species)
+    # ko = real(ω / eff_medium.c)
+    # if isnan(ko) ko = real(ω / medium.c) end
+
+    ko = real(ω / medium.c)
+
+    # After two wavelengths distance the solution would be smaller than tol
+    max_imag = - log(tol) * ko / (T(4) * pi)
+    max_real = T(4) * ko
+
+   return [[-max_real,max_real],[min_imag, max_imag]]
+end
+
+
+"""
     box_keff(ω::T, medium::PhysicalMedium{T}, species::Species{T};
             tol::T = 1e-5, min_imag::T = zero(T))
 

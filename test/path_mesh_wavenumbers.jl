@@ -16,9 +16,7 @@ using EffectiveWaves, Test
     basis_order = 2
 
     k_effs_path = wavenumbers_path(ω, medium, species;
-        mesh_size = 2.0,
         mesh_points = 10,
-        max_Imk = 4.0,
         num_wavenumbers=num_wavenumbers,
         basis_order=basis_order,
         tol = tol

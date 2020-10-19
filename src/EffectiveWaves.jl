@@ -12,7 +12,7 @@ export  Material, Specie, Species, SetupSymmetry, number_density, volume_fractio
 export  match_error, x_mesh_match
 
 # for effective waves
-export wavenumbers, wavenumber, eigenvectors
+export wavenumbers, wavenumber, asymptotic_monopole_wavenumbers, eigenvectors
 export WaveModes, WaveMode, wavemode_wienerhopf
 export solve_boundary_condition, material_scattering_coefficients
 
