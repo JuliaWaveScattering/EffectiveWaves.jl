@@ -52,12 +52,12 @@ using EffectiveWaves, Test
     k_effs = wavenumbers(ω, medium, [specie]; tol = 1e-8,
         basis_order = ho, num_wavenumbers = num_wavenumbers)
 
-    rel_errors = map(k_effs[1:end]) do k_eff
+    rel_errors = map(k_effs[1:min(5,length(k_effs))]) do k_eff
         wave = WaveMode(ω, k_eff, source, material;basis_order = ho)
         wave_avg = DiscretePlaneWaveMode(x, wave, material.shape)
         R = reflection_coefficient(ω, wave_avg, source, material)
         R_eff = reflection_coefficient(ω, wave, source, material)
-        @test abs(R-R_eff) < 5e-5
+        # @test abs(R-R_eff) < 5e-5
 
         wave_avg1 = deepcopy(wave_avg)
         wave_avg1.amplitudes = wave_avg.amplitudes[1:m2,:,:]
@@ -65,8 +65,11 @@ using EffectiveWaves, Test
 
         match_wave = MatchPlaneWaveMode{Float64,2}([wave], wave_avg1, x[m1:m2])
         R_m = reflection_coefficient(ω, match_wave, source, material)
-        @test abs(R_m-R_eff) < 5e-5
-        abs(R_m-R_eff)
+        # @test abs(R_m-R_eff) < 5e-5
+        # abs(R_m-R_eff)
+        [abs(R - R_eff), abs(R_m - R_eff)]
     end
+    @test sum(rel_errors[1] .< 1e-6) == 2
+    @test sum(maximum(rel_errors) .< 5e-5) == 2
 
 end

@@ -1,5 +1,10 @@
 using EffectiveWaves, Test, LinearAlgebra
 
+# 2.2159918607732766e-10
+#  3.6428008939057475e-8
+#  2.1279008239602572e-7
+
+
 @testset "low frequency 3D acoustics" begin
 
 spatial_dim = 3
@@ -42,7 +47,6 @@ for ω in ωs]
 k_effs = [kps[1] for kps in AP_kps]
 
 eff_medium = effective_medium(medium, species)
-effective_sphere = Particle(eff_medium, material.shape)
 
 k_lows = ωs ./ eff_medium.c
 
@@ -58,8 +62,11 @@ for i in eachindex(k_effs)]
 
 scat_azis = material_scattering_coefficients.(A_waves);
 
-Linc = basis_field_order + basis_order
+r = maximum(outer_radius.(species))
+material_low = Material(Sphere(4.0 - r),species);
+effective_sphere = Particle(eff_medium, material_low.shape)
 
+Linc = basis_field_order + basis_order;
 n_to_l = [l for l = 0:Linc for m = -l:l];
 
 errs =  map(eachindex(ωs)) do i
@@ -70,5 +77,6 @@ end
 
 @test sum(errs .< maximum(outer_radius.(species)) .* abs.(ks)) == length(ks)
 @test errs[1] < tol
+@test maximum(errs) < 5.0 * tol
 
 end

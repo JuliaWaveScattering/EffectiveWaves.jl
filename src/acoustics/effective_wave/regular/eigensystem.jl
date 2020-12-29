@@ -2,7 +2,14 @@
 function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, ::WithoutSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
+        numberofparticles::Number = Inf,
         kws...) where {T<:AbstractFloat}
+
+    if numberofparticles >= Inf || numberofparticles < 1
+        scale_number_density = one(T)
+    else
+        scale_number_density = one(T) - one(T) / numberofparticles
+    end
 
     k = real(ω/medium.c)
     sps = species
@@ -25,7 +32,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
 
         (m == dm && l == dl && m1 == m2 && l1 == l2 && s1 == s2 ? 1.0 : 0.0) +
         if minl3 <= maxl3
-            as[s1,s2] * number_density(sps[s2]) * t_matrices[s1][l+1,l+1] *
+            as[s1,s2] * scale_number_density * number_density(sps[s2]) * t_matrices[s1][l+1,l+1] *
             sum(l3 ->
                 gaunt_coefficient(l,m,dl,dm,l3,m1-m2) *
                 gaunt_coefficient(l1,m1,l2,m2,l3,m1-m2) * Ns[l3+1,s1,s2]
@@ -59,7 +66,14 @@ end
 function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, ::AbstractAzimuthalSymmetry;
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
+        numberofparticles::Number = Inf,
         kws...) where {T<:AbstractFloat}
+
+    if numberofparticles >= Inf || numberofparticles < 1
+        scale_number_density = one(T)
+    else
+        scale_number_density = one(T) - one(T) / numberofparticles
+    end
 
     k = real(ω/medium.c)
     sps = species
@@ -84,7 +98,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
 
         (m == dm && l == dl && l1 == l2 && s1 == s2 ? 1.0 : 0.0) +
         if minl3 <= maxl3
-            as[s1,s2] * number_density(species[s2]) * t_matrices[s1][l+1,l+1] *
+            as[s1,s2] * scale_number_density * number_density(species[s2]) * t_matrices[s1][l+1,l+1] *
             sum(l3 ->
                 gaunt_coefficient(l,m,dl,dm,l3,m-dm) *
                 gaunt_coefficient(l1,-dm,l2,-m,l3,m-dm) * Ns[l3+1,s1,s2]
