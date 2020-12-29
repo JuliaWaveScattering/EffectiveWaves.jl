@@ -51,6 +51,7 @@ using EffectiveWaves, Test
     num_wavenumbers = 4
     k_effs = wavenumbers(ω, medium, [specie]; tol = 1e-8,
         basis_order = ho, num_wavenumbers = num_wavenumbers)
+    k_effs = k_effs[1:num_wavenumbers]
 
     rel_errors = map(k_effs[1:min(5,length(k_effs))]) do k_eff
         wave = WaveMode(ω, k_eff, source, material;basis_order = ho)

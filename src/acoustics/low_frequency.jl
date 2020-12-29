@@ -23,7 +23,7 @@ end
 reflection_coefficient(PlaneSource, Acoustic[, Halfspace = Halfspace(-psource.direction)])
 
 caculates the reflection coefficient from a homogenious halfspace (assumed to direct incidence if not given), which is also the low frequency reflection from a particulate material when using the effective_medium."
-function reflection_coefficient(psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, reflect_medium::Acoustic{T,Dim}, halfspace::Halfspace{T,Dim} = Halfspace(-psource.direction)) where {T<:Number,Dim}
+function reflection_coefficient(psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, reflect_medium::Acoustic{T,Dim}, halfspace::Halfspace{T,Dim} = Halfspace(-psource.direction)) where {T<:AbstractFloat,Dim}
 
     k_in = T(1) / psource.medium.c
     k_r = if abs(reflect_medium.c) == zero(T)

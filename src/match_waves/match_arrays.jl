@@ -105,7 +105,7 @@ function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T,2}}, L::
             zero(Complex{T}) :
             sum(
                 (number_density(species[s])/(k^2)) * t_vecs[s][m+ho+1,m+ho+1] * im^T(n) * wave_effs[p].amplitudes[n+ho+1,s,1] *
-                exp(im*XR[j] * kcos_effs[p] - im*n*θ_effs[p]) *
+                exp(im * XR[j] * kcos_effs[p] - im*n*θ_effs[p]) *
                 (B_mat[j-l,n-m] - S_mat[j-l,n-m]) * σs[l][j]
             for j = J:(l+q), n = -ho:ho, s = 1:S)
         for l = 0:J, p in eachindex(wave_effs)]

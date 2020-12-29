@@ -14,7 +14,7 @@ end
 
 # Y0 = sqrt(k^a12^2 - X^2)
 function integrate_B(n::Int, X::T, Y0::T;
-        θin::Complex{T} = 0.0, num_coefs::Int = 10000,
+        θin::Union{T,Complex{T}} = 0.0, num_coefs::Int = 10000,
         Y1::T = max(T(2000)*X, T(4000)) # note Y1 is non-dimensional!
     ) where T<:AbstractFloat
 
@@ -26,13 +26,13 @@ function integrate_B(n::Int, X::T, Y0::T;
 end
 
 # for only whole-correction, this doesn't involve an integral
-function integrate_S(n::Int, X::T; θin::Complex{T} = 0.0) where T <: AbstractFloat
+function integrate_S(n::Int, X::T; θin::Union{T,Complex{T}} = 0.0) where T <: AbstractFloat
     S = 2.0*(im^T(n))*exp(-im*n*θin)*exp(im*X*cos(θin))/cos(θin)
     if X<0 S = conj(S) end
     S
 end
 
-function BS_matrices(X::AbstractVector{T}, a12k::T; θin::Complex{T} = 0.0 + 0.0im,
+function BS_matrices(X::AbstractVector{T}, a12k::T; θin::Union{T,Complex{T}} = 0.0 + 0.0im,
         M::Int = 2, num_coefs::Int = 10000) where T<:AbstractFloat
 
     dX = X[2] - X[1]

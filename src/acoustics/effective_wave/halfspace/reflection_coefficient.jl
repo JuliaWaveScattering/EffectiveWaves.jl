@@ -1,8 +1,12 @@
 reflection_coefficient(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim}, material::Material{Dim,Halfspace{T,Dim}}; kws...) where {T,Dim} = reflection_coefficient(ω, WaveMode(ω, wavenumber, psource, material), psource, material; kws...)
 
-"The average reflection coefficient"
+"""
+    reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode, psource::PlaneSource{T,2,1,Acoustic}, material::Material{2,Halfspace}; [x::T = zero(T)])
+
+The reflection coefficient in 2D for acoustics for just one [`EffectivePlaneWaveMode`](@ref)"
+"""
 function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
-        x::T = zero(T), kws...) where T<:Number
+        x::T = zero(T), kws...) where T<:AbstractFloat
 
     k = ω / psource.medium.c
     θ_eff = transmission_angle(wave_eff,material)

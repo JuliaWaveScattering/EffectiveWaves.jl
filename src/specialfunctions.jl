@@ -60,23 +60,55 @@ transmission_angle(pwave::Union{PlaneSource,EffectivePlaneWaveMode}, material::M
 
 transmission_angle(pwave::Union{PlaneSource,EffectivePlaneWaveMode}, shape::Halfspace) = transmission_angle(pwave.direction, shape.normal)
 
+"""
+    transmission_angle(wavevector, surface_normal)
+
+Calculates the transmission angle for a wave propagting inside a material which has the outward normal `surface_normal`. The wave propagates in the direction of `wavevector` with a wavenumber given by `k = sqrt(sum(wavevector .^2))`, where `k` should have a positive imaginary part.
+"""
 transmission_angle(wavevector::Vector,surface_normal::Vector) = transmission_angle(SVector(wavevector...),SVector(surface_normal...))
 
-function transmission_angle(wavevector::SVector{3,CT} where CT <: Union{T,Complex{T}}, surface_normal::SVector{3,T}) where {T<:AbstractFloat}
-# Let's define the projection:
-    # n = - surface_normal
-    # vn = dot(n,wavevector) .* n
-# and orthogonal component:
-    # vo = wavevector - vn => no = vo / sqrt(sum(vo.^2))
-# then need to determine θ_eff such that:
-    # k = ± sqrt(sum(wavevector .^2))
-    # wavevector = k .* (n .* cos(θ) + no .* sin(θ)) =>
-    # k * cos(θ) = dot(conj(n),wavevector)
-# and
-    # k * sin(θ) = dot(conj(no),wavevector) = dot(conj(no),vo) = sqrt(sum(vo.^2))
-    # => θ = atan(sqrt(sum(vo.^2)),dot(n,wavevector))
-# where we assume that dot(v,w) = conj(v[i])*w[i]
+"""
+    transmission_angle(wavevector::StaticVector{3}, surface_normal::StaticVector{3})
 
+Some care is needed hear when `wavevector` is a complex vector in 3 dimensions.
+
+## The maths
+
+Let's define the normal projection `vn`:
+
+    n = - surface_normal
+    vn = dot(n,wavevector) .* n
+
+remembering that in Julia, and mathematics, `dot(v,w) = sum(conj(v[i])*w[i] for i in eachindex(v))`.
+
+We now define the orthogonal component `vo` and its direction `no`:
+
+    vo = wavevector - vn
+    no = vo / sqrt(sum(vo.^2))
+
+Note this assumes that `vo` is a real vector, which it should be due to symmetry.
+
+To determine the transmission angle `θT` we calculate the wavenumber
+
+    k = ± sqrt(sum(wavevector .^2))
+
+where we choose the sign in `±` such that `imag(k) >= 0`.
+
+From the above we can write the `wavevector` in the form
+
+    wavevector = k .* (n .* cos(θ) + no .* sin(θ))
+
+which implies that
+
+    k * cos(θ) = dot(conj(n), wavevector)
+    k * sin(θ) = dot(conj(no),wavevector) = dot(conj(no),vo) = sqrt(sum(vo.^2))
+
+From these two we can robustly calculate `θT` as
+
+    θT = atan(sqrt(sum(vo.^2)),dot(n,wavevector))
+
+"""
+function transmission_angle(wavevector::SVector{3,CT} where CT <: Union{T,Complex{T}}, surface_normal::SVector{3,T}) where {T<:AbstractFloat}
     n = - surface_normal / norm(surface_normal)
     kcosθ = dot(n,wavevector)
 
@@ -86,6 +118,12 @@ function transmission_angle(wavevector::SVector{3,CT} where CT <: Union{T,Comple
     return θ = atan(ksinθ,kcosθ)
 end
 
+
+"""
+    transmission_angle(wavevector::StaticVector{2}, surface_normal::StaticVector{2})
+
+Specialised to 2 spatial dimensions. 
+"""
 function transmission_angle(wavevector::SVector{2,CT} where CT <: Union{T,Complex{T}}, surface_normal::SVector{2,T}) where {T<:AbstractFloat}
     n = - surface_normal
     no = [-n[2], n[1]] # guarantee θ grows anti-clockwise

@@ -38,6 +38,8 @@ import Statistics: mean, std
 using Reexport
 @reexport using MultipleScattering
 
+import MultipleScattering: Source, Acoustic
+
 using RecipesBase, OffsetArrays, LinearAlgebra
 
 # Heavy package

@@ -5,7 +5,11 @@ mutable struct MatchPlaneWaveMode{T<:AbstractFloat,Dim}
     x_match::Vector{T} # waves are matched between discrete_wave.x_match
 end
 
-"Calculates the difference between the match of MatchPlaneWaveMode.PlaneWaveModes and MatchPlaneWaveMode.discrete_wave. This can be used as a proxi for convergence. "
+"""
+    match_error(m_wave::MatchPlaneWaveMode{T}, shape::Shape{T}
+
+Calculates the difference between the match of MatchPlaneWaveMode.PlaneWaveModes and MatchPlaneWaveMode.discrete_wave. When this is small, we know that the method has likely converged.
+"""
 function match_error(m_wave::MatchPlaneWaveMode{T}, shape::Shape{T}; apply_norm::Function=norm) where T<:AbstractFloat
     avg_eff = DiscretePlaneWaveMode(m_wave.x_match, m_wave.PlaneWaveModes,shape)
     j0 = findmin(abs.(m_wave.discrete_wave.x .- m_wave.x_match[1]))[2]
@@ -27,7 +31,7 @@ function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, mat
     k = real(ω / source.medium.c)
 
     if isempty(wave_effs)
-        wave_effs = WaveModes(k, source, material;
+        wave_effs = WaveModes(ω, source, material;
             extinction_rescale = false,
             tol = T(10)*tol,
             kws...)
@@ -85,8 +89,16 @@ function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, mat
         EffectivePlaneWaveMode(ω, k * w.wavenumber, w.basis_order, w.direction, amps)
     end
 
+    mwave = MatchPlaneWaveMode(
+        wave_non_effs,
+        DiscretePlaneWaveMode(basis_order, real.( collect(X) ./ k), As_mat),
+        real.(collect(X[L_match:end]) ./ k)
+    )
+
+    println("The relative match error was: ", match_error(mwave, material.shape))
+
     # return MatchPlaneWaveMode(wave_effs, DiscretePlaneWaveMode(basis_order, collect(X)./k, As_mat), collect(X[L_match:end])./k)
-    return MatchPlaneWaveMode(wave_non_effs, DiscretePlaneWaveMode(basis_order, real.( collect(X) ./ k), As_mat), real.(collect(X[L_match:end]) ./ k))
+    return mwave
 end
 
 "Returns (x,L), where x[L:end] is the mesh used to match with wave_effs."

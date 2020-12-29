@@ -23,10 +23,10 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species
         kφ = wavenumber_low_volumefraction(ω, medium, species; verbose = false)
 
         # guess initial mesh for lowest attenuating wavenumbers
-        x_step = max(abs(real(kφ)), real(k0), sqrt(eps(T)))
+        x_step = T(2) * max(abs(real(kφ)), real(k0), sqrt(eps(T)))
         ys = [imag(kφ), sqrt(eps(T))]
 
-        k_dim_vecs = [[x,y] for x in LinRange(-x_step,x_step,mesh_points+1) for y in ys]
+        k_dim_vecs = [[x,y] for x in LinRange(-x_step,x_step,2 * mesh_points + 3) for y in ys]
         # k_vecs is non-dimensional
         k_vecs = k_dim_vecs ./ kscale
 
