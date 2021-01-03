@@ -3,9 +3,8 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,2}, species::Species{T,2}, 
         numberofparticles::Number = Inf,
         kws...) where {T<:AbstractFloat}
 
-    if numberofparticles >= Inf || numberofparticles < 1
-        scale_number_density = one(T)
-    else
+    scale_number_density = one(T)
+    if numberofparticles > 1
         scale_number_density = one(T) - one(T) / numberofparticles
     end
 
@@ -55,9 +54,8 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
         numberofparticles::Number = Inf,
         kws...) where {T<:AbstractFloat}
 
-    if numberofparticles >= Inf || numberofparticles < 1
-        scale_number_density = one(T)
-    else
+    scale_number_density = one(T)
+    if numberofparticles > 1
         scale_number_density = one(T) - one(T) / numberofparticles
     end
 
@@ -103,7 +101,13 @@ end
 
 function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::PlanarAzimuthalSymmetry{3};
         basis_order::Int = 2,
+        numberofparticles::Number = Inf,
         kws...) where {T<:AbstractFloat}
+
+    scale_number_density = one(T)
+    if numberofparticles > 1
+        scale_number_density = one(T) - one(T) / numberofparticles
+    end
 
     k = real(ω/medium.c)
     S = length(species)
@@ -119,7 +123,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::Plan
 
     function M_component(keff::Complex{T},Ns::Array{Complex{T}},l,s1,dl,s2)::Complex{T}
         (l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
-        4pi * as[s1,s2] * number_density(species[s2]) * t_matrices[s1][l+1,l+1] *
+        4pi * as[s1,s2] * scale_number_density * number_density(species[s2]) * t_matrices[s1][l+1,l+1] *
         sum(
             Complex{T}(im)^(-l1) * sqrt((2*l1+1)/(4pi) ) * Ns[l1+1,s1,s2] *
             gaunt_coefficient(dl,0,l,0,l1,0)

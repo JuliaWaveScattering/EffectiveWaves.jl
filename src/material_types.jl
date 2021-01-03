@@ -59,7 +59,7 @@ PlanarAzimuthalSymmetry() = PlanarAzimuthalSymmetry{3}()
 
 Represents a set of particles which are all the same. The type of particle is given by `Specie.particle` and the volume fraction this specie occupies is given by `Specie.volume_fraction`.
 
-We can use `Specie.numberofparticles` to specify the number of particles, otherwise for an infinite `Specie.numberofparticles = -1`.
+We can use `Specie.numberofparticles` to specify the number of particles, otherwise for an infinite `Specie.numberofparticles = Inf`.
 
 The minimum distance between any two particles will equal `outer_radius(Specie) * Specie.exclusion_distance`.
 """
@@ -90,6 +90,7 @@ Species{T<:AbstractFloat,Dim,P} = Vector{S} where S<:Specie{T,Dim,P}
 volume_fraction(s::Specie) = s.volume_fraction
 volume_fraction(ss::Species) = sum(volume_fraction.(ss))
 
+import MultipleScattering.volume
 volume(s::Specie) = volume(s.particle)
 
 import MultipleScattering.outer_radius
@@ -110,16 +111,16 @@ get_t_matrices(medium::PhysicalMedium, species::Vector{S}, ω::AbstractFloat, Nh
 t_matrix(s::Specie, medium::PhysicalMedium, ω::AbstractFloat, order::Integer) = t_matrix(s.particle, medium, ω, order)
 
 """
-    Material(region::Shape, species::Species)
+    Material(region::Shape, species::Species [, numberofparticles = Inf])
 
 Creates a material filled with [`Specie`](@ref)'s inside `region`.
 """
 struct Material{Dim,S<:Shape,Sps<:Species}
     shape::S
     species::Sps
-    numberofparticles::Int
+    numberofparticles::Number
     # Enforce that the Dims and Types are all the same
-    function Material{Dim,S,Sps}(shape::S,species::Sps,numberofparticles::Int) where {T,Dim,S<:Shape{T,Dim},Sps<:Species{T,Dim}}
+    function Material{Dim,S,Sps}(shape::S,species::Sps,numberofparticles::Number = Inf) where {T,Dim,S<:Shape{T,Dim},Sps<:Species{T,Dim}}
         new{Dim,S,Sps}(shape,species,numberofparticles)
     end
 end
@@ -128,9 +129,9 @@ end
 function Material(shape::S,species::Sps) where {T,Dim,S<:Shape{T,Dim},Sps<:Species{T,Dim}}
 
     V = volume(shape)
-    numberofparticles = Int(round(sum(
+    numberofparticles = round(sum(
         volume_fraction(s) * V / volume(s)
-    for s in species)))
+    for s in species))
 
     Material{Dim,S,Sps}(shape,species,numberofparticles)
 end

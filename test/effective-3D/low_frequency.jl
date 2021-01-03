@@ -31,7 +31,7 @@ psource = PlaneSource(medium, [sin(θ),0.0,cos(θ)]);
 source = plane_source(medium; direction = [sin(θ),0.0,cos(θ)])
 material = Material(Sphere(4.0),species);
 
-basis_field_order = 3
+basis_field_order = 6
 
 ks = ωs ./ medium.c
 
@@ -75,8 +75,109 @@ errs =  map(eachindex(ωs)) do i
     norm(scat_azis[i] - diag(Tmat)[n_to_l .+ 1] .* source_coefficients) / norm(source_coefficients)
 end
 
-@test sum(errs .< maximum(outer_radius.(species)) .* abs.(ks)) == length(ks)
+@test sum(errs .< maximum(outer_radius.(species)) .* abs.(ks) .* 1e-1) == length(ks)
 @test errs[1] < tol
 @test maximum(errs) < 5.0 * tol
+
+
+# Test the size of the effective low frequency sphere
+
+    s1 = Specie(
+        Acoustic(spatial_dim; ρ=10.2, c=10.1), Sphere(0.001);
+        volume_fraction=0.15,
+        exclusion_distance = 1.567
+    )
+    species = [s1];
+    basis_field_order = 3
+
+    opts = Dict(
+        :tol => tol, :num_wavenumbers => 2,
+        :mesh_size => 2.0, :mesh_points => 10,
+        :basis_order => basis_order, :basis_field_order => basis_field_order
+    );
+
+    kps = wavenumbers(ωs[1], medium, species; symmetry = PlanarAzimuthalSymmetry(), opts...)
+
+    eff_medium = effective_medium(medium, species)
+
+    k_low = ωs[1] / eff_medium.c
+
+    @test abs(kps[1] - k_low) / abs(k_low) < 1e-10
+
+    R = 0.01
+    material = Material(Sphere(R),species);
+
+    wavemode = WaveMode(ωs[1], kps[1], psource, material;
+            basis_order = basis_order, basis_field_order = basis_field_order)
+
+    scat_azi = material_scattering_coefficients(wavemode);
+
+    eff_medium = effective_medium(medium, species)
+
+    r = maximum(outer_radius.(species))
+    material_lows = [Material(Sphere(R + r1),species) for r1 in (-2*r):r/20.0:(2*r)];
+
+    effective_spheres = [Particle(eff_medium, m.shape) for m in material_lows]
+
+    Linc = basis_field_order + basis_order;
+    n_to_l = [l for l = 0:Linc for m = -l:l];
+
+    source_coefficients =  regular_spherical_coefficients(source)(Linc,zeros(3),ωs[1])
+
+    errs =  map(eachindex(material_lows)) do i
+        Tmat = MultipleScattering.t_matrix(effective_spheres[i], medium, ωs[1], Linc)
+        norm(scat_azi - diag(Tmat)[n_to_l .+ 1] .* source_coefficients) / norm(source_coefficients)
+    end
+
+    err, i = findmin(errs)
+    @test err < 1e-20
+    @test outer_radius(material_lows[i].shape) == R - r
+
+# Test the radius for the scattering coefficients seperate from eigenvectors
+
+    wavemodes = [
+        EffectiveRegularWaveMode(ωs[1], kps[1], psource, m, wavemode.eigenvectors;
+            basis_order = wavemode.basis_order, basis_field_order = wavemode.basis_field_order)
+    for m in material_lows]
+
+    scat_azis = material_scattering_coefficients.(wavemodes);
+
+    material_low = Material(Sphere(R - r),species);
+    effective_sphere = Particle(eff_medium, material_low.shape);
+
+    Tmat = MultipleScattering.t_matrix(effective_spheres[i], medium, ωs[1], Linc)
+
+    errs =  map(eachindex(material_lows)) do j
+        norm(scat_azis[j] - diag(Tmat)[n_to_l .+ 1] .* source_coefficients) / norm(source_coefficients)
+    end
+
+    err, j = findmin(errs)
+    @test err < 1e-20
+    @test outer_radius(material_lows[j].shape) == R
+
+# Test radius for boundary condition seperate from the scattering coefficients
+
+    wavemodes = [
+        WaveMode(ωs[1], kps[1], psource, m;
+            basis_order = basis_order, basis_field_order = basis_field_order)
+    for m in material_lows];
+
+    wavemodes_2 = [
+        EffectiveRegularWaveMode(ωs[1], kps[1], psource, material, wavemodes[j].eigenvectors;
+            basis_order = wavemodes[j].basis_order, basis_field_order = wavemodes[j].basis_field_order)
+    for j in eachindex(material_lows)];
+
+    scat_azis = material_scattering_coefficients.(wavemodes_2);
+
+    errs =  map(eachindex(material_lows)) do j
+        norm(scat_azis[j] - diag(Tmat)[n_to_l .+ 1] .* source_coefficients) / norm(source_coefficients)
+    end
+
+    j = findfirst(R .== [outer_radius(m.shape) for m in material_lows])
+    err = errs[j]
+
+    @test err < 1e-25
+    @test err < errs[1]
+    @test err < errs[end]
 
 end
