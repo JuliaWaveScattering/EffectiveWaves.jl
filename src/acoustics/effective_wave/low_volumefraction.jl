@@ -29,19 +29,18 @@ function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,3}, species::Sp
     # Non-dimensional exclusion distance between particles
     kas = k .* [s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2) for s1 in species, s2 in species]
 
-    # far-field pattern
-    fo = sum( (2l + 1) *
-        sum(
-            Ts[s][l+1,l+1] * number_density(species[s])
-        for s in eachindex(species))
-    for l = 0:basis_order) / num_density
+    Ts_diag = diag.(Ts)
+    fo = sum(
+            sum(Ts_diag[s]) * number_density(species[s])
+    for s in eachindex(species)) / num_density
 
-    # far-field multiple scattering pattern
+    len(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
+
     foo = sum(
         sqrt((2l + 1)*(2dl + 1)*(2l1 + 1)) * Complex{T}(im)^(l-dl-l1+1) * gaunt_coefficient(l,0,dl,0,l1,0) *
         sum(
             kas[s1,s2] * d3D(kas[s1,s2],l1) *
-            Ts[s1][l+1,l+1] * Ts[s2][dl+1,dl+1] *
+            Ts_diag[s1][len(l)] * Ts_diag[s2][len(dl)] *
             number_density(species[s1]) * number_density(species[s2])
         for s1 in eachindex(species), s2 in eachindex(species))
     for l = 0:basis_order for dl = 0:basis_order for l1 = abs(l-dl):abs(l+dl)) / Complex{T}(2 * sqrt(4pi) * num_density^2)

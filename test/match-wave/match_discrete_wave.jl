@@ -89,22 +89,22 @@ using EffectiveWaves, Test
             basis_order=basis_order,
             tol = tol,
             wave_effs = wave_effs_arr2[i],
-            max_size=480)
-            # max_size=280)
+            max_size=300)
+            # max_size=480)
     for i in eachindex(species)];
 
-    @test maximum(match_error(match_ws[i],materials[i].shape) for i in eachindex(species)) < 100*tol
+    @test maximum(match_error(match_ws[i],materials[i].shape) for i in eachindex(species)) < 200*tol
 
     avgs = [
         DiscretePlaneWaveMode(ω, source, materials[i];
                 basis_order=basis_order,
-                tol = tol, max_size=900,
+                tol = tol, max_size=600,
                 wave_effs = wave_effs_arr2[i])
     for i in eachindex(species)]
 
     R_ms = [reflection_coefficient(ω, match_ws[i], source, materials[i]) for i in eachindex(species)]
     R_ds = [reflection_coefficient(ω, avgs[i], source, materials[i]) for i in eachindex(species)]
-    @test maximum(abs.(R_ms - R_ds)) < 8e-4
+    @test maximum(abs.(R_ms - R_ds)) < 5e-4
 
     avg_eff = DiscretePlaneWaveMode(match_ws[2].x_match[end]:0.002:40, match_ws[2].PlaneWaveModes, material.shape);
     R1 = reflection_coefficient(ω, avg_eff, source, materials[2])
@@ -117,7 +117,7 @@ using EffectiveWaves, Test
         avg_m = DiscretePlaneWaveMode(x0, match_ws[i].PlaneWaveModes, materials[i].shape)
         maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:]))
         @test norm(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])/norm(avg_m.amplitudes[:]) < 1e-2
-        @test maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])) < 2e-4
+        @test maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:])) < 3e-4
         maximum(abs.(avgs[i].amplitudes[j0+1:end,:,:][:] - avg_m.amplitudes[:]))
     end
 end

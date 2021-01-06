@@ -91,12 +91,11 @@ effective_sphere = Particle(eff_medium, material.shape)
 region_order = basis_order + basis_field_order
 
 # calculate the T-matrix, also know as scattering matrix, and take the diagonal
-t_diag = diag(t_matrix(effective_sphere, medium, ω, region_order));
+t_mat = t_mat(effective_sphere, medium, ω, region_order);
 
 # calculate the outward going spherical wave coefficients
 source_coefficients = regular_spherical_coefficients(psource)(region_order,zeros(3),ω);
-n_to_l = [l for l = 0:region_order for m = -l:l];
-scat_low_coefficients = t_diag[n_to_l .+ 1] .* source_coefficients
+scat_low_coefficients = t_mat * source_coefficients
 
 # for the analytic solution, we need the wavemode first
 wave = WaveMode(ω, k_effs[1], psource, material;

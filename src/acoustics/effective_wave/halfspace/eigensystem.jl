@@ -57,13 +57,15 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::Abst
     lm_to_n = lm_to_spherical_harmonic_index
 
     t_matrices = get_t_matrices(medium, species, ω, ho)
+    t_diags = diag.(t_matrices)
+    len(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
 
     as = [
         s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
     for s1 in species, s2 in species]
     function M_component(keff::Complex{T},Ns::Array{Complex{T}},l::Int,m::Int,s1::Int,dl::Int,dm::Int,s2::Int)::Complex{T}
         (m == dm && l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
-        4pi * as[s1,s2] * number_density(species[s2]) * t_matrices[s1][l+1,l+1] *
+        4pi * as[s1,s2] * number_density(species[s2]) * t_diags[s1][len(l)] *
         sum(
             Complex{T}(im)^(-l1) * Ys[lm_to_n(l1,dm-m)] * Ns[l1+1,s1,s2] *
             gaunt_coefficient(dl,dm,l,m,l1,dm-m)
@@ -98,6 +100,8 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::Plan
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     t_matrices = get_t_matrices(medium, species, ω, ho)
+    t_diags = diag.(t_matrices)
+    len(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
 
     as = [
         s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
@@ -105,7 +109,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::Plan
 
     function M_component(keff::Complex{T},Ns::Array{Complex{T}},l,s1,dl,s2)::Complex{T}
         (l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
-        4pi * as[s1,s2] * number_density(species[s2]) * t_matrices[s1][l+1,l+1] *
+        4pi * as[s1,s2] * number_density(species[s2]) * t_diags[s1][len(l)] *
         sum(
             Complex{T}(im)^(-l1) * sqrt((2*l1+1)/(4pi) ) * Ns[l1+1,s1,s2] *
             gaunt_coefficient(dl,0,l,0,l1,0)

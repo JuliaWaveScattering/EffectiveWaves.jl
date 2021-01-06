@@ -1,5 +1,5 @@
 # The eigensystem when no symmetry is present
-function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, ::WithoutSymmetry{3};
+function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::WithoutSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         kws...) where {T<:AbstractFloat}
@@ -14,6 +14,8 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     t_matrices = get_t_matrices(medium, sps, ω, L)
+    t_diags = diag.(t_matrices)
+    len(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
 
     as = [
         s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
@@ -25,7 +27,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
 
         (m == dm && l == dl && m1 == m2 && l1 == l2 && s1 == s2 ? 1.0 : 0.0) +
         if minl3 <= maxl3
-            as[s1,s2] * number_density(sps[s2]) * t_matrices[s1][l+1,l+1] *
+            as[s1,s2] * number_density(sps[s2]) * t_diags[s1][len(l)] *
             sum(l3 ->
                 gaunt_coefficient(l,m,dl,dm,l3,m1-m2) *
                 gaunt_coefficient(l1,m1,l2,m2,l3,m1-m2) * Ns[l3+1,s1,s2]
@@ -72,6 +74,8 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     t_matrices = get_t_matrices(medium, sps, ω, L)
+    t_diags = diag.(t_matrices)
+    len(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
 
     as = [
         s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
@@ -84,7 +88,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
 
         (m == dm && l == dl && l1 == l2 && s1 == s2 ? 1.0 : 0.0) +
         if minl3 <= maxl3
-            as[s1,s2] * number_density(species[s2]) * t_matrices[s1][l+1,l+1] *
+            as[s1,s2] * number_density(species[s2]) * t_diags[s1][len(l)] *
             sum(l3 ->
                 gaunt_coefficient(l,m,dl,dm,l3,m-dm) *
                 gaunt_coefficient(l1,-dm,l2,-m,l3,m-dm) * Ns[l3+1,s1,s2]
