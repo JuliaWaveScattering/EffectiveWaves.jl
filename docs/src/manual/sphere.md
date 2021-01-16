@@ -11,11 +11,11 @@ spatial_dim = 3
 medium = Acoustic(spatial_dim; ρ=1.0, c=1.0)
 
 s1 = Specie(
-    Acoustic(spatial_dim; ρ=10.0, c=10.0), Sphere(1.0);
+    Acoustic(spatial_dim; ρ=10.0, c=10.0), Sphere(spatial_dim, 1.0);
     volume_fraction=0.15
 );
 s2 = Specie(
-    Acoustic(spatial_dim; ρ=0.22, c=0.22), Sphere(1.0);
+    Acoustic(spatial_dim; ρ=0.22, c=0.22), Sphere(spatial_dim, 1.0);
     volume_fraction=0.05
 );
 species = [s1,s2]
@@ -76,7 +76,7 @@ psource = PlaneSource(medium, [sin(θ),0.0,cos(θ)]);
 
 # choose the size and position of the spherical domain of the material
 R = 20.0
-material = Material(Sphere(R),species);
+material = Material(Sphere(spatial_dim, R),species);
 
 # the larger the material region, the larger this basis_field_order needs to be
 basis_field_order = 7
@@ -114,7 +114,7 @@ xlim = 3.0 * R
 ylim = 4.4 * R
 
 # a region to plot
-region = Rectangle([-xlim,-ylim], [xlim,ylim]);
+region = Box([[-xlim,-ylim], [xlim,ylim]]);
 
 # a quick fix to make it a 3D region
 xs, xinds = points_in_shape(region; res = 180);

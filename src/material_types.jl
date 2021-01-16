@@ -143,7 +143,7 @@ Returns the shared symmetries between the `source` and `materail`.
 """
 setupsymmetry(source::AbstractSource, material::Material{Dim}) where Dim = WithoutSymmetry{Dim}()
 
-setupsymmetry(source::PlaneSource{T,3,1}, material::Material{3,Sphere{T}}) where T = AzimuthalSymmetry{3}()
+setupsymmetry(source::PlaneSource{T,3,1}, material::Material{3,Sphere{T,3}}) where T = AzimuthalSymmetry{3}()
 
 function setupsymmetry(psource::PlaneSource{T,Dim}, material::Material{Dim,Halfspace{T,Dim}}) where {T<:AbstractFloat, Dim}
 

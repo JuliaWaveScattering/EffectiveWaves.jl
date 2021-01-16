@@ -11,7 +11,7 @@ medium = Acoustic(spatial_dim; ρ=1.2, c=1.5)
 
 # Below we explicitly define the shape of the particles as being spheres
 s1 = Specie(
-    Acoustic(spatial_dim; ρ=1.0, c=0.5), Sphere(0.4);
+    Acoustic(spatial_dim; ρ=1.0, c=0.5), Sphere(spatial_dim, 0.4);
     volume_fraction=0.2
 );
 
