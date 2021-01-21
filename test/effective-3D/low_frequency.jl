@@ -42,7 +42,7 @@ for ω in ωs]
 k_effs = [kps[1] for kps in AP_kps]
 
 eff_medium = effective_medium(medium, species)
-effective_sphere = Particle(eff_medium, material.shape)
+effective_sphere = Particle(eff_medium, Sphere(4.0 - 0.001))
 
 k_lows = ωs ./ eff_medium.c
 

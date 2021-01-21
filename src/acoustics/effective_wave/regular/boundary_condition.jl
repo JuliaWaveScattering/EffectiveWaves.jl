@@ -11,7 +11,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     species = material.species
     S = length(species)
-    as = outer_radius.(species)
+    rs = outer_radius.(species)
 
     # dim 1 is the (n,n1) indices, dim 2 is the species, dim 3 are the different eigenvectors
     eigvectors = reshape(eigvectors,(:,S,size(eigvectors)[end]))
@@ -27,7 +27,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     # the kernel use to wieight the species and the field's basis order.
     Ns = [
-        (R - as[j]) * kernelN3D(l1,k*(R - as[j]), k_eff*(R - as[j])) * number_density(species[j])
+        (R - rs[j]) * kernelN3D(l1,k*(R - rs[j]), k_eff*(R - rs[j])) * number_density(species[j])
     for l1 = 0:L1, j in eachindex(species)] ./ (k^T(2) - k_eff^T(2))
 
     l1s = [l1 for l = 0:L for m = -l:l for l1 = 0:L1 for m1 = -l1:l1];
@@ -99,7 +99,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     species = material.species
     S = length(species)
-    as = outer_radius.(species)
+    rs = outer_radius.(species)
 
     # dim 1 is the (n,n1) indices, dim 2 is the species, dim 3 are the different eigenvectors
     eigvectors = reshape(eigvectors,(:,S,size(eigvectors,2)))
@@ -116,7 +116,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     # the kernel use to wieight the species and the field's basis order.
     Ns = [
-        (R - as[j]) * kernelN3D(l1,k*(R - as[j]), k_eff*(R - as[j])) * number_density(species[j])
+        (R - rs[j]) * kernelN3D(l1, k*(R - rs[j]), k_eff*(R - rs[j])) * number_density(species[j])
     for l1 = 0:L1, j in eachindex(species)] ./ (k^T(2) - k_eff^T(2))
 
     l1s = [l1 for l = 0:L for m = -l:l for l1 = abs(m):L1];

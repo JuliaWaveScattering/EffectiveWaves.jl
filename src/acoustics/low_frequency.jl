@@ -1,6 +1,6 @@
 "The effective low frequency bulk modulus and density of a material filled with particles"
 function effective_medium(medium::Acoustic{T,Dim}, species::Species{T,Dim}) where {T<:AbstractFloat,Dim}
-    φ = sum(volume_fraction.(species))
+    φ = sum(EffectiveWaves.volume_fraction.(species))
 
     # calculate effective properties
     β = medium.ρ*medium.c^2 # medium bulk modulus
@@ -9,7 +9,17 @@ function effective_medium(medium::Acoustic{T,Dim}, species::Species{T,Dim}) wher
     else
         β_eff = one(T) / ((1-φ) / β + sum(s.volume_fraction / (s.particle.medium.ρ * s.particle.medium.c^2) for s in species))
     end
-    ρ_frac = sum(s.volume_fraction * (medium.ρ - s.particle.medium.ρ)/(medium.ρ + T(Dim - 1) * s.particle.medium.ρ) for s in species)
+
+    ρ_frac = sum(
+        map(species) do s
+            if s.particle.medium.ρ == Inf
+                - s.volume_fraction / T(Dim - 1)
+            else
+                s.volume_fraction * (medium.ρ - s.particle.medium.ρ)/(medium.ρ + T(Dim - 1) * s.particle.medium.ρ)
+            end
+        end
+    )
+
     ρ_eff = medium.ρ*(1 - ρ_frac)/(1 + T(Dim - 1) * ρ_frac)
 
     return Acoustic(Dim; ρ=ρ_eff, c=sqrt(β_eff/ρ_eff))

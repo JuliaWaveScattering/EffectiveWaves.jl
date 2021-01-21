@@ -7,7 +7,7 @@ function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3
 
     species = wavemode.material.species
     S = length(species)
-    as = outer_radius.(species)
+    rs = outer_radius.(species)
 
     R = outer_radius(wavemode.material.shape)
     k_eff = wavemode.wavenumber
@@ -18,7 +18,7 @@ function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3
 
     # Pre-calculating
     Ml1s = [
-        (R - as[j]) * kernelM(l1, k*(R - as[j]), k_eff*(R - as[j])) * number_density(species[j])
+        (R - rs[j]) * kernelM(l1, k*(R - rs[j]), k_eff*(R - rs[j])) * number_density(species[j])
     for l1 = 0:L1, j in eachindex(species)] ./ (k_eff^T(2) - k^T(2))
 
     nn1_to_l1 = [l1 for l = 0:L for m = -l:l for l1 = 0:L1 for m1 = -l1:l1];
@@ -50,7 +50,7 @@ function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3
 
     species = wavemode.material.species
     S = length(species)
-    as = outer_radius.(species)
+    rs = outer_radius.(species)
 
     R = outer_radius(wavemode.material.shape)
     k_eff = wavemode.wavenumber
@@ -61,7 +61,7 @@ function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3
 
     # Pre-calculating
     Ml1s = [
-        (R - as[j]) * kernelM(l1, k*(R - as[j]), k_eff*(R - as[j])) * number_density(species[j])
+        (R - rs[j]) * kernelM(l1, k*(R - rs[j]), k_eff*(R - rs[j])) * number_density(species[j])
     for l1 = 0:L1, j in eachindex(species)] ./ (k_eff^T(2) - k^T(2))
 
     nl1_to_l1 = [l1 for l = 0:L for m = -l:l for l1 = abs(m):L1];
