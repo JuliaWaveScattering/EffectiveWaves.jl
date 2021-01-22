@@ -60,15 +60,13 @@ scat_azis = material_scattering_coefficients.(A_waves);
 
 Linc = basis_field_order + basis_order
 
-n_to_l = [l for l = 0:Linc for m = -l:l];
-
 errs =  map(eachindex(ωs)) do i
     source_coefficients =  regular_spherical_coefficients(source)(Linc,zeros(3),ωs[i])
     Tmat = MultipleScattering.t_matrix(effective_sphere, medium, ωs[i], Linc)
-    norm(scat_azis[i] - diag(Tmat)[n_to_l .+ 1] .* source_coefficients) / norm(source_coefficients)
+    norm(scat_azis[i] - Tmat * source_coefficients) / norm(scat_azis[i])
 end
 
-@test sum(errs .< maximum(outer_radius.(species)) .* abs.(ks)) == length(ks)
-@test errs[1] < tol
+@test sum(errs .< 100 .* maximum(outer_radius.(species)) .* abs.(ks)) == length(ks)
+@test errs[1] < 8e-4
 
 end
