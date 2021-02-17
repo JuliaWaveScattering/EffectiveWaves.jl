@@ -5,14 +5,14 @@ using EffectiveWaves, Test, LinearAlgebra
 spatial_dim = 3
 medium = Acoustic(spatial_dim; ρ=1.2, c=1.5)
 
-# ms = MultipleScattering # just in case Circle and Sphere conflict with definitions from other packages.
+# NOTE: we so far only understand the region of the low frequency effective medium when all the particles have the same radius. That is, we get exact matches below (Monte Carlo also confirms this). However, when using species with different radius, it is not clear what effective bounding shape to use.
 
 s1 = Specie(
     Acoustic(spatial_dim; ρ=10.2, c=10.1), Sphere(0.001);
     volume_fraction=0.2
 );
 s2 = Specie(
-    Acoustic(spatial_dim; ρ=0.2, c=4.1), Sphere(0.0002);
+    Acoustic(spatial_dim; ρ=0.2, c=4.1), Sphere(0.001);
     volume_fraction=0.15
 );
 species = [s1,s2]
@@ -26,7 +26,7 @@ psource = PlaneSource(medium, [sin(θ),0.0,cos(θ)]);
 source = plane_source(medium; direction = [sin(θ),0.0,cos(θ)])
 material = Material(Sphere(4.0),species);
 
-basis_field_order = 3
+basis_field_order = 6
 
 ks = ωs ./ medium.c
 
@@ -42,7 +42,6 @@ for ω in ωs]
 k_effs = [kps[1] for kps in AP_kps]
 
 eff_medium = effective_medium(medium, species)
-effective_sphere = Particle(eff_medium, Sphere(4.0 - 0.001))
 
 k_lows = ωs ./ eff_medium.c
 
@@ -58,7 +57,11 @@ for i in eachindex(k_effs)]
 
 scat_azis = material_scattering_coefficients.(A_waves);
 
-Linc = basis_field_order + basis_order
+r = maximum(outer_radius.(species))
+material_low = Material(Sphere(outer_radius(material.shape) - r),species);
+effective_sphere = Particle(eff_medium, material_low.shape)
+
+Linc = basis_field_order + basis_order;
 
 errs =  map(eachindex(ωs)) do i
     source_coefficients =  regular_spherical_coefficients(source)(Linc,zeros(3),ωs[i])
@@ -66,7 +69,113 @@ errs =  map(eachindex(ωs)) do i
     norm(scat_azis[i] - Tmat * source_coefficients) / norm(scat_azis[i])
 end
 
-@test sum(errs .< 100 .* maximum(outer_radius.(species)) .* abs.(ks)) == length(ks)
-@test errs[1] < 8e-4
+@test sum(errs .< maximum(outer_radius.(species)) .* abs.(ks) .* 1e-3) == length(ks)
+@test errs[1] < errs[2] < errs[3]
+@test errs[1] < tol * 1e-3
+
+
+# Test an effective low frequency small sphere
+
+    s1 = Specie(
+        Acoustic(spatial_dim; ρ=10.2, c=10.1), Sphere(0.001);
+        volume_fraction=0.15,
+        exclusion_distance = 1.567
+    )
+    species = [s1];
+    basis_field_order = 3
+
+    opts = Dict(
+        :tol => tol, :num_wavenumbers => 2,
+        :mesh_size => 2.0, :mesh_points => 10,
+        :basis_order => basis_order, :basis_field_order => basis_field_order
+    );
+
+    kps = wavenumbers(ωs[1], medium, species; symmetry = PlanarAzimuthalSymmetry(), opts...)
+
+    eff_medium = effective_medium(medium, species)
+
+    k_low = ωs[1] / eff_medium.c
+
+    @test abs(kps[1] - k_low) / abs(k_low) < 1e-10
+
+    R = 0.01
+    material = Material(Sphere(R),species);
+
+    wavemode = WaveMode(ωs[1], kps[1], psource, material;
+            basis_order = basis_order, basis_field_order = basis_field_order)
+
+    scat_azi = material_scattering_coefficients(wavemode);
+
+    eff_medium = effective_medium(medium, species)
+
+    r = maximum(outer_radius.(species))
+    material_lows = [Material(Sphere(R + r1),species) for r1 in (-3.0*r):r/20.0:(r)];
+
+    effective_spheres = [Particle(eff_medium, m.shape) for m in material_lows]
+
+    Linc = basis_field_order + basis_order;
+
+    source_coefficients =  regular_spherical_coefficients(source)(Linc,zeros(3),ωs[1])
+
+    errs =  map(eachindex(material_lows)) do i
+        Tmat = MultipleScattering.t_matrix(effective_spheres[i], medium, ωs[1], Linc)
+        norm(scat_azi - Tmat * source_coefficients) / norm(source_coefficients)
+    end
+
+    err, i = findmin(errs)
+    @test err < 1e-20
+    @test outer_radius(material_lows[i].shape) == R - r
+
+# Test the radius for the scattering coefficients seperate from eigenvectors
+
+    wavemodes = [
+        EffectiveRegularWaveMode(ωs[1], kps[1], psource, m, wavemode.eigenvectors;
+            basis_order = wavemode.basis_order, basis_field_order = wavemode.basis_field_order)
+    for m in material_lows]
+
+    # The scattering coefficients depend on the radius of the material
+    scat_azis = material_scattering_coefficients.(wavemodes);
+
+    material_low = Material(Sphere(R - r),species);
+    effective_sphere = Particle(eff_medium, material_low.shape);
+
+    Tmat = MultipleScattering.t_matrix(effective_sphere, medium, ωs[1], Linc)
+
+    errs =  map(eachindex(material_lows)) do j
+        norm(scat_azis[j] - Tmat * source_coefficients) / norm(source_coefficients)
+    end
+
+    err, j = findmin(errs)
+    @test err < 1e-20
+    # We expect the min error to be for a materail (which contains all particles) with radius R
+    @test outer_radius(material_lows[j].shape) == R
+
+# Test radius for boundary condition seperate from the scattering coefficients
+
+    wavemodes = [
+        WaveMode(ωs[1], kps[1], psource, m;
+            basis_order = basis_order, basis_field_order = basis_field_order)
+    for m in material_lows];
+
+    wavemodes_2 = [
+        EffectiveRegularWaveMode(ωs[1], kps[1], psource, material, wavemodes[j].eigenvectors;
+            basis_order = wavemodes[j].basis_order, basis_field_order = wavemodes[j].basis_field_order)
+    for j in eachindex(material_lows)];
+
+    scat_azis = material_scattering_coefficients.(wavemodes_2);
+
+    errs =  map(eachindex(material_lows)) do j
+        norm(scat_azis[j] - Tmat * source_coefficients) / norm(source_coefficients)
+    end
+
+    # The boundary conditions for this case are not at all sensitive to small changes in the radius. For this reason, here we do things differently.
+
+    # Let us find the case with the radius R we expect to be accurate
+    j = findfirst(R .== [outer_radius(m.shape) for m in material_lows])
+    err = errs[j]
+
+    @test err < 1e-25
+    @test err < errs[1]
+    @test err < errs[end]
 
 end

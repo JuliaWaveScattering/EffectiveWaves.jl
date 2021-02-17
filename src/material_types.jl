@@ -59,20 +59,19 @@ PlanarAzimuthalSymmetry() = PlanarAzimuthalSymmetry{3}()
 
 Represents a set of particles which are all the same. The type of particle is given by `Specie.particle` and the volume fraction this specie occupies is given by `Specie.volume_fraction`.
 
-We can use `Specie.numberofparticles` to specify the number of particles, otherwise for an infinite `Specie.numberofparticles = -1`.
+We can use `Specie.numberofparticles` to specify the number of particles, otherwise for an infinite `Specie.numberofparticles = Inf`.
 
 The minimum distance between any two particles will equal `outer_radius(Specie) * Specie.exclusion_distance`.
 """
 struct Specie{T<:AbstractFloat,Dim,P<:AbstractParticle{T,Dim}}
     particle::P
     volume_fraction::T
-    numberofparticles::Int
     exclusion_distance::T
 end
 
 # Convenience constructor which does not require explicit types/parameters
-function Specie(p::AbstractParticle{T,Dim}; volume_fraction::T = 0.0, exclusion_distance::T = 1.005, numberofparticles::Int = -1) where {Dim,T<:AbstractFloat}
-    Specie{T,Dim,typeof(p)}(p,volume_fraction,numberofparticles,exclusion_distance)
+function Specie(p::AbstractParticle{T,Dim}; volume_fraction::T = 0.0, exclusion_distance::T = 1.005) where {Dim,T<:AbstractFloat}
+    Specie{T,Dim,typeof(p)}(p,volume_fraction,exclusion_distance)
 end
 
 function Specie(medium::P,s::S; kws...) where {Dim,T,P<:PhysicalMedium{T,Dim},S<:Shape{T,Dim}}
@@ -90,6 +89,9 @@ Species{T<:AbstractFloat,Dim,P} = Vector{S} where S<:Specie{T,Dim,P}
 "Returns the volume fraction of the specie."
 volume_fraction(s::Specie) = s.volume_fraction
 volume_fraction(ss::Species) = sum(volume_fraction.(ss))
+
+import MultipleScattering.volume
+volume(s::Specie) = volume(s.particle)
 
 import MultipleScattering.outer_radius
 
@@ -109,26 +111,33 @@ get_t_matrices(medium::PhysicalMedium, species::Vector{S}, ω::AbstractFloat, Nh
 t_matrix(s::Specie, medium::PhysicalMedium, ω::AbstractFloat, order::Integer) = t_matrix(s.particle, medium, ω, order)
 
 """
-    Material(region::Shape, species::Species)
+    Material(region::Shape, species::Species [, numberofparticles = Inf])
 
 Creates a material filled with [`Specie`](@ref)'s inside `region`.
 """
 struct Material{Dim,S<:Shape,Sps<:Species}
     shape::S
     species::Sps
+    numberofparticles::Number
     # Enforce that the Dims and Types are all the same
-    function Material{Dim,S,Sps}(shape::S,species::Sps) where {T,Dim,S<:Shape{T,Dim},Sps<:Species{T,Dim}}
-        new{Dim,S,Sps}(shape,species)
+    function Material{Dim,S,Sps}(shape::S,species::Sps,numberofparticles::Number = Inf) where {T,Dim,S<:Shape{T,Dim},Sps<:Species{T,Dim}}
+        new{Dim,S,Sps}(shape,species,numberofparticles)
     end
 end
 
 # Convenience constructor which does not require explicit types/parameters
 function Material(shape::S,species::Sps) where {T,Dim,S<:Shape{T,Dim},Sps<:Species{T,Dim}}
-    Material{Dim,S,Sps}(shape,species)
+
+    V = volume(shape)
+    numberofparticles = round(sum(
+        volume_fraction(s) * V / volume(s)
+    for s in species))
+
+    Material{Dim,S,Sps}(shape,species,numberofparticles)
 end
 
 function Material(shape::S,specie::Sp) where {T,Dim,S<:Shape{T,Dim},Sp<:Specie{T,Dim}}
-    Material{Dim,S,Vector{Sp}}(shape,[specie])
+    Material(shape,[specie])
 end
 
 import MultipleScattering.PhysicalMedium

@@ -15,7 +15,7 @@ Returns all the possible effective wavenumbers with positive imaginary part. Thi
 function wavenumbers(ω::T, medium::PhysicalMedium{T}, species::Species{T};
         num_wavenumbers::Int = 2, tol::T = 1e-5,
         max_Imk::T = T(2) + T(20) * imag(wavenumber_low_volumefraction(ω, medium, species; verbose = false)),
-        max_Rek::T = T(2) + T(20) * abs(real(wavenumber_low_volumefraction(ω, medium, species; verbose = false))),
+        # max_Rek::T = T(2) + T(20) * abs(real(wavenumber_low_volumefraction(ω, medium, species; verbose = false))),
         kws...) where T<:Number
 
     # For very low attenuation, need to search close to assymptotic root with a path method.
