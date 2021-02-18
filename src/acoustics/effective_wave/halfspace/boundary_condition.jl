@@ -7,6 +7,8 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigenvectors::Array{
         @warn "The effective wavenumber: $k_eff has more than one eigenvector. For plane-waves this case has not been fully implemented"
     end
 
+    scale_number_density = one(T) - one(T) / material.numberofparticles
+
     direction = transmission_direction(k_eff, (ω / psource.medium.c) * psource.direction, material.shape.normal)
 
     θin = transmission_angle(direction, material.shape.normal)
@@ -17,7 +19,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigenvectors::Array{
 
     extinction_matrix = T(2) .* transpose(vec(
         [
-            exp(im*n*(θin - θ_eff)) * number_density(s)
+            exp(im*n*(θin - θ_eff)) * scale_number_density * number_density(s)
         for n = -basis_order:basis_order, s in material.species]
     ))
 

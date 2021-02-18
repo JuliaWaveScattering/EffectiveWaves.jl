@@ -7,8 +7,16 @@ Returns all the possible effective wavenumbers with positive imaginary part when
 """
 wavenumbers(ω::T, medium::PhysicalMedium{T}, specie::Specie{T}; kws...) where T<:Number = wavenumbers(ω, medium, [specie]; kws...)
 
+function wavenumbers(ω::T, source::AbstractSource, material::Material{Dim,S,Sps}; kws...) where {T,Dim,S<:Shape{T,Dim},Sps<:Species{T,Dim}}
+    return wavenumbers(ω, source.medium, material.species;
+        numberofparticles = material.numberofparticles,
+        # symmetry = setupsymmetry(source,material),
+        kws...
+    )
+end
+
 """
-    wavenumbers(ω, medium, species; kws...)
+    wavenumbers(ω, medium::PhysicalMedium, species::Species; kws...)
 
 Returns all the possible effective wavenumbers with positive imaginary part. This function requires significantly numerical optimisation and so can be slow.
 """

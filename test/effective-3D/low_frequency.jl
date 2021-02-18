@@ -36,12 +36,16 @@ opts = Dict(
     :basis_order => basis_order, :basis_field_order => basis_field_order
 );
 AP_kps = [
-    wavenumbers(ω, medium, species; symmetry = PlanarAzimuthalSymmetry(), opts...)
+    wavenumbers(ω, medium, species;
+        symmetry = PlanarAzimuthalSymmetry(),
+        numberofparticles = material.numberofparticles,
+        opts...
+    )
 for ω in ωs]
 
 k_effs = [kps[1] for kps in AP_kps]
 
-eff_medium = effective_medium(medium, species)
+eff_medium = effective_medium(medium, species; numberofparticles = material.numberofparticles)
 
 k_lows = ωs ./ eff_medium.c
 
@@ -63,9 +67,13 @@ effective_sphere = Particle(eff_medium, material_low.shape)
 
 Linc = basis_field_order + basis_order;
 
+# I can not work out theoretically why this scale_number_density should be needed below.
+scale_number_density = 1.0 - 1.0 / material.numberofparticles
+
 errs =  map(eachindex(ωs)) do i
     source_coefficients =  regular_spherical_coefficients(source)(Linc,zeros(3),ωs[i])
     Tmat = MultipleScattering.t_matrix(effective_sphere, medium, ωs[i], Linc)
+    Tmat = Tmat ./ scale_number_density
     norm(scat_azis[i] - Tmat * source_coefficients) / norm(scat_azis[i])
 end
 
@@ -84,34 +92,39 @@ end
     species = [s1];
     basis_field_order = 3
 
+    R = 0.01
+    material = Material(Sphere(R),species);
+
     opts = Dict(
         :tol => tol, :num_wavenumbers => 2,
         :mesh_size => 2.0, :mesh_points => 10,
         :basis_order => basis_order, :basis_field_order => basis_field_order
+        , :numberofparticles => material.numberofparticles
     );
 
     kps = wavenumbers(ωs[1], medium, species; symmetry = PlanarAzimuthalSymmetry(), opts...)
 
-    eff_medium = effective_medium(medium, species)
+    eff_medium = effective_medium(medium, species; numberofparticles = material.numberofparticles)
 
     k_low = ωs[1] / eff_medium.c
 
     @test abs(kps[1] - k_low) / abs(k_low) < 1e-10
 
-    R = 0.01
-    material = Material(Sphere(R),species);
-
     wavemode = WaveMode(ωs[1], kps[1], psource, material;
-            basis_order = basis_order, basis_field_order = basis_field_order)
+        basis_order = basis_order,
+        basis_field_order = basis_field_order
+    )
 
+    # I can not work out theoretically why this scale_number_density should be needed below. However, numerically it clearer is needed.
+    scale_number_density = 1.0 - 1.0 / material.numberofparticles
     scat_azi = material_scattering_coefficients(wavemode);
-
-    eff_medium = effective_medium(medium, species)
 
     r = maximum(outer_radius.(species))
     material_lows = [Material(Sphere(R + r1),species) for r1 in (-3.0*r):r/20.0:(r)];
 
-    effective_spheres = [Particle(eff_medium, m.shape) for m in material_lows]
+    effective_spheres = map(material_lows) do m
+        Particle(eff_medium, m.shape)
+    end;
 
     Linc = basis_field_order + basis_order;
 
@@ -119,6 +132,7 @@ end
 
     errs =  map(eachindex(material_lows)) do i
         Tmat = MultipleScattering.t_matrix(effective_spheres[i], medium, ωs[1], Linc)
+        Tmat = Tmat ./ scale_number_density
         norm(scat_azi - Tmat * source_coefficients) / norm(source_coefficients)
     end
 
@@ -139,11 +153,11 @@ end
     material_low = Material(Sphere(R - r),species);
     effective_sphere = Particle(eff_medium, material_low.shape);
 
-    Tmat = MultipleScattering.t_matrix(effective_sphere, medium, ωs[1], Linc)
+    Tmat = MultipleScattering.t_matrix(effective_sphere, medium, ωs[1], Linc) ./ scale_number_density
 
     errs =  map(eachindex(material_lows)) do j
         norm(scat_azis[j] - Tmat * source_coefficients) / norm(source_coefficients)
-    end
+    end;
 
     err, j = findmin(errs)
     @test err < 1e-20

@@ -5,10 +5,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
         numberofparticles::Number = Inf,
         kws...) where {T<:AbstractFloat}
 
-    scale_number_density = one(T)
-    if numberofparticles > 1
-        scale_number_density = one(T) - one(T) / numberofparticles
-    end
+    scale_number_density = one(T) - one(T) / numberofparticles
 
     k = real(ω/medium.c)
     sps = species
@@ -70,10 +67,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
         numberofparticles::Number = Inf,
         kws...) where {T<:AbstractFloat}
 
-    scale_number_density = one(T)
-    if numberofparticles > 1
-        scale_number_density = one(T) - one(T) / numberofparticles
-    end
+    scale_number_density = one(T) - one(T) / numberofparticles
 
     k = real(ω/medium.c)
     sps = species

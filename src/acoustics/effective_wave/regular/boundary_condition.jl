@@ -7,6 +7,8 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     # source_basis_field_order is often chosen so that there is the same number of source coefficients a_n as the number of unknowns α_n
     # Before was: source_basis_field_order = min(basis_field_order,Int(round(sqrt(size(eigvectors)[end])))) - 1
 
+    scale_number_density = one(T) - one(T) / material.numberofparticles
+
     k = real(ω / source.medium.c)
 
     species = material.species
@@ -27,7 +29,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     # the kernel use to wieight the species and the field's basis order.
     Ns = [
-        (R - rs[j]) * kernelN3D(l1,k*(R - rs[j]), k_eff*(R - rs[j])) * number_density(species[j])
+        (R - rs[j]) * kernelN3D(l1,k*(R - rs[j]), k_eff*(R - rs[j])) * scale_number_density * number_density(species[j])
     for l1 = 0:L1, j in eachindex(species)] ./ (k^T(2) - k_eff^T(2))
 
     l1s = [l1 for l = 0:L for m = -l:l for l1 = 0:L1 for m1 = -l1:l1];
@@ -97,6 +99,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     k = real(ω / psource.medium.c)
 
+    scale_number_density = one(T) - one(T) / material.numberofparticles
     species = material.species
     S = length(species)
     rs = outer_radius.(species)
@@ -116,7 +119,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     # the kernel use to wieight the species and the field's basis order.
     Ns = [
-        (R - rs[j]) * kernelN3D(l1, k*(R - rs[j]), k_eff*(R - rs[j])) * number_density(species[j])
+        (R - rs[j]) * kernelN3D(l1, k*(R - rs[j]), k_eff*(R - rs[j])) * scale_number_density * number_density(species[j])
     for l1 = 0:L1, j in eachindex(species)] ./ (k^T(2) - k_eff^T(2))
 
     l1s = [l1 for l = 0:L for m = -l:l for l1 = abs(m):L1];

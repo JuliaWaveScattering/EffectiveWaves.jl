@@ -1,5 +1,3 @@
-eigensystem(ω::T, source::AbstractSource{T}, material::Material; kws...) where T<:AbstractFloat = eigensystem(ω, source.medium, material.species, setupsymmetry(source,material); kws...)
-
 "Calculates the effective wavenumbers and return Vector{EffectivePlaneWaveMode}."
 function WaveModes(ω::T, source::AbstractSource, material::Material{Dim,S,Sps}; kws...) where {T,Dim,S<:Shape{T,Dim},Sps<:Species{T,Dim}} # without the parametric types we get a "Unreachable reached" error
 
@@ -35,6 +33,8 @@ function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, 
 
     return EffectivePlaneWaveMode(ω, wavenumber, direction, vecs)
 end
+
+eigensystem(ω::T, source::AbstractSource{T}, material::Material; kws...) where T<:AbstractFloat = eigensystem(ω, source.medium, material.species, setupsymmetry(source,material); numberofparticles = material.numberofparticles, kws...)
 
 function eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource, material::Material;
         tol::T = 1e-4,
