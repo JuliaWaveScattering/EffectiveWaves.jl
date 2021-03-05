@@ -80,9 +80,11 @@ tol = 1e-7
     S = length(species)
     RvM = reshape(RvM,(:,S,size(RvM,2)))
 
-    θp = 0.2; φp = 0.1;
+    # θp = 0.2; φp = 0.1;
+    direction_eff = [0.2,-0.5, 1.0]
+    rθφ_eff = cartesian_to_radial_coordinates(direction_eff)
 
-    Ys = spherical_harmonics(basis_field_order, θp, φp);
+    Ys = spherical_harmonics(basis_field_order, rθφ_eff[2], rθφ_eff[3]);
     ls, ms = spherical_harmonics_indices(basis_field_order)
 
     L = basis_order
@@ -91,9 +93,8 @@ tol = 1e-7
     RvM = reshape(RvM,(:,(basis_order+1)^2,S,size(RvM)[end]))
     Pvs = reshape(sum([RvM[i] * Ys[i[1]] / 1.0im^ls[i[1]] for i in CartesianIndices(RvM)], dims=1),(:,size(RvM)[end]))
 
-
     P_MM = eigensystem(ω, medium, species, PlanarSymmetry{spatial_dim}();
-            θp = θp, φp = φp,
+            direction_eff = direction_eff,
             basis_order = basis_order
     )
 

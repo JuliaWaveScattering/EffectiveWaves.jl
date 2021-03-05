@@ -49,8 +49,7 @@ end
 
 function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::AbstractPlanarSymmetry;
         basis_order::Int = 2,
-        θp::Union{T,Complex{T}} = zero(T),
-        φp::Union{T,Complex{T}} = zero(T),
+        direction_eff::Union{Vector{T},Vector{Complex{T}}} = [0.0,0.0,1.0],
         numberofparticles::Number = Inf,
         kws...) where {T<:AbstractFloat}
 
@@ -65,7 +64,8 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::Abst
     len = (ho+1)^2 * S
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
-    Ys = spherical_harmonics(2ho, θp, φp);
+    rθφp = cartesian_to_radial_coordinates(direction_eff)
+    Ys = spherical_harmonics(2ho, rθφp[2], rθφp[3]);
     lm_to_n = lm_to_spherical_harmonic_index
 
     t_matrices = get_t_matrices(medium, species, ω, ho)
@@ -120,7 +120,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::Plan
     t_matrices = get_t_matrices(medium, species, ω, ho)
     t_diags = diag.(t_matrices)
     len(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
-    
+
     as = [
         s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
     for s1 in species, s2 in species]

@@ -16,7 +16,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     rs = outer_radius.(species)
 
     # dim 1 is the (n,n1) indices, dim 2 is the species, dim 3 are the different eigenvectors
-    eigvectors = reshape(eigvectors,(:,S,size(eigvectors)[end]))
+    # eigvectors = reshape(eigvectors,(:,S,size(eigvectors)[end]))
 
     R = outer_radius(material.shape)
 
@@ -105,7 +105,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     rs = outer_radius.(species)
 
     # dim 1 is the (n,n1) indices, dim 2 is the species, dim 3 are the different eigenvectors
-    eigvectors = reshape(eigvectors,(:,S,size(eigvectors,2)))
+    # eigvectors = reshape(eigvectors,(:,S,size(eigvectors)[end]))
 
     R = outer_radius(material.shape)
 

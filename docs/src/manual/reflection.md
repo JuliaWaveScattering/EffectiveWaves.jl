@@ -151,4 +151,45 @@ R = reflection_coefficient(source, eff_medium, material.shape)
 
 ## [One plane wave mode ](@id three-dim-acoustic-one-reflection)
 
+Using only one plane wave mode we can calculate both reflection and transmission from a plate.
+
+```julia 2
+k_effs = wavenumbers(ω, medium, species; tol = 1e-6, num_wavenumbers = 1, basis_order = 1)
+
+# Define a plate
+normal = [0.0,0.0,-1.0] # an outward normal to both surfaces of the plate
+width = 1.0 # plate width
+
+# Define the material region
+material = Material(Plate(normal,width),species)
+
+basis_order = 1;
+kws = Dict(:basis_order => basis_order)
+
+MM = eigensystem(ω, source, material; kws...)
+
+# calculate eigenvectors
+using LinearAlgebra
+
+k_eff = k_effs[1]
+MM_svd = svd(MM(k_eff))
+MM_svd.S[end]
+v1 = MM_svd.V[:,end]
+
+k_eff = -k_effs[1]
+MM_svd = svd(MM(k_eff))
+MM_svd.S[end]
+v2 = MM_svd.V[:,end]
+
+
+
+
+vecs = eigenvectors(ω, k_effs[1], source, material; kws...)
+
+
+# Calculate the wavemode for the first wavenumber
+wave1 = WaveMode(ω, k_effs[1], source, material; tol = 1e-6, basis_order = 1)
+
+
+```
 Currently implementing... formulas from [Gower & Kristensson 2020](https://arxiv.org/pdf/2010.00934.pdf).

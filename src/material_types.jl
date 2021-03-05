@@ -154,7 +154,7 @@ setupsymmetry(source::AbstractSource, material::Material{Dim}) where Dim = Witho
 
 setupsymmetry(source::PlaneSource{T,3,1}, material::Material{3,Sphere{T,3}}) where T = AzimuthalSymmetry{3}()
 
-function setupsymmetry(psource::PlaneSource{T,Dim}, material::Material{Dim,Halfspace{T,Dim}}) where {T<:AbstractFloat, Dim}
+function setupsymmetry(psource::PlaneSource{T,Dim}, material::Material{Dim,S}) where {T<:AbstractFloat, Dim, S<:Union{Halfspace{T,Dim},Plate{T,Dim}}}
 
     hv = material.shape.normal
     kv = psource.direction

@@ -70,7 +70,7 @@ transmission_angle(wavevector::Vector,surface_normal::Vector) = transmission_ang
 """
     transmission_angle(wavevector::StaticVector{3}, surface_normal::StaticVector{3})
 
-Some care is needed hear when `wavevector` is a complex vector in 3 dimensions.
+Some care is needed when `wavevector` is a complex vector in 3 dimensions.
 
 ## The maths
 
@@ -122,7 +122,7 @@ end
 """
     transmission_angle(wavevector::StaticVector{2}, surface_normal::StaticVector{2})
 
-Specialised to 2 spatial dimensions. 
+Specialised to 2 spatial dimensions.
 """
 function transmission_angle(wavevector::SVector{2,CT} where CT <: Union{T,Complex{T}}, surface_normal::SVector{2,T}) where {T<:AbstractFloat}
     n = - surface_normal

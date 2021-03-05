@@ -19,19 +19,43 @@ Returns a concrete subtype of AbstractWaveMode depending on the SetupSymmetry. T
 """
 function WaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource{T}, material::Material{Dim}; kws...) where {T,Dim}
 
-    vecs = eigenvectors(ω, wavenumber, source, material; kws...)
+    eigvectors = eigenvectors(ω, wavenumber, source, material; kws...)
 
-    return EffectiveRegularWaveMode(ω, wavenumber, source, material, vecs; kws...)
+    α = solve_boundary_condition(ω, wavenumber, eigvectors, source, material; kws...)
+
+    # After this normalisation, sum(eigvectors, dims = 3) will satisfy the boundary conditions
+    eigvectors = [eigvectors[i] * α[i[3]] for i in CartesianIndices(eigvectors)]
+
+    return EffectiveRegularWaveMode(ω, wavenumber, source, material, eigvectors; kws...)
 end
 
 function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, material::Material{Dim,Halfspace{T,Dim}};
     tol::T = 1e-6, kws...) where {T,Dim}
 
-    direction = transmission_direction(wavenumber, (ω / psource.medium.c) * psource.direction, material.shape.normal; tol = tol)
+    direction = transmission_direction(wavenumber, (ω / psource.medium.c) * psource.direction, material.shape.normal)
+    eigvectors = eigenvectors(ω, wavenumber, psource, material; direction_eff = direction, kws...)
 
-    vecs = eigenvectors(ω, wavenumber, psource, material; kws...)
+    α = solve_boundary_condition(ω, wavenumber, eigvectors, psource, material; kws...)
 
-    return EffectivePlaneWaveMode(ω, wavenumber, direction, vecs)
+    # After this normalisation, sum(eigvectors, dims = 3) will satisfy the boundary conditions
+    eigvectors = [eigvectors[i] * α[i[3]] for i in CartesianIndices(eigvectors)]
+
+    return EffectivePlaneWaveMode(ω, wavenumber, direction, eigvectors)
+end
+
+function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, material::Material{Dim,Plate{T,Dim}};
+    tol::T = 1e-6, kws...) where {T,Dim}
+
+    direction = transmission_direction(wavenumber, (ω / psource.medium.c) * psource.direction, material.shape.normal)
+    eigvecs1 = eigenvectors(ω, wavenumber, psource, material; direction_eff = direction, kws...)
+    eigvecs2 = eigenvectors(ω, - wavenumber, psource, material; direction_eff = direction, kws...)
+
+    α = solve_boundary_condition(ω, k_eff, eigvecs1, eigvecs2, psource, material; kws...)
+    @error "not yet implemented. Needs two wave modes."
+    # After this normalisation, sum(eigvectors, dims = 3) will satisfy the boundary conditions
+    # eigvectors = [eigvectors[i] * α[i[3]] for i in CartesianIndices(eigvectors)]
+
+    return EffectivePlaneWaveMode(ω, wavenumber, direction, eigvectors)
 end
 
 eigensystem(ω::T, source::AbstractSource{T}, material::Material; kws...) where T<:AbstractFloat = eigensystem(ω, source.medium, material.species, setupsymmetry(source,material); numberofparticles = material.numberofparticles, kws...)
@@ -53,13 +77,6 @@ function eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource, material
 
     #NOTE: MM(k_eff) ≈ MM_svd.U * diagm(0 => MM_svd.S) * MM_svd.Vt
     eigvectors = MM_svd.V[:,inds]
-
-    α = solve_boundary_condition(ω, k_eff, eigvectors, source, material;
-            kws...
-    )
-
-    # After this normalisation, sum(eigvectors, dims=2) will satisfy the boundary conditions
-    eigvectors = [eigvectors[i] * α[i[2]] for i in CartesianIndices(eigvectors)]
 
     # Reshape to separate different species and eigenvectors
     S = length(material.species)
