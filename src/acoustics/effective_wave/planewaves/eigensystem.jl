@@ -49,7 +49,7 @@ end
 
 function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::AbstractPlanarSymmetry;
         basis_order::Int = 2,
-        direction_eff::Union{Vector{T},Vector{Complex{T}}} = [0.0,0.0,1.0],
+        direction_eff::Union{AbstractVector{T},AbstractVector{Complex{T}}} = [0.0,0.0,1.0],
         numberofparticles::Number = Inf,
         kws...) where {T<:AbstractFloat}
 
@@ -65,6 +65,11 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::Abst
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     rθφp = cartesian_to_radial_coordinates(direction_eff)
+    # below we take the real part because our associated Legendre functions are only implemented for real arguments.
+    if norm(real.(rθφp) - rθφp) / norm(rθφp) < (eps(T))^(1/3)
+        rθφp = real.(rθφp)
+    end
+
     Ys = spherical_harmonics(2ho, rθφp[2], rθφp[3]);
     lm_to_n = lm_to_spherical_harmonic_index
 

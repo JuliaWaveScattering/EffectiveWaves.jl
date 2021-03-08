@@ -35,6 +35,7 @@ where ``n`` is multi-index for 3 dimensions and ``s`` ranges from 1 to the numbe
 
 In 2D, inconvieniently, an extra factor of ``e^{i k \\mathbf v \\cdot \\mathbf x}`` needs to be multiplied on the right of the above equation where `θ` is calculated from [`transmission_angle`](@ref).
 """
+#add: P<:PhysicalMedium{T,Dim}
 struct EffectivePlaneWaveMode{T<:AbstractFloat,Dim} <: AbstractWaveMode{T,Dim}
     ω::T
     wavenumber::Complex{T}
@@ -57,8 +58,8 @@ end
 
 A convienient way to form the type `EffectivePlaneWaveMode`.
 """
-function EffectivePlaneWaveMode(ω::T, wavenumber::Complex{T}, direction::SVector{Dim,Complex{T}}, eigenvectors::Array{Complex{T}}) where {T<:AbstractFloat, Dim}
-    EffectivePlaneWaveMode{T,Dim}(ω, wavenumber, Int( (size(eigenvectors,1) - 1) / 2 ), direction, eigenvectors)
+function EffectivePlaneWaveMode(ω::T, wavenumber::Complex{T}, direction::SVector{Dim,Complex{T}}, eigvectors::Array{Complex{T}}) where {T<:AbstractFloat, Dim}
+    EffectivePlaneWaveMode{T,Dim}(ω, wavenumber, basislength_to_basisorder(Acoustic{T,Dim},size(eigvectors,1)), direction, eigvectors)
 end
 
 

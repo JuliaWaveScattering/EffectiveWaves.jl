@@ -32,12 +32,12 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigenvectors::Array{
 
 end
 
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigenvectors1::Array{Complex{T}}, eigenvectors2::Array{Complex{T}}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{3,Plate{T,3}};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors1::Array{Complex{T}}, eigvectors2::Array{Complex{T}}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{3,Plate{T,3}};
         basis_order::Int = 2,
         kws...
     ) where T
 
-    if size(eigenvectors1)[end] > 1 || size(eigenvectors2)[end] > 1
+    if size(eigvectors1)[end] > 1 || size(eigvectors2)[end] > 1
         @warn "The effective wavenumber: $k_eff has more than one eigenvector. For plane-waves this case has not been fully implemented"
     end
 
@@ -66,20 +66,24 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigenvectors1::Array
     Ys = spherical_harmonics(basis_order, rθφ[2], rθφ[3]);
     lm_to_n = lm_to_spherical_harmonic_index
 
-    I1 = [ - Ys[lm_to_n(dl,dm)] * im^T(dl+1) * T(2π) * T(1)^dl *
-        exp(im * (k_effz - kz)*(Z1 + outer_radius(s2))) *
-        scale_number_density * number_density(s2) / (k*kz * (kz - k_effz))
-    for dl = 0:basis_order for dm = -dl:dl, s2 in material.species]
+    I1(F::Array{Complex{T}}, k_effz::Complex{T}) = sum(
+        - F[lm_to_n(dl,dm),j,1] * Ys[lm_to_n(dl,dm)] * im^T(dl+1) * T(2π) * T(1)^dl *
+        exp(im * (k_effz - kz)*(Z1 + outer_radius(material.species[j]))) *
+        scale_number_density * number_density(material.species[j]) / (k*kz * (kz - k_effz))
+    for dl = 0:basis_order for dm = -dl:dl, j in eachindex(material.species))
 
-    I2 = [ - Ys[lm_to_n(dl,dm)] * im^T(dl+1) * T(2π) * T(1)^dm *
-        exp(im * (k_effz - kz)*(Z2 - outer_radius(s2))) *
-        scale_number_density * number_density(s2) / (k*kz * (kz + k_effz))
-    for dl = 0:basis_order for dm = -dl:dl, s2 in material.species]
+    I2(F::Array{Complex{T}}, k_effz::Complex{T}) = sum(
+        - F[lm_to_n(dl,dm),j,1] * Ys[lm_to_n(dl,dm)] * im^T(dl+1) * T(2π) * T(1)^dm *
+        exp(im * (k_effz - kz)*(Z2 - outer_radius(material.species[j]))) *
+        scale_number_density * number_density(material.species[j]) / (k*kz * (kz + k_effz))
+    for dl = 0:basis_order for dm = -dl:dl, j in eachindex(material.species))
+
+    MIs = [I1(eigvectors1,k1_effz) I1(eigvectors2,k2_effz);
+           I2(eigvectors1,k1_effz) I2(eigvectors2,k2_effz)]
 
     forcing = [ - field(psource,zeros(T,3),ω), T(0)]
 
-    # where extinction_matrix * eigenvectors * α = forcing
-    α = (extinction_matrix * reshape(eigenvectors,(:,size(eigvectors)[end]))) \ forcing
+    α = MIs \ forcing
 
     return α
 

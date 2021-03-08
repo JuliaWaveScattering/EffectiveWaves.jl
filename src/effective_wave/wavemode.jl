@@ -43,19 +43,25 @@ function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, 
     return EffectivePlaneWaveMode(ω, wavenumber, direction, eigvectors)
 end
 
-function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, material::Material{Dim,Plate{T,Dim}};
-    tol::T = 1e-6, kws...) where {T,Dim}
+function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, material::Material{Dim,Plate{T,Dim}}; kws...) where {T,Dim}
 
-    direction = transmission_direction(wavenumber, (ω / psource.medium.c) * psource.direction, material.shape.normal)
-    eigvecs1 = eigenvectors(ω, wavenumber, psource, material; direction_eff = direction, kws...)
-    eigvecs2 = eigenvectors(ω, - wavenumber, psource, material; direction_eff = direction, kws...)
+    direction1 = transmission_direction(wavenumber, (ω / psource.medium.c) * psource.direction, material.shape.normal)
+    eigvectors1 = eigenvectors(ω, wavenumber, psource, material; direction_eff = direction1, kws...)
 
-    α = solve_boundary_condition(ω, k_eff, eigvecs1, eigvecs2, psource, material; kws...)
-    @error "not yet implemented. Needs two wave modes."
-    # After this normalisation, sum(eigvectors, dims = 3) will satisfy the boundary conditions
-    # eigvectors = [eigvectors[i] * α[i[3]] for i in CartesianIndices(eigvectors)]
+    # looks like we always have eigvectors2 = eigvectors1, but I haven't proven this yet.
+    direction2 = transmission_direction(- wavenumber, (ω / psource.medium.c) * psource.direction, material.shape.normal)
+    eigvectors2 = eigenvectors(ω, - wavenumber, psource, material; direction_eff = direction2, kws...)
 
-    return EffectivePlaneWaveMode(ω, wavenumber, direction, eigvectors)
+    α = solve_boundary_condition(ω, k_eff, eigvectors1, eigvectors2, psource, material; kws...)
+
+    # apply normalisation
+    eigvectors1[:,:,1] = eigvectors1[:,:,1] .* α[1]
+    eigvectors2[:,:,1] = eigvectors2[:,:,1] .* α[2]
+
+    mode1 = EffectivePlaneWaveMode(ω, wavenumber, direction1, eigvectors1)
+    mode2 = EffectivePlaneWaveMode(ω, - wavenumber, direction2, eigvectors2)
+
+    return [mode1,mode2]
 end
 
 eigensystem(ω::T, source::AbstractSource{T}, material::Material; kws...) where T<:AbstractFloat = eigensystem(ω, source.medium, material.species, setupsymmetry(source,material); numberofparticles = material.numberofparticles, kws...)
