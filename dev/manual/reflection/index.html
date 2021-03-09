@@ -33,7 +33,7 @@ material = Material(Halfspace(normal),species)
 # define a plane wave source travelling at a 45 degree angle in relation to the material
 source = PlaneSource(medium, [cos(pi/4.0),sin(pi/4.0)])
 
-R = reflection_coefficient(source, eff_medium, material.shape)
+R = reflection_coefficient(ω,source, eff_medium, material.shape)
 
 # output
 
@@ -82,8 +82,44 @@ material = Material(Halfspace(normal),species)
 # define a plane wave source travelling at a 45 degree angle in relation to the material
 source = PlaneSource(medium, [cos(pi/4.0),0.0,sin(pi/4.0)])
 
-R = reflection_coefficient(source, eff_medium, material.shape)
+R = reflection_coefficient(ω,source, eff_medium, material.shape)
 
 # output
 
-0.15901291515072696 + 1.9230884702465903e-17im</code></pre><h2 id="three-dim-acoustic-one-reflection"><a class="docs-heading-anchor" href="#three-dim-acoustic-one-reflection">One plane wave mode </a><a id="three-dim-acoustic-one-reflection-1"></a><a class="docs-heading-anchor-permalink" href="#three-dim-acoustic-one-reflection" title="Permalink"></a></h2><p>Currently implementing... formulas from <a href="https://arxiv.org/pdf/2010.00934.pdf">Gower &amp; Kristensson 2020</a>.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../wavenumbers/">« Effective wavenumbers</a><a class="docs-footer-nextpage" href="../sphere/">Scattering from a sphere »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 18 February 2021 16:52">Thursday 18 February 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+0.15901291515072696 + 1.9230884702465903e-17im</code></pre><h2 id="three-dim-acoustic-one-reflection"><a class="docs-heading-anchor" href="#three-dim-acoustic-one-reflection">One plane wave mode </a><a id="three-dim-acoustic-one-reflection-1"></a><a class="docs-heading-anchor-permalink" href="#three-dim-acoustic-one-reflection" title="Permalink"></a></h2><p>Using only one plane wave mode we can calculate both reflection and transmission from a plate.</p><pre><code class="language-julia">k_effs = wavenumbers(ω, medium, species; tol = 1e-6, num_wavenumbers = 1, basis_order = 1)
+
+# Define a plate
+normal = [0.0,0.0,-1.0] # an outward normal to both surfaces of the plate
+width = 1.0 # plate width
+
+# Define the material region
+material = Material(Plate(normal,width),species)
+
+basis_order = 1;
+kws = Dict(:basis_order =&gt; basis_order)
+
+MM = eigensystem(ω, source, material; kws...)
+
+# calculate eigenvectors
+using LinearAlgebra
+
+k_eff = k_effs[1]
+MM_svd = svd(MM(k_eff))
+MM_svd.S[end]
+v1 = MM_svd.V[:,end]
+
+k_eff = -k_effs[1]
+MM_svd = svd(MM(k_eff))
+MM_svd.S[end]
+v2 = MM_svd.V[:,end]
+
+
+
+
+vecs = eigenvectors(ω, k_effs[1], source, material; kws...)
+
+
+# Calculate the wavemode for the first wavenumber
+wave1 = WaveMode(ω, k_effs[1], source, material; tol = 1e-6, basis_order = 1)
+
+</code></pre><p>Currently implementing... formulas from <a href="https://arxiv.org/pdf/2010.00934.pdf">Gower &amp; Kristensson 2020</a>.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../wavenumbers/">« Effective wavenumbers</a><a class="docs-footer-nextpage" href="../sphere/">Scattering from a sphere »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 9 March 2021 20:12">Tuesday 9 March 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
