@@ -91,7 +91,7 @@ end
         wm = WaveMode(ω, k_effs[1], source, material; tol=tol, basis_order = basis_order, extinction_rescale = true)
 
         R1 = reflection_coefficient(ω, wm, source, material)
-        R_low = reflection_coefficient(source, eff_medium, material.shape)
+        R_low = reflection_coefficient(ω,source, eff_medium, material.shape)
         Rw = wienerhopf_reflection_coefficient(ω, source, material;
                 tol=tol,
                 basis_order = basis_order,

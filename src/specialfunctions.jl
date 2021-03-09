@@ -35,7 +35,12 @@ where α is determined so that
 function transmission_direction(k_eff::Complex{T}, incident_wavevector::AbstractArray{CT} where CT <: Union{T,Complex{T}}, surface_normal::AbstractArray{T};
         tol::T = sqrt(eps(T))) where {T<:AbstractFloat,Dim}
 
+    # Let us first make the surface normal a unit vector which is outward pointing
     surface_normal = surface_normal / norm(surface_normal)
+    if real(dot(surface_normal,incident_wavevector)) > 0
+        surface_normal = -surface_normal
+    end
+
     wnp = incident_wavevector -  dot(surface_normal,incident_wavevector) .* surface_normal
     α = sqrt(k_eff^2 - sum(x^2 for x in wnp))
 
@@ -58,7 +63,7 @@ end
 
 transmission_angle(pwave::Union{PlaneSource,EffectivePlaneWaveMode}, material::Material) = transmission_angle(pwave, material.shape)
 
-transmission_angle(pwave::Union{PlaneSource,EffectivePlaneWaveMode}, shape::Halfspace) = transmission_angle(pwave.direction, shape.normal)
+transmission_angle(pwave::Union{PlaneSource,EffectivePlaneWaveMode}, shape::Union{Plate,Halfspace}) = transmission_angle(pwave.direction, shape.normal)
 
 """
     transmission_angle(wavevector, surface_normal)
@@ -110,6 +115,10 @@ From these two we can robustly calculate `θT` as
 """
 function transmission_angle(wavevector::SVector{3,CT} where CT <: Union{T,Complex{T}}, surface_normal::SVector{3,T}) where {T<:AbstractFloat}
     n = - surface_normal / norm(surface_normal)
+    if real(dot(n,wavevector)) < 0
+        n = -n
+    end
+
     kcosθ = dot(n,wavevector)
 
     vo = wavevector - kcosθ .* n

@@ -40,7 +40,7 @@ using EffectiveWaves, Test
         wave2 = WaveMode(ω, k_eff_low, source, material; basis_order=basis_order)
         reflection_coefficient(ω, wave2, source, material)
     end
-    R_low = reflection_coefficient(source, eff_medium, material.shape)
+    R_low = reflection_coefficient(ω, source, eff_medium, material.shape)
 
     @test norm(R_low - R) < tol
     @test norm(R_low2 - R) < tol

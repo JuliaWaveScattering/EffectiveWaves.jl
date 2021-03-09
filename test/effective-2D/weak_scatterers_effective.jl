@@ -70,7 +70,7 @@
     end
 
     # Direct incidence
-    R_low = reflection_coefficient(source, eff_medium, material.shape)
+    R_low = reflection_coefficient(ωs[1], source, eff_medium, material.shape)
     Rs_φs = reflection_coefficients(ωs, wave_effs_φs, source, material; tol=1e-9)
     # the below takes a low-volfrac expansion for both the wavenumber and reflection coefficient
     Rs_φs2 = reflection_coefficient_low_volumefraction(ωs, source, material; basis_order = basis_order)
@@ -84,7 +84,7 @@
     sources = [PlaneSource(medium, [cos(θ),sin(θ)]) for θ in θs]
 
     R_low = map(sources) do s
-        reflection_coefficient(s, eff_medium, material.shape)
+        reflection_coefficient(ωs[1], s, eff_medium, material.shape)
     end
 
     Rs = map(sources) do s

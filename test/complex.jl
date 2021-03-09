@@ -9,6 +9,11 @@ using Test, LinearAlgebra
     surface_normal = rand(-1:0.11:1.0,3)
     surface_normal = surface_normal / norm(surface_normal)
 
+    # make sure this surface_normal is the outward normal
+    if real(dot(surface_normal, incident_wavevector)) > 0
+        surface_normal = - surface_normal
+    end
+
     normal_eff = transmission_direction(k_eff, incident_wavevector, surface_normal)
 
     @test sum(normal_eff .^2) ≈ 1.0 + 0.0im
@@ -18,6 +23,10 @@ using Test, LinearAlgebra
     incident_wavevector = rand(-1:0.1:1.0,2) + rand(-1:0.1:1.0,2) .* im
     surface_normal = rand(-1:0.1:1.0,2)
     surface_normal = surface_normal / norm(surface_normal)
+
+    if real(dot(surface_normal, incident_wavevector)) > 0
+        surface_normal = - surface_normal
+    end
 
     normal_eff = transmission_direction(k_eff, incident_wavevector, surface_normal)
 
@@ -43,19 +52,27 @@ end
 @testset "Tests for complex transmission angle" begin
 
     surface_normal = [0.0,0.0,-1.0]
-    xs = [rand(-1.01:0.1:1.0,3) + rand(-1.01:0.1:1.0,3)*im for i = 1:100]
+    xs = [rand(-1.01:0.1:1.0,3) + rand(-1.01:0.1:1.0,3)*im for i = 1:100];
+
+    # make sure these are incident upon the surface
+    xs = [real(dot(surface_normal, x)) > 0 ? -x : x for x in xs];
+
     @test all(cartesian_to_radial_coordinates(x)[2] == transmission_angle(x, surface_normal) for x in xs)
 
     surface_normal = [-1.0,0.0]
-    xs = [rand(-1.01:0.1:1.0,2) + rand(-1.01:0.1:1.0,2)*im for i = 1:100]
+    xs = [rand(-1.01:0.1:1.0,2) + rand(-1.01:0.1:1.0,2)*im for i = 1:100];
+    xs = [real(dot(surface_normal, x)) > 0 ? -x : x for x in xs];
+
     @test all(cartesian_to_radial_coordinates(x)[2] == transmission_angle(x, surface_normal) for x in xs)
 
     N = 100
     is = 1:N
-    ns = [rand(-1.01:0.1:1.0,2) for i = is]
-    ns = ns ./ norm.(ns)
+    ns = [rand(-1.01:0.1:1.0,2) for i = is];
+    ns = ns ./ norm.(ns);
 
     v_ins = [rand(-1.01:0.1:1.0,2) for i = is]
+    v_ins = [real(dot(ns[i], v_ins[i])) > 0 ? -v_ins[i] : v_ins[i] for i in is]
+
     θ_ins = transmission_angle.(v_ins, ns)
 
     k_effs = rand(-1.01:0.1:1.0,N) + rand(-1.01:0.1:1.0,N) .* im
@@ -81,28 +98,30 @@ end
     @test all(-pi/2 .< real.(θ_ins) .< pi/2)
 
     # choose positive real part
-    k_effs = rand(0.01:0.1:1.0,N) + rand(-1.1:0.1:1.0,N) .* im
-    v_effs = k_effs .* transmission_direction.(k_effs, v_ins, ns)
-    θ_effs = transmission_angle.(v_effs, ns)
+    k_effs = rand(0.01:0.1:1.0,N) + rand(-1.1:0.1:1.0,N) .* im;
+    v_effs = k_effs .* transmission_direction.(k_effs, v_ins, ns);
+    θ_effs = transmission_angle.(v_effs, ns);
 
     @test maximum(abs.(k_effs  .* sin.(θ_effs) - norm.(v_ins)  .* sin.(θ_ins)) ) < 1e-10
 
     #angle from x-axis
-    θ_ns = [transmission_angle(-n, [-1.0,0.0]) for n in ns]
+    θ_ns = [transmission_angle(-n, [-1.0,0.0]) for n in ns];
 
     @test maximum(norm(v_ins[i] - norm(v_ins[i]) .* [cos(θ_ins[i] + θ_ns[i]), sin(θ_ins[i] + θ_ns[i])]) for i in is) < 1e-10
     @test maximum(norm(v_effs[i] - k_effs[i] .* [cos(θ_effs[i] + θ_ns[i]), sin(θ_effs[i] + θ_ns[i])]) for i in is) < 1e-10
 
 # test for 3-dimensions
 
-    ns = [rand(-1.01:0.1:1.0,3) for i = is]
-    ns = ns[is] ./ norm.(ns[is])
+    ns = [rand(-1.01:0.1:1.0,3) for i = is];
+    ns = ns[is] ./ norm.(ns[is]);
 
-    v_ins = [rand(-1.01:0.1:1.0,3) for i = is]
-    θ_ins = transmission_angle.(v_ins, ns)
+    v_ins = [rand(-1.01:0.1:1.0,3) for i = is];
+    v_ins = [real(dot(ns[i], v_ins[i])) > 0 ? -v_ins[i] : v_ins[i] for i in is];
 
-    v_effs = k_effs .* transmission_direction.(k_effs, v_ins, ns)
-    θ_effs = transmission_angle.(v_effs, ns)
+    θ_ins = transmission_angle.(v_ins, ns);
+
+    v_effs = k_effs .* transmission_direction.(k_effs, v_ins, ns);
+    θ_effs = transmission_angle.(v_effs, ns);
 
     # Check snells law, i.e. that the components orthogonal to the surface are the same for the two wavevectors
     @test maximum(norm(v_effs[i] - v_ins[i] - ns[i] .* dot(ns[i], v_effs[i] - v_ins[i])) for i in is) < 1e-14

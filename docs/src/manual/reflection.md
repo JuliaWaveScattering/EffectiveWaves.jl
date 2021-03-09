@@ -63,7 +63,7 @@ material = Material(Halfspace(normal),species)
 # define a plane wave source travelling at a 45 degree angle in relation to the material
 source = PlaneSource(medium, [cos(pi/4.0),sin(pi/4.0)])
 
-R = reflection_coefficient(source, eff_medium, material.shape)
+R = reflection_coefficient(ω,source, eff_medium, material.shape)
 
 # output
 
@@ -142,7 +142,7 @@ material = Material(Halfspace(normal),species)
 # define a plane wave source travelling at a 45 degree angle in relation to the material
 source = PlaneSource(medium, [cos(pi/4.0),0.0,sin(pi/4.0)])
 
-R = reflection_coefficient(source, eff_medium, material.shape)
+R = reflection_coefficient(ω,source, eff_medium, material.shape)
 
 # output
 
