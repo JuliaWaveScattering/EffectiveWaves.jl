@@ -54,11 +54,11 @@ function reflection_coefficient(ω::T, psource::PlaneSource{T,Dim,1,Acoustic{T,D
 end
 
 """
-    planewave_coefficients(psource::PlaneSource, reflect_medium::Acoustic, plate::Plate)
+    planewave_amplitudes(psource::PlaneSource, reflect_medium::Acoustic, plate::Plate)
 
-Calculates the coefficients, or amplityudes, of the plane waves scattering from and transmitted inside the plate, for the plane wave source `psource` and the `plate`. The function returns `[R, T, P1, P2]` where `R` is the reflection coefficient, `T` is the coefficient of the transmitted wave, and `P1` (`P2`) are the amplitudes of the wave travling forward (backward) inside the plate.
+Calculates the coefficients, or amplitudes, of the plane waves scattering from and transmitted inside the plate, for the plane wave source `psource` and the `plate`. The function returns `[R, T, P1, P2]` where `R` is the reflection coefficient, `T` is the coefficient of the transmitted wave, and `P1` (`P2`) are the amplitudes of the wave travling forward (backward) inside the plate.
 """
-function planewave_coefficients(ω::T, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, plate_medium::Acoustic{T,Dim}, plate::Plate{T,Dim}) where {T<:AbstractFloat,Dim}
+function planewave_amplitudes(ω::T, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, plate_medium::Acoustic{T,Dim}, plate::Plate{T,Dim}) where {T<:AbstractFloat,Dim}
 
     k0 = ω / psource.medium.c
     k1 = if abs(plate_medium.c) == zero(T)
@@ -85,17 +85,12 @@ function planewave_coefficients(ω::T, psource::PlaneSource{T,Dim,1,Acoustic{T,D
     Z1 = Z0 - plate.width / T(2)
     Z2 = Z0 + plate.width / T(2)
 
-    UR = (C0 - C1)*(C0 + C1) * exp(2im*k0*Z1*cos(θ0)) * (exp(2im*k1*Z1*cos(θ1)) - exp(2im*k1*Z2*cos(θ1))) /
-        ((C0 + C1)^2 * exp(2im*k1*Z1*cos(θ1)) - (C0 - C1)^2 * exp(2im*k1*Z2*cos(θ1)))
+    denom = ((C0 + C1)^2 * exp(2im*k1*Z1*cos(θ1)) - (C0 - C1)^2 * exp(2im*k1*Z2*cos(θ1)));
 
-    UP1 = 2C0*(C0 + C1) * exp(im*Z1*(k0*cos(θ0) + k1*cos(θ1))) /
-        ((C0 + C1)^2*exp(2im*k1*Z1*cos(θ1)) - (C0 - C1)^2*exp(2im*k1*Z2*cos(θ1)))
-
-    UP2 = 2*C0*(C0 - C1)*exp(im*(k0*Z1*cos(θ0) + k1*(Z1 + 2*Z2)*cos(θ1))) /
-        (-((C0 + C1)^2*exp((2*im)*k1*Z1*cos(θ1))) + (C0 - C1)^2*exp(2im*k1*Z2*cos(θ1)))
-
-    UT = 4*C0*C1*exp(im*(k0*(Z1 - Z2)*cos(θ0) + k1*(Z1 + Z2)*cos(θ1))) /
-    ((C0 + C1)^2*exp(2im*k1*Z1*cos(θ1)) - (C0 - C1)^2*exp(2im*k1*Z2*cos(θ1)))
+    UR = (C0 - C1)*(C0 + C1) * exp(2im*k0*Z1*cos(θ0)) * (exp(2im*k1*Z1*cos(θ1)) - exp(2im*k1*Z2*cos(θ1))) / denom
+    UP1 = 2C0*(C0 + C1) * exp(im*Z1*(k0*cos(θ0) + k1*cos(θ1))) / denom
+    UP2 = - 2*C0*(C0 - C1)*exp(im*(k0*Z1*cos(θ0) + k1*(Z1 + 2*Z2)*cos(θ1))) / denom
+    UT = 4*C0*C1*exp(im*(k0*(Z1 - Z2)*cos(θ0) + k1*(Z1 + Z2)*cos(θ1))) / denom 
 
     return [UR, UT, UP1, UP2]
 end

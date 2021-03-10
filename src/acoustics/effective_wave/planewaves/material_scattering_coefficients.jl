@@ -30,6 +30,61 @@ function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psou
     return R
 end
 
+function material_scattering_coefficients(wavemodes::Vector{E}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{3,Plate{T,3}}) where {T<:AbstractFloat,Dim, E<:EffectivePlaneWaveMode{T,Dim}}
+
+    # Unpacking parameters
+    k = real(wavemodes[1].ω / psource.medium.c)
+
+    species = material.species
+    S = length(species)
+    rs = outer_radius.(species)
+
+    ho = maximum(w.basis_order for w in wavemodes)
+    ls, ms = spherical_harmonics_indices(ho)
+
+    # make the normal outward pointing
+    plate = material.shape
+    n = plate.normal / norm(plate.normal)
+    if real(dot(n,psource.direction)) > 0
+        n = -n
+    end
+
+    rθφ = cartesian_to_radial_coordinates(psource.direction)
+    Ys = spherical_harmonics(ho, rθφ[2], rθφ[3]);
+
+    direction_ref = psource.direction - 2 * dot(n,psource.direction) * n
+    rθφ = cartesian_to_radial_coordinates(direction_ref)
+    Yrefs = spherical_harmonics(ho, rθφ[2], rθφ[3]);
+
+    Z0 = dot(-n,plate.origin - psource.position)
+    Z1 = Z0 - plate.width / 2
+    Z2 = Z0 + plate.width / 2
+
+    kcos_in = k * dot(- conj(n), psource.direction)
+
+    RTs = map(wavemodes) do w
+        kcos_eff = w.wavenumber * dot(- conj(n), w.direction)
+
+        Rp = sum(
+            number_density(species[i[2]]) * w.eigenvectors[i] * 2pi * (1.0im)^(ls[i[1]]-1) *
+            Yrefs[i[1]] * (exp(im*(kcos_eff + kcos_in)*(Z2 - rs[i[2]])) - exp(im*(kcos_eff + kcos_in)*(Z1 + rs[i[2]]))) /
+            ((kcos_in + kcos_eff) * k * kcos_in)
+        for i in CartesianIndices(w.eigenvectors))
+
+        Tp = sum(
+            number_density(species[i[2]]) * w.eigenvectors[i] * 2pi * (-1.0)^ls[i[1]] * (1.0im)^(ls[i[1]]+1) *
+            Ys[i[1]] * (exp(im*(kcos_eff - kcos_in)*(Z2 - rs[i[2]])) - exp(im*(kcos_eff - kcos_in)*(Z1 + rs[i[2]]))) /
+            ((kcos_in - kcos_eff) * k * kcos_in)
+        for i in CartesianIndices(w.eigenvectors))
+
+        [Rp, Tp]
+    end
+
+    Ramp, Tamp = sum(RTs) + [0.0,1.0]
+
+    return [Ramp, Tamp]
+end
+
 "The average reflection coefficient"
 function wienerhopf_reflection_coefficient(ω::T, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
         tol::T = T(1e-7),

@@ -20,7 +20,7 @@ export dispersion_equation, dispersion_complex, eigensystem # supplies a matrix 
 
 export scattering_amplitudes_average
 
-export  reflection_coefficient, reflection_coefficients
+export  reflection_coefficient, reflection_coefficients, planewave_amplitudes
 export  effective_medium
 
 # List of shorthand for some materials

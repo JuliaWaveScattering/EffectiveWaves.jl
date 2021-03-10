@@ -43,23 +43,23 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors1::Array{C
 
     scale_number_density = one(T) - one(T) / material.numberofparticles
 
-    # First we calculate the innerward pointing normal
+    # First we calculate the outward pointing normal
     n = material.shape.normal;
-    n = n .* sign(real(dot(n,psource.direction)));
+    n = - n .* sign(real(dot(n,psource.direction)));
 
     # calculate the distances from the origin to the two faces of the plate
-    Z0 = dot(material.shape.normal, material.shape.origin)
-    Z1 = Z0 - material.shape.width / T(2)
-    Z2 = Z0 + material.shape.width / T(2)
+    Z0 = dot(-n, material.shape.origin)
+    Z1 = Z0 - material.shape.width / 2
+    Z2 = Z0 + material.shape.width / 2
 
     # next the components of the wavenumbers in the direction of the inward normal
-    direction1 = transmission_direction(k_eff, (ω / psource.medium.c) * psource.direction, -n)
-    direction2 = transmission_direction(- k_eff, (ω / psource.medium.c) * psource.direction, -n)
+    direction1 = transmission_direction(k_eff, (ω / psource.medium.c) * psource.direction, n)
+    direction2 = transmission_direction(- k_eff, (ω / psource.medium.c) * psource.direction, n)
 
     k = (ω / psource.medium.c)
-    kz = k * dot(conj(n), psource.direction)
-    k1_effz = k_eff * dot(conj(n), direction1)
-    k2_effz = k_eff * dot(conj(n), direction2)
+    kz = k * dot(-conj(n), psource.direction)
+    k1_effz = k_eff * dot(-conj(n), direction1)
+    k2_effz = k_eff * dot(-conj(n), direction2)
 
     rθφ = cartesian_to_radial_coordinates(psource.direction);
 
@@ -67,14 +67,14 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors1::Array{C
     lm_to_n = lm_to_spherical_harmonic_index
 
     I1(F::Array{Complex{T}}, k_effz::Complex{T}) = sum(
-        - F[lm_to_n(dl,dm),j,1] * Ys[lm_to_n(dl,dm)] * im^T(dl+1) * T(2π) * T(1)^dl *
+        - F[lm_to_n(dl,dm),j,1] * Ys[lm_to_n(dl,dm)] * im^T(dl+1) * T(2π) * T(-1)^dl *
         exp(im * (k_effz - kz)*(Z1 + outer_radius(material.species[j]))) *
         scale_number_density * number_density(material.species[j]) / (k*kz * (kz - k_effz))
     for dl = 0:basis_order for dm = -dl:dl, j in eachindex(material.species))
 
     I2(F::Array{Complex{T}}, k_effz::Complex{T}) = sum(
-        - F[lm_to_n(dl,dm),j,1] * Ys[lm_to_n(dl,dm)] * im^T(dl+1) * T(2π) * T(1)^dm *
-        exp(im * (k_effz - kz)*(Z2 - outer_radius(material.species[j]))) *
+        - F[lm_to_n(dl,dm),j,1] * Ys[lm_to_n(dl,dm)] * im^T(dl+1) * T(2π) * T(-1)^dm *
+        exp(im * (k_effz + kz)*(Z2 - outer_radius(material.species[j]))) *
         scale_number_density * number_density(material.species[j]) / (k*kz * (kz + k_effz))
     for dl = 0:basis_order for dm = -dl:dl, j in eachindex(material.species))
 

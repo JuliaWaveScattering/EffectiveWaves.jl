@@ -52,7 +52,7 @@ function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, 
     direction2 = transmission_direction(- wavenumber, (ω / psource.medium.c) * psource.direction, material.shape.normal)
     eigvectors2 = eigenvectors(ω, - wavenumber, psource, material; direction_eff = direction2, kws...)
 
-    α = solve_boundary_condition(ω, k_eff, eigvectors1, eigvectors2, psource, material; kws...)
+    α = solve_boundary_condition(ω, wavenumber, eigvectors1, eigvectors2, psource, material; kws...)
 
     # apply normalisation
     eigvectors1[:,:,1] = eigvectors1[:,:,1] .* α[1]

@@ -119,30 +119,32 @@ s1 = Specie(
 );
 radius2 = 0.002
 s2 = Specie(
-    Acoustic(spatial_dim; ρ=0.2, c=4.1), radius2;
+    Acoustic(spatial_dim; ρ=0.00001, c=0.1), radius2;
+    #Acoustic(spatial_dim; ρ=0.2, c=4.1), radius2;
     volume_fraction=0.15
 
 );
 species = [s1,s2]
+species = [s2]
 
 # Choose the frequency
 ω = 1e-2
 k = ω / real(medium.c)
 
-# Check that we are indeed in a low frequency limit
-k * radius2 < 1e-4
-
+# For the limit of low frequencies we can define
 eff_medium = effective_medium(medium, species)
 
-normal = [0.0,0.0,-1.0] # an outward normal to the surface
-
-# Define the material region
-material = Material(Halfspace(normal),species)
+# Define a plate
+normal = [0.0,0.0,-1.0] # an outward normal to both surfaces of the plate
+width = 1.0 # plate width
+plate1 = Plate(normal,width)
 
 # define a plane wave source travelling at a 45 degree angle in relation to the material
 source = PlaneSource(medium, [cos(pi/4.0),0.0,sin(pi/4.0)])
 
-R = reflection_coefficient(ω,source, eff_medium, material.shape)
+amps = planewave_amplitudes(ω, source, eff_medium, plate1);
+Ramp = amps[1]
+Tamp = amps[2]
 
 # output
 
@@ -155,41 +157,18 @@ Using only one plane wave mode we can calculate both reflection and transmission
 
 ```julia 2
 k_effs = wavenumbers(ω, medium, species; tol = 1e-6, num_wavenumbers = 1, basis_order = 1)
-
-# Define a plate
-normal = [0.0,0.0,-1.0] # an outward normal to both surfaces of the plate
-width = 1.0 # plate width
-
-# Define the material region
-material = Material(Plate(normal,width),species)
-
-basis_order = 1;
-kws = Dict(:basis_order => basis_order)
-
-MM = eigensystem(ω, source, material; kws...)
-
-# calculate eigenvectors
-using LinearAlgebra
-
 k_eff = k_effs[1]
-MM_svd = svd(MM(k_eff))
-MM_svd.S[end]
-v1 = MM_svd.V[:,end]
 
-k_eff = -k_effs[1]
-MM_svd = svd(MM(k_eff))
-MM_svd.S[end]
-v2 = MM_svd.V[:,end]
+abs(k_eff - ω / eff_medium.c) < 1e-12
 
-
-
-
-vecs = eigenvectors(ω, k_effs[1], source, material; kws...)
-
+plate = Plate(normal,width)
+material = Material(plate,species)
 
 # Calculate the wavemode for the first wavenumber
-wave1 = WaveMode(ω, k_effs[1], source, material; tol = 1e-6, basis_order = 1)
+# the WaveMode function calculates the types of waves and solves the needed boundary conditions
+wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
 
+material_scattering_coefficients(wavemodes, source, material)
 
 ```
 Currently implementing... formulas from [Gower & Kristensson 2020](https://arxiv.org/pdf/2010.00934.pdf).
