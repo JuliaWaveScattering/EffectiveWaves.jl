@@ -70,7 +70,7 @@ transmission_angle(pwave::Union{PlaneSource,EffectivePlaneWaveMode}, shape::Unio
 
 Calculates the transmission angle for a wave propagting inside a material which has the outward normal `surface_normal`. The wave propagates in the direction of `wavevector` with a wavenumber given by `k = sqrt(sum(wavevector .^2))`, where `k` should have a positive imaginary part.
 """
-transmission_angle(wavevector::Vector,surface_normal::Vector) = transmission_angle(SVector(wavevector...),SVector(surface_normal...))
+transmission_angle(wavevector::AbstractVector,surface_normal::AbstractVector) = transmission_angle(SVector(wavevector...),SVector(surface_normal...))
 
 """
     transmission_angle(wavevector::StaticVector{3}, surface_normal::StaticVector{3})

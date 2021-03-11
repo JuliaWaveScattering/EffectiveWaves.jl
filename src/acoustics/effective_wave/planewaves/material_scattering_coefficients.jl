@@ -30,17 +30,55 @@ function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psou
     return R
 end
 
-function material_scattering_coefficients(wavemodes::Vector{E}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{3,Plate{T,3}}) where {T<:AbstractFloat,Dim, E<:EffectivePlaneWaveMode{T,Dim}}
+function reflection_coefficient(wavemode::EffectivePlaneWaveMode{T,Dim}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{3,Halfspace{T,3}}) where {T<:AbstractFloat,Dim}
 
     # Unpacking parameters
-    k = real(wavemodes[1].ω / psource.medium.c)
+    k = wavemode.ω / psource.medium.c
 
     species = material.species
     S = length(species)
     rs = outer_radius.(species)
 
-    ho = maximum(w.basis_order for w in wavemodes)
-    ls, ms = spherical_harmonics_indices(ho)
+    basis_order = wavemode.basis_order
+    ls, ms = spherical_harmonics_indices(basis_order)
+
+    # make the normal outward pointing
+    plate = material.shape
+    n = plate.normal / norm(plate.normal)
+    if real(dot(n,psource.direction)) > 0
+        n = -n
+    end
+
+    rθφ = cartesian_to_radial_coordinates(psource.direction)
+    Yrefs = spherical_harmonics(basis_order, rθφ[2], rθφ[3]);
+
+    Z0 = dot(-n,plate.origin)
+    kcos_in = k * dot(- conj(n), psource.direction)
+
+    kcos_eff = wavemode.wavenumber * dot(- conj(n), wavemode.direction)
+
+    Ramp = - sum(number_density(species[i[2]]) * wavemode.eigenvectors[i] * 2pi * (-1.0)^ms[i[1]] * (1.0im)^(ls[i[1]]-1) *
+        Yrefs[i[1]] * exp(im*(kcos_eff + kcos_in)*(Z0 + rs[i[2]])) / ((kcos_in + kcos_eff) * k * kcos_in)
+    for i in CartesianIndices(wavemode.eigenvectors))
+
+    # direction_ref = psource.direction - 2 * dot(n,psource.direction) * n
+    # reflected_wave = PlaneSource(psource.medium; direction = direction_ref, amplitude = Ramp)
+
+    return Ramp
+end
+
+
+function reflection_transmission_coefficients(wavemodes::Vector{E}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{3,Plate{T,3}}) where {T<:AbstractFloat,Dim, E<:EffectivePlaneWaveMode{T,Dim}}
+
+    # Unpacking parameters
+    k = wavemodes[1].ω / psource.medium.c
+
+    species = material.species
+    S = length(species)
+    rs = outer_radius.(species)
+
+    basis_order = maximum(w.basis_order for w in wavemodes)
+    ls, ms = spherical_harmonics_indices(basis_order)
 
     # make the normal outward pointing
     plate = material.shape
@@ -54,9 +92,9 @@ function material_scattering_coefficients(wavemodes::Vector{E}, psource::PlaneSo
 
     direction_ref = psource.direction - 2 * dot(n,psource.direction) * n
     rθφ = cartesian_to_radial_coordinates(direction_ref)
-    Yrefs = spherical_harmonics(ho, rθφ[2], rθφ[3]);
+    Yrefs = spherical_harmonics(basis_order, rθφ[2], rθφ[3]);
 
-    Z0 = dot(-n,plate.origin - psource.position)
+    Z0 = dot(-n,plate.origin)
     Z1 = Z0 - plate.width / 2
     Z2 = Z0 + plate.width / 2
 
@@ -80,7 +118,10 @@ function material_scattering_coefficients(wavemodes::Vector{E}, psource::PlaneSo
         [Rp, Tp]
     end
 
-    Ramp, Tamp = sum(RTs) + [0.0,1.0]
+    Ramp, Tamp = sum(RTs) + [0.0,field(psource,zeros(T,3),ω)]
+
+    # reflected_wave = PlaneSource(psource.medium; direction = direction_ref, amplitude = Ramp)
+    # transmitted_wave = PlaneSource(psource.medium; direction = psource.direction, amplitude = Tamp)
 
     return [Ramp, Tamp]
 end

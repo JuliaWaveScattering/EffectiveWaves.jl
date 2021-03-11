@@ -9,7 +9,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     scale_number_density = one(T) - one(T) / material.numberofparticles
 
-    k = real(ω / source.medium.c)
+    k = ω / source.medium.c
 
     species = material.species
     S = length(species)
@@ -97,7 +97,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     ) where T
     # source_basis_field_order is often chosen so that there is the same number of source coefficients a_n as the number of unknowns α_n. Before was: min(basis_field_order, size(eigvectors)[end]) - 1
 
-    k = real(ω / psource.medium.c)
+    k = ω / psource.medium.c
 
     scale_number_density = one(T) - one(T) / material.numberofparticles
     species = material.species
@@ -160,7 +160,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     direction = SVector(zero(T),zero(T),one(T))
 
     if norm(abs.(psource.direction) - abs.(direction)) > eps(T)
-        warn("Plane wave source is not aligned with the z-axis. Will return results with an axis that makes the source direction aligned with the z-axis")
+        warn("Plane wave source is not aligned with the z-axis. Will return results with an axis that makes the source direction aligned with the z-axis. With a bit of work, this result can then be rotated to your system...")
     end
 
     # source = plane_source(psource.medium, psource.position, direction, psource.amplitude[1])

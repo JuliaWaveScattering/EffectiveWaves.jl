@@ -42,15 +42,23 @@ function reflection_coefficient(ω::T, psource::PlaneSource{T,Dim,1,Acoustic{T,D
         ω / reflect_medium.c
     end
 
-    θin = transmission_angle(psource, halfspace)
+    # make sure the normal outward pointing
+    n = halfspace.normal / norm(halfspace.normal)
+    if real(dot(n,psource.direction)) > 0
+        n = -n
+    end
 
-    vtran = transmission_direction(k_r, k_in * psource.direction, halfspace.normal)
-    θtran = transmission_angle(vtran, halfspace.normal)
+    θin = transmission_angle(psource.direction, n)
 
-    q = real(reflect_medium.c*reflect_medium.ρ / (psource.medium.c*psource.medium.ρ))
-    f = field(psource)(halfspace.origin,ω)
+    vtran = transmission_direction(k_r, k_in * psource.direction, n)
+    θtran = transmission_angle(vtran, n)
 
-    R = (f^2 / psource.amplitude[1]) * (q*cos(θin) - cos(θtran)) / (q*cos(θin) + cos(θtran))
+    q = reflect_medium.c*reflect_medium.ρ / (psource.medium.c*psource.medium.ρ)
+
+    Z = dot(n,halfspace.origin)
+    phase = exp(2im * k_in * Z * cos(θin))
+
+    R = (phase^2 * field(psource)(zeros(T,Dim),ω)) * (q*cos(θin) - cos(θtran)) / (q*cos(θin) + cos(θtran))
 end
 
 """
@@ -81,16 +89,16 @@ function planewave_amplitudes(ω::T, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim
     C0 = k0 * cos(θ0) / psource.medium.ρ
     C1 = k1 * cos(θ1) / plate_medium.ρ
 
-    Z0 = dot(-n,plate.origin - psource.position)
+    Z0 = dot(-n,plate.origin)
     Z1 = Z0 - plate.width / T(2)
     Z2 = Z0 + plate.width / T(2)
 
-    denom = ((C0 + C1)^2 * exp(2im*k1*Z1*cos(θ1)) - (C0 - C1)^2 * exp(2im*k1*Z2*cos(θ1)));
+    denom = ((C0 + C1)^2 * exp(2im*k1*Z1*cos(θ1)) - (C0 - C1)^2 * exp(2im*k1*Z2*cos(θ1)))
 
     UR = (C0 - C1)*(C0 + C1) * exp(2im*k0*Z1*cos(θ0)) * (exp(2im*k1*Z1*cos(θ1)) - exp(2im*k1*Z2*cos(θ1))) / denom
     UP1 = 2C0*(C0 + C1) * exp(im*Z1*(k0*cos(θ0) + k1*cos(θ1))) / denom
     UP2 = - 2*C0*(C0 - C1)*exp(im*(k0*Z1*cos(θ0) + k1*(Z1 + 2*Z2)*cos(θ1))) / denom
-    UT = 4*C0*C1*exp(im*(k0*(Z1 - Z2)*cos(θ0) + k1*(Z1 + Z2)*cos(θ1))) / denom 
+    UT = 4*C0*C1*exp(im*(k0*(Z1 - Z2)*cos(θ0) + k1*(Z1 + Z2)*cos(θ1))) / denom
 
-    return [UR, UT, UP1, UP2]
+    return [UR, UT, UP1, UP2] * field(psource)(zeros(T,3),ω)
 end

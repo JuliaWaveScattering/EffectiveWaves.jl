@@ -8,7 +8,7 @@ function asymptotic_monopole_wavenumbers(ω::T, medium::Acoustic{T,2}, species::
     ) where T
 
     P = Int(round(num_wavenumbers / 2) + 1)
-    k = real(ω / medium.c)
+    k = ω / medium.c
 
     b = mean(s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2) for s1 in species, s2 in species)
     num_density = mean(number_density(s) for s in species)

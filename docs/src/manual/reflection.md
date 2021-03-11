@@ -48,7 +48,7 @@ species = [s1,s2]
 
 # Choose the frequency
 ω = 1e-2
-k = ω / real(medium.c)
+k = ω / medium.c
 
 # Check that we are indeed in a low frequency limit
 k * radius2 < 1e-4
@@ -119,7 +119,7 @@ s1 = Specie(
 );
 radius2 = 0.002
 s2 = Specie(
-    Acoustic(spatial_dim; ρ=0.00001, c=0.1), radius2;
+    Acoustic(spatial_dim; ρ=0.2, c=0.3), radius2;
     #Acoustic(spatial_dim; ρ=0.2, c=4.1), radius2;
     volume_fraction=0.15
 
@@ -129,20 +129,29 @@ species = [s2]
 
 # Choose the frequency
 ω = 1e-2
-k = ω / real(medium.c)
+ω = 2.0
+k = ω / medium.c
 
 # For the limit of low frequencies we can define
 eff_medium = effective_medium(medium, species)
+eff_medium = Acoustic(0.9, 0.4 - 40im, 3)
 
 # Define a plate
 normal = [0.0,0.0,-1.0] # an outward normal to both surfaces of the plate
-width = 1.0 # plate width
-plate1 = Plate(normal,width)
+width = 150.0 # plate width
+plate = Plate(normal,width,[0.0,0.0,width/2])
+halfspace = Halfspace(normal)
+
 
 # define a plane wave source travelling at a 45 degree angle in relation to the material
-source = PlaneSource(medium, [cos(pi/4.0),0.0,sin(pi/4.0)])
+# source = PlaneSource(medium, [cos(pi/4.0),0.0,sin(pi/4.0)])
+source = PlaneSource(medium, [0.0,0.0,1.0])
 
-amps = planewave_amplitudes(ω, source, eff_medium, plate1);
+Ramp = reflection_coefficient(ω, source, eff_medium, halfspace)
+
+planewave_amplitudes(ω, source, eff_medium, plate)
+
+amps = planewave_amplitudes(ω, source, eff_medium, plate)
 Ramp = amps[1]
 Tamp = amps[2]
 
@@ -159,16 +168,19 @@ Using only one plane wave mode we can calculate both reflection and transmission
 k_effs = wavenumbers(ω, medium, species; tol = 1e-6, num_wavenumbers = 1, basis_order = 1)
 k_eff = k_effs[1]
 
-abs(k_eff - ω / eff_medium.c) < 1e-12
+abs(k_eff - ω / eff_medium.c)
 
-plate = Plate(normal,width)
 material = Material(plate,species)
+material = Material(halfspace,species)
 
 # Calculate the wavemode for the first wavenumber
 # the WaveMode function calculates the types of waves and solves the needed boundary conditions
 wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
 
-material_scattering_coefficients(wavemodes, source, material)
+reflection_coefficient(wavemodes, source, material)
 
+#material_scattering_coefficients(wavemodes, source, material)
+
+[Ramp; Tamp]
 ```
 Currently implementing... formulas from [Gower & Kristensson 2020](https://arxiv.org/pdf/2010.00934.pdf).

@@ -7,7 +7,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
 
     scale_number_density = one(T) - one(T) / numberofparticles
 
-    k = real(ω/medium.c)
+    k = ω/medium.c
     sps = species
 
     S = length(sps)
@@ -69,7 +69,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
 
     scale_number_density = one(T) - one(T) / numberofparticles
 
-    k = real(ω/medium.c)
+    k = ω/medium.c
     sps = species
 
     S = length(sps)

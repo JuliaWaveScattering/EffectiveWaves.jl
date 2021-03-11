@@ -3,7 +3,7 @@ kernelM(l::Int,x, y) = x * diffsbesselj(l,x) * sbesselj(l,y) - y * sbesselj(l,x)
 function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},WithoutSymmetry{3}}) where T
 
     # Unpacking parameters
-    k = real(wavemode.ω / wavemode.medium.c)
+    k = wavemode.ω / wavemode.medium.c
 
     species = wavemode.material.species
     S = length(species)
@@ -46,7 +46,7 @@ end
 function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},AzimuthalSymmetry{3}}) where T
 
     # Unpacking parameters
-    k = real(wavemode.ω / wavemode.medium.c)
+    k = wavemode.ω / wavemode.medium.c
 
     species = wavemode.material.species
     S = length(species)

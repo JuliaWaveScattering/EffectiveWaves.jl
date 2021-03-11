@@ -1,3 +1,19 @@
+function azimuthal_to_planar_eigenvector(::Type{Acoustic{T,3}},eigvecs::Array{Complex{T}}) where T
+    basis_order = size(eigvecs,1) - 1
+    S = size(eigvecs,2)
+    P = size(eigvecs,3)
+
+    v = [
+        (m == 0) ? eigvecs[l+1,s,p] : zero(Complex{T})
+    for p = 1:P for s = 1:S for l = 0:basis_order for m = -l:l]
+
+    return reshape(v,basisorder_to_basislength(Acoustic{T,3},basis_order),S,P)
+end
+
+# haven't implemented the azimuthal symmetry equivalent for 2D
+azimuthal_to_planar_eigenvector(::Type{Acoustic{T,2}},eigvecs::Array{Complex{T}}) where T = eigvecs
+
+
 function eigensystem(ω::T, medium::Acoustic{T,2}, species::Species{T,2}, ::AbstractPlanarSymmetry;
         basis_order::Int = 2,
         numberofparticles::Number = Inf,
@@ -58,10 +74,10 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::Abst
         scale_number_density = one(T) - one(T) / numberofparticles
     end
 
-    k = real(ω/medium.c)
+    k = ω/medium.c
     S = length(species)
     ho = basis_order
-    len = (ho+1)^2 * S
+    len = basisorder_to_basislength(Acoustic{T,3},ho) * S
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     rθφp = cartesian_to_radial_coordinates(direction_eff)
@@ -75,14 +91,14 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::Abst
 
     t_matrices = get_t_matrices(medium, species, ω, ho)
     t_diags = diag.(t_matrices)
-    len(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
+    baselen(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
 
     as = [
         s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
     for s1 in species, s2 in species]
     function M_component(keff::Complex{T},Ns::Array{Complex{T}},l::Int,m::Int,s1::Int,dl::Int,dm::Int,s2::Int)::Complex{T}
         (m == dm && l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
-        4pi * as[s1,s2] * scale_number_density * number_density(species[s2]) * t_diags[s1][len(l)] *
+        4pi * as[s1,s2] * scale_number_density * number_density(species[s2]) * t_diags[s1][baselen(l)] *
         sum(
             Complex{T}(im)^(-l1) * Ys[lm_to_n(l1,dm-m)] * Ns[l1+1,s1,s2] *
             gaunt_coefficient(dl,dm,l,m,l1,dm-m)
@@ -116,7 +132,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::Plan
         scale_number_density = one(T) - one(T) / numberofparticles
     end
 
-    k = real(ω/medium.c)
+    k = ω/medium.c
     S = length(species)
     ho = basis_order
     len = (ho+1) * S
@@ -124,7 +140,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::Plan
 
     t_matrices = get_t_matrices(medium, species, ω, ho)
     t_diags = diag.(t_matrices)
-    len(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
+    baselen(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
 
     as = [
         s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
@@ -132,7 +148,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::Plan
 
     function M_component(keff::Complex{T},Ns::Array{Complex{T}},l,s1,dl,s2)::Complex{T}
         (l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
-        4pi * as[s1,s2] * scale_number_density * number_density(species[s2]) * t_diags[s1][len(l)] *
+        4pi * as[s1,s2] * scale_number_density * number_density(species[s2]) * t_diags[s1][baselen(l)] *
         sum(
             Complex{T}(im)^(-l1) * sqrt((2*l1+1)/(4pi) ) * Ns[l1+1,s1,s2] *
             gaunt_coefficient(dl,0,l,0,l1,0)
