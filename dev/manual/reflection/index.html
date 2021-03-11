@@ -18,7 +18,7 @@ species = [s1,s2]
 
 # Choose the frequency
 ω = 1e-2
-k = ω / real(medium.c)
+k = ω / medium.c
 
 # Check that we are indeed in a low frequency limit
 k * radius2 &lt; 1e-4
@@ -59,7 +59,7 @@ s1 = Specie(
 );
 radius2 = 0.002
 s2 = Specie(
-    Acoustic(spatial_dim; ρ=0.00001, c=0.1), radius2;
+    Acoustic(spatial_dim; ρ=0.2, c=0.3), radius2;
     #Acoustic(spatial_dim; ρ=0.2, c=4.1), radius2;
     volume_fraction=0.15
 
@@ -69,20 +69,29 @@ species = [s2]
 
 # Choose the frequency
 ω = 1e-2
-k = ω / real(medium.c)
+ω = 2.0
+k = ω / medium.c
 
 # For the limit of low frequencies we can define
 eff_medium = effective_medium(medium, species)
+eff_medium = Acoustic(0.9, 0.4 - 40im, 3)
 
 # Define a plate
 normal = [0.0,0.0,-1.0] # an outward normal to both surfaces of the plate
-width = 1.0 # plate width
-plate1 = Plate(normal,width)
+width = 150.0 # plate width
+plate = Plate(normal,width,[0.0,0.0,width/2])
+halfspace = Halfspace(normal)
+
 
 # define a plane wave source travelling at a 45 degree angle in relation to the material
-source = PlaneSource(medium, [cos(pi/4.0),0.0,sin(pi/4.0)])
+# source = PlaneSource(medium, [cos(pi/4.0),0.0,sin(pi/4.0)])
+source = PlaneSource(medium, [0.0,0.0,1.0])
 
-amps = planewave_amplitudes(ω, source, eff_medium, plate1);
+Ramp = reflection_coefficient(ω, source, eff_medium, halfspace)
+
+planewave_amplitudes(ω, source, eff_medium, plate)
+
+amps = planewave_amplitudes(ω, source, eff_medium, plate)
 Ramp = amps[1]
 Tamp = amps[2]
 
@@ -91,14 +100,17 @@ Tamp = amps[2]
 0.15901291515072696 + 1.9230884702465903e-17im</code></pre><h2 id="three-dim-acoustic-one-reflection"><a class="docs-heading-anchor" href="#three-dim-acoustic-one-reflection">One plane wave mode </a><a id="three-dim-acoustic-one-reflection-1"></a><a class="docs-heading-anchor-permalink" href="#three-dim-acoustic-one-reflection" title="Permalink"></a></h2><p>Using only one plane wave mode we can calculate both reflection and transmission from a plate.</p><pre><code class="language-julia">k_effs = wavenumbers(ω, medium, species; tol = 1e-6, num_wavenumbers = 1, basis_order = 1)
 k_eff = k_effs[1]
 
-abs(k_eff - ω / eff_medium.c) &lt; 1e-12
+abs(k_eff - ω / eff_medium.c)
 
-plate = Plate(normal,width)
 material = Material(plate,species)
+material = Material(halfspace,species)
 
 # Calculate the wavemode for the first wavenumber
 # the WaveMode function calculates the types of waves and solves the needed boundary conditions
 wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
 
-material_scattering_coefficients(wavemodes, source, material)
-</code></pre><p>Currently implementing... formulas from <a href="https://arxiv.org/pdf/2010.00934.pdf">Gower &amp; Kristensson 2020</a>.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../wavenumbers/">« Effective wavenumbers</a><a class="docs-footer-nextpage" href="../sphere/">Scattering from a sphere »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Wednesday 10 March 2021 20:14">Wednesday 10 March 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+reflection_coefficient(wavemodes, source, material)
+
+#material_scattering_coefficients(wavemodes, source, material)
+
+[Ramp; Tamp]</code></pre><p>Currently implementing... formulas from <a href="https://arxiv.org/pdf/2010.00934.pdf">Gower &amp; Kristensson 2020</a>.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../wavenumbers/">« Effective wavenumbers</a><a class="docs-footer-nextpage" href="../sphere/">Scattering from a sphere »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 11 March 2021 20:34">Thursday 11 March 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
