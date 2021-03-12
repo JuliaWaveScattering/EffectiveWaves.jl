@@ -109,7 +109,7 @@ In code this becomes
 ```julia 2; setup = :(using EffectiveWaves)
 
 spatial_dim = 3
-medium = Acoustic(spatial_dim; ρ=1.2, c=1.5)
+medium = Acoustic(spatial_dim; ρ=0.3, c=0.5 - 0.5im)
 
 # Choose the species
 radius1 = 0.001
@@ -134,7 +134,6 @@ k = ω / medium.c
 
 # For the limit of low frequencies we can define
 eff_medium = effective_medium(medium, species)
-eff_medium = Acoustic(0.9, 0.4 - 40im, 3)
 
 # Define a plate
 normal = [0.0,0.0,-1.0] # an outward normal to both surfaces of the plate
@@ -148,8 +147,6 @@ halfspace = Halfspace(normal)
 source = PlaneSource(medium, [0.0,0.0,1.0])
 
 Ramp = reflection_coefficient(ω, source, eff_medium, halfspace)
-
-planewave_amplitudes(ω, source, eff_medium, plate)
 
 amps = planewave_amplitudes(ω, source, eff_medium, plate)
 Ramp = amps[1]
@@ -170,7 +167,6 @@ k_eff = k_effs[1]
 
 abs(k_eff - ω / eff_medium.c)
 
-material = Material(plate,species)
 material = Material(halfspace,species)
 
 # Calculate the wavemode for the first wavenumber
@@ -179,7 +175,9 @@ wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
 
 reflection_coefficient(wavemodes, source, material)
 
-#material_scattering_coefficients(wavemodes, source, material)
+material = Material(plate,species)
+wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
+reflection_transmission_coefficients(wavemodes, source, material)
 
 [Ramp; Tamp]
 ```
