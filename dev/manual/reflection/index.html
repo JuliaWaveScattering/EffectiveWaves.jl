@@ -49,7 +49,7 @@ R = reflection_coefficient(ω, wave1, source, material)
 
 0.13666931756494047 - 5.127394485569188e-14im</code></pre><h2 id="two-dim-acoustic-multiple-reflection"><a class="docs-heading-anchor" href="#two-dim-acoustic-multiple-reflection">Multiple effective modes</a><a id="two-dim-acoustic-multiple-reflection-1"></a><a class="docs-heading-anchor-permalink" href="#two-dim-acoustic-multiple-reflection" title="Permalink"></a></h2><p>See <a href="../../examples/matched_method/README/#A-numerical-matching-method">A numerical matching method</a> for an example that uses multiple effective wave modes to calculate the reflection coefficient.</p><h1 id="D-acoustics"><a class="docs-heading-anchor" href="#D-acoustics">3D acoustics</a><a id="D-acoustics-1"></a><a class="docs-heading-anchor-permalink" href="#D-acoustics" title="Permalink"></a></h1><h2 id="Low-frequency-reflection"><a class="docs-heading-anchor" href="#Low-frequency-reflection">Low frequency reflection</a><a id="Low-frequency-reflection-1"></a><a class="docs-heading-anchor-permalink" href="#Low-frequency-reflection" title="Permalink"></a></h2><p>The simplest case is for low frequency, where the average reflection coefficient <span>$R$</span> reduces to the reflection coefficient from a homogeneous material:</p><p class="math-container">\[R = \frac{q_* \cos \theta_\text{in} - \cos \theta_*}{q_* \cos \theta_\text{in} + \cos \theta_*},\]</p><p>where</p><p class="math-container">\[\mathcal R = \{ z&gt;0 : \mathbf r \in \mathbb R^3\} \;\; \text{and} \;\; \mathbf k = k (\cos \phi_\text{in} \sin \theta_\text{in}, \sin \phi_\text{in} \sin \theta_\text{in}, \cos \theta_\text{in}).\]</p><p>In code this becomes</p><pre><code class="language-julia">
 spatial_dim = 3
-medium = Acoustic(spatial_dim; ρ=1.2, c=1.5)
+medium = Acoustic(spatial_dim; ρ=0.3, c=0.5 - 0.5im)
 
 # Choose the species
 radius1 = 0.001
@@ -74,7 +74,6 @@ k = ω / medium.c
 
 # For the limit of low frequencies we can define
 eff_medium = effective_medium(medium, species)
-eff_medium = Acoustic(0.9, 0.4 - 40im, 3)
 
 # Define a plate
 normal = [0.0,0.0,-1.0] # an outward normal to both surfaces of the plate
@@ -89,8 +88,6 @@ source = PlaneSource(medium, [0.0,0.0,1.0])
 
 Ramp = reflection_coefficient(ω, source, eff_medium, halfspace)
 
-planewave_amplitudes(ω, source, eff_medium, plate)
-
 amps = planewave_amplitudes(ω, source, eff_medium, plate)
 Ramp = amps[1]
 Tamp = amps[2]
@@ -102,7 +99,6 @@ k_eff = k_effs[1]
 
 abs(k_eff - ω / eff_medium.c)
 
-material = Material(plate,species)
 material = Material(halfspace,species)
 
 # Calculate the wavemode for the first wavenumber
@@ -111,6 +107,8 @@ wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
 
 reflection_coefficient(wavemodes, source, material)
 
-#material_scattering_coefficients(wavemodes, source, material)
+material = Material(plate,species)
+wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
+reflection_transmission_coefficients(wavemodes, source, material)
 
-[Ramp; Tamp]</code></pre><p>Currently implementing... formulas from <a href="https://arxiv.org/pdf/2010.00934.pdf">Gower &amp; Kristensson 2020</a>.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../wavenumbers/">« Effective wavenumbers</a><a class="docs-footer-nextpage" href="../sphere/">Scattering from a sphere »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Thursday 11 March 2021 20:34">Thursday 11 March 2021</span>. Using Julia version 1.5.3.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
+[Ramp; Tamp]</code></pre><p>Currently implementing... formulas from <a href="https://arxiv.org/pdf/2010.00934.pdf">Gower &amp; Kristensson 2020</a>.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../wavenumbers/">« Effective wavenumbers</a><a class="docs-footer-nextpage" href="../sphere/">Scattering from a sphere »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Saturday 13 March 2021 00:24">Saturday 13 March 2021</span>. Using Julia version 1.5.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
