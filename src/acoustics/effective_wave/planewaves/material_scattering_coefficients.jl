@@ -113,7 +113,7 @@ function reflection_transmission_coefficients(wavemodes::Vector{E}, psource::Pla
         [Rp, Tp]
     end
 
-    Ramp, Tamp = sum(RTs) + [0.0,field(psource,zeros(T,3),ω)]
+    Ramp, Tamp = sum(RTs) + [0.0,field(psource,zeros(T,3),wavemodes[1].ω)]
 
     # direction_ref = psource.direction - 2 * dot(n,psource.direction) * n
     # reflected_wave = PlaneSource(psource.medium; direction = direction_ref, amplitude = Ramp)
