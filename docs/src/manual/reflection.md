@@ -110,6 +110,7 @@ In code this becomes
 
 spatial_dim = 3
 medium = Acoustic(spatial_dim; ρ=0.3, c=0.5 - 0.5im)
+medium = Acoustic(spatial_dim; ρ=0.3, c=0.5)
 
 # Choose the species
 radius1 = 0.001
@@ -128,27 +129,31 @@ species = [s1,s2]
 species = [s2]
 
 # Choose the frequency
+ω = 0.5
 ω = 1e-2
-ω = 2.0
+ω = 1e-5
 k = ω / medium.c
 
 # For the limit of low frequencies we can define
 eff_medium = effective_medium(medium, species)
 
 # Define a plate
+r = maximum(outer_radius.(species))
 normal = [0.0,0.0,-1.0] # an outward normal to both surfaces of the plate
 width = 150.0 # plate width
-plate = Plate(normal,width,[0.0,0.0,width/2])
+plate = Plate(normal,width,plate.origin)
+plate_low = Plate(normal,width - 2r,[0.0,0.0,width/2])
 halfspace = Halfspace(normal)
+halfspace_low = Halfspace(normal,halfspace.origin - r)
 
 
 # define a plane wave source travelling at a 45 degree angle in relation to the material
 # source = PlaneSource(medium, [cos(pi/4.0),0.0,sin(pi/4.0)])
 source = PlaneSource(medium, [0.0,0.0,1.0])
 
-Ramp = reflection_coefficient(ω, source, eff_medium, halfspace)
+Ramp1 = reflection_coefficient(ω, source, eff_medium, halfspace_low)
 
-amps = planewave_amplitudes(ω, source, eff_medium, plate)
+amps = planewave_amplitudes(ω, source, eff_medium, plate_low)
 Ramp = amps[1]
 Tamp = amps[2]
 
@@ -173,12 +178,17 @@ material = Material(halfspace,species)
 # the WaveMode function calculates the types of waves and solves the needed boundary conditions
 wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
 
-reflection_coefficient(wavemodes, source, material)
+Reff = reflection_coefficient(wavemodes, source, material)
 
 material = Material(plate,species)
 wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
-reflection_transmission_coefficients(wavemodes, source, material)
+RTeff = reflection_transmission_coefficients(wavemodes, source, material);
 
-[Ramp; Tamp]
+abs(Ramp1 - Reff)
+
+abs.(RTeff - [Ramp; Tamp])
+
+sum(abs.([Ramp,Tamp]).^2)
+sum(abs.(RTeff).^2)
 ```
 Currently implementing... formulas from [Gower & Kristensson 2020](https://arxiv.org/pdf/2010.00934.pdf).
