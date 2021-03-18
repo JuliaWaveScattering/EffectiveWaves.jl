@@ -70,13 +70,19 @@ end
 function reflection_transmission_coefficients(wavemodes::Vector{E}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{3,Plate{T,3}}) where {T<:AbstractFloat,Dim, E<:EffectivePlaneWaveMode{T,Dim}}
 
     # Unpacking parameters
-    k = wavemodes[1].ω / psource.medium.c
+    ω = wavemodes[1].ω
+    k = ω / psource.medium.c
+
 
     species = material.species
     S = length(species)
     rs = outer_radius.(species)
 
     basis_order = maximum(w.basis_order for w in wavemodes)
+    if basis_order != minimum(w.basis_order for w in wavemodes)
+        @error "expected wavemodes to have the same basis_order"
+    end
+
     ls, ms = spherical_harmonics_indices(basis_order)
 
     # make the normal outward pointing
@@ -113,7 +119,8 @@ function reflection_transmission_coefficients(wavemodes::Vector{E}, psource::Pla
         [Rp, Tp]
     end
 
-    Ramp, Tamp = sum(RTs) + [0.0,field(psource,zeros(T,3),ω)]
+    Ramp, Tamp = (sum(RTs) + [0.0,1.0]) .* field(psource,zeros(T,3),ω)
+
 
     # direction_ref = psource.direction - 2 * dot(n,psource.direction) * n
     # reflected_wave = PlaneSource(psource.medium; direction = direction_ref, amplitude = Ramp)
