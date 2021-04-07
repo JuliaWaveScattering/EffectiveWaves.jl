@@ -7,6 +7,7 @@ export  EffectivePlaneWaveMode, EffectiveRegularWaveMode
 export  DiscretePlaneWaveMode
 export  MatchPlaneWaveMode # a combination of the Discrete and Effective modes
 export  Material, Specie, Species, SetupSymmetry, number_density, volume_fraction
+export  hole_correction_pair_correlation
 
 # for MatchPlaneWaveMode
 export  match_error, x_mesh_match
@@ -50,9 +51,13 @@ import Optim: simplexer
 # Heavy package
 using ApproxFun: ApproxFun.(..), Fun, Segment, Domain, Chebyshev, DefiniteIntegral, LowRankFun, Interval, Legendre
 
+using Interpolations: interpolate,BSpline, Cubic, Line, OnGrid
+
+
 using MDBM
 
 include("material_types.jl")
+include("statistics.jl")
 include("wave_types.jl")
 include("specialfunctions.jl")
 
