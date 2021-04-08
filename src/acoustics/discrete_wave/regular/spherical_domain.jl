@@ -1,7 +1,9 @@
-# using EffectiveWaves, LinearAlgebra
-# using HCubature
-# import StaticArrays: SVector
-# import MultipleScattering: outgoing_translation_matrix
+using EffectiveWaves, LinearAlgebra
+using HCubature
+using Interpolations
+import StaticArrays: SVector
+import MultipleScattering: outgoing_translation_matrix
+
 """
     outgoing_translation_matrix(ω, ::Acoustic, material::Material{Dim,Sphere{T,Dim}};
         basis_order = 2, tol = 1e-3)
@@ -98,7 +100,7 @@ function outgoing_translation_matrix(ω::T, medium::Acoustic{T,Dim}, material::M
 
     # interpolate the whole spherical region based on the xs mesh size
     rs = LinRange(a12,2R,Nr);
-    φs = LinRange(zero(T),T(2pi),Nθ);
+    φs = LinRange(-T(pi),T(pi),Nθ);
     θs = LinRange(zero(T),T(pi),Nθ);
 
     data = [
@@ -117,18 +119,18 @@ function outgoing_translation_matrix(ω::T, medium::Acoustic{T,Dim}, material::M
         inters[i] = scale(inter, rs, θs, φs)
     end
 
-    function Uinter(X::AbstractVector{T})
+    function Uout(X::AbstractVector{T})
         if norm(X) < a12
             zeros(Complex{T},L,L)
         else
+            rθφ = cartesian_to_radial_coordinates(X)
             map(CI1s) do i
-                rθφ = cartesian_to_radial_coordinates(X)
                 inters[i](rθφ[1], rθφ[2], rθφ[3])
             end
         end
     end
 
-    return Uinter
+    return Uout
 end
 
 
@@ -149,9 +151,22 @@ function discrete_system(ω::T, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, m
     k = 0.4;
     ω = 0.4;
 
-    # r1_vec = [1.0,2.0,1.0];
-    # r2 = 0.0;
-    # θ2 = 0.1;
+    T = Float64
+
+    basis_order = 1
+    Dim = 3
+    medium = Acoustic(Dim; ρ=1.0, c=1.0)
+    psource = PlaneSource(medium, [0.0,0.0,1.0]);
+
+    s1 = Specie(
+       Acoustic(3; ρ=10.2, c=10.1), 0.5;
+       volume_fraction=0.2
+    );
+
+    sphere = Sphere(5.0)
+    material = Material(sphere,[s1])
+
+    ω = 0.4;
 
     a12 = 2.0;
     r1s = 0.1:0.1:1.0;
@@ -160,7 +175,9 @@ function discrete_system(ω::T, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, m
     R = 5.0
     basis_order = 1;
 
-    Uinter = outgoing_translation_matrix(ω, psource.medium, material; basis_order = basis_order, tol = rtol * 10)
+    rtol = 1e-4; atol = 1e-5; maxevals=Int(1e4);
+
+    Uout = outgoing_translation_matrix(ω, psource.medium, material; basis_order = basis_order, tol = rtol * 10)
 
     function kernel_function(p::Int, rθ1::SVector{2,T})
         x1 = carts(SVector(rθ1[1],rθ1[2],zero(T)))
@@ -172,7 +189,7 @@ function discrete_system(ω::T, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, m
                 return zeros(Complex{T},L,L)
             else
                 # U = outgoing_translation_matrix(psource.medium, basis_order, ω, x1 - x2)
-                return Uinter(x1 - x2) .* (sin(rθ2[3]) * rθ2[1]^2)
+                return Uout(x1 - x2) .* (sin(rθ2[3]) * rθ2[1]^2)
             end
         end
 
@@ -202,28 +219,12 @@ function discrete_system(ω::T, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, m
     data = [
         begin
             ker = kernel_function(rand(1:5),SVector(r1,θ1))
-            hcubature(ker, SVector(0.0,0.0,0.0), SVector(R,π,2π); rtol=rtol, atol=atol, maxevals=maxevals)
+            hcubature(ker, SVector(0.0,0.0,-pi), SVector(R-1.0,π,π); rtol=rtol, atol=atol, maxevals=maxevals)
         end
     for r1 in r1s, θ1 in θ1s]
 
 end
 
-# T = Float64
-#
-# basis_order = 1
-# Dim = 3
-# medium = Acoustic(Dim; ρ=1.0, c=1.0)
-# psource = PlaneSource(medium, [0.0,0.0,1.0]);
-#
-# s1 = Specie(
-#    Acoustic(3; ρ=10.2, c=10.1), 0.5;
-#    volume_fraction=0.2
-# );
-#
-# sphere = Sphere(5.0)
-# material = Material(sphere,[s1])
-#
-# ω = 0.4;
 #
 # @time discrete_system(ω, psource, material; basis_order = 1)
 # @time discrete_system(ω, psource, material; basis_order = 2)
