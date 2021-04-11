@@ -4,7 +4,9 @@ export intergrand_kernel, discrete_wave_system, integrate_S, integrate_B
 export integration_scheme, trapezoidal_scheme, simpson_scheme
 export discretewave_error, x_mesh
 
-include("discrete_wave.jl")
+include("planewaves/wave_types.jl")
+include("planewaves/discrete_systems.jl")
+include("planewaves/integral_form.jl")
+include("planewaves/reflection.jl")
+
 include("numerical_integration.jl")
-include("integral_form.jl")
-include("reflection.jl")

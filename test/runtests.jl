@@ -18,7 +18,6 @@ include("complex.jl")
 
 # Eigensystems for different symmetries (i.e. a sphere fille with particles or a halfspace filled with particles)
     @time include("effective-3D/equivalent-symmetries.jl")
-    @time include("effective-3D/fourth-order-matrix.jl")
     @time include("effective-3D/low_volume_fraction.jl")
     @time include("effective-3D/low_frequency.jl")
 

@@ -152,7 +152,20 @@ Returns the shared symmetries between the `source` and `materail`.
 """
 setupsymmetry(source::AbstractSource, material::Material{Dim}) where Dim = WithoutSymmetry{Dim}()
 
-setupsymmetry(source::PlaneSource{T,3,1}, material::Material{3,Sphere{T,3}}) where T = AzimuthalSymmetry{3}()
+function setupsymmetry(source::PlaneSource{T,3,1}, material::Material{3,Sphere{T,3}};
+        basis_order::Int = 4, ω::T = 0.9) where T
+
+    ls, ms = spherical_harmonics_indices(basis_order)
+
+    gs = regular_spherical_coefficients(source)(basis_order,origin(material.shape),ω)
+    azimuthal_symmetry = norm((ms[n] != 0) ? gs[n] : zero(T) for n in eachindex(gs)) ≈ zero(T)
+
+    return if azimuthal_symmetry
+        AzimuthalSymmetry{3}()
+    else
+        WithoutSymmetry{3}()
+    end
+end
 
 function setupsymmetry(psource::PlaneSource{T,Dim}, material::Material{Dim,S}) where {T<:AbstractFloat, Dim, S<:Union{Halfspace{T,Dim},Plate{T,Dim}}}
 
