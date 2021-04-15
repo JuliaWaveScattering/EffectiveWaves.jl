@@ -18,7 +18,7 @@ end
 """
     transmission_direction(k_eff::Complex, incident_wavevector::AbstractArray, surface_normal::AbstractArray)
 
-Gives the effective direction `direction` where `sum(x^2 for x in direction) = 1.0` and the components of `k_eff .* direction` and `incident_wavevector` which are orthogonal to the surface are the same. Note `surface_normal` is the outward pointing normal and the incident medium's wavenumber `k = sqrt(sum(incident_wavevector .^2))`. Below we deduce the result.
+Gives the effective direction `direction` where `sum(direction .^ 2) = 1.0` and the components of `k_eff .* direction` and `incident_wavevector` which are orthogonal to the surface are the same. Note `surface_normal` is the outward pointing normal and the incident medium's wavenumber `k = sqrt(sum(incident_wavevector .^2))`. Below we deduce the result.
 
 Assume that `dot(v,w) = conj(v[i])w[i]` and `surface_normal[i]*surface_normal[i] = 1`. Let `wnp` be orthogonal to `surface_normal`
 

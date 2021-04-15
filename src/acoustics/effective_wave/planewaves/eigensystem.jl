@@ -96,6 +96,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::Abst
     as = [
         s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
     for s1 in species, s2 in species]
+
     function M_component(keff::Complex{T},Ns::Array{Complex{T}},l::Int,m::Int,s1::Int,dl::Int,dm::Int,s2::Int)::Complex{T}
         (m == dm && l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
         4pi * as[s1,s2] * scale_number_density * number_density(species[s2]) * t_diags[s1][baselen(l)] *

@@ -102,7 +102,7 @@ tol = 1e-7
 
     @test maximum(norm(PM * Pvs[:,i]) for i in axes(Pvs,2)) < 1e-8
 
-### Test that the complete regular solutions is the same as the azimuthal solution hen there is azimuthal symmetry
+### Test that the complete regular solutions is the same as the azimuthal solution when there is azimuthal symmetry
 
     θ = 0.0
     psource = PlaneSource(medium, [sin(θ),0.0,cos(θ)]);

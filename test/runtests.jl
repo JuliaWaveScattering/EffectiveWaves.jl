@@ -20,10 +20,11 @@ include("complex.jl")
     @time include("effective-3D/equivalent-symmetries.jl")
     @time include("effective-3D/low_volume_fraction.jl")
     @time include("effective-3D/low_frequency.jl")
+    @time include("effective-3D/planar-symmetry.jl")
 
 # test equivalence between methods for finding wavenumbers
     # test does not run on Julia version < 0.7 due to differences in Optim versions
-    include("path_mesh_wavenumbers.jl")
+    # include("path_mesh_wavenumbers.jl")
 
 # Test functions used for the discretisation
     include("discretisation/numerical_integration.jl")

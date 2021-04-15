@@ -33,7 +33,7 @@ end
 reflection_coefficient(PlaneSource, Acoustic[, Halfspace = Halfspace(-psource.direction)])
 
 caculates the reflection coefficient from a homogenious halfspace (assumed to direct incidence if not given), which is also the low frequency reflection from a particulate material when using the effective_medium."
-function reflection_coefficient(ω::T, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, reflect_medium::Acoustic{T,Dim}, halfspace::Halfspace{T,Dim} = Halfspace(-psource.direction)) where {T<:AbstractFloat,Dim}
+function reflection_transmission_coefficients(ω::T, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, reflect_medium::Acoustic{T,Dim}, halfspace::Halfspace{T,Dim} = Halfspace(-psource.direction)) where {T<:AbstractFloat,Dim}
 
     k_in = ω / psource.medium.c
     k_r = if abs(reflect_medium.c) == zero(T)
@@ -56,9 +56,14 @@ function reflection_coefficient(ω::T, psource::PlaneSource{T,Dim,1,Acoustic{T,D
     q = reflect_medium.c*reflect_medium.ρ / (psource.medium.c*psource.medium.ρ)
 
     Z = dot(n,halfspace.origin)
-    phase = exp(2im * k_in * Z * cos(θin))
 
-    R = (phase^2 * field(psource)(zeros(T,Dim),ω)) * (q*cos(θin) - cos(θtran)) / (q*cos(θin) + cos(θtran))
+    R1 = (exp(2im * k_in * Z * cos(θin)) * field(psource)(zeros(T,Dim),ω)) * (q*cos(θin) - cos(θtran)) / (q*cos(θin) + cos(θtran))
+    R1 = R1 * exp(im * k_in * Z * cos(θin)) # assuming a reflected wave  = R * exp(i kR.(X-X1)) where kR.X1 =  k_in * Z * cos(θin)
+
+    T1 = exp(im * Z * (k_in * cos(θin) - k_r * cos(θtran))) * field(psource)(zeros(T,Dim),ω) * 2*q*cos(θin) / (q*cos(θin) + cos(θtran))
+    T1 = T1 * exp(im * k_r * Z * cos(θtran)) # assuming a transmitter wave  = T * exp(i k1.(X-X1)) where k1.X1 =  k_r * Z * cos(θtran)
+
+    return [R1,T1]
 end
 
 """
@@ -96,9 +101,16 @@ function planewave_amplitudes(ω::T, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim
     denom = ((C0 + C1)^2 * exp(2im*k1*Z1*cos(θ1)) - (C0 - C1)^2 * exp(2im*k1*Z2*cos(θ1)))
 
     UR = (C0 - C1)*(C0 + C1) * exp(2im*k0*Z1*cos(θ0)) * (exp(2im*k1*Z1*cos(θ1)) - exp(2im*k1*Z2*cos(θ1))) / denom
-    UP1 = 2C0*(C0 + C1) * exp(im*Z1*(k0*cos(θ0) + k1*cos(θ1))) / denom
-    UP2 = - 2*C0*(C0 - C1)*exp(im*(k0*Z1*cos(θ0) + k1*(Z1 + 2*Z2)*cos(θ1))) / denom
+    UR = UR * exp(im*k0*Z1*cos(θ0)) # we assume the reflected wave = UR * exp(im*KR.(X-X1)), where KR.X1 = im*k0*Z1*cos(θ0) = k0 .* [sin(θ0),0,-cos(θ0)], and X1 = [0.0,0.0,Z1], so that KR.X1 = im*k0*Z1*cos(θ0).
+
     UT = 4*C0*C1*exp(im*(k0*(Z1 - Z2)*cos(θ0) + k1*(Z1 + Z2)*cos(θ1))) / denom
+    UT = UT * exp(im*k0*Z2*cos(θ0))
+
+    UP1 = 2C0*(C0 + C1) * exp(im*Z1*(k0*cos(θ0) + k1*cos(θ1))) / denom
+    UP1 = UP1 * exp(im*k1*Z1*cos(θ1))
+
+    UP2 = - 2*C0*(C0 - C1)*exp(im*(k0*Z1*cos(θ0) + k1*(Z1 + 2*Z2)*cos(θ1))) / denom
+    UP2 = UP2 * exp(im*k1*Z2*cos(θ1))
 
     return [UR, UT, UP1, UP2] * field(psource)(zeros(T,3),ω)
 end

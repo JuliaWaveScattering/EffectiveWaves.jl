@@ -160,7 +160,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     direction = SVector(zero(T),zero(T),one(T))
 
     if abs(dot(psource.direction,direction)) ≈ norm(direction) * norm(psource.direction)
-        warn("Plane wave source is not aligned with the z-axis. Will return results with an axis that makes the source direction aligned with the z-axis. With a bit of work, this result can then be rotated to your system...")
+        @warn "Plane wave source is not aligned with the z-axis. Will return results with an axis that makes the source direction aligned with the z-axis. With a bit of work, this result can then be rotated to your system..."
     end
 
     # source = plane_source(psource.medium, psource.position, direction, psource.amplitude[1])

@@ -13,7 +13,7 @@ export  hole_correction_pair_correlation
 export  match_error, x_mesh_match
 
 # for effective waves
-export wavenumbers, wavenumber, asymptotic_monopole_wavenumbers, eigenvectors
+export wavenumbers, wavenumber, asymptotic_monopole_wavenumbers, eigenvectors, azimuthal_to_planar_eigenvector
 export WaveModes, WaveMode, wavemode_wienerhopf
 export solve_boundary_condition, material_scattering_coefficients, material_scattered_waves
 

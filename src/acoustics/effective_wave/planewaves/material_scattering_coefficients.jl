@@ -60,6 +60,7 @@ function reflection_coefficient(wavemode::EffectivePlaneWaveMode{T,Dim}, psource
     Ramp = - sum(number_density(species[i[2]]) * wavemode.eigenvectors[i] * 2pi * (-1.0)^ms[i[1]] * (1.0im)^(ls[i[1]]-1) *
         Yrefs[i[1]] * exp(im*(kcos_eff + kcos_in)*(Z0 + rs[i[2]])) / ((kcos_in + kcos_eff) * k * kcos_in)
     for i in CartesianIndices(wavemode.eigenvectors))
+    Ramp = Ramp * exp(im * kcos_in * Z0)
 
     # direction_ref = psource.direction - 2 * dot(n,psource.direction) * n
     # reflected_wave = PlaneSource(psource.medium; direction = direction_ref, amplitude = Ramp)
@@ -120,6 +121,9 @@ function reflection_transmission_coefficients(wavemodes::Vector{E}, psource::Pla
     end
 
     Ramp, Tamp = (sum(RTs) + [0.0,1.0]) .* field(psource,zeros(T,3),ω)
+
+    Ramp = Ramp * exp(im * kcos_in * Z1)
+    Tamp = Tamp * exp(im * kcos_in * Z2)
 
     # direction_ref = psource.direction - 2 * dot(n,psource.direction) * n
     # reflected_wave = PlaneSource(psource.medium; direction = direction_ref, amplitude = Ramp)
