@@ -29,10 +29,18 @@ function effective_medium(medium::Acoustic{T,Dim}, species::Species{T,Dim};
     return Acoustic(Dim; ρ = ρ_eff, c = sqrt(β_eff/ρ_eff))
 end
 
-"
+"""
 reflection_coefficient(PlaneSource, Acoustic[, Halfspace = Halfspace(-psource.direction)])
 
-caculates the reflection coefficient from a homogenious halfspace (assumed to direct incidence if not given), which is also the low frequency reflection from a particulate material when using the effective_medium."
+calculates the reflection coefficient from a homogenious halfspace (assumed to direct incidence if not given), which is also the low frequency reflection from a particulate material when using the effective_medium.
+"""
+reflection_coefficient(ω::T, source::PlaneSource{T}, reflect_medium::Acoustic{T}, halfspace::Halfspace{T} = Halfspace(-psource.direction)) where T<:AbstractFloat = reflection_transmission_coefficients(ω, psource, reflect_medium, halfspace)[1]
+
+"""
+reflection_transmission_coefficients(PlaneSource, Acoustic[, Halfspace = Halfspace(-psource.direction)])
+
+calculates the reflection and transmission coefficient from a homogenious halfspace (assumed to direct incidence if not given), which is also the low frequency reflection from a particulate material when using the effective_medium.
+"""
 function reflection_transmission_coefficients(ω::T, psource::PlaneSource{T,Dim,1,Acoustic{T,Dim}}, reflect_medium::Acoustic{T,Dim}, halfspace::Halfspace{T,Dim} = Halfspace(-psource.direction)) where {T<:AbstractFloat,Dim}
 
     k_in = ω / psource.medium.c
