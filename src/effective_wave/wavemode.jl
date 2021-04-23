@@ -45,11 +45,17 @@ end
 
 function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, material::Material{Dim,Plate{T,Dim}}; kws...) where {T,Dim}
 
-    direction1 = transmission_direction(wavenumber, (ω / psource.medium.c) * psource.direction, material.shape.normal)
+    # First we calculate the outward pointing normal
+    n = material.shape.normal;
+    n = - n .* sign(real(dot(n,psource.direction)));
+
+    k = ω / psource.medium.c
+
+    direction1 = transmission_direction(wavenumber, k * psource.direction, n)
     eigvectors1 = eigenvectors(ω, wavenumber, psource, material; direction_eff = direction1, kws...)
 
-    # looks like we always have eigvectors2 = eigvectors1, but I haven't proven this yet.
-    direction2 = transmission_direction(- wavenumber, (ω / psource.medium.c) * psource.direction, material.shape.normal)
+    # we choose direction2 so that k2 .* direction2 = - k1 .* direction1, where k1 = wavenumber, and k2 = - wavenumber
+    direction2 = direction1
     eigvectors2 = eigenvectors(ω, - wavenumber, psource, material; direction_eff = direction2, kws...)
 
     α = solve_boundary_condition(ω, wavenumber, eigvectors1, eigvectors2, psource, material; kws...)

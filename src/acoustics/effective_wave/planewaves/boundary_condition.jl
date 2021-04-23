@@ -97,13 +97,16 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors1::Array{C
     Z2 = Z0 + material.shape.width / 2
 
     # next the components of the wavenumbers in the direction of the inward normal
-    direction1 = transmission_direction(k_eff, (ω / psource.medium.c) * psource.direction, n)
-    direction2 = transmission_direction(- k_eff, (ω / psource.medium.c) * psource.direction, n)
-
     k = (ω / psource.medium.c)
+    k1 = k_eff;
+    k2 = -k_eff;
+
+    direction1 = transmission_direction(k1, k * psource.direction, n)
+    direction2 = direction1
+
     kz = k * dot(-conj(n), psource.direction)
-    k1_effz = k_eff * dot(-conj(n), direction1)
-    k2_effz = k_eff * dot(-conj(n), direction2)
+    k1_effz = k1 * dot(-conj(n), direction1)
+    k2_effz = k2 * dot(-conj(n), direction2)
 
     rθφ = cartesian_to_radial_coordinates(psource.direction);
 

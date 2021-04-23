@@ -100,21 +100,21 @@ function reflection_transmission_coefficients(wavemodes::Vector{E}, psource::Pla
     Z1 = Z0 - plate.width / 2
     Z2 = Z0 + plate.width / 2
 
-    kcos_in = k * dot(- conj(n), psource.direction)
+    kz = k * dot(- conj(n), psource.direction)
 
     RTs = map(wavemodes) do w
-        kcos_eff = w.wavenumber * dot(- conj(n), w.direction)
+        kpz = w.wavenumber * dot(- conj(n), w.direction)
 
         Rp = sum(
             number_density(species[i[2]]) * w.eigenvectors[i] * 2pi * (1.0im)^(ls[i[1]]-1) * (-1.0)^ms[i[1]] *
-            Ys[i[1]] * (exp(im*(kcos_eff + kcos_in)*(Z2 - rs[i[2]])) - exp(im*(kcos_eff + kcos_in)*(Z1 + rs[i[2]]))) /
-            ((kcos_in + kcos_eff) * k * kcos_in)
+            Ys[i[1]] * (exp(im*(kpz + kz)*(Z2 - rs[i[2]])) - exp(im*(kpz + kz)*(Z1 + rs[i[2]]))) /
+            ((kz + kpz) * k * kz)
         for i in CartesianIndices(w.eigenvectors))
 
         Tp = sum(
             number_density(species[i[2]]) * w.eigenvectors[i] * 2pi * (-1.0)^ls[i[1]] * (1.0im)^(ls[i[1]]+1) *
-            Ys[i[1]] * (exp(im*(kcos_eff - kcos_in)*(Z2 - rs[i[2]])) - exp(im*(kcos_eff - kcos_in)*(Z1 + rs[i[2]]))) /
-            ((kcos_in - kcos_eff) * k * kcos_in)
+            Ys[i[1]] * (exp(im*(kpz - kz)*(Z2 - rs[i[2]])) - exp(im*(kpz - kz)*(Z1 + rs[i[2]]))) /
+            ((kz - kpz) * k * kz)
         for i in CartesianIndices(w.eigenvectors))
 
         [Rp, Tp]
@@ -122,8 +122,8 @@ function reflection_transmission_coefficients(wavemodes::Vector{E}, psource::Pla
 
     Ramp, Tamp = (sum(RTs) + [0.0,1.0]) .* field(psource,zeros(T,3),ω)
 
-    Ramp = Ramp * exp(im * kcos_in * Z1)
-    Tamp = Tamp * exp(im * kcos_in * Z2)
+    Ramp = Ramp * exp(im * kz * Z1)
+    Tamp = Tamp * exp(im * kz * Z2)
 
     # direction_ref = psource.direction - 2 * dot(n,psource.direction) * n
     # reflected_wave = PlaneSource(psource.medium; direction = direction_ref, amplitude = Ramp)

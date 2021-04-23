@@ -80,7 +80,7 @@ using EffectiveWaves, Test, LinearAlgebra
     wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
     RTeff = reflection_transmission_coefficients(wavemodes, source, material);
 
-    @test abs(Reff - RTeff[1]) < 1e-10
+    @test abs(Reff - RTeff[1]) < 1e-15
     @test abs(RTeff[2]*exp(im*k*r) - Tamp) < 1e-15
 
 end
@@ -195,4 +195,58 @@ end
     RTeff = reflection_transmission_coefficients(wavemodes, source, material);
 
     @test abs(Reff - RTeff[1]) < 1e-10
+end
+
+@testset "Compare low frequency halfspace" begin
+
+   # Low frequency test
+    spatial_dim = 3
+    # Choose the frequency
+    ωs = 0.01:0.02:0.25
+    basis_order = 2
+
+    medium = Acoustic(spatial_dim; ρ=1.0, c=1.0)
+
+    # Choose the species
+    radius1 = 1.0
+    s1 = Specie(
+        Acoustic(spatial_dim; ρ=10.0, c=10.0), radius1;
+        volume_fraction=0.05
+    );
+    species = [s1]
+
+    # k = ω / medium.c
+
+    # For the limit of low frequencies we can define
+    eff_medium = effective_medium(medium, species)
+    # ω / eff_medium.c
+
+    # Define the halfspace
+    r = maximum(outer_radius.(species))
+    normal = [0.0,0.0,-1.0] # an outward normal to both surfaces of the plate
+    halfspace = Halfspace(normal)
+
+    # define a plane wave source travelling at a 45 degree angle in relation to the material
+    # source = PlaneSource(medium, [cos(pi/4.0),0.0,sin(pi/4.0)])
+    source = PlaneSource(medium, [0.0,0.0,1.0])
+
+    # reflection low freq approx
+    Rlows = [reflection_transmission_coefficients(ω, source, eff_medium, halfspace)[1] for ω in ωs];
+
+    # Calculate the effective wavenumber and wavemode numerically from the general methods
+    kp_arr = [wavenumbers(ω, medium, species; tol = 1e-6, num_wavenumbers = 2, basis_order = basis_order) for ω in ωs]
+    k_effs = [kps[1] for kps in kp_arr]
+
+    material = Material(halfspace,species)
+    wavemodes = [WaveMode(ωs[i], k_effs[i], source, material; tol = 1e-6, basis_order = basis_order) for i in eachindex(ωs)];
+
+    w1 = WaveMode(ωs[end], k_effs[end], source, material; tol = 1e-6, basis_order = basis_order)
+    e1 = w1.eigenvectors / norm(w1.eigenvectors)
+    w2 = WaveMode(ωs[end], -k_effs[end], source, material; tol = 1e-6, basis_order = basis_order)
+    e2 = w2.eigenvectors / norm(w2.eigenvectors)
+
+    Reffs = [reflection_coefficient(w, source, material) for w in wavemodes]
+
+    # using Plots
+    # plot(ωs, [abs.(Reffs), abs.(Rlows)], ylim = (0.0,Inf))
 end
