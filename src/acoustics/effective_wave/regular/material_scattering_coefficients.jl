@@ -43,7 +43,7 @@ function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3
     return gaunt * vec
 end
 
-function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},AzimuthalSymmetry{3}}) where T
+function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},Sym}) where {T,Sym<:AbstractAzimuthalSymmetry{3}}
 
     # Unpacking parameters
     k = wavemode.ω / wavemode.medium.c

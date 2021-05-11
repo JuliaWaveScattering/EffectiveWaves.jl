@@ -10,7 +10,7 @@ import MultipleScattering: outgoing_translation_matrix
 
 documentation
 """
-function discrete_system(ω::T, source::Source{T,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::AzimuthalSymmetry{3}();
+function discrete_system(ω::T, source::Source{T,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::AbstractAzimuthalSymmetry{Dim};
         basis_order::Int = 2,
         field_basis_order::T = 4
         rtol = 1e-3, atol=1e-3, maxevals=Int(2e4),
