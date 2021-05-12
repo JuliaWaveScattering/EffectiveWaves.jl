@@ -23,12 +23,13 @@ Returns all the possible effective wavenumbers with positive imaginary part. Thi
 function wavenumbers(ω::T, medium::PhysicalMedium{T}, species::Species{T};
         num_wavenumbers::Int = 2, tol::T = 1e-5,
         max_Imk::T = T(2) + T(20) * imag(wavenumber_low_volumefraction(ω, medium, species; verbose = false)),
+        basis_order = 3 * Int(round(maximum(outer_radius.(species)) * ω / abs(medium.c) )) + 1,
         # max_Rek::T = T(2) + T(20) * abs(real(wavenumber_low_volumefraction(ω, medium, species; verbose = false))),
         kws...) where T<:Number
 
     # For very low attenuation, need to search close to assymptotic root with a path method.
     k_effs::Vector{Complex{T}} = wavenumbers_path(ω, medium, species;
-    num_wavenumbers = num_wavenumbers, max_Imk=max_Imk, tol = tol, kws...)
+    num_wavenumbers = num_wavenumbers, max_Imk=max_Imk, tol = tol, basis_order = basis_order, kws...)
 
     # Take only the num_wavenumbers wavenumbers with the smallest imaginary part.
     k_effs = k_effs[1:num_wavenumbers]
@@ -47,6 +48,7 @@ function wavenumbers(ω::T, medium::PhysicalMedium{T}, species::Species{T};
         k_effs2 = wavenumbers_bisection(ω, medium, species;
             # num_wavenumbers=num_wavenumbers,
             tol = tol, box_k = box_k,
+            basis_order = basis_order,
             kws...)
         k_effs = [k_effs; k_effs2]
         k_effs = reduce_kvecs(k_effs, tol)

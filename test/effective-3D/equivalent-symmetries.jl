@@ -19,20 +19,22 @@ species = [s1,s2]
 ω = 0.9
 tol = 1e-7
 
+basis_order = 2
+
 ### Test the equivalence between dispersion equations
 
-    AP_det = dispersion_equation(ω, medium, species, PlanarAzimuthalSymmetry{spatial_dim}())
-    P_det = dispersion_equation(ω, medium, species, PlanarSymmetry{spatial_dim}())
-    AR_det = dispersion_equation(ω, medium, species, AzimuthalSymmetry{spatial_dim}())
-    R_det = dispersion_equation(ω, medium, species, WithoutSymmetry{spatial_dim}())
+    AP_det = dispersion_equation(ω, medium, species, PlanarAzimuthalSymmetry{spatial_dim}(); basis_order = basis_order)
+    P_det = dispersion_equation(ω, medium, species, PlanarSymmetry{spatial_dim}(); basis_order = basis_order)
+    AR_det = dispersion_equation(ω, medium, species, AzimuthalSymmetry{spatial_dim}(); basis_order = basis_order)
+    R_det = dispersion_equation(ω, medium, species, WithoutSymmetry{spatial_dim}(); basis_order = basis_order)
 
     # Lighter to calculate wavenumbers (also known as the eigenvalues) when assume more symmmetries
     AP_kps = wavenumbers(ω, medium, species;
-        num_wavenumbers = 2, tol = tol,
+        num_wavenumbers = 2, tol = tol,  basis_order = basis_order,
         symmetry = PlanarAzimuthalSymmetry())
 
     P_kps = wavenumbers(ω, medium, species;
-        num_wavenumbers = 2, tol = tol,
+        num_wavenumbers = 2, tol = tol, basis_order = basis_order,
         symmetry = PlanarSymmetry{3}())
 
     # The dispersion equations R_det become very unstable when using effective wavenumbers with higher dispersion.
@@ -48,7 +50,7 @@ tol = 1e-7
     @test maximum(AR_det.(AP_kps)) < tol^2
     @test maximum(R_det.(AP_kps)) < tol^3
 
-    P_disp = dispersion_complex(ω, medium, species,  PlanarSymmetry{spatial_dim}(); tol = tol)
+    P_disp = dispersion_complex(ω, medium, species,  PlanarSymmetry{spatial_dim}(); tol = tol, basis_order = basis_order)
 
     # However, there do exist effective wavenumbers for plane-waves which have eigen-vectors that do not satisfy azimuthal symmetry. This is why maximum(AP_det.(P_kps)) != 0.0
     @test maximum(P_det.(P_kps)) < tol

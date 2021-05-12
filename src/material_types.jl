@@ -70,7 +70,7 @@ struct Specie{T<:AbstractFloat,Dim,P<:AbstractParticle{T,Dim}}
 end
 
 # Convenience constructor which does not require explicit types/parameters
-function Specie(p::AbstractParticle{T,Dim}; volume_fraction::T = 0.0, exclusion_distance::T = 1.005) where {Dim,T<:AbstractFloat}
+function Specie(p::AbstractParticle{T,Dim}; number_density::T = 0.0, volume_fraction::T = number_density * volume(p), exclusion_distance::T = 1.005) where {Dim,T<:AbstractFloat}
     Specie{T,Dim,typeof(p)}(p,volume_fraction,exclusion_distance)
 end
 
@@ -95,11 +95,15 @@ volume(s::Specie) = volume(s.particle)
 
 import MultipleScattering.outer_radius
 
-"Returns the number density of the specie."
-number_density(s::Specie{T,2}) where {T} = s.volume_fraction / (outer_radius(s.particle)^2 * pi)
-number_density(s::Specie{T,3}) where {T} = s.volume_fraction / (T(4/3) * outer_radius(s.particle)^3 * pi)
-number_density(ss::Species) = sum(number_density.(ss))
+"""
+    number_density(s::Specie)
 
+Gives the number of particles per unit volume. Note this is given exactly by `N / V` where `V` is the volume of the region containing the origins of all particles. For consistency, [`volume_fraction`](@ref) is given by `N * volume(s) / V`.
+"""
+number_density(s::Specie) = s.volume_fraction / volume(s)
+# number_density(s::Specie{T,2}) where {T} = s.volume_fraction / (outer_radius(s.particle)^2 * pi)
+# number_density(s::Specie{T,3}) where {T} = s.volume_fraction / (T(4/3) * outer_radius(s.particle)^3 * pi)
+number_density(ss::Species) = sum(number_density.(ss))
 
 outer_radius(s::Specie) = outer_radius(s.particle)
 
