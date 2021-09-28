@@ -29,7 +29,10 @@ function wavenumbers(ω::T, medium::PhysicalMedium{T}, species::Species{T};
 
     # For very low attenuation, need to search close to assymptotic root with a path method.
     k_effs::Vector{Complex{T}} = wavenumbers_path(ω, medium, species;
-    num_wavenumbers = num_wavenumbers, max_Imk=max_Imk, tol = tol, basis_order = basis_order, kws...)
+        num_wavenumbers = num_wavenumbers,
+        max_Imk = max_Imk, tol = tol,
+        basis_order = basis_order, kws...
+    )
 
     # Take only the num_wavenumbers wavenumbers with the smallest imaginary part.
     k_effs = k_effs[1:num_wavenumbers]

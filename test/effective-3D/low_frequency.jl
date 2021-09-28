@@ -105,7 +105,6 @@ end
     kps = wavenumbers(ωs[1], medium, species; symmetry = PlanarAzimuthalSymmetry(), opts...)
 
     eff_medium = effective_medium(medium, species; numberofparticles = material.numberofparticles)
-
     k_low = ωs[1] / eff_medium.c
 
     @test abs(kps[1] - k_low) / abs(k_low) < 1e-10

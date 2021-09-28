@@ -9,21 +9,23 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species
         inner_optimizer = NelderMead(; parameters = NelderMeadparameters()),
         optimoptions::Optim.Options{T} = Optim.Options(g_tol = tol^T(3),x_tol=tol^T(2)),
         k_effs::Vector{Complex{T}} = Complex{T}[],
+        numberofparticles::T = Inf,
         kws...) where {T,Dim}
 
     # check parameters
         mesh_points = iseven(mesh_points) ? mesh_points + 1 : mesh_points
 
-
     # find at least one root to use as a scale for dk_x and dk_y
-        eff_medium = effective_medium(medium, species)
-        k0 = ω/eff_medium.c
+        eff_medium = effective_medium(medium, species; numberofparticles = numberofparticles)
+        k0 = ω / eff_medium.c
         if isnan(k0) k0 = ω + T(0)*im end
         # abs(k0) can be used to non-dimensionlise k_vec
         # kscale = abs(k0)
         kscale = one(T)
 
-        kφ = wavenumber_low_volumefraction(ω, medium, species; verbose = false)
+        kφ = wavenumber_low_volumefraction(ω, medium, species;
+            verbose = false, numberofparticles = numberofparticles
+        )
 
         # guess initial mesh for lowest attenuating wavenumbers
         x_step = T(2) * max(abs(real(kφ)), real(k0), sqrt(eps(T)))
@@ -43,7 +45,9 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species
         max_Imk = maximum(imag.(k_asyms))
 
     # The dispersion equation is given by: `dispersion([k1,k2]) = 0` where k_eff = k1 + im*k2.
-        dispersion_dim = dispersion_equation(ω, medium, species, symmetry; tol = low_tol, kws...)
+        dispersion_dim = dispersion_equation(ω, medium, species, symmetry;
+            tol = low_tol, numberofparticles = numberofparticles,
+            kws...)
         dispersion(vec::Vector{T}) = dispersion_dim((vec[1] + vec[2]*im) .* kscale)
 
         k_vecs = [
