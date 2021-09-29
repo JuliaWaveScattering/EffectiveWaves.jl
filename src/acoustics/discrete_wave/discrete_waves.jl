@@ -1,1 +1,1 @@
-discrete_system(ω::AbstractFloat, source::Source, material::Material; kws...) = discrete_system(ω::AbstractFloat, source::Source, material::Material, setupsymmetry(source,material); kws...)
+discrete_system(ω::AbstractFloat, source::AbstractSource, material::Material; kws...) = discrete_system(ω::AbstractFloat, source::AbstractSource, material::Material, setupsymmetry(source,material); kws...)

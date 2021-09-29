@@ -1,143 +1,178 @@
-using EffectiveWaves, LinearAlgebra
-using HCubature
-using Interpolations, ClassicalOrthogonalPolynomials
-import StaticArrays: SVector
+# using EffectiveWaves, LinearAlgebra
+# import StaticArrays: SVector
 
 import MultipleScattering: outgoing_translation_matrix
+
+
+function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::WithoutSymmetry{Dim}; kws...) where {T,Dim}
+
+    return discrete_system(ω, source, material, AzimuthalSymmetry{Dim}(); kws...)
+end
 
 """
     discrete_system(k,r1_vec::Vector,r2,θ2; basis_order::Int = 3)
 
 documentation
 """
-function discrete_system(ω::T, source::Source{T,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::AbstractAzimuthalSymmetry{Dim};
-        basis_order::Int = 2,
-        field_basis_order::T = 4
-        rtol = 1e-3, atol=1e-3, maxevals=Int(2e4),
+function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::AbstractAzimuthalSymmetry{Dim};
+        basis_order::Int = 1,
+        basis_field_order::Int = 2,
+        legendre_order::Int = Int(round(1.4*basis_field_order)) + 1,
+        mesh_points::Int = Int(round(1.5*legendre_order)) + 1,
+        rtol::T = 1e-2,
+        maxevals::Int = Int(2e4),
         pair_corr = hole_correction_pair_correlation
     ) where {T,Dim}
 
-    pair_corr = hole_correction_pair_correlation
+    if length(material.species) > 1
+        @warn "discrete_system has only been implemented for 1 species for now. Will use only first specie."
+    end
 
-    ω = 0.01;
-    T = Float64
-
-    rtol = 1e-3; atol = 1e-3; maxevals=Int(2e4);
-
-    field_basis_order = 4;
-    basis_order = 1
-    Dim = 3
-    medium = Acoustic(Dim; ρ=1.0, c=1.0)
-    psource = PlaneSource(medium, [0.0,0.0,1.0]);
-    source = plane_source(medium; direction = [0.0,0.0,1.0])
-
-    s1 = Specie(
-       Acoustic(3; ρ=10.2, c=10.1), 0.5;
-       volume_fraction=0.2
-    );
-
-    sphere = Sphere(5.0)
-    material = Material(sphere,[s1])
-
+    s1 = material.species[1]
     scale_number_density = one(T) - one(T) / material.numberofparticles
     bar_numdensity = scale_number_density * number_density(s1)
 
     R = outer_radius(material.shape)
 
-    r1s = LinRange(0,R-outer_radius(s1),Int(round(1.1*field_basis_order)) + 1)
-    θ1s = LinRange(0,π,Int(round(1.1*field_basis_order)) + 1)
+    gs = regular_spherical_coefficients(source)(basis_order,origin(material.shape),ω);
 
-    Uout = outgoing_translation_matrix(ω, psource.medium, material; basis_order = basis_order, tol = atol * 10)
+    v = regular_basis_function(source.medium,  ω)
 
-    P = Legendre{T}()
+    Uout = outgoing_translation_matrix(ω, source.medium, material;
+        basis_order = basis_order, tol = rtol
+    )
+
+    t_matrices = get_t_matrices(source.medium, material.species, ω, basis_order)
+    t_diags = diag.(t_matrices)
+
+    rθφ2xyz = radial_to_cartesian_coordinates
+
+    r1s = LinRange(0,R-outer_radius(s1), mesh_points)
+    θ1s = LinRange(0,π, mesh_points)
+
+    len = basisorder_to_basislength(Acoustic{T,Dim}, basis_order)
+    len_p = legendre_order^2
+
+    function incident_coefficients(r1s::AbstractVector{T},θ1s::AbstractVector{T})
+        lm2n = lm_to_spherical_harmonic_index
+
+        coefs = [
+            begin
+                vs = v(2basis_order, rθφ2xyz(SVector(r1,θ1,zero(T))))
+                data = [
+                    # added
+                    # - (-1)^l * t_diags[1][lm2n(l,m)] *
+                    t_diags[1][lm2n(l,m)] *
+                    sum(
+                        gaunt_coefficient(dl,0,l,m,l1,-m) * vs[lm2n(l1,-m)] * gs[lm2n(dl,0)]
+                    for l1 in abs(m):(2basis_order), dl in 0:basis_order)
+                for l = 0:basis_order for m = -l:l]
+
+                #added
+                # conj.(data)
+                data
+            end
+        for r1 in r1s, θ1 in θ1s][:];
+
+        return vcat(coefs...)
+    end
 
     function field_basis(rθ::AbstractVector{T})
-        # [P_0(cos(θ)), …, P_(field_basis_order-1)(cos(θ))]
-        Pθs = P[cos(rθ[2]),1:field_basis_order]
-        Prs = P[2 * rθ[1] / R - one(T),1:field_basis_order]
+        P = Legendre{T}()
+
+        # [P_0(cos(θ)), …, P_(legendre_order-1)(cos(θ))]
+        Pθs = P[cos(rθ[2]), 1:legendre_order]
+        Prs = P[2 * rθ[1] / (R - outer_radius(s1)) - one(T), 1:legendre_order]
 
         # [Pr * Pθ for Pr in Prs, Pθ in Pθs][:]
         return (Prs * transpose(Pθs))[:]
     end
 
-    L = basisorder_to_basislength(Acoustic{T,Dim}, basis_order)
     ls, ms = spherical_harmonics_indices(basis_order)
-
-    a12s = [
-        outer_radius(s1) * s1.exclusion_distance + outer_radius(s2) * s2.exclusion_distance
-    for s1 in material.species, s2 in material.species]
-
-    t_matrices = get_t_matrices(psource.medium, material.species, ω, basis_order)
-    t_diags = diag.(t_matrices)
-
-    rθφ2xyz = radial_to_cartesian_coordinates
 
     function kernel_function(rθ1::SVector{2,T})
         x1 = rθφ2xyz(SVector(rθ1[1],rθ1[2],zero(T)))
 
         fun = function (rθφ::SVector{3,T})
             x2 = rθφ2xyz(rθφ)
-            if norm(x1 - x2) <= a12s[1,1]
-                return zeros(Complex{T},L,L*field_basis_order^2)
+            if pair_corr(x1,s1,x2,s1) ≈ zero(T)
+                return zeros(Complex{T}, len, len * len_p)
             end
-            basis1 = field_basis(SVector(rθφ[1],rθφ[2]))
+            basis2 = field_basis(rθφ[1:2])
             U = Uout(x1 - x2)
+
+            # added
+            # U = conj.(U)
+
             U = U .* (bar_numdensity * pair_corr(x1,s1,x2,s1) * sin(rθφ[2]) * rθφ[1]^2)
             return reshape(
                 [
-                    ((nd == n) ? b : zero(Complex{T})) - t_diags[1][n] * U[nd,n] * b * exp(-im*ms[nd]*rθφ[3])
-                for n in 1:L, nd in 1:L, b in basis1],
-            (L,L*field_basis_order^2))
+                    t_diags[1][n] * U[nd,n] * b2 * exp(-im*ms[nd]*rθφ[3])
+                for n in 1:len, nd in 1:len, b2 in basis2],
+            (len, len * len_p))
         end
 
         return fun
     end
 
-    data = [
-        begin
-            ker = kernel_function(SVector(r1,θ1))
-            hcubature(ker, SVector(0.0,0.0,-π), SVector(R-outer_radius(s1),π,π);
-                rtol=rtol, atol=atol, maxevals=4*maxevals
-                rtol=rtol, atol=atol, maxevals=maxevals
-            )[1]
-        end
-    for r1 in r1s, θ1 in θ1s];
-
-    K = vcat(data...);
-
-    gs = regular_spherical_coefficients(source)(basis_order,origin(material.shape),ω);
-
-    v = regular_basis_function(medium,  ω)
-    lm2n = lm_to_spherical_harmonic_index
-
-    bs = [
-        begin
-            vs = v(field_basis_order, rθφ2xyz(SVector(r1,θ1,zero(T))))
+    function δφj(rθ1::SVector{2,T})
+        basis1 = field_basis(rθ1)
+        return reshape(
             [
-                sum(
-                    (abs(m) > l1) ? zero(Complex{T}) :
-                        gaunt_coefficient(dl,0,l,m,l1,m) * vs[lm2n(l1,m)] * gs[lm2n(dl,0)]
-                for l1 in 0:field_basis_order, dl in 0:basis_order)
-            for l = 0:basis_order for m = -l:l]
+                (nd == n) ? b1 : zero(Complex{T})
+            for n in 1:len, nd in 1:len, b1 in basis1],
+        (len, len * len_p))
+    end
+
+    test_ker = kernel_function(SVector(mean(r1s),θ1s[1]))
+    (I,E) = hcubature(test_ker, SVector(0.0,0.0,-π), SVector(R-outer_radius(s1),π,π);
+        rtol=rtol, maxevals=maxevals
+    );
+
+    println("The estimated max coefficient of the integrated kernel is:")
+    println("I = ", maximum(abs.(I)) )
+    println("with an estimated error of: ")
+    println("E = ", E)
+
+    Ks = [
+        begin
+            rθ1 = SVector(r1,θ1)
+            ker = kernel_function(rθ1)
+            ker_integrated = hcubature(ker, SVector(0.0,0.0,-π), SVector(R-outer_radius(s1),π,π);
+                rtol=rtol, maxevals=maxevals
+            )[1]
+
+            δφj(rθ1) - ker_integrated
         end
-    for r1 in r1s, θ1 in θ1s];
+    for r1 in r1s, θ1 in θ1s][:];
 
-    bs = vcat(bs...);
+    bigK = vcat(Ks...);
 
-    as = inv(transpose(conj.(K)) * K) * transpose(conj.(K)) * bs;
-    as = reshape(as,(L,field_basis_order^2));
+    bs = incident_coefficients(r1s,θ1s);
 
-    fs(rθ::Vector{T}) = as * field_basis(rθ)
+    as = bigK \ bs;
 
+    ## Alternative:
+    # as = inv(transpose(conj.(bigK)) * bigK) * transpose(conj.(bigK)) * bs;
 
-    return fs
+    if norm(bigK * as - bs) / norm(bs) > rtol
+        @warn "Numerical solution has a relative residual error of $(norm(bigK * as - bs) / norm(bs)), where the requested relative tolernance was: $rtol. This residual error can be decreased by increasing the legendre_order (current value: $legendre_order) for the field."
+    end
+
+    # reshape to a_np
+    as = reshape(as,(len,:));
+
+    # println("The coefficients a_0p of the basis were:", reshape(as[1,:],(legendre_order,legendre_order)))
+
+    # The factor exp(-im * m * φ) is due to azimuthal symmetry
+    function scattered_field(xs::Vector{T})
+        rθφ = cartesian_to_radial_coordinates(xs)
+        azi_factor = exp.((-im*rθφ[3]) .* ms)
+        return azi_factor .* (as * field_basis(rθφ[1:2]))
+    end
+
+    return scattered_field
 end
-
-#
-# @time discrete_system(ω, psource, material; basis_order = 1)
-# @time discrete_system(ω, psource, material; basis_order = 2)
-# # @time discrete_system(ω, psource, material; basis_order = 3)
-
 
 """
     outgoing_translation_matrix(ω, ::Acoustic, material::Material{Dim,Sphere{T,Dim}};
@@ -156,7 +191,7 @@ function outgoing_translation_matrix(ω::T, medium::Acoustic{T,Dim}, material::M
 
     # Just to get the type Tinter.
         xs = LinRange(a12,2R,4);
-        data = [ zeros(Complex{T},L,L) for x in xs];
+        data = [zeros(Complex{T},L,L) for x in xs];
         inter = interpolate(
             [data[j][1] for j in CartesianIndices(data)],
             BSpline(Cubic(Line(OnGrid())))
@@ -239,7 +274,7 @@ function outgoing_translation_matrix(ω::T, medium::Acoustic{T,Dim}, material::M
     θs = LinRange(zero(T),T(pi),Nθ);
 
     data = [
-            outgoing_translation_matrix(psource.medium, basis_order, ω, rθφ2xyz(SVector(r,θ,φ)))
+            outgoing_translation_matrix(medium, basis_order, ω, rθφ2xyz(SVector(r,θ,φ)))
     for r in rs, θ in θs, φ in φs];
 
     # reorganise the data to interpolate each element of outgoing_translation_matrix in terms of x, y, z.

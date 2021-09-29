@@ -74,7 +74,7 @@ where ``\\mathbf r`` is a position vector in space, ``k`` the wavenumber, ``p`` 
 
 ``\\mathrm v_{n_1}(\\mathbf r) = \\mathrm j_{\\ell_1} (k r) \\mathrm Y_{\\ell_1 m_1}(\\hat{\\mathbf r})``
 
-and ``\\mathrm Y_{\\ell_1 m_1}`` is a spherical harmonic, ``n_1 = (\\ell_1,m_1)`` where we always have that ``\\ell_1 \\geq 0`` and ``\ell_1 \\geq |m_1|`` according to the conventions of [spherical harmonics](https://en.wikipedia.org/wiki/Spherical_harmonics).
+and ``\\mathrm Y_{\\ell_1 m_1}`` is a spherical harmonic, ``n_1 = (\\ell_1,m_1)`` where we always have that ``\\ell_1 \\geq 0`` and ``\\ell_1 \\geq |m_1|`` according to the conventions of [spherical harmonics](https://en.wikipedia.org/wiki/Spherical_harmonics).
 
 To translate the mathematics to Julia code we use
 

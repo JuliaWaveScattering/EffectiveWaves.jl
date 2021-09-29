@@ -1,5 +1,85 @@
 kernelM(l::Int,x, y) = x * diffsbesselj(l,x) * sbesselj(l,y) - y * sbesselj(l,x) * diffsbesselj(l,y)
 
+function scattering_field(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},WithoutSymmetry{3}}) where T
+    L = wavemode.basis_order
+    L1 = wavemode.basis_field_order
+
+    i2s = 1:size(wavemode.eigenvectors,2)
+    i3s = 1:size(wavemode.eigenvectors,3)
+
+    nn1_to_n = [
+            basisorder_to_basislength(Acoustic{T,3},l-1) + m + l + 1
+    for l = 0:L for m = -l:l for l1 = 0:L1 for m1 = -l1:l1];
+
+    nn1_to_n1 = [
+            basisorder_to_basislength(Acoustic{T,3},l1-1) + m1 + l1 + 1
+    for l = 0:L for m = -l:l for l1 = 0:L1 for m1 = -l1:l1];
+
+    indices_same_n = collect(groupby(nn1 -> nn1_to_n[nn1] , 1:length(nn1_to_n)))
+
+    v = regular_basis_function(wavemode.wavenumber, wavemode.medium)
+
+    function scat_field(x::AbstractVector{T})
+        vs =  v(L1, x)
+
+        vecs = [
+            sum(wavemode.eigenvectors[ind,i2,i3] .* vs[nn1_to_n1[ind]]) # note here:  vs[nn1_to_n1[ind]]] == vs
+        for ind in indices_same_n, i2 in i2s, i3 in i3s];
+
+        # Sum over species and different eigvectors
+        vecs = sum(vecs, dims = 3)[:,:];
+
+        # for only 1 species the code below gives the same
+        # nn1_to_n1 = [
+        #         basisorder_to_basislength(Acoustic{T,3},l1-1) + m1 + l1 + 1
+        # for l = 0:L for m = -l:l for l1 = 0:L1 for m1 = -l1:l1];
+        #
+        # vecs2 = [
+        #     wavemode.eigenvectors[i[1],i[2],i[3]] * vs[nn1_to_n1[i[1]]]
+        # for i in CartesianIndices(wavemode.eigenvectors)];
+        #
+        # vecs2 = sum(vecs2, dims = 3);
+        # vecs2 = [sum(vecs2[inds]) for inds in indices_same_n]
+        # vecs ≈ vecs2
+        return vecs
+    end
+
+end
+
+function scattering_field(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},Sym}) where {T, Sym<:AbstractAzimuthalSymmetry{3}}
+    L = wavemode.basis_order
+    L1 = wavemode.basis_field_order
+
+    i2s = 1:size(wavemode.eigenvectors,2)
+    i3s = 1:size(wavemode.eigenvectors,3)
+
+    nl1_to_n = [
+            basisorder_to_basislength(Acoustic{T,3},l-1) + m + l + 1
+    for l = 0:L for m = -l:l for l1 = abs(m):L1];
+
+    nl1_to_n1 = [
+            basisorder_to_basislength(Acoustic{T,3},l1-1) - m + l1 + 1
+    for l = 0:L for m = -l:l for l1 = abs(m):L1];
+
+    indices_same_n = collect(groupby(nl1 -> nl1_to_n[nl1] , 1:length(nl1_to_n)))
+
+    v = regular_basis_function(wavemode.wavenumber, wavemode.medium)
+
+    function scat_field(x::AbstractVector{T})
+        vs =  v(L1, x)
+
+        vecs = [
+            sum(wavemode.eigenvectors[ind,i2,i3] .* vs[nl1_to_n1[ind]])
+        for ind in indices_same_n, i2 in i2s, i3 in i3s];
+
+        # Sum over different eigvectors
+        vecs = sum(vecs, dims = 3)[:,:];
+
+        return vecs
+    end
+
+end
+
 function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},WithoutSymmetry{3}}) where T
 
     # Unpacking parameters

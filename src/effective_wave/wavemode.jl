@@ -1,8 +1,17 @@
+
+"""
+    scattering_field(args)
+
+Returns a function which gives the average scattering coefficients for any vector `x` inside the material. This field is defined by Equation (3.13) in [AL Gower and G Kristensson, "Effective waves for random three-dimensional particulate materials", (2021)](https://arxiv.org/pdf/2010.00934.pdf)
+"""
+scattering_field
+
+
 "Calculates the effective wavenumbers and return Vector{EffectivePlaneWaveMode}."
 function WaveModes(ω::T, source::AbstractSource, material::Material{Dim,S,Sps}; kws...) where {T,Dim,S<:Shape{T,Dim},Sps<:Species{T,Dim}} # without the parametric types we get a "Unreachable reached" error
 
     # The wavenumbers are calculated without knowledge of the materail symmetry. This is because the plane-wave symmetry leads to all possible wavenumbers and is simple to calculate.
-    k_effs = wavenumbers(ω, source.medium, material.species; kws... )
+    k_effs = wavenumbers(ω, source.medium, material.species; numberofparticles = material.numberofparticles, kws... )
 
     # The wavemodes need to know the material symmetry as the eigenvectors do depend on material shape and symetry.
     wave_effs = [

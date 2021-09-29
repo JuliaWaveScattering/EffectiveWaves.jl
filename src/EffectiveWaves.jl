@@ -13,9 +13,9 @@ export  hole_correction_pair_correlation
 export  match_error, x_mesh_match
 
 # for effective waves
-export wavenumbers, wavenumber, asymptotic_monopole_wavenumbers, eigenvectors, azimuthal_to_planar_eigenvector
+export wavenumbers, wavenumber, asymptotic_monopole_wavenumbers, eigenvectors, azimuthal_to_planar_eigenvector, eigenvector_length
 export WaveModes, WaveMode, wavemode_wienerhopf
-export solve_boundary_condition, material_scattering_coefficients, material_scattered_waves
+export solve_boundary_condition, scattering_field, material_scattering_coefficients, material_scattered_waves
 
 export dispersion_equation, dispersion_complex, eigensystem # supplies a matrix used for the disperision equation and effective eignvectors
 
@@ -35,6 +35,8 @@ import SpecialFunctions: besselj, hankelh1
 import StaticArrays: SVector
 import Statistics: mean, std
 
+import IterTools: groupby
+
 using Reexport
 @reexport using MultipleScattering
 
@@ -49,10 +51,11 @@ using Optim: optimize, Optim, FixedParameters, Options, LBFGS, Fminbox, NelderMe
 import Optim: simplexer
 
 # Heavy package
-using ApproxFun: ApproxFun.(..), Fun, Segment, Domain, Chebyshev, DefiniteIntegral, LowRankFun, Interval, Legendre
+using ApproxFun: ApproxFun.(..), Fun, Segment, Domain, Chebyshev, DefiniteIntegral, LowRankFun, Interval
 
-using Interpolations: interpolate,BSpline, Cubic, Line, OnGrid
-
+using Interpolations: interpolate, BSpline, Cubic, Line, OnGrid, scale
+using HCubature: hcubature
+using ClassicalOrthogonalPolynomials: Legendre
 
 using MDBM
 
