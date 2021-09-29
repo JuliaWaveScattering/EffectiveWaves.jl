@@ -98,6 +98,7 @@ function discrete_system(ω::T, source::Source{T,Acoustic{T,Dim}}, material::Mat
             ker = kernel_function(SVector(r1,θ1))
             hcubature(ker, SVector(0.0,0.0,-π), SVector(R-outer_radius(s1),π,π);
                 rtol=rtol, atol=atol, maxevals=4*maxevals
+                rtol=rtol, atol=atol, maxevals=maxevals
             )[1]
         end
     for r1 in r1s, θ1 in θ1s];
