@@ -17,8 +17,8 @@ documentation
 function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::AbstractAzimuthalSymmetry{Dim};
         basis_order::Int = 1,
         basis_field_order::Int = 2,
-        legendre_order::Int = Int(round(1.4*basis_field_order)) + 1,
-        mesh_points::Int = Int(round(1.5*legendre_order)) + 1,
+        legendre_order::Int = basis_field_order + 1,
+        mesh_points::Int = Int(round(sqrt(1.1 * (basis_field_order) * legendre_order ))) + 1,
         rtol::T = 1e-2,
         maxevals::Int = Int(2e4),
         pair_corr = hole_correction_pair_correlation
@@ -34,7 +34,7 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
 
     R = outer_radius(material.shape)
 
-    gs = regular_spherical_coefficients(source)(basis_order,origin(material.shape),ω);
+    gs = regular_spherical_coefficients(source)(basis_field_order,origin(material.shape),ω);
 
     v = regular_basis_function(source.medium,  ω)
 
@@ -50,26 +50,25 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
     r1s = LinRange(0,R-outer_radius(s1), mesh_points)
     θ1s = LinRange(0,π, mesh_points)
 
+    ls, ms = spherical_harmonics_indices(basis_order)
+    azi_inds(m::Int) = lm_to_spherical_harmonic_index.(abs(m):basis_field_order,-m)
+
     len = basisorder_to_basislength(Acoustic{T,Dim}, basis_order)
-    len_p = legendre_order^2
+    len_p = sum(legendre_order for nd in 1:len for i in azi_inds(ms[nd]))
 
     function incident_coefficients(r1s::AbstractVector{T},θ1s::AbstractVector{T})
         lm2n = lm_to_spherical_harmonic_index
 
         coefs = [
             begin
-                vs = v(2basis_order, rθφ2xyz(SVector(r1,θ1,zero(T))))
+                vs = v(basis_order + basis_field_order, rθφ2xyz(SVector(r1,θ1,zero(T))))
                 data = [
-                    # added
-                    # - (-1)^l * t_diags[1][lm2n(l,m)] *
                     t_diags[1][lm2n(l,m)] *
                     sum(
                         gaunt_coefficient(dl,0,l,m,l1,-m) * vs[lm2n(l1,-m)] * gs[lm2n(dl,0)]
-                    for l1 in abs(m):(2basis_order), dl in 0:basis_order)
+                    for dl in 0:basis_field_order for l1 in max(abs(m),abs(dl-l)):(dl+l))
                 for l = 0:basis_order for m = -l:l]
 
-                #added
-                # conj.(data)
                 data
             end
         for r1 in r1s, θ1 in θ1s][:];
@@ -77,52 +76,60 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
         return vcat(coefs...)
     end
 
-    function field_basis(rθ::AbstractVector{T})
+    function field_basis(rθφ::AbstractVector{T})
+        Ys = spherical_harmonics(basis_field_order, rθφ[2], rθφ[3]);
         P = Legendre{T}()
 
         # [P_0(cos(θ)), …, P_(legendre_order-1)(cos(θ))]
-        Pθs = P[cos(rθ[2]), 1:legendre_order]
-        Prs = P[2 * rθ[1] / (R - outer_radius(s1)) - one(T), 1:legendre_order]
+        Prs = P[2 * rθφ[1] / (R - outer_radius(s1)) - one(T), 1:legendre_order]
 
-        # [Pr * Pθ for Pr in Prs, Pθ in Pθs][:]
-        return (Prs * transpose(Pθs))[:]
+        return [Pr * Yθ for Pr in Prs, Yθ in Ys]
     end
-
-    ls, ms = spherical_harmonics_indices(basis_order)
+    # function field_basis(rθ::AbstractVector{T})
+    #     P = Legendre{T}()
+    #
+    #     # [P_0(cos(θ)), …, P_(legendre_order-1)(cos(θ))]
+    #     Pθs = P[cos(rθ[2]), 1:legendre_order]
+    #     Prs = P[2 * rθ[1] / (R - outer_radius(s1)) - one(T), 1:legendre_order]
+    #
+    #     # [Pr * Pθ for Pr in Prs, Pθ in Pθs][:]
+    #     return (Prs * transpose(Pθs))[:]
+    # end
 
     function kernel_function(rθ1::SVector{2,T})
         x1 = rθφ2xyz(SVector(rθ1[1],rθ1[2],zero(T)))
+        Kzero = zeros(Complex{T},len,len_p)
 
         fun = function (rθφ::SVector{3,T})
             x2 = rθφ2xyz(rθφ)
             if pair_corr(x1,s1,x2,s1) ≈ zero(T)
-                return zeros(Complex{T}, len, len * len_p)
+                return Kzero
             end
-            basis2 = field_basis(rθφ[1:2])
+            basis2 = field_basis(rθφ)
+
             U = Uout(x1 - x2)
-
-            # added
-            # U = conj.(U)
-
             U = U .* (bar_numdensity * pair_corr(x1,s1,x2,s1) * sin(rθφ[2]) * rθφ[1]^2)
+
             return reshape(
                 [
-                    t_diags[1][n] * U[nd,n] * b2 * exp(-im*ms[nd]*rθφ[3])
-                for n in 1:len, nd in 1:len, b2 in basis2],
-            (len, len * len_p))
+                    t_diags[1][n] * U[nd,n] * b2
+                for nd in 1:len for b2 in basis2[:,azi_inds(ms[nd])][:] for n in 1:len],
+            (len, :))
         end
 
         return fun
     end
 
-    function δφj(rθ1::SVector{2,T})
-        basis1 = field_basis(rθ1)
+    function δφj(rθφ1::AbstractVector{T})
+        basis1 = field_basis(rθφ1)
         return reshape(
             [
                 (nd == n) ? b1 : zero(Complex{T})
-            for n in 1:len, nd in 1:len, b1 in basis1],
-        (len, len * len_p))
+            for nd in 1:len for b1 in basis1[:,azi_inds(ms[nd])][:] for n in 1:len],
+        (len, len_p))
     end
+
+    δφj(rθ1::SVector{2,T}) = δφj(SVector(rθ1[1],rθ1[2],zero(T)))
 
     test_ker = kernel_function(SVector(mean(r1s),θ1s[1]))
     (I,E) = hcubature(test_ker, SVector(0.0,0.0,-π), SVector(R-outer_radius(s1),π,π);
@@ -150,25 +157,21 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
 
     bs = incident_coefficients(r1s,θ1s);
 
-    as = bigK \ bs;
+    Fs = bigK \ bs;
 
     ## Alternative:
     # as = inv(transpose(conj.(bigK)) * bigK) * transpose(conj.(bigK)) * bs;
 
-    if norm(bigK * as - bs) / norm(bs) > rtol
-        @warn "Numerical solution has a relative residual error of $(norm(bigK * as - bs) / norm(bs)), where the requested relative tolernance was: $rtol. This residual error can be decreased by increasing the legendre_order (current value: $legendre_order) for the field."
+    if norm(bigK * Fs - bs) / norm(bs) > rtol
+        @warn "Numerical solution has a relative residual error of $(norm(bigK * Fs - bs) / norm(bs)), where the requested relative tolernance was: $rtol. This residual error can be decreased by increasing the basis_field_order (current value: $basis_field_order) for the field."
     end
 
-    # reshape to a_np
-    as = reshape(as,(len,:));
-
-    # println("The coefficients a_0p of the basis were:", reshape(as[1,:],(legendre_order,legendre_order)))
-
-    # The factor exp(-im * m * φ) is due to azimuthal symmetry
     function scattered_field(xs::Vector{T})
         rθφ = cartesian_to_radial_coordinates(xs)
-        azi_factor = exp.((-im*rθφ[3]) .* ms)
-        return azi_factor .* (as * field_basis(rθφ[1:2]))
+        return δφj(rθφ) * Fs
+        # The factor exp(-im * m * φ) is due to azimuthal symmetry
+        # azi_factor = exp.((-im*rθφ[3]) .* ms)
+        # return azi_factor .* (as * field_basis(rθφ[1:2]))
     end
 
     return scattered_field

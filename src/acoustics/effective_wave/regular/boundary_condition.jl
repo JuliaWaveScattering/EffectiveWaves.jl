@@ -1,6 +1,7 @@
 function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::Source{T,Acoustic{T,3}}, material::Material{3,Sphere{T,3}};
         basis_order::Int = 2,
         basis_field_order::Int = 4,
+        # source_basis_field_order::Int = basis_field_order,
         source_basis_field_order::Int = Int(round(sqrt(size(eigvectors)[end]))) - 1,
         kws...
     ) where T
@@ -92,7 +93,8 @@ end
 function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{3,Sphere{T,3}};
         basis_order::Int = 2,
         basis_field_order::Int = 4,
-        source_basis_field_order::Int = size(eigvectors)[end] - 1,
+        source_basis_field_order::Int = basis_field_order,
+        # source_basis_field_order::Int = size(eigvectors)[end] - 1,
         kws...
     ) where T
     # source_basis_field_order is often chosen so that there is the same number of source coefficients a_n as the number of unknowns α_n. Before was: min(basis_field_order, size(eigvectors)[end]) - 1
