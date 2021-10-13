@@ -202,7 +202,7 @@ end
    # Low frequency test
     spatial_dim = 3
     # Choose the frequency
-    ωs = 0.01:0.02:0.25
+    ωs = 0.001:0.02:0.1
     basis_order = 2
 
     medium = Acoustic(spatial_dim; ρ=1.0, c=1.0)
@@ -247,6 +247,6 @@ end
 
     Reffs = [reflection_coefficient(w, source, material) for w in wavemodes]
 
-    # using Plots
-    # plot(ωs, [abs.(Reffs), abs.(Rlows)], ylim = (0.0,Inf))
+    @test abs(Reffs[1] - Rlows[1]) / abs(Rlows[1]) < 0.01
+    @test norm(Reffs - Rlows) / norm(Rlows) < 0.1
 end

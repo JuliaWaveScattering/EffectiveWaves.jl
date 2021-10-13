@@ -177,6 +177,154 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
     return scattered_field
 end
 
+function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::RadialSymmetry{Dim};
+        basis_order::Int = 1,
+        basis_field_order::Int = 2,
+        legendre_order::Int = basis_field_order + 1,
+        mesh_points::Int = Int(round(sqrt(1.1 * (basis_field_order) * legendre_order ))) + 1,
+        rtol::T = 1e-2,
+        maxevals::Int = Int(2e4),
+        pair_corr = hole_correction_pair_correlation
+    ) where {T,Dim}
+
+    if length(material.species) > 1
+        @warn "discrete_system has only been implemented for 1 species for now. Will use only first specie."
+    end
+
+    s1 = material.species[1]
+    scale_number_density = one(T) - one(T) / material.numberofparticles
+    bar_numdensity = scale_number_density * number_density(s1)
+
+    R = outer_radius(material.shape)
+
+    gs = regular_spherical_coefficients(source)(basis_field_order,origin(material.shape),ω);
+
+    v = regular_basis_function(source.medium,  ω)
+
+    Uout = outgoing_translation_matrix(ω, source.medium, material;
+        basis_order = basis_order, tol = rtol
+    )
+
+    ns_to_l1s = lm_to_spherical_harmonic_index.(0:basis_field_order,0)
+
+    t_matrices = get_t_matrices(source.medium, material.species, ω, basis_order)
+    t_diags = diag.(t_matrices)
+
+    rθφ2xyz = radial_to_cartesian_coordinates
+
+    r1s = LinRange(0,R-outer_radius(s1), mesh_points)
+    θ1s = LinRange(0,π, mesh_points)
+
+    len = basisorder_to_basislength(Acoustic{T,Dim}, basis_order)
+    len_p = legendre_order
+
+    function incident_coefficients(r1s::AbstractVector{T})
+        lm2n = lm_to_spherical_harmonic_index
+
+        coefs = [
+            begin
+                vs = v(basis_order + basis_field_order, rθφ2xyz(SVector(r1,zero(T),zero(T))))
+                data = [
+                    t_diags[1][lm2n(l,0)] *
+                        sqrt(4pi) * (-1)^l * vs[lm2n(l,0)] * gs[lm2n(0,0)]
+                for l = 0:basis_order]
+            end
+        for r1 in r1s][:];
+
+        return vcat(coefs...)
+    end
+
+    function field_basis(rθφ::AbstractVector{T})
+        Ys = spherical_harmonics(basis_field_order, rθφ[2], rθφ[3]);
+        P = Legendre{T}()
+
+        Prs = P[2 * rθφ[1] / (R - outer_radius(s1)) - one(T), 1:legendre_order]
+
+        return [Pr * Yθ for Pr in Prs, Yθ in Ys]
+    end
+
+
+    function kernel_function(rθ1::SVector{2,T})
+        x1 = rθφ2xyz(SVector(rθ1[1],rθ1[2],zero(T)))
+        Kzero = zeros(Complex{T},len,len_p)
+
+        fun = function (rθφ::SVector{3,T})
+            x2 = rθφ2xyz(rθφ)
+            if pair_corr(x1,s1,x2,s1) ≈ zero(T)
+                return Kzero
+            end
+            basis2 = field_basis(rθφ)
+
+            U = Uout(x1 - x2)
+            U = U .* (bar_numdensity * pair_corr(x1,s1,x2,s1) * sin(rθφ[2]) * rθφ[1]^2)
+
+            return reshape(
+                [
+                    t_diags[1][n] * U[nd,n] * b2
+                for nd in 1:len for b2 in basis2[:,azi_inds(ms[nd])][:] for n in 1:len],
+            (len, :))
+        end
+
+        return fun
+    end
+
+    function δφj(rθφ1::AbstractVector{T})
+        basis1 = field_basis(rθφ1)
+        return reshape(
+            [
+                (nd == n) ? b1 : zero(Complex{T})
+            for nd in 1:len for b1 in basis1[:,azi_inds(ms[nd])][:] for n in 1:len],
+        (len, len_p))
+    end
+
+    δφj(rθ1::SVector{2,T}) = δφj(SVector(rθ1[1],rθ1[2],zero(T)))
+
+    test_ker = kernel_function(SVector(mean(r1s),θ1s[1]))
+    (I,E) = hcubature(test_ker, SVector(0.0,0.0,-π), SVector(R-outer_radius(s1),π,π);
+        rtol=rtol, maxevals=maxevals
+    );
+
+    println("The estimated max coefficient of the integrated kernel is:")
+    println("I = ", maximum(abs.(I)) )
+    println("with an estimated error of: ")
+    println("E = ", E)
+
+    Ks = [
+        begin
+            rθ1 = SVector(r1,θ1)
+            ker = kernel_function(rθ1)
+            ker_integrated = hcubature(ker, SVector(0.0,0.0,-π), SVector(R-outer_radius(s1),π,π);
+                rtol=rtol, maxevals=maxevals
+            )[1]
+
+            δφj(rθ1) - ker_integrated
+        end
+    for r1 in r1s, θ1 in θ1s][:];
+
+    bigK = vcat(Ks...);
+
+    bs = incident_coefficients(r1s,θ1s);
+
+    Fs = bigK \ bs;
+
+    ## Alternative:
+    # as = inv(transpose(conj.(bigK)) * bigK) * transpose(conj.(bigK)) * bs;
+
+    if norm(bigK * Fs - bs) / norm(bs) > rtol
+        @warn "Numerical solution has a relative residual error of $(norm(bigK * Fs - bs) / norm(bs)), where the requested relative tolernance was: $rtol. This residual error can be decreased by increasing the basis_field_order (current value: $basis_field_order) for the field."
+    end
+
+    function scattered_field(xs::Vector{T})
+        rθφ = cartesian_to_radial_coordinates(xs)
+        return δφj(rθφ) * Fs
+        # The factor exp(-im * m * φ) is due to azimuthal symmetry
+        # azi_factor = exp.((-im*rθφ[3]) .* ms)
+        # return azi_factor .* (as * field_basis(rθφ[1:2]))
+    end
+
+    return scattered_field
+end
+
 """
     outgoing_translation_matrix(ω, ::Acoustic, material::Material{Dim,Sphere{T,Dim}};
         basis_order = 2, tol = 1e-3)

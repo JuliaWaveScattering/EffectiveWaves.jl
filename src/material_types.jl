@@ -1,5 +1,5 @@
 export setupsymmetry
-export WithoutSymmetry, PlanarSymmetry, PlanarAzimuthalSymmetry, AzimuthalSymmetry
+export WithoutSymmetry, PlanarSymmetry, PlanarAzimuthalSymmetry, AzimuthalSymmetry, RadialSymmetry
 
 """
     AbstractSetupSymmetry
@@ -38,8 +38,14 @@ abstract type AbstractAzimuthalSymmetry{Dim} <: AbstractSetupSymmetry{Dim} end
 A type used to describe materials and incident waves in 3 spatial dimensions that share a symmetry about the azimuth.
 """
 struct AzimuthalSymmetry{Dim} <: AbstractAzimuthalSymmetry{Dim} end
-
 AzimuthalSymmetry() = AzimuthalSymmetry{3}()
+
+"""
+    RadialSymmetry
+
+A type used to describe materials and incident waves in that are both radially symmetric. That is, the material is a sphere, and the incident wave is radially symmetric around the center of this spherical material.
+"""
+struct RadialSymmetry{Dim} <: AbstractAzimuthalSymmetry{Dim} end
 
 """
     PlanarAzimuthalSymmetry

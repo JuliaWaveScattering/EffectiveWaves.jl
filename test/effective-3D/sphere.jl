@@ -40,6 +40,9 @@ tol = 1e-7
 
 psource = PlaneSource(medium, [0.0,0.0,1.0]);
 source = plane_source(medium; direction = [0.0,0.0,1.0])
+sourceradial =  regular_spherical_source(medium, [1.0+0.0im];
+   position = [0.0,0.0,0.0]
+);
 
 region_shape = Sphere([0.0,0.0,0.0], R)
 material = Material(Sphere(R),species);
@@ -87,14 +90,16 @@ pscat_field = scattering_field(pwavemode)
 # using Statistics
 
 
-rtol = 1e-2; maxevals = Int(2e4);
-legendre_order = basis_field_order+1;
+rtol = 1e-2; maxevals = Int(1e4);
+
+field_order = max(basis_order,Int(round(basis_order/2 + basis_field_order/2)))
+legendre_order = field_order + 1;
 
 pair_corr = hole_correction_pair_correlation;
 
 discrete_scat = discrete_system(ω, psource, material;
     basis_order = basis_order,
-    basis_field_order = basis_field_order,
+    basis_field_order = field_order,
     legendre_order = legendre_order,
     rtol = rtol, maxevals = maxevals
 );
@@ -117,16 +122,14 @@ maximum(norm.(data - pdata) ./ norm.(pdata))
 maximum(norm.(scatdata - pdata) ./ norm.(pdata))
 mean(norm.(scatdata - pdata) ./ norm.(pdata))
 
-pdata0 = [d[1] for d in pdata];
-pdata1 = [d[3] for d in pdata];
-
-pdata11 = [d[4] for d in pdata];
-pdata1m1 = [d[2] for d in pdata];
-
-data0 = [d[1] for d in data];
-data1 = [d[3] for d in data];
-
-
+# pdata0 = [d[1] for d in pdata];
+# pdata1 = [d[3] for d in pdata];
+#
+# pdata11 = [d[4] for d in pdata];
+# pdata1m1 = [d[2] for d in pdata];
+#
+# data0 = [d[1] for d in data];
+# data1 = [d[3] for d in data];
 
 mat_coefs_pwave = material_scattering_coefficients(pwavemode);
 
