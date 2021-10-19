@@ -4,8 +4,8 @@ os:
   - linux
   - osx
 julia:
-  - 1.0
   - 1.5
+  - 1.6
   - nightly
 notifications:
   email: false
@@ -37,6 +37,7 @@ jobs:
   include:
     - stage: "Documentation"
       julia: 1.5
+      julia: 1.6
       os: linux
       env:
         - DOCUMENTER_DEBUG=true
