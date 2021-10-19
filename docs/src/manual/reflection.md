@@ -191,4 +191,4 @@ abs.(RTeff - [Ramp; Tamp])
 sum(abs.([Ramp,Tamp]).^2)
 sum(abs.(RTeff).^2)
 ```
-Currently implementing... formulas from [Gower & Kristensson 2020](https://arxiv.org/pdf/2010.00934.pdf).
+Currently implemented! Manual needs updating... formulas from [Gower & Kristensson 2020](https://arxiv.org/pdf/2010.00934.pdf).
