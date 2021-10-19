@@ -51,10 +51,10 @@ using Optim: optimize, Optim, FixedParameters, Options, LBFGS, Fminbox, NelderMe
 import Optim: simplexer
 
 # Heavy package
-using ApproxFun: ApproxFun.(..), Fun, Segment, Domain, Chebyshev, DefiniteIntegral, LowRankFun, Interval
+# using ApproxFun: ApproxFun.(..), Fun, Segment, Domain, Chebyshev, DefiniteIntegral, LowRankFun, Interval
 
 using Interpolations: interpolate, BSpline, Cubic, Line, OnGrid, scale
-using HCubature: hcubature
+using HCubature: hcubature, hquadrature
 using ClassicalOrthogonalPolynomials: Legendre
 
 using MDBM

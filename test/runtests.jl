@@ -40,5 +40,5 @@ include("complex.jl")
     include("match-wave/match_discrete_wave.jl")
 
 # Test wiener hopf method for monopole scatterers
-    include("wiener-hopf-reflection.jl")
-    include("wiener-hopf-wave.jl")
+    # include("wiener-hopf-reflection.jl")
+    # include("wiener-hopf-wave.jl")

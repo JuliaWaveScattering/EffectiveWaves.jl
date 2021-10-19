@@ -2,7 +2,8 @@ using EffectiveWaves, Test
 
 @testset "test different numerical integration methods" begin
 
-    using ApproxFun
+    # using ApproxFun
+    using HCubature
     import SpecialFunctions: hankelh1
 
     # function imitates kernal in Fredholm equation that is solved for DiscretePlaneWaveMode
@@ -14,7 +15,8 @@ using EffectiveWaves, Test
 
     # approximate function with Chebyshev polynomial (to high precision) then integrate from Y0 to Y1
     Y0 = 0.0; Y1 = 1000.0;
-    s = sum(Fun(K,Y0..Y1, num_coefs))
+    # s = sum(Fun(K,Y0..Y1, num_coefs))
+    s = hquadrature(K,Y0,Y1; maxevals = num_coefs)[1]
 
     # compare with basic discrete integration
     Ys = LinRange(Y0,Y1,2*num_coefs+1);

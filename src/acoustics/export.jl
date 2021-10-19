@@ -13,7 +13,7 @@ include("effective_wave/asymptotics.jl")
 include("effective_wave/planewaves/eigensystem.jl")
 include("effective_wave/planewaves/material_scattering_coefficients.jl")
 include("effective_wave/planewaves/boundary_condition.jl")
-include("effective_wave/planewaves/wavemode-wienerhopf.jl")
+# include("effective_wave/planewaves/wavemode-wienerhopf.jl")
 
 # regular means a smooth field assumption and includes cases such as a sphere filled with particles.
 include("effective_wave/regular/eigensystem.jl")

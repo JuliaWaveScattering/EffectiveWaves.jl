@@ -3,7 +3,6 @@
 
 import MultipleScattering: outgoing_translation_matrix
 
-
 function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::WithoutSymmetry{Dim}; kws...) where {T,Dim}
 
     return discrete_system(ω, source, material, AzimuthalSymmetry{Dim}(); kws...)

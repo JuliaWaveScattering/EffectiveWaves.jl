@@ -6,15 +6,17 @@
 #     return 2.0*(-1.0)^n*sum(K.(Ys).*σs)
 # end
 
-function integrate_B_full(n::Int, X, Y0; Y1 = 1000000, θin = 0.0 + 0.0im, num_coefs = 10000)
+function integrate_B_full(n::Int, X, Y0; Y1 = 1000000, θin = 0.0 + 0.0im, num_coefs = 80000)
     K(Y) = cos(Y*sin(θin) + n*atan(Y,X))*hankelh1(n,sqrt(X^2+Y^2))
+
+    return 2.0*(-1.0)^n * hquadrature(K,Y0,Y1; maxevals = num_coefs)[1]
     # approximate function with Chebyshev polynomial (to high precision) then integrate from Y0 to Y1
-    return 2.0*(-1.0)^n*sum(Fun(K,Y0..Y1, num_coefs))
+    # return 2.0*(-1.0)^n * sum(Fun(K,Y0..Y1, num_coefs))
 end
 
 # Y0 = sqrt(k^a12^2 - X^2)
 function integrate_B(n::Int, X::T, Y0::T;
-        θin::Union{T,Complex{T}} = 0.0, num_coefs::Int = 10000,
+        θin::Union{T,Complex{T}} = 0.0, num_coefs::Int = 80000,
         Y1::T = max(T(2000)*X, T(4000)) # note Y1 is non-dimensional!
     ) where T<:AbstractFloat
 
@@ -33,7 +35,7 @@ function integrate_S(n::Int, X::T; θin::Union{T,Complex{T}} = 0.0) where T <: A
 end
 
 function BS_matrices(X::AbstractVector{T}, a12k::T; θin::Union{T,Complex{T}} = 0.0 + 0.0im,
-        M::Int = 2, num_coefs::Int = 10000) where T<:AbstractFloat
+        M::Int = 2, num_coefs::Int = 80000) where T<:AbstractFloat
 
     dX = X[2] - X[1]
     J = length(collect(X)) -1
