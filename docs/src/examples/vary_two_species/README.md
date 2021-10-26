@@ -19,8 +19,10 @@ background = Acoustic(3; ρ = 1.0, c = 1.0) # 3 for a 3D material.
 gas_particle = Particle(Acoustic(3; ρ = 0.3, c = 0.3), 0.5) # 0.5 is the radius
 solid_particle = Particle(Acoustic(3; ρ = 1000.0, c = 1000.0), 1.5)
 
+solid_particle.shape # hide
+
 # output
-Particle(Acoustic(1000.0, 1000.0 + 0.0im, 3), Sphere([0.0, 0.0, 0.0], 1.5))
+Sphere{Float64,3}([0.0, 0.0, 0.0], 1.5)
 ```
 
 ## Calculate how the wavenumbers change when varying the volume fractions

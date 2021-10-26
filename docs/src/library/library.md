@@ -29,8 +29,8 @@ WithoutSymmetry
 PlanarSymmetry
 AzimuthalSymmetry
 PlanarAzimuthalSymmetry
+RadialSymmetry
 ```
-
 
 ## Types of waves
 

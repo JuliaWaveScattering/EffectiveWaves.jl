@@ -3,7 +3,7 @@
 *A Julia package for calculating, processing and plotting waves travelling in heterogeneous materials. The focus is on ensemble averaged waves.*
 
 
-At present, the package focuses on materails filled with randomly placed particles. You can calculate effective wavenumbers for 2D [[1](https://arxiv.org/abs/1712.05427)] and 3D [[4](https://arxiv.org/abs/2010.00934)] acoustics, wave transimission and wave reflection in 2D [[1](https://arxiv.org/abs/1712.05427),[2](https://arxiv.org/abs/1810.10816),[3](https://arxiv.org/abs/1905.06996)] and 3D [[4](https://arxiv.org/abs/2010.00934)], and scattering from an inhomogenious sphere [[4](https://arxiv.org/abs/2010.00934)]. See [these notes](docs/src/theory/WavesInMultiSpecies.pdf) for brief formulas on effective wavenumbers.
+At present, the package focuses on materails filled with randomly placed particles. You can calculate effective wavenumbers for 2D [[1](https://arxiv.org/abs/1712.05427)] and 3D [[4](https://arxiv.org/abs/2010.00934)] acoustics, wave transimission and wave reflection in 2D [[1](https://arxiv.org/abs/1712.05427),[2](https://arxiv.org/abs/1810.10816),[3](https://arxiv.org/abs/1905.06996)] and 3D [[4](https://arxiv.org/abs/2010.00934)], and scattering from an inhomogenious sphere [[4](https://arxiv.org/abs/2010.00934)]. See [these notes](theory/WavesInMultiSpecies.pdf) for brief formulas on effective wavenumbers.
 
 Together with [MultipleScattering.jl](https://github.com/JuliaWaveScattering/MultipleScattering.jl), this package has been setup to easily extend to other dimensions, materials, and types of waves, such as elastic and electromagnetic waves.
 

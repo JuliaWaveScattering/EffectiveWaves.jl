@@ -23,16 +23,18 @@ basis_order = 2
 
 ### Test the equivalence between dispersion equations
 
-    # R_det = dispersion_equation(ω, medium, species, RadialSymmetry{spatial_dim}(); basis_order = basis_order)
+    R_det = dispersion_equation(ω, medium, species, RadialSymmetry{spatial_dim}(); basis_order = basis_order)
     AP_det = dispersion_equation(ω, medium, species, PlanarAzimuthalSymmetry{spatial_dim}(); basis_order = basis_order)
     P_det = dispersion_equation(ω, medium, species, PlanarSymmetry{spatial_dim}(); basis_order = basis_order)
     AR_det = dispersion_equation(ω, medium, species, AzimuthalSymmetry{spatial_dim}(); basis_order = basis_order)
     Reg_det = dispersion_equation(ω, medium, species, WithoutSymmetry{spatial_dim}(); basis_order = basis_order)
 
     # Lighter to calculate wavenumbers (also known as the eigenvalues) when assume more symmmetries
-    # R_kps = wavenumbers(ω, medium, species;
-    #     num_wavenumbers = 2, tol = tol,  basis_order = basis_order,
-    #     symmetry = RadialSymmetry{3}())
+
+    # The RadialSymmetry eigensystem is almost identical to the PlanarAzimuthalSymmetry system
+    R_kps = wavenumbers(ω, medium, species;
+        num_wavenumbers = 2, tol = tol,  basis_order = basis_order,
+        symmetry = RadialSymmetry{3}())
 
     AP_kps = wavenumbers(ω, medium, species;
         num_wavenumbers = 2, tol = tol,  basis_order = basis_order,
@@ -49,16 +51,11 @@ basis_order = 2
     is = findall(AP_det.(P_kps) .< tol)
     AP_kps = sort(reduce_kvecs([AP_kps; P_kps[is]],tol), by=imag)
 
-    # R_det.(AP_kps)
-    # AP_det.(R_kps)
-
-    AR_det.(AP_kps)
-    # AR_det.(R_kps)
-
-
     # As plane waves with azimuthal symmetry is a sub-case of plane-waves, and all materials allow for the effective wavenumbers of plane waves, all the below determinant equations should be satisfied
 
     @test maximum(AP_det.(AP_kps)) < tol
+    @test maximum(AP_det.(R_kps)) < tol
+    @test maximum(R_det.(AP_kps)) < tol
     @test maximum(P_det.(AP_kps)) < tol
     @test maximum(AR_det.(AP_kps)) < tol^2
     @test maximum(Reg_det.(AP_kps)) < tol^3

@@ -127,51 +127,13 @@ end
 
 function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, ::RadialSymmetry{3};
         basis_order::Int = 2,
-        numberofparticles::Number = Inf,
         kws...) where {T<:AbstractFloat}
 
-        @warn "still developing, has errors."
-        
-        scale_number_density = one(T)
-        if numberofparticles > 1
-            scale_number_density = one(T) - one(T) / numberofparticles
-        end
+        MM = eigensystem(ω, medium, species, PlanarAzimuthalSymmetry{3}(); basis_order = basis_order, kws...)
 
-        k = ω/medium.c
-        S = length(species)
-        ho = basis_order
-        len = (ho+1) * S
-        MM_mat = Matrix{Complex{T}}(undef,len,len)
+        factors = [Complex{T}(im)^l * sqrt(T(2l + 1)) for l = 0:basis_order, s = 1:length(species)][:]
 
-        t_matrices = get_t_matrices(medium, species, ω, ho)
-        t_diags = diag.(t_matrices)
-        baselen(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
+        MMR(keff::Complex{T}) = MM(keff) * diagm(factors)
 
-        as = [
-            s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
-        for s1 in species, s2 in species]
-
-        function M_component(keff::Complex{T},Ns::Array{Complex{T}},l,s1,dl,s2)::Complex{T}
-            (l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
-            as[s1,s2] * scale_number_density * number_density(species[s2]) * t_diags[s1][baselen(l)] *
-            sum(
-                (-one(T))^l3 * Ns[l3+1,s1,s2]
-            for l3 in abs(dl-l):(dl+l)) / (keff^T(2.0) - k^T(2.0))
-        end
-
-        function MM(keff::Complex{T})::Matrix{Complex{T}}
-            Ns = [kernelN3D(l,k*as[s1,s2],keff*as[s1,s2]) for l = 0:2ho, s1 = 1:S, s2 = 1:S]
-            ind2 = 1
-            for s2 = 1:S, dl = 0:ho
-                ind1 = 1
-                for s1 = 1:S, l = 0:ho
-                    MM_mat[ind1, ind2] = M_component(keff,Ns,l,s1,dl,s2)
-                    ind1 += 1
-                end
-                ind2 += 1
-            end
-            return MM_mat
-        end
-
-        return MM
+        return MMR
 end
