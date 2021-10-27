@@ -32,9 +32,9 @@ basis_order = 2
     # Lighter to calculate wavenumbers (also known as the eigenvalues) when assume more symmmetries
 
     # The RadialSymmetry eigensystem is almost identical to the PlanarAzimuthalSymmetry system
-    R_kps = wavenumbers(ω, medium, species;
-        num_wavenumbers = 2, tol = tol,  basis_order = basis_order,
-        symmetry = RadialSymmetry{3}())
+    # R_kps = wavenumbers(ω, medium, species;
+    #     num_wavenumbers = 2, tol = tol,  basis_order = basis_order,
+    #     symmetry = RadialSymmetry{3}())
 
     AP_kps = wavenumbers(ω, medium, species;
         num_wavenumbers = 2, tol = tol,  basis_order = basis_order,
@@ -54,7 +54,7 @@ basis_order = 2
     # As plane waves with azimuthal symmetry is a sub-case of plane-waves, and all materials allow for the effective wavenumbers of plane waves, all the below determinant equations should be satisfied
 
     @test maximum(AP_det.(AP_kps)) < tol
-    @test maximum(AP_det.(R_kps)) < tol
+    # @test maximum(AP_det.(R_kps)) < tol
     @test maximum(R_det.(AP_kps)) < tol
     @test maximum(P_det.(AP_kps)) < tol
     @test maximum(AR_det.(AP_kps)) < tol^2
@@ -118,7 +118,11 @@ basis_order = 2
 
     θ = 0.0
     psource = PlaneSource(medium, [sin(θ),0.0,cos(θ)]);
-    source = plane_source(medium; direction = [sin(θ),0.0,cos(θ)])
+
+    # change direction slightly to break symmetry
+    source = plane_source(medium; direction = [sin(θ),1e-7,cos(θ)])
+    Symmetry(source) == PlanarSymmetry{3}()
+
     material = Material(Sphere(4.0),species);
 
     nn1_indexs = [
@@ -127,21 +131,20 @@ basis_order = 2
     for l1 = 0:basis_field_order for m1 = -l1:l1];
 
     # test boundary conditions for all wavenumbers
-    [
-        eigenvectors(ω, kp, source, material;
-            basis_order = basis_order,
-            basis_field_order = basis_field_order)
-    for kp in AP_kps];
-
-    [
-        eigenvectors(ω, kp, psource, material;
-            basis_order = basis_order,
-            basis_field_order = basis_field_order)
-    for kp in AP_kps];
+    # [
+    #     eigenvectors(ω, kp, source, material;
+    #         basis_order = basis_order,
+    #         basis_field_order = basis_field_order)
+    # for kp in AP_kps];
+    #
+    # [
+    #     eigenvectors(ω, kp, psource, material;
+    #         basis_order = basis_order,
+    #         basis_field_order = basis_field_order)
+    # for kp in AP_kps];
 
     wave_azi = WaveMode(ω, k_eff, psource, material;
         basis_order = basis_order, basis_field_order = basis_field_order)
-
 
     wave_reg = WaveMode(ω, k_eff, source, material;
         basis_order = basis_order, basis_field_order = basis_field_order)

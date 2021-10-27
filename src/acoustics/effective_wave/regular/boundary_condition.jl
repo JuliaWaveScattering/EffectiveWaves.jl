@@ -1,4 +1,4 @@
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::Source{T,Acoustic{T,3}}, material::Material{3,Sphere{T,3}};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::RegularSource{T,Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::WithoutSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 4,
         # source_basis_field_order::Int = basis_field_order,
@@ -90,7 +90,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
 end
 
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{3,Sphere{T,3}};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{T,Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::AbstractAzimuthalSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 4,
         # source_basis_field_order::Int = basis_field_order,
@@ -99,7 +99,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     ) where T
     # source_basis_field_order is often chosen so that there is the same number of source coefficients a_n as the number of unknowns α_n. Before was: min(basis_field_order, size(eigvectors)[end]) - 1
 
-    k = ω / psource.medium.c
+    k = ω / source.medium.c
 
     scale_number_density = one(T) - one(T) / material.numberofparticles
     species = material.species
@@ -161,14 +161,10 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     # we expect the source direction to be aligned with the z-axis
     direction = SVector(zero(T),zero(T),one(T))
 
-    if !(abs(dot(psource.direction,direction)) ≈ norm(direction) * norm(psource.direction))
-        @warn "Plane wave source is not aligned with the z-axis. Will return results with an axis that makes the source direction aligned with the z-axis. With a bit of work, this result can then be rotated to your system..."
-    end
-
     # source = plane_source(psource.medium, psource.position, direction, psource.amplitude[1])
     # source.coefficients(Linc,zeros(3),ω)
 
-    source_coefficients = regular_spherical_coefficients(psource)(Linc,zeros(3),ω)
+    source_coefficients = regular_spherical_coefficients(source)(Linc,zeros(3),ω)
 
     forcing = [
         - sum(

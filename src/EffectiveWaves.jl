@@ -40,7 +40,7 @@ import IterTools: groupby
 using Reexport
 @reexport using MultipleScattering
 
-import MultipleScattering: Source, Acoustic
+import MultipleScattering: RegularSource, Acoustic
 
 using RecipesBase, OffsetArrays, LinearAlgebra
 

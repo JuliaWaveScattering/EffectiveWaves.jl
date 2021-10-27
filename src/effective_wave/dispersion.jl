@@ -1,7 +1,7 @@
-dispersion_equation(ω::AbstractFloat, source::AbstractSource, material::Material; kws...) = dispersion_equation(ω, source.medium, material.species, setupsymmetry(source,material); kws...)
+dispersion_equation(ω::AbstractFloat, source::AbstractSource, material::Material; kws...) = dispersion_equation(ω, source.medium, material.species, Symmetry(source,material); kws...)
 
 
-function dispersion_equation(ω::T, medium::PhysicalMedium{T,Dim}, species::Species{T,Dim}, symmetry::AbstractSetupSymmetry = PlanarSymmetry{Dim}();
+function dispersion_equation(ω::T, medium::PhysicalMedium{T,Dim}, species::Species{T,Dim}, symmetry::AbstractSymmetry = PlanarSymmetry{Dim}();
         basis_order = 3 * Int(round(maximum(outer_radius.(species)) * ω / abs(medium.c) )) + 1,
         tol::T = 1e-4, low_tol::T = max(1e-4, tol), kws...
     ) where {T<:Number, Dim}
@@ -20,7 +20,7 @@ function dispersion_equation(ω::T, medium::PhysicalMedium{T,Dim}, species::Spec
     return detMM
 end
 
-function dispersion_complex(ω::T, medium::PhysicalMedium{T,Dim}, species::Species{T,Dim}, symmetry::AbstractSetupSymmetry = PlanarSymmetry{Dim}();
+function dispersion_complex(ω::T, medium::PhysicalMedium{T,Dim}, species::Species{T,Dim}, symmetry::AbstractSymmetry = PlanarSymmetry{Dim}();
         basis_order = 3 * Int(round(maximum(outer_radius.(species)) * ω / abs(medium.c) )) + 1,
         tol::T = 1e-4, kws...
     ) where {T<:Number, Dim}

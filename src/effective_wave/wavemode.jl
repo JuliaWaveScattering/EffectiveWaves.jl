@@ -79,16 +79,26 @@ function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, 
     return [mode1,mode2]
 end
 
-# eigensystem(ω::T, source::AbstractSource{T}, material::Material; kws...) where T<:AbstractFloat = eigensystem(ω, source.medium, material.species, setupsymmetry(source,material); numberofparticles = material.numberofparticles, kws...)
+# eigensystem(ω::T, source::AbstractSource{T}, material::Material; kws...) where T<:AbstractFloat = eigensystem(ω, source.medium, material.species, Symmetry(source,material); numberofparticles = material.numberofparticles, kws...)
 
-eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource{T}, material::Material; kws...) where T<:AbstractFloat = eigenvectors(ω, k_eff::Complex{T}, source.medium, material.species, setupsymmetry(source,material); numberofparticles = material.numberofparticles, kws...)
+
+function solve_boundary_condition(ω::T, wavenumber::Complex{T}, eigvectors::Array, source::AbstractSource{T}, material::Material; kws...) where T
+    return solve_boundary_condition(ω, wavenumber, eigvectors, source, material, Symmetry(source,material); kws...)
+end
+
+
+function solve_boundary_condition(ω::T, wavenumber::Complex{T}, eigvectors1::Array, eigvectors2::Array, source::AbstractSource{T}, material::Material; kws...) where T
+    return solve_boundary_condition(ω, wavenumber, eigvectors1, eigvectors2, source, material, Symmetry(source,material); kws...)
+end
+
+eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource{T}, material::Material; kws...) where T<:AbstractFloat = eigenvectors(ω, k_eff::Complex{T}, source.medium, material.species, Symmetry(source,material); numberofparticles = material.numberofparticles, kws...)
 
 # For plane waves, it is simpler to write all cases in the format for the most general case. For example, for PlanarAzimuthalSymmetry the eignvectors are much smaller. So we will turn these into the more general eigvector case by padding it with zeros.
 function eigenvectors(ω::T, k_eff::Complex{T}, source::PlaneSource{T}, material::Material{Dim,S}; kws...) where {T<:AbstractFloat,Dim,S<:Union{Plate,Halfspace}}
 
-    eigvecs = eigenvectors(ω, k_eff, source.medium, material.species, setupsymmetry(source,material); kws...)
+    eigvecs = eigenvectors(ω, k_eff, source.medium, material.species, Symmetry(source,material); kws...)
 
-    if setupsymmetry(source,material) == PlanarAzimuthalSymmetry{Dim}()
+    if Symmetry(source,material) == PlanarAzimuthalSymmetry{Dim}()
         eigvecs = azimuthal_to_planar_eigenvector(typeof(source.medium),eigvecs)
     end
 
@@ -96,7 +106,7 @@ function eigenvectors(ω::T, k_eff::Complex{T}, source::PlaneSource{T}, material
 
 end
 
-function eigenvectors(ω::T, k_eff::Complex{T}, medium::PhysicalMedium{T}, species::Vector{Sp}, symmetry::AbstractSetupSymmetry;
+function eigenvectors(ω::T, k_eff::Complex{T}, medium::PhysicalMedium{T}, species::Vector{Sp}, symmetry::AbstractSymmetry;
         tol::T = 1e-4, kws...
     ) where {T<:AbstractFloat, Sp<:Specie{T}}
 

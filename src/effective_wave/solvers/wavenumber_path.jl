@@ -1,6 +1,6 @@
 # NOTE: PlanarAzimuthalSymmetry() does not include all possible wavenumbers
 function wavenumbers_path(ω::T, medium::PhysicalMedium{T,Dim}, species::Species{T,Dim};
-        symmetry::AbstractSetupSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(),
+        symmetry::AbstractSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(),
         tol::T = 1e-5,
         mesh_points::Int = 3,
         mesh_size::Number = one(T) / T(2),

@@ -10,7 +10,7 @@ wavenumbers(ω::T, medium::PhysicalMedium{T}, specie::Specie{T}; kws...) where T
 function wavenumbers(ω::T, source::AbstractSource, material::Material{Dim,S,Sps}; kws...) where {T,Dim,S<:Shape{T,Dim},Sps<:Species{T,Dim}}
     return wavenumbers(ω, source.medium, material.species;
         numberofparticles = material.numberofparticles,
-        # symmetry = setupsymmetry(source,material),
+        # symmetry = Symmetry(source,material),
         kws...
     )
 end

@@ -13,7 +13,6 @@ eigenvector_length(::WithoutSymmetry{3}; basis_order::Int, basis_field_order::In
 
 eigenvector_length(::AzimuthalSymmetry{3}; basis_order::Int, basis_field_order::Int) =  Int(1 - basis_order*(2 + basis_order)*(basis_order - 3*basis_field_order - 2)/3 + basis_field_order)
 
-
 """
     EffectivePlaneWaveMode{T<:AbstractFloat,Dim} <: AbstractWaveMode{T,Dim}
 
@@ -63,7 +62,7 @@ end
 
 
 """
-    EffectiveRegularWaveMode{T,Dim,P<:PhysicalMedium,S<:AbstractSetupSymmetry} <: AbstractRegularWaveMode{T,Dim}
+    EffectiveRegularWaveMode{T,Dim,P<:PhysicalMedium,S<:AbstractSymmetry} <: AbstractRegularWaveMode{T,Dim}
 
 Is a struct that represents a mode of the average scattering coefficients ``F`` in the form
 
@@ -84,7 +83,7 @@ To translate the mathematics to Julia code we use
   * ``n_1 = `` `EffectiveRegularWaveMode.basis_field_order`
 
 """
-struct EffectiveRegularWaveMode{T<:AbstractFloat,Dim,P<:PhysicalMedium{T,Dim},S<:AbstractSetupSymmetry{Dim}} <: AbstractRegularWaveMode{T,Dim}
+struct EffectiveRegularWaveMode{T<:AbstractFloat,Dim,P<:PhysicalMedium{T,Dim},S<:AbstractSymmetry{Dim}} <: AbstractRegularWaveMode{T,Dim}
     ω::T
     wavenumber::Complex{T}
     medium::P
@@ -96,7 +95,7 @@ struct EffectiveRegularWaveMode{T<:AbstractFloat,Dim,P<:PhysicalMedium{T,Dim},S<
         basis_order::Int = 2, basis_field_order::Int = 4, kws...
     ) where {T,Dim}
 
-        S = setupsymmetry(source,material)
+        S = Symmetry(source,material)
         P = typeof(source.medium)
 
         if size(eigenvectors,1) != eigenvector_length(S; basis_order = basis_order, basis_field_order = basis_field_order)
@@ -108,3 +107,5 @@ struct EffectiveRegularWaveMode{T<:AbstractFloat,Dim,P<:PhysicalMedium{T,Dim},S<
         return new{T,Dim,P,typeof(S)}(ω, wavenumber, source.medium, material, eigenvectors, basis_order, basis_field_order)
     end
 end
+
+Symmetry(wave::EffectiveRegularWaveMode{T,Dim,P,S}) where {T,Dim,P,S} = S()

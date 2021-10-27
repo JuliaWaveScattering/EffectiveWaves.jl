@@ -1,6 +1,6 @@
 # NOTE: PlanarAzimuthalSymmetry() does not included all possible wavenumbers
 function wavenumbers_bisection(ω::T, medium::PhysicalMedium{T,Dim}, species::Species{T,Dim};
-        symmetry::AbstractSetupSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(),
+        symmetry::AbstractSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(),
         tol::T = 1e-5,
         num_wavenumbers = 3,
         box_k::Vector{Vector{T}} = box_keff(ω, medium, species; tol = tol),

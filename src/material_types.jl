@@ -1,63 +1,5 @@
-export setupsymmetry
-export WithoutSymmetry, PlanarSymmetry, PlanarAzimuthalSymmetry, AzimuthalSymmetry, RadialSymmetry
-
-"""
-    AbstractSetupSymmetry
-
-An abstract types which dictates the symmetry of the setup. That is, the symmetry shared between the incident wave and the shape of the material.
-"""
-abstract type AbstractSetupSymmetry{Dim} end
-
-"""
-    WithoutSymmetry
-
-A type used to describe materials and incident waves which share no common symmetry. This will lead to the most general regular wave expansion for the eignvectors.
-"""
-struct WithoutSymmetry{Dim} <: AbstractSetupSymmetry{Dim} end
-
-"""
-An incident plane-wave and halfspace material will result in all fields being plane-waves.
-"""
-abstract type AbstractPlanarSymmetry{Dim} <: AbstractSetupSymmetry{Dim} end
-
-"""
-    PlanarSymmetry
-
-A type used to describe materials and incident waves that both share a planar symmetry.
-"""
-struct PlanarSymmetry{Dim} <: AbstractPlanarSymmetry{Dim} end
-
-"""
-For spatial dimension > 2, we can consider problems that have azimuthal symmetry. For example, a plane-wave incident on a sphere.
-"""
-abstract type AbstractAzimuthalSymmetry{Dim} <: AbstractSetupSymmetry{Dim} end
-
-"""
-    AzimuthalSymmetry
-
-A type used to describe materials and incident waves in 3 spatial dimensions that share a symmetry about the azimuth.
-"""
-struct AzimuthalSymmetry{Dim} <: AbstractAzimuthalSymmetry{Dim} end
-AzimuthalSymmetry() = AzimuthalSymmetry{3}()
-
-"""
-    RadialSymmetry
-
-A type used to describe materials and incident waves in that are both radially symmetric. That is, the material is a sphere, and the incident wave is radially symmetric around the center of this spherical material.
-"""
-struct RadialSymmetry{Dim} <: AbstractAzimuthalSymmetry{Dim} end
-
-"""
-    PlanarAzimuthalSymmetry
-
-A type used to describe a materail and incident wave which have both [`PlanarSymmetry`](@ref) and [`AzimuthalSymmetry`](@ref).
-"""
-struct PlanarAzimuthalSymmetry{Dim} <: AbstractPlanarSymmetry{Dim} end
-PlanarAzimuthalSymmetry() = PlanarAzimuthalSymmetry{3}()
-
-
 # """Extract the dimension of the space that this physical property lives in"""
-# dim(p::AbstractSetupSymmetry{Dim}) where {Dim} = Dim
+# dim(p::AbstractSymmetry{Dim}) where {Dim} = Dim
 
 
 """
@@ -151,41 +93,44 @@ function Material(shape::S,specie::Sp) where {T,Dim,S<:Shape{T,Dim},Sp<:Specie{T
 end
 
 import MultipleScattering.PhysicalMedium
+import MultipleScattering.Symmetry
 
 PhysicalMedium(s::Specie) = typeof(s.particle.medium)
 PhysicalMedium(m::Material) = PhysicalMedium(m.species[1])
 
-"""
-    setupsymmetry(source::AbstractSource, material::Material)
+Symmetry(m::Material) = Symmetry(m.shape)
 
-Returns the shared symmetries between the `source` and `materail`.
-"""
-setupsymmetry(source::AbstractSource, material::Material{Dim}) where Dim = WithoutSymmetry{Dim}()
+# """
+#     setupsymmetry(source::AbstractSource, material::Material)
+#
+# Returns the shared symmetries between the `source` and `materail`.
+# """
+# setupsymmetry(source::AbstractSource, material::Material{Dim}) where Dim = WithoutSymmetry{Dim}()
 
-function setupsymmetry(source::PlaneSource{T,3,1}, material::Material{3,Sphere{T,3}};
-        basis_order::Int = 4, ω::T = 0.9) where T
-
-    ls, ms = spherical_harmonics_indices(basis_order)
-
-    gs = regular_spherical_coefficients(source)(basis_order,origin(material.shape),ω)
-    azimuthal_symmetry = norm((ms[n] != 0) ? gs[n] : zero(T) for n in eachindex(gs)) ≈ zero(T)
-
-    return if azimuthal_symmetry
-        AzimuthalSymmetry{3}()
-    else
-        WithoutSymmetry{3}()
-    end
-end
-
-function setupsymmetry(psource::PlaneSource{T,Dim}, material::Material{Dim,S}) where {T<:AbstractFloat, Dim, S<:Union{Halfspace{T,Dim},Plate{T,Dim}}}
-
-    hv = material.shape.normal
-    kv = psource.direction
-
-    if abs(dot(hv, kv)^2) ≈ abs(dot(hv, hv) * dot(kv, kv))
-        # for direct incidence
-        return PlanarAzimuthalSymmetry{Dim}()
-    else
-        return PlanarSymmetry{Dim}()
-    end
-end
+# function setupsymmetry(source::PlaneSource{T,3,1}, material::Material{3,Sphere{T,3}};
+#         basis_order::Int = 4, ω::T = 0.9) where T
+#
+#     ls, ms = spherical_harmonics_indices(basis_order)
+#
+#     gs = regular_spherical_coefficients(source)(basis_order,origin(material.shape),ω)
+#     azimuthal_symmetry = norm((ms[n] != 0) ? gs[n] : zero(T) for n in eachindex(gs)) ≈ zero(T)
+#
+#     return if azimuthal_symmetry
+#         AzimuthalSymmetry{3}()
+#     else
+#         WithoutSymmetry{3}()
+#     end
+# end
+#
+# function setupsymmetry(psource::PlaneSource{T,Dim}, material::Material{Dim,S}) where {T<:AbstractFloat, Dim, S<:Union{Halfspace{T,Dim},Plate{T,Dim}}}
+#
+#     hv = material.shape.normal
+#     kv = psource.direction
+#
+#     if abs(dot(hv, kv)^2) ≈ abs(dot(hv, hv) * dot(kv, kv))
+#         # for direct incidence
+#         return PlanarAzimuthalSymmetry{Dim}()
+#     else
+#         return PlanarSymmetry{Dim}()
+#     end
+# end

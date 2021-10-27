@@ -123,8 +123,8 @@ end
     psource = PlaneSource(medium, [1e-3,0.0,1.0])
     source = plane_source(medium; direction = [0.0,0.0,1.0])
 
-    setupsymmetry(psource,material)
-    setupsymmetry(psource0,material)
+    Symmetry(psource,material)
+    Symmetry(psource0,material)
 
     pwavemodes = WaveMode(ω, k_eff, psource0, material; tol = 1e-6, basis_order = basis_order);
     wavemodes = WaveMode(ω, k_eff, psource, material; tol = 1e-6, basis_order = basis_order);

@@ -70,8 +70,8 @@ eff_medium.c
 ω / k_eff
 ω / k_phi
 
-setupsymmetry(source, material)
-setupsymmetry(psource, material)
+Symmetry(source, material)
+Symmetry(psource, material)
 
 k_eff = AP_kps[2]
 k_eff = AP_kps[1]
