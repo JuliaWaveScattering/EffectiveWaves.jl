@@ -91,20 +91,27 @@ function solve_boundary_condition(ω::T, wavenumber::Complex{T}, eigvectors1::Ar
     return solve_boundary_condition(ω, wavenumber, eigvectors1, eigvectors2, source, material, Symmetry(source,material); kws...)
 end
 
+"""
+    convert_eigenvector_basis(medium::PhysicalMedium,sym::AbstractSymmetry,eigvecs::Array)
+
+The eigenvectors from high symmetric scenarios are smaller then the more general scenarios. This function pads with zeros the more symmetric cases to match more general cases, so that we can use the functions for both.
+"""
+convert_eigenvector_basis(medium::PhysicalMedium,sym::AbstractSymmetry,eigvecs::Array) = eigvecs
+
 eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource{T}, material::Material; kws...) where T<:AbstractFloat = eigenvectors(ω, k_eff::Complex{T}, source.medium, material.species, Symmetry(source,material); numberofparticles = material.numberofparticles, kws...)
 
 # For plane waves, it is simpler to write all cases in the format for the most general case. For example, for PlanarAzimuthalSymmetry the eignvectors are much smaller. So we will turn these into the more general eigvector case by padding it with zeros.
-function eigenvectors(ω::T, k_eff::Complex{T}, source::PlaneSource{T}, material::Material{Dim,S}; kws...) where {T<:AbstractFloat,Dim,S<:Union{Plate,Halfspace}}
-
-    eigvecs = eigenvectors(ω, k_eff, source.medium, material.species, Symmetry(source,material); kws...)
-
-    if Symmetry(source,material) == PlanarAzimuthalSymmetry{Dim}()
-        eigvecs = azimuthal_to_planar_eigenvector(typeof(source.medium),eigvecs)
-    end
-
-    return eigvecs
-
-end
+# function eigenvectors(ω::T, k_eff::Complex{T}, source::PlaneSource{T}, material::Material{Dim,S}; kws...) where {T<:AbstractFloat,Dim,S<:Union{Plate,Halfspace}}
+#
+#     eigvecs = eigenvectors(ω, k_eff, source.medium, material.species, Symmetry(source,material); kws...)
+#
+#     if Symmetry(source,material) == PlanarAzimuthalSymmetry{Dim}()
+#         eigvecs = azimuthal_to_planar_eigenvector(typeof(source.medium),eigvecs)
+#     end
+#
+#     return eigvecs
+#
+# end
 
 function eigenvectors(ω::T, k_eff::Complex{T}, medium::PhysicalMedium{T}, species::Vector{Sp}, symmetry::AbstractSymmetry;
         tol::T = 1e-4, kws...
@@ -127,5 +134,8 @@ function eigenvectors(ω::T, k_eff::Complex{T}, medium::PhysicalMedium{T}, speci
     # Reshape to separate different species and eigenvectors
     S = length(species)
 
-    return reshape(eigvectors,(:,S,size(eigvectors,2)))
+    # pads with zeros if necessary to match the more general case with less symmetry
+    eigvectors = convert_eigenvector_basis(medium,symmetry,reshape(eigvectors,(:,S,size(eigvectors,2))))
+
+    return eigvectors
 end

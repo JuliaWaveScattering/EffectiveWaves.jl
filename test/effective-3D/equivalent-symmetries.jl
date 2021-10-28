@@ -114,7 +114,36 @@ basis_order = 2
 
     @test maximum(norm(PM * Pvs[:,i]) for i in axes(Pvs,2)) < 1e-8
 
+end
+
+@testset "Equivalence for solving sphere scattering" begin
+
 ### Test that the complete regular solutions is the same as the azimuthal solution when there is azimuthal symmetry
+
+    spatial_dim = 3
+    medium = Acoustic(spatial_dim; ρ=1.2, c=1.5)
+
+    s1 = Specie(
+        Acoustic(spatial_dim; ρ=0.1, c=0.1), Sphere(0.4);
+        volume_fraction=0.2
+    );
+    s2 = Specie(
+        Acoustic(spatial_dim; ρ=7.2, c=10.1), Sphere(0.3);
+        volume_fraction=0.1
+    );
+    species = [s1,s2]
+    # species = [s1]
+
+    ω = 0.9
+    tol = 1e-7
+
+    basis_order = 2
+    basis_field_order = 2*basis_order
+
+    kps = wavenumbers(ω, medium, species;
+        num_wavenumbers = 2, tol = tol,  basis_order = basis_order,
+        symmetry = PlanarAzimuthalSymmetry())
+    k_eff = kps[1]
 
     θ = 0.0
     psource = PlaneSource(medium, [sin(θ),0.0,cos(θ)]);
@@ -167,11 +196,52 @@ basis_order = 2
     @test norm(reg_azi_vecs - azi_vecs) / norm(azi_vecs) < tol
 
 
-### Check that the predicting average scattering from a sphere and an incident plane-wave is the same
+    ### Check that the predicting average scattering from a sphere and an incident plane-wave is the same
 
     scat_azi = material_scattering_coefficients(wave_azi);
     scat_reg = material_scattering_coefficients(wave_reg);
 
     @test norm(scat_azi - scat_reg) / norm(scat_azi) < tol
 
+### Test that the radially symmetruc solution is the same as the complete regular solutions and the azimuthal solution when there is radial symmetry
+
+    source = regular_spherical_source(medium, [1.0+0.0im];
+       position = [0.0,0.0,0.0], symmetry = RadialSymmetry{3}()
+    );
+
+    @test Symmetry(source,material) == RadialSymmetry{3}()
+
+    # Calculate the eigenvectors
+    radwave = WaveMode(ω, keff, source, material;
+        basis_order = basis_order,
+    )
+
 end
+# inds = findall(waves .!= nothing)
+#
+# ωs = ωs[inds]
+# kas = kas[inds]
+# kps = kps[inds]
+# waves = waves[inds]
+# basis_orders = basis_orders[inds]
+# basis_field_orders = basis_field_orders[inds]
+#
+# scat_coefs = material_scattering_coefficients.(waves);
+# # coef = material_scattering_coefficients(waves[i]);
+# # coef3 = material_scattering_coefficients(w);
+#
+# # Calculate low frequency scattering
+#
+# material_low = Material(
+#     Sphere(outer_radius(material.shape) - r),
+#     species
+# );
+#
+# effective_sphere = Particle(eff_medium, material_low.shape);
+#
+# scat_coef_lows = map(eachindex(ωs)) do i
+#     Linc = basis_field_orders[i] + basis_orders[i]
+#     source_coefficients = regular_spherical_coefficients(source)(Linc,zeros(3),ωs[i]);
+#     Tmat = t_matrix(effective_sphere, medium, ωs[i], Linc);
+#     Tmat * source_coefficients
+# end

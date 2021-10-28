@@ -1,4 +1,6 @@
-function azimuthal_to_planar_eigenvector(::Type{Acoustic{T,3}},eigvecs::Array{Complex{T}}) where T
+
+# convert the PlanarAzimuthalSymmetry eigenvector to the PlanarSymmetry eigenvector
+function convert_eigenvector_basis(medium::Acoustic{T,3},sym::PlanarAzimuthalSymmetry{3},eigvecs::Array{Complex{T}}) where T
     basis_order = size(eigvecs,1) - 1
     S = size(eigvecs,2)
     P = size(eigvecs,3)
@@ -9,10 +11,6 @@ function azimuthal_to_planar_eigenvector(::Type{Acoustic{T,3}},eigvecs::Array{Co
 
     return reshape(v,basisorder_to_basislength(Acoustic{T,3},basis_order),S,P)
 end
-
-# haven't implemented the azimuthal symmetry equivalent for 2D
-azimuthal_to_planar_eigenvector(::Type{Acoustic{T,2}},eigvecs::Array{Complex{T}}) where T = eigvecs
-
 
 function eigensystem(ω::T, medium::Acoustic{T,2}, species::Species{T,2}, ::AbstractPlanarSymmetry;
         basis_order::Int = 2,
