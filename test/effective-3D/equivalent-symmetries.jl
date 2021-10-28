@@ -195,7 +195,6 @@ end
 
     @test norm(reg_azi_vecs - azi_vecs) / norm(azi_vecs) < tol
 
-
     ### Check that the predicting average scattering from a sphere and an incident plane-wave is the same
 
     scat_azi = material_scattering_coefficients(wave_azi);
@@ -203,13 +202,30 @@ end
 
     @test norm(scat_azi - scat_reg) / norm(scat_azi) < tol
 
-### Test that the radially symmetruc solution is the same as the complete regular solutions and the azimuthal solution when there is radial symmetry
+### Test that the radially symmetric solution is the same as the complete regular solutions and the azimuthal solution when there is radial symmetry
 
     source = regular_spherical_source(medium, [1.0+0.0im];
        position = [0.0,0.0,0.0], symmetry = RadialSymmetry{3}()
     );
 
+    # Same source but pretend it does not have radial symmetry! These tests are getting weirder and weirder..
+    source_reg = regular_spherical_source(medium, [1.0+0.0im];
+       position = [0.0,0.0,0.0], symmetry = WithoutSymmetry{3}()
+    );
+
     @test Symmetry(source,material) == RadialSymmetry{3}()
+
+    eigs_rad = eigenvectors(ω, k_eff, source, material; basis_order = basis_order)
+
+    wave_reg = WaveMode(ω, k_eff, source_reg, material;
+        basis_order = basis_order, basis_field_order = basis_field_order)
+
+    eigs_reg = sum(wave_reg.eigenvectors,dims=(2,3))
+
+    rad_inds = findall([
+            m1 == 0 && m == 0 && l == l1
+        for l = 0:basis_order for m = -l:l
+    for l1 = 0:basis_field_order for m1 = -l1:l1]);
 
     # Calculate the eigenvectors
     radwave = WaveMode(ω, keff, source, material;
