@@ -131,7 +131,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{T,3}, species::Species{T,3}, 
 
         MM = eigensystem(ω, medium, species, PlanarAzimuthalSymmetry{3}(); basis_order = basis_order, kws...)
 
-        factors = [Complex{T}(im)^l * sqrt(T(2l + 1)) for l = 0:basis_order, s = 1:length(species)][:]
+        factors = [Complex{T}(im)^(-l) * sqrt(T(2l + 1)) for l = 0:basis_order, s = 1:length(species)][:]
 
         MMR(keff::Complex{T}) = MM(keff) * diagm(factors)
 

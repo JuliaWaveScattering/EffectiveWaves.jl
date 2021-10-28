@@ -208,7 +208,7 @@ end
        position = [0.0,0.0,0.0], symmetry = RadialSymmetry{3}()
     );
 
-    # Same source but pretend it does not have radial symmetry! These tests are getting weirder and weirder..
+    # Same source but pretend it has no symmetry! These tests are getting weirder and weirder..
     source_reg = regular_spherical_source(medium, [1.0+0.0im];
        position = [0.0,0.0,0.0], symmetry = WithoutSymmetry{3}()
     );
@@ -216,19 +216,38 @@ end
     @test Symmetry(source,material) == RadialSymmetry{3}()
 
     eigs_rad = eigenvectors(ω, k_eff, source, material; basis_order = basis_order)
+    α = solve_boundary_condition(ω, k_eff, eigs_rad, source, material;
+            basis_order = basis_order)
 
     wave_reg = WaveMode(ω, k_eff, source_reg, material;
         basis_order = basis_order, basis_field_order = basis_field_order)
 
-    eigs_reg = sum(wave_reg.eigenvectors,dims=(2,3))
+    eigs_reg = sum(wave_reg.eigenvectors,dims=(3))
 
     rad_inds = findall([
             m1 == 0 && m == 0 && l == l1
         for l = 0:basis_order for m = -l:l
     for l1 = 0:basis_field_order for m1 = -l1:l1]);
 
+    # rad_inds = findall([
+    #         m1 == - m && l == l1
+    #     for l = 0:basis_order for m = -l:l
+    # for l1 = 0:basis_field_order for m1 = -l1:l1])
+
+    findall(abs.(eigs_reg) .> 1e-12)
+
+    eigs_reg[rad_inds,:]
+
+    eigs_rad .*  (eigs_reg[1,1] / eigs_rad[1,1])
+
+    eigs_reg[rad_inds,:]
+    eigs_rad .* α[1]
+
+    sum(eigs_reg[rad_inds,:],dims=2)
+    sum(eigs_rad .* α[1],dims=2)
+
     # Calculate the eigenvectors
-    radwave = WaveMode(ω, keff, source, material;
+    radwave = WaveMode(ω, k_eff, source, material;
         basis_order = basis_order,
     )
 

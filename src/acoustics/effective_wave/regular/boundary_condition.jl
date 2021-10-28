@@ -195,7 +195,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
 end
 
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{T,Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::AbstractRadialSymmetry{3};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{T,Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::RadialSymmetry{3};
         basis_order::Int = 2,
         kws...
     ) where T
@@ -211,13 +211,14 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     # the kernel use to weight the species and the field's basis order.
     F = sum(
-        (-one(T))^(i[1]-1) * eigvectors[i] * (R - rs[i[2]]) * kernelN3D(i[1] - 1, k*(R - rs[i[2]]), k_eff*(R - rs[i[2]])) * scale_number_density * number_density(species[i[2]])
+        (-one(T))^(i[1]-1) * eigvectors[i] * (R - rs[i[2]]) * 
+        kernelN3D(i[1] - 1, k*(R - rs[i[2]]), k_eff*(R - rs[i[2]])) * scale_number_density * number_density(species[i[2]])
     for i in CartesianIndices(eigvectors)) / (k^T(2) - k_eff^T(2))
 
     # We expect there to only one component of a regular spherical wave expansion
     source_coefficients = regular_spherical_coefficients(source)(0,zeros(3),ω)
 
-    forcing = source_coefficients[1] / sqrt(T(4pi))
+    forcing = source_coefficients / sqrt(T(4pi))
 
     α = F \ forcing
 

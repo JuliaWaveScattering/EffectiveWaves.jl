@@ -13,6 +13,8 @@ eigenvector_length(::WithoutSymmetry{3}; basis_order::Int, basis_field_order::In
 
 eigenvector_length(::AzimuthalSymmetry{3}; basis_order::Int, basis_field_order::Int) =  Int(1 - basis_order*(2 + basis_order)*(basis_order - 3*basis_field_order - 2)/3 + basis_field_order)
 
+eigenvector_length(::RadialSymmetry{3}; basis_order::Int, basis_field_order::Int) =  basis_order + 1
+
 """
     EffectivePlaneWaveMode{T<:AbstractFloat,Dim} <: AbstractWaveMode{T,Dim}
 
