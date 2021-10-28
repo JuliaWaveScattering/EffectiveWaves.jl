@@ -4,8 +4,7 @@
 
 | **Documentation**                                                               | **Build Status**                                                                                |
 |:-------------------------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
-|[![][docs-dev-img]][docs-dev-url] | [![][travis-img]][travis-url] [![][codecov-img]][codecov-url] [![][coveralls-img]][coveralls-url] |
-
+|[![][docs-dev-img]][docs-dev-url] | [![CI][ci-img]][ci-url] [![][codecov-img]][codecov-url] [![][coveralls-img]][coveralls-url] |
 
 <!-- You can run Julia on [JuliaBox](https://www.juliabox.com/) in your browser without installation. -->
 
@@ -42,6 +41,9 @@ Contributions are very welcome.
 
 [travis-img]: https://travis-ci.org/JuliaWaveScattering/EffectiveWaves.jl.svg?branch=master
 [travis-url]: https://travis-ci.org/JuliaWaveScattering/EffectiveWaves.jl
+
+[ci-img]: https://github.com/JuliaWaveScattering/EffectiveWaves.jl/actions/workflows/ci.yml/badge.svg
+[ci-url]: https://github.com/JuliaWaveScattering/EffectiveWaves.jl/actions/workflows/ci.yml
 
 [codecov-img]: http://codecov.io/github/JuliaWaveScattering/EffectiveWaves.jl/coverage.svg?branch=master
 [codecov-url]: http://codecov.io/github/JuliaWaveScattering/EffectiveWaves.jl?branch=master
