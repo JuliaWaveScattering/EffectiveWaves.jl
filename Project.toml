@@ -1,7 +1,7 @@
 name = "EffectiveWaves"
 uuid = "37e8709b-1ed2-53db-b26a-3571262b3cb4"
 authors = ["Artur L. Gower <arturgower@gmail.com>"]
-version = "0.3.0"
+version = "0.3.1"
 
 [deps]
 ClassicalOrthogonalPolynomials = "b30e2e7b-c4ee-47da-9d5f-2c5c27239acd"
@@ -25,7 +25,7 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 GSL = "0.6, 0.7, 0.8, 0.9, 1.0"
 Interpolations = "^0.13"
 MDBM = "0.1"
-MultipleScattering = "^0.1.5"
+MultipleScattering = "^0.1.10"
 OffsetArrays = "^0.23, 1"
 Optim = "0.22, 1"
 Polynomials = "0.8"
