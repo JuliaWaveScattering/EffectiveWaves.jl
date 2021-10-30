@@ -211,7 +211,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     # the kernel use to weight the species and the field's basis order.
     F = sum(
-        (-one(T))^(i[1]-1) * eigvectors[i] * (R - rs[i[2]]) * 
+        T(2 *(i[1] - 1) + 1) * (-one(T))^(i[1]-1) * eigvectors[i] * (R - rs[i[2]]) * 
         kernelN3D(i[1] - 1, k*(R - rs[i[2]]), k_eff*(R - rs[i[2]])) * scale_number_density * number_density(species[i[2]])
     for i in CartesianIndices(eigvectors)) / (k^T(2) - k_eff^T(2))
 

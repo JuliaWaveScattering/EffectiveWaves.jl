@@ -215,41 +215,39 @@ end
 
     @test Symmetry(source,material) == RadialSymmetry{3}()
 
-    eigs_rad = eigenvectors(ω, k_eff, source, material; basis_order = basis_order)
-    α = solve_boundary_condition(ω, k_eff, eigs_rad, source, material;
-            basis_order = basis_order)
-
     wave_reg = WaveMode(ω, k_eff, source_reg, material;
-        basis_order = basis_order, basis_field_order = basis_field_order)
+        basis_order = basis_order, basis_field_order = basis_field_order);
 
-    eigs_reg = sum(wave_reg.eigenvectors,dims=(3))
+    eigs_reg = sum(wave_reg.eigenvectors,dims=(3));
 
     rad_inds = findall([
             m1 == 0 && m == 0 && l == l1
         for l = 0:basis_order for m = -l:l
     for l1 = 0:basis_field_order for m1 = -l1:l1]);
 
-    # rad_inds = findall([
-    #         m1 == - m && l == l1
-    #     for l = 0:basis_order for m = -l:l
-    # for l1 = 0:basis_field_order for m1 = -l1:l1])
+    rad_inds = findall([
+            m1 == 0 && m == 0 && l == l1
+        for l = 0:basis_order for m = -l:l
+    for l1 = 0:basis_field_order for m1 = -l1:l1]);
 
-    findall(abs.(eigs_reg) .> 1e-12)
-
-    eigs_reg[rad_inds,:]
-
-    eigs_rad .*  (eigs_reg[1,1] / eigs_rad[1,1])
-
-    eigs_reg[rad_inds,:]
-    eigs_rad .* α[1]
-
-    sum(eigs_reg[rad_inds,:],dims=2)
-    sum(eigs_rad .* α[1],dims=2)
-
-    # Calculate the eigenvectors
     radwave = WaveMode(ω, k_eff, source, material;
         basis_order = basis_order,
-    )
+    );
+    @test norm(radwave.eigenvectors - eigs_reg[rad_inds,:]) < 1e-9 * norm(radwave.eigenvectors)
+
+    # check that the components of the regular eigenvector which do no satisfy radial symmetry are zero
+    non_rad_inds = findall([
+            m1 != - m || l != l1
+        for l = 0:basis_order for m = -l:l
+    for l1 = 0:basis_field_order for m1 = -l1:l1]);
+
+    @test maximum(abs.(eigs_reg[non_rad_inds,:])) < 1e-10 * maximum(abs.(eigs_reg[rad_inds,:]))
+
+    rad_scat_coefs = material_scattering_coefficients(radwave);
+    reg_scat_coefs = material_scattering_coefficients(wave_reg);
+
+    @test abs(rad_scat_coefs[1] - reg_scat_coefs[1]) < 1e-8 * abs(reg_scat_coefs[1])
+    @test norm(reg_scat_coefs[2:end])  < 1e-10 * abs(rad_scat_coefs[1])
 
 end
 # inds = findall(waves .!= nothing)

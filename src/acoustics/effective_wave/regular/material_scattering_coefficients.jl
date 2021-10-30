@@ -164,3 +164,24 @@ function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3
 
     return gaunt * vec
 end
+
+function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},RadialSymmetry{3}}) where T
+
+    # Unpacking parameters
+    k = wavemode.ω / wavemode.medium.c
+    k_eff = wavemode.wavenumber
+    R = outer_radius(wavemode.material.shape)
+
+    species = wavemode.material.species
+    S = length(species)
+    rs = outer_radius.(species)
+
+    L = wavemode.basis_order
+
+    Fscat0 = sum(
+        sqrt(T(4pi)) * wavemode.eigenvectors[i] * (2*(i[1]-1) + 1) * T(-1)^(i[1]-1) *
+        (R - rs[i[2]]) * kernelM(i[1]-1, k*(R - rs[i[2]]), k_eff*(R - rs[i[2]])) * number_density(species[i[2]])
+    for i in CartesianIndices(wavemode.eigenvectors)) / (k_eff^T(2) - k^T(2))
+
+    return [Fscat0]
+end
