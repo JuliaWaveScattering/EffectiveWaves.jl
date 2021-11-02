@@ -178,9 +178,9 @@ end
 
 function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::RadialSymmetry{Dim};
         basis_order::Int = 1,
-        basis_field_order::Int = 2,
-        legendre_order::Int = basis_field_order + 1,
-        mesh_points::Int = Int(round(sqrt(1.1 * (basis_field_order) * legendre_order ))) + 1,
+        basis_field_order::Int = Int(round(T(2) * real(ω / source.medium.c) * outer_radius(material.shape))) + 1,
+        legendre_order::Int = basis_field_order,
+        mesh_points::Int = Int(round(sqrt(1.1 * legendre_order ))) + 1,
         rtol::T = 1e-2,
         maxevals::Int = Int(2e4),
         pair_corr = hole_correction_pair_correlation
@@ -196,7 +196,7 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
 
     R = outer_radius(material.shape)
 
-    gs = regular_spherical_coefficients(source)(basis_field_order,origin(material.shape),ω);
+    g0 = regular_spherical_coefficients(source)(1,origin(material.shape),ω)[1];
 
     v = regular_basis_function(source.medium,  ω)
 
@@ -204,37 +204,34 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
         basis_order = basis_order, tol = rtol
     )
 
-    ns_to_l1s = lm_to_spherical_harmonic_index.(0:basis_field_order,0)
+    lm_to_n = lm_to_spherical_harmonic_index
+    ns_to_l1s = lm_to_n.(0:basis_order,0)
 
     t_matrices = get_t_matrices(source.medium, material.species, ω, basis_order)
     t_diags = diag.(t_matrices)
+    tls = t_diags[1][ns_to_l1s] .* (-T(1)).^(0:basis_order)
 
     rθφ2xyz = radial_to_cartesian_coordinates
 
     r1s = LinRange(0,R-outer_radius(s1), mesh_points)
-    θ1s = LinRange(0,π, mesh_points)
 
-    len = basisorder_to_basislength(Acoustic{T,Dim}, basis_order)
-    len_p = legendre_order
+    len = basis_order + 1
+    len_p = legendre_order * len
 
     function incident_coefficients(r1s::AbstractVector{T})
-        lm2n = lm_to_spherical_harmonic_index
 
         coefs = [
             begin
-                vs = v(basis_order + basis_field_order, rθφ2xyz(SVector(r1,zero(T),zero(T))))
-                data = [
-                    t_diags[1][lm2n(l,0)] *
-                        sqrt(4pi) * (-1)^l * vs[lm2n(l,0)] * gs[lm2n(0,0)]
-                for l = 0:basis_order]
+                vs = v(basis_order, rθφ2xyz(SVector(r1,zero(T),zero(T))))
+                tls .* vs[ns_to_l1s]
             end
         for r1 in r1s][:];
 
-        return vcat(coefs...)
+        return vcat((sqrt(4pi) * g0) .* coefs...)
     end
 
     function field_basis(rθφ::AbstractVector{T})
-        Ys = spherical_harmonics(basis_field_order, rθφ[2], rθφ[3]);
+        Ys = conj.(spherical_harmonics(basis_order, rθφ[2], rθφ[3]));
         P = Legendre{T}()
 
         Prs = P[2 * rθφ[1] / (R - outer_radius(s1)) - one(T), 1:legendre_order]
@@ -243,8 +240,8 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
     end
 
 
-    function kernel_function(rθ1::SVector{2,T})
-        x1 = rθφ2xyz(SVector(rθ1[1],rθ1[2],zero(T)))
+    function kernel_function(r1::T)
+        x1 = rθφ2xyz([r1,zero(T),zero(T)])
         Kzero = zeros(Complex{T},len,len_p)
 
         fun = function (rθφ::SVector{3,T})
@@ -257,11 +254,14 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
             U = Uout(x1 - x2)
             U = U .* (bar_numdensity * pair_corr(x1,s1,x2,s1) * sin(rθφ[2]) * rθφ[1]^2)
 
-            return reshape(
-                [
-                    t_diags[1][n] * U[nd,n] * b2
-                for nd in 1:len for b2 in basis2[:,azi_inds(ms[nd])][:] for n in 1:len],
-            (len, :))
+            data = [
+                sum([
+                        t_diags[1][lm_to_n(l,0)] * U[lm_to_n(dl,dm),lm_to_n(l,0)] * b2
+                    for b2 in basis2[:,lm_to_n(dl,dm)][:] for l in 0:basis_order]
+                for dm = -dl:dl)
+            for dl in 0:basis_order];
+
+            return reshape(vcat(data...), (len, len_p))
         end
 
         return fun
@@ -271,14 +271,14 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
         basis1 = field_basis(rθφ1)
         return reshape(
             [
-                (nd == n) ? b1 : zero(Complex{T})
-            for nd in 1:len for b1 in basis1[:,azi_inds(ms[nd])][:] for n in 1:len],
+                (dl == l) ? b1 : zero(Complex{T})
+            for dl in 0:basis_order for b1 in basis1[:,lm_to_n(dl,0)][:] for l in 0:basis_order],
         (len, len_p))
     end
 
-    δφj(rθ1::SVector{2,T}) = δφj(SVector(rθ1[1],rθ1[2],zero(T)))
+    δφj(r1::T) = δφj([r1,zero(T),zero(T)])
 
-    test_ker = kernel_function(SVector(mean(r1s),θ1s[1]))
+    test_ker = kernel_function(mean(r1s))
     (I,E) = hcubature(test_ker, SVector(0.0,0.0,-π), SVector(R-outer_radius(s1),π,π);
         rtol=rtol, maxevals=maxevals
     );
@@ -290,15 +290,14 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
 
     Ks = [
         begin
-            rθ1 = SVector(r1,θ1)
-            ker = kernel_function(rθ1)
+            ker = kernel_function(r1)
             ker_integrated = hcubature(ker, SVector(0.0,0.0,-π), SVector(R-outer_radius(s1),π,π);
                 rtol=rtol, maxevals=maxevals
             )[1]
 
-            δφj(rθ1) - ker_integrated
+            δφj(r1) - ker_integrated
         end
-    for r1 in r1s, θ1 in θ1s][:];
+    for r1 in r1s];
 
     bigK = vcat(Ks...);
 

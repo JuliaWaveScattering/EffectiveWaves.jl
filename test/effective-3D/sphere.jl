@@ -89,6 +89,21 @@ pscat_field = scattering_field(pwavemode)
 # using Plots
 # using Statistics
 
+# For the radially symmetric problem
+rtol = 1e-2; maxevals = Int(1e4);
+
+field_order = max(basis_order,Int(round(basis_order/2 + basis_field_order/2)))
+legendre_order = (basis_order + 1)^2;
+
+pair_corr = hole_correction_pair_correlation;
+
+discrete_scat = discrete_system(ω, psource, material;
+    basis_order = basis_order,
+    basis_field_order = field_order,
+    legendre_order = legendre_order,
+    rtol = rtol, maxevals = maxevals
+);
+
 
 rtol = 1e-2; maxevals = Int(1e4);
 
