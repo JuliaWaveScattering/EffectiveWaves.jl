@@ -26,7 +26,7 @@ function scattering_field(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},W
             sum(wavemode.eigenvectors[ind,i2,i3] .* vs[nn1_to_n1[ind]]) # note here:  vs[nn1_to_n1[ind]]] == vs
         for ind in indices_same_n, i2 in i2s, i3 in i3s];
 
-        # Sum over species and different eigvectors
+        # Sum over different eigvectors
         vecs = sum(vecs, dims = 3)[:,:];
 
         # for only 1 species the code below gives the same
@@ -79,6 +79,36 @@ function scattering_field(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},S
     end
 
 end
+
+"""
+    scattering_field(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},RadialSymmetry{3}})
+
+In general ``F_{nn'} = \\delta_{m',-m} \\delta_{\\ell,\\ell'}(-1)^m F_{(\\ell,0),(\\ell,0)}``, so the scattering field is given by
+
+``\\langle f_n \\rangle (x) = \\sum_{n'} F_{nn'} \\mathrm v_{n'}(k_* x) =  F_{(\\ell,0),(\\ell,0)} (-1)^m \\mathrm v_{(\\ell,-m)}(k_* x)``
+"""
+function scattering_field(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},RadialSymmetry{3}}) where T
+    L = wavemode.basis_order
+    len = basisorder_to_basislength(Acoustic{T,3},L)
+
+    ls, ms = spherical_harmonics_indices(L)
+    inds = lm_to_spherical_harmonic_index.(ls,-ms)
+
+    v = regular_basis_function(wavemode.wavenumber, wavemode.medium)
+
+    function scat_field(x::AbstractVector{T})
+        vs =  v(L, x)
+        vs = vs[inds] .* (-one(T)) .^ ms
+
+        vecs = [
+            sum(wavemode.eigenvectors[ls[n]+1,i2,:]) * vs[n]
+        for n = 1:len, i2 = 1:size(wavemode.eigenvectors,2)];
+
+        return vecs
+    end
+end
+
+
 
 function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},WithoutSymmetry{3}}) where T
 

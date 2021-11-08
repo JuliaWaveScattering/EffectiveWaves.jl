@@ -17,7 +17,7 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
         basis_order::Int = 1,
         basis_field_order::Int = 2,
         legendre_order::Int = basis_field_order + 1,
-        mesh_points::Int = Int(round(sqrt(1.1 * (basis_field_order) * legendre_order ))) + 1,
+        mesh_points::Int = Int(round(sqrt(1.1 * (basis_field_order) * legendre_order ))) + 2,
         rtol::T = 1e-2,
         maxevals::Int = Int(2e4),
         pair_corr = hole_correction_pair_correlation
@@ -179,8 +179,8 @@ end
 function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::RadialSymmetry{Dim};
         basis_order::Int = 1,
         basis_field_order::Int = Int(round(T(2) * real(ω / source.medium.c) * outer_radius(material.shape))) + 1,
-        legendre_order::Int = basis_field_order,
-        mesh_points::Int = Int(round(sqrt(1.1 * legendre_order ))) + 1,
+        legendre_order::Int = basis_field_order + 1,
+        mesh_points::Int = Int(round(1.1 * legendre_order )) + 2,
         rtol::T = 1e-2,
         maxevals::Int = Int(2e4),
         pair_corr = hole_correction_pair_correlation
@@ -205,11 +205,10 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
     )
 
     lm_to_n = lm_to_spherical_harmonic_index
-    ns_to_l1s = lm_to_n.(0:basis_order,0)
+    ls_to_ns = lm_to_n.(0:basis_order,0)
 
     t_matrices = get_t_matrices(source.medium, material.species, ω, basis_order)
     t_diags = diag.(t_matrices)
-    tls = t_diags[1][ns_to_l1s] .* (-T(1)).^(0:basis_order)
 
     rθφ2xyz = radial_to_cartesian_coordinates
 
@@ -222,8 +221,8 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
 
         coefs = [
             begin
-                vs = v(basis_order, rθφ2xyz(SVector(r1,zero(T),zero(T))))
-                tls .* vs[ns_to_l1s]
+                vs = v(basis_order, rθφ2xyz([r1,zero(T),zero(T)]))
+                t_diags[1][ls_to_ns] .* vs[ls_to_ns] .* (-T(1)) .^ (0:basis_order)
             end
         for r1 in r1s][:];
 
@@ -238,7 +237,6 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
 
         return [Pr * Yθ for Pr in Prs, Yθ in Ys]
     end
-
 
     function kernel_function(r1::T)
         x1 = rθφ2xyz([r1,zero(T),zero(T)])
@@ -279,14 +277,14 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
     δφj(r1::T) = δφj([r1,zero(T),zero(T)])
 
     test_ker = kernel_function(mean(r1s))
-    (I,E) = hcubature(test_ker, SVector(0.0,0.0,-π), SVector(R-outer_radius(s1),π,π);
+    (maxvalue,estimate_error) = hcubature(test_ker, SVector(0.0,0.0,-π), SVector(R-outer_radius(s1),π,π);
         rtol=rtol, maxevals=maxevals
     );
 
     println("The estimated max coefficient of the integrated kernel is:")
-    println("I = ", maximum(abs.(I)) )
+    println(maximum(abs.(maxvalue)) )
     println("with an estimated error of: ")
-    println("E = ", E)
+    println(estimate_error)
 
     Ks = [
         begin
@@ -301,8 +299,7 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
 
     bigK = vcat(Ks...);
 
-    bs = incident_coefficients(r1s,θ1s);
-
+    bs = incident_coefficients(r1s);
     Fs = bigK \ bs;
 
     ## Alternative:
@@ -312,12 +309,15 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
         @warn "Numerical solution has a relative residual error of $(norm(bigK * Fs - bs) / norm(bs)), where the requested relative tolernance was: $rtol. This residual error can be decreased by increasing the basis_field_order (current value: $basis_field_order) for the field."
     end
 
-    function scattered_field(xs::Vector{T})
-        rθφ = cartesian_to_radial_coordinates(xs)
-        return δφj(rθφ) * Fs
-        # The factor exp(-im * m * φ) is due to azimuthal symmetry
-        # azi_factor = exp.((-im*rθφ[3]) .* ms)
-        # return azi_factor .* (as * field_basis(rθφ[1:2]))
+    function scattered_field(x::Vector{T})
+        rθφ = cartesian_to_radial_coordinates(x)
+        basis1 = field_basis(rθφ)
+
+        Fs = reshape(Fs, (legendre_order,len))
+
+        # F = [[k,dl] for dl in 0:basis_order for k = 1:3]
+        # basis1[k,(l,m)] * F[(k,l)]
+        return [sum(basis1[:, lm_to_n(l,m)] .* Fs[:,l+1]) for l = 0:basis_order for m = -l:l]
     end
 
     return scattered_field

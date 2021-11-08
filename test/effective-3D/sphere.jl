@@ -12,13 +12,16 @@ r = 1.0
 
 separation_ratio = 1.02
 
-ka = 0.4
+ka = 0.2
 k = ka / r
 
 vol_fraction = 0.1
 
 basis_order = Int(round(4. * ka)) .+ 1
 basis_field_order = Int(round(2.0 * k * R)) .+ 1
+
+basis_order = 1
+basis_field_order = 6
 # basis_field_order = 6
 
 # basis_order = 1;
@@ -32,7 +35,9 @@ s1 = Specie(
     number_density = vol_fraction / volume(Sphere(r)),
     exclusion_distance = separation_ratio
 );
+
 species = [s1]
+# species = [s1,s1]
 
 tol = 1e-7
 
@@ -40,8 +45,13 @@ tol = 1e-7
 
 psource = PlaneSource(medium, [0.0,0.0,1.0]);
 source = plane_source(medium; direction = [0.0,0.0,1.0])
+
 sourceradial =  regular_spherical_source(medium, [1.0+0.0im];
-   position = [0.0,0.0,0.0]
+   position = [0.0,0.0,0.0], symmetry = RadialSymmetry{3}()
+);
+
+sourceazi =  regular_spherical_source(medium, [1.0+0.0im];
+   position = [0.0,0.0,0.0], symmetry = AzimuthalSymmetry{3}()
 );
 
 region_shape = Sphere([0.0,0.0,0.0], R)
@@ -56,30 +66,44 @@ keffs = wavenumbers(ω, medium, species;
     mesh_size = 2.0,
     num_wavenumbers = 3,
     basis_order = basis_order,
+    # basis_order = basis_order,
     tol = tol,
     symmetry = PlanarAzimuthalSymmetry(),
     numberofparticles = material.numberofparticles
 )
 
-pwavemode = WaveMode(ω, k_low, psource, material;
-    basis_order = basis_order,
-    basis_field_order = basis_field_order
+# pwavemode = WaveMode(ω, k_low, psource, material;
+#     basis_order = basis_order,
+#     basis_field_order = basis_field_order
+# );
+#
+# pwavemode = WaveMode(ω, keffs[1], psource, material;
+#    basis_order = basis_order,
+#    basis_field_order = basis_field_order,
+#    source_basis_field_order = basis_field_order
+# );
+
+wavemode_azi = WaveMode(ω, keffs[1], sourceazi, material;
+   # basis_order = 0,
+   # basis_field_order = 0,
+   basis_order = basis_order,
+   basis_field_order = basis_field_order,
+   source_basis_field_order = basis_field_order
 );
 
-pwavemode = WaveMode(ω, keffs[1], psource, material;
-       basis_order = basis_order,
-       basis_field_order = basis_field_order,
-       source_basis_field_order = basis_field_order
-   );
-
-wavemode = WaveMode(ω, keffs[1], source, material;
+wavemode = WaveMode(ω, keffs[1], sourceradial, material;
     basis_order = basis_order,
     basis_field_order = basis_field_order,
     source_basis_field_order = basis_field_order
 );
 
 scat_field = scattering_field(wavemode)
-pscat_field = scattering_field(pwavemode)
+scat_field_azi = scattering_field(wavemode_azi)
+
+# xs = [ radial_to_cartesian_coordinates([(R - outer_radius(s1)) * rand(),pi * rand(), pi * rand()]) for i in 1:1000];
+# maximum(norm.(scat_field.(xs) - scat_field_azi.(xs)) ./ norm.(scat_field.(xs))) < 1e-10
+
+# pscat_field = scattering_field(pwavemode)
 
 # res = discrete_system_residue(pscat_field, ω, source, material, AzimuthalSymmetry{3}();
 #     basis_order = basis_order, mesh_points = 5,
@@ -92,50 +116,75 @@ pscat_field = scattering_field(pwavemode)
 # For the radially symmetric problem
 rtol = 1e-2; maxevals = Int(1e4);
 
-field_order = max(basis_order,Int(round(basis_order/2 + basis_field_order/2)))
-legendre_order = (basis_order + 1)^2;
-
 pair_corr = hole_correction_pair_correlation;
 
-discrete_scat = discrete_system(ω, psource, material;
+discrete_scat = discrete_system(ω, sourceradial, material;
+    # basis_order = 0,
+    # basis_field_order = 0,
     basis_order = basis_order,
-    basis_field_order = field_order,
-    legendre_order = legendre_order,
+    basis_field_order = basis_field_order,
+    # mesh_points = 3,
+    # legendre_order = 3,
     rtol = rtol, maxevals = maxevals
 );
 
 
-rtol = 1e-2; maxevals = Int(1e4);
-
-field_order = max(basis_order,Int(round(basis_order/2 + basis_field_order/2)))
-legendre_order = field_order + 1;
-
-pair_corr = hole_correction_pair_correlation;
-
-discrete_scat = discrete_system(ω, psource, material;
+# rtol = 1e-2; maxevals = Int(1e4);
+#
+# field_order = max(basis_order,Int(round(basis_order/2 + basis_field_order/2)))
+# legendre_order = field_order + 1;
+#
+# pair_corr = hole_correction_pair_correlation;
+#
+discrete_scat_azi = discrete_system(ω, sourceazi, material;
+    # basis_order = 0,
+    # basis_field_order = 0,
+    # mesh_points = 3,
+    # legendre_order = 3,
     basis_order = basis_order,
-    basis_field_order = field_order,
-    legendre_order = legendre_order,
+    basis_field_order = basis_field_order,
     rtol = rtol, maxevals = maxevals
 );
+
 
 # xs = [ [cos(θ), sin(θ), 1.1] for θ in 0.0:0.6:(2π), r in LinRange(0.0,R,)]
-xs = [ radial_to_cartesian_coordinates([R - 4*outer_radius(s1),θ,0.0]) for θ in 0.0:0.1:(π)];
-xs = [ radial_to_cartesian_coordinates([R - 4*outer_radius(s1),0.0,φ]) for φ in 0.0:0.1:(π)];
-xs = [ radial_to_cartesian_coordinates([r,0.0,0.0]) for r in 0.0:0.1:(R - 1.1 * outer_radius(s1))];
-xs = [ radial_to_cartesian_coordinates([(R - outer_radius(s1)) * rand(),pi * rand(), pi * rand()]) for i in 1:1000];
+# xs = [ radial_to_cartesian_coordinates([R - 4*outer_radius(s1),θ,0.0]) for θ in 0.0:0.1:(π)];
+# xs = [ radial_to_cartesian_coordinates([R - 4*outer_radius(s1),0.0,φ]) for φ in 0.0:0.1:(π)];
+rs = 0.0:0.1:(R - 1.1 * outer_radius(s1));
+xs = [ radial_to_cartesian_coordinates([r,0.0,0.0]) for r in rs];
+# xs = [ radial_to_cartesian_coordinates([(R - outer_radius(s1)) * rand(),pi * rand(), pi * rand()]) for i in 1:1000];
+# xs = [ radial_to_cartesian_coordinates([(R - outer_radius(s1)) * rand(),pi * rand(), pi * rand()]) for i in 1:10];
 # xs = [xs; [ radial_to_cartesian_coordinates([2.1*r,θ,0.0]) for θ in 0.0:0.1:(π)]];
 # xs = [ radial_to_cartesian_coordinates([r,0.0,0.0]) for θ in 0.0:0.1:(R-r)];
 
-pdata = pscat_field.(xs);
-data = scat_field.(xs);
+# pdata = pscat_field.(xs);
 
+ns = lm_to_spherical_harmonic_index.(0:basis_order,0)
+
+data_azi = scat_field_azi.(xs);
+data = scat_field_azi.(xs);
 scatdata = discrete_scat.(xs);
+scatdata_azi = discrete_scat_azi.(xs);
 
+# data4 = deepcopy(data)
 
-maximum(norm.(data - pdata) ./ norm.(pdata))
-maximum(norm.(scatdata - pdata) ./ norm.(pdata))
-mean(norm.(scatdata - pdata) ./ norm.(pdata))
+data[1][ns]
+scatdata_azi[1][ns]
+scatdata[1][ns]
+
+maximum(norm.(data_azi - data) ./ norm.(data))
+maximum(norm.(scatdata - data) ./ norm.(data))
+maximum(norm.(scatdata_azi - data) ./ norm.(data))
+maximum(norm.(scatdata_azi - scatdata) ./ norm.(scatdata))
+
+mean(norm.(data_azi - data) ./ norm.(data))
+mean(norm.(scatdata - data) ./ norm.(data))
+mean(norm.(scatdata_azi - data) ./ norm.(data))
+mean(norm.(scatdata_azi - scatdata) ./ norm.(scatdata))
+
+findmax(norm.(scatdata - data) ./ norm.(data))
+
+f = imag; plot(rs, [[f(s[1]) for s in scatdata], [f(s[1]) for s in data]])
 
 # pdata0 = [d[1] for d in pdata];
 # pdata1 = [d[3] for d in pdata];
