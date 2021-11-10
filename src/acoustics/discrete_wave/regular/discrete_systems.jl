@@ -173,7 +173,8 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
         # return azi_factor .* (as * field_basis(rθφ[1:2]))
     end
 
-    return scattered_field
+
+    return ScatteringCoefficientsField(ω, source.medium, material, scattered_field; symmetry = AzimuthalSymmetry{Dim}())
 end
 
 function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::RadialSymmetry{Dim};
@@ -320,7 +321,7 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
         return [sum(basis1[:, lm_to_n(l,m)] .* Fs[:,l+1]) for l = 0:basis_order for m = -l:l]
     end
 
-    return scattered_field
+    return ScatteringCoefficientsField(ω, source.medium, material, scattered_field; symmetry = RadialSymmetry{Dim}())
 end
 
 """

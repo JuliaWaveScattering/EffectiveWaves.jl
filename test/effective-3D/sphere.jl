@@ -12,23 +12,15 @@ r = 1.0
 
 separation_ratio = 1.02
 
-ka = 0.2
-k = ka / r
+kas = [0.01,0.2]
+ks = kas ./ r
 
-vol_fraction = 0.1
+vol_fraction = 0.12
 
-basis_order = Int(round(4. * ka)) .+ 1
-basis_field_order = Int(round(2.0 * k * R)) .+ 1
+basis_orders = Int.(round.(4. .* kas)) .+ 1
+basis_field_orders = Int.(round.(2.0 .* ks .* R)) .+ 1
 
-basis_order = 1
-basis_field_order = 6
-# basis_field_order = 6
-
-# basis_order = 1;
-# basis_field_order = 6;
-# basis_field_order = 10;
-
-ω = k * real(medium.c)
+ωs = ks .* real(medium.c)
 
 s1 = Specie(
     particle_medium, Sphere(r);
@@ -41,7 +33,7 @@ species = [s1]
 
 tol = 1e-7
 
-# eff_medium = effective_medium(medium, species)
+eff_medium = effective_medium(medium, species)
 
 psource = PlaneSource(medium, [0.0,0.0,1.0]);
 source = plane_source(medium; direction = [0.0,0.0,1.0])
@@ -58,44 +50,63 @@ region_shape = Sphere([0.0,0.0,0.0], R)
 material = Material(Sphere(R),species);
 
 eff_medium = effective_medium(medium, species; numberofparticles = material.numberofparticles)
-k_low = ω / eff_medium.c
+ks_low = ωs ./ eff_medium.c
 
-keffs = wavenumbers(ω, medium, species;
-    # num_wavenumbers = 2,
-    mesh_points = 10,
-    mesh_size = 2.0,
-    num_wavenumbers = 3,
-    basis_order = basis_order,
-    # basis_order = basis_order,
-    tol = tol,
-    symmetry = PlanarAzimuthalSymmetry(),
-    numberofparticles = material.numberofparticles
-)
+keff_arr = [
+    wavenumbers(ωs[i], medium, species;
+        # num_wavenumbers = 4,
+        basis_order = basis_orders[i],
+        tol = tol,
+        numberofparticles = material.numberofparticles
+    )
+for i in eachindex(ωs)]
 
-# pwavemode = WaveMode(ω, k_low, psource, material;
-#     basis_order = basis_order,
-#     basis_field_order = basis_field_order
-# );
-#
-# pwavemode = WaveMode(ω, keffs[1], psource, material;
-#    basis_order = basis_order,
-#    basis_field_order = basis_field_order,
-#    source_basis_field_order = basis_field_order
-# );
+keffs = [ks[1] for ks in keff_arr]
 
-wavemode_azi = WaveMode(ω, keffs[1], sourceazi, material;
-   # basis_order = 0,
-   # basis_field_order = 0,
-   basis_order = basis_order,
-   basis_field_order = basis_field_order,
-   source_basis_field_order = basis_field_order
-);
+## Plane wave reflection from a sphere
+    rs = 0.0:0.1:(R - 1.1 * outer_radius(s1));
+    xs = [ radial_to_cartesian_coordinates([r,0.0,0.0]) for r in rs];
 
-wavemode = WaveMode(ω, keffs[1], sourceradial, material;
-    basis_order = basis_order,
-    basis_field_order = basis_field_order,
-    source_basis_field_order = basis_field_order
-);
+    ## effective waves solution
+    pwavemodes_azi = [
+        WaveMode(ωs[i], keffs[i], psource, material;
+           basis_order = basis_orders[i],
+           basis_field_order = basis_field_orders[i]
+           , source_basis_field_order = basis_field_orders[i]
+        )
+    for i in eachindex(ωs)];
+
+    pscat_fields = scattering_field.(pwavemodes_azi);
+
+    ## discrete numerical solution of the average integral equations
+    rtol = 1e-2; maxevals = Int(1e4);
+    discrete_fields = [
+        coeff_field = discrete_system(ωs[i], psource, material;
+            basis_order = basis_orders[i],
+            basis_field_order = basis_field_orders[i],
+            rtol = rtol, maxevals = maxevals
+        )
+    for i in eachindex(ωs)]
+
+    d1 = coeff_field.coefficient_field.(xs);
+    d2 = pscat_fields[1].(xs);
+    norm.(d1 - d2) ./ norm.(d2)
+
+wavemodes_azi = [
+    WaveMode(ωs[i], keffs[i], sourceazi, material;
+       basis_order = basis_orders[i],
+       basis_field_order = basis_field_orders[i]
+       # , source_basis_field_order = basis_field_order
+    )
+for i in eachindex(ωs)]
+
+wavemodes_radial = [
+    WaveMode(ωs[i], keffs[i], sourceradial, material;
+       basis_order = basis_orders[i],
+       basis_field_order = basis_field_orders[i]
+       # , source_basis_field_order = basis_field_order
+    )
+for i in eachindex(ωs)]
 
 scat_field = scattering_field(wavemode)
 scat_field_azi = scattering_field(wavemode_azi)
@@ -125,24 +136,6 @@ discrete_scat = discrete_system(ω, sourceradial, material;
     basis_field_order = basis_field_order,
     # mesh_points = 3,
     # legendre_order = 3,
-    rtol = rtol, maxevals = maxevals
-);
-
-
-# rtol = 1e-2; maxevals = Int(1e4);
-#
-# field_order = max(basis_order,Int(round(basis_order/2 + basis_field_order/2)))
-# legendre_order = field_order + 1;
-#
-# pair_corr = hole_correction_pair_correlation;
-#
-discrete_scat_azi = discrete_system(ω, sourceazi, material;
-    # basis_order = 0,
-    # basis_field_order = 0,
-    # mesh_points = 3,
-    # legendre_order = 3,
-    basis_order = basis_order,
-    basis_field_order = basis_field_order,
     rtol = rtol, maxevals = maxevals
 );
 

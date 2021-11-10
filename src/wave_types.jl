@@ -111,3 +111,20 @@ struct EffectiveRegularWaveMode{T<:AbstractFloat,Dim,P<:PhysicalMedium{T,Dim},S<
 end
 
 Symmetry(wave::EffectiveRegularWaveMode{T,Dim,P,S}) where {T,Dim,P,S} = S()
+
+
+struct ScatteringCoefficientsField{T<:AbstractFloat,Sh<:Shape, P<:PhysicalMedium,S<:AbstractSymmetry}
+    ω::T
+    medium::P
+    material::Material
+    coefficient_field::Function
+end
+
+"""
+    ScatteringCoefficientsField(ω::T, medium::P, material::Material{Dim}, coefficient_field::Function; symmetry::AbstractSymmetry{Dim} = WithoutSymmetry{T,Dim})
+
+A type to hold the results of methods which produce a function of the scattering field
+"""
+function ScatteringCoefficientsField(ω::T, medium::P, material::Material{Dim}, coefficient_field::Function; symmetry::AbstractSymmetry{Dim} = WithoutSymmetry{T,Dim}()) where {T,Dim,P<:PhysicalMedium}
+    return ScatteringCoefficientsField{T,typeof(material.shape),P,typeof(symmetry)}(ω,medium,material,coefficient_field)
+end
