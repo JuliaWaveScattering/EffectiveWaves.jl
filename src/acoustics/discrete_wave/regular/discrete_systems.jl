@@ -175,7 +175,7 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
 
 
     return ScatteringCoefficientsField(ω, source.medium, material, scattered_field;
-        symmetry = AzimuthalSymmetry{Dim}()),
+        symmetry = AzimuthalSymmetry{Dim}(),
         basis_order = basis_order,
         basis_field_order = basis_field_order
     )
