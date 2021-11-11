@@ -18,7 +18,7 @@ ks = kas ./ r
 vol_fraction = 0.12
 
 basis_orders = Int.(round.(4. .* kas)) .+ 1
-basis_field_orders = Int.(round.(3.0 .* ks .* R)) .+ 1
+basis_field_orders = Int.(round.(4.0 .* ks .* R)) .+ 1
 basis_field_orders = max.(basis_field_orders,2)
 
 ωs = ks .* real(medium.c)
@@ -65,8 +65,6 @@ for i in eachindex(ωs)]
 keffs = [ks[1] for ks in keff_arr]
 
 ## Plane wave reflection from a sphere
-    rs = 0.0:0.1:(R - 1.1 * outer_radius(s1));
-    xs = [ radial_to_cartesian_coordinates([r,0.0,0.0]) for r in rs];
 
     ## effective waves solution
     pwavemodes_azi = [
@@ -81,9 +79,15 @@ keffs = [ks[1] for ks in keff_arr]
 
     ## discrete numerical solution of the average integral equations
 
-    # increasing these parameters does lead to more accurate solutions, but convergences is slow
+    # increasing these parameters does lead to more accurate solutions, but convergences is slow. To increase accuracy you need to increase basis_field_order and maxevals.
     rtol = 1e-2; maxevals = Int(1e4);
-    discrete_fields = ScatteringCoefficientsField{Float64,Sphere{Float64,3},Acoustic{Float64,3},AzimuthalSymmetry{3}}[
+
+    # this below is just to get the typeof tmp, to then avoid a weird unionall error which should hopefully go away when updating Julia at some point
+    tmp = discrete_system(ωs[1], psource, material;
+        basis_order = 0, basis_field_order = 0, rtol = 1.0, maxevals = 4
+    );
+    ST = typeof(tmp);
+    discrete_fields = ST[
         discrete_system(ωs[i], psource, material;
             basis_order = basis_orders[i],
             basis_field_order = basis_field_orders[i],
@@ -91,123 +95,88 @@ keffs = [ks[1] for ks in keff_arr]
         )
     for i in eachindex(ωs)];
 
+    # avoid right next to the surface due the boundary layer
+    rs = 0.0:0.1:(R - 2.1 * outer_radius(s1));
+    xs = [ radial_to_cartesian_coordinates([r,0.2,1.2]) for r in rs];
+
     errors = [norm.(discrete_fields[i].coefficient_field.(xs) - pscat_fields[i].(xs)) ./ norm.(pscat_fields[i].(xs)) for i in eachindex(ωs)];
 
-    @test minimum(mean.(errors)) < 0.01
-    @test maximum(mean.(errors)) < 0.04
-    @test minimum(maximum.(errors)) < 0.03
-    @test maximum(maximum.(errors)) < 0.1
+    @test maximum(mean.(errors)) < 0.01
+    @test maximum(maximum.(errors)) < 0.04
 
+    # The scattering coefficients from the whole sphere has a smaller error. Indicating that the errors above occur more on the higher order modes which are weaker
     mat_coefs_pwaves = material_scattering_coefficients.(pwavemodes_azi);
-
-    # inds = findall(abs.(mat_coefs_pwave) .> 1e-6)
-
-    # material_scattering_coefficients(wavemode)
-
-    mat_coefs_field = material_scattering_coefficients_discrete(discrete_fields[2];
+    mat_coefs_discretes = material_scattering_coefficients_discrete.(discrete_fields;
         rtol = rtol,
         maxevals = maxevals
     );
 
-    L = length(mat_coefs_pdisc)
+    errors = [abs(norm(mat_coefs_pwaves[i][1:length(mat_coefs_discretes[i])]) / norm(mat_coefs_discretes[i]) - 1.0) for i in eachindex(ωs)];
+    @test errors[1] < 2e-4
+    @test errors[2] < 3e-3
 
+## Radially symmetric scattering from a sphere
 
+    wavemodes_azi = [
+        WaveMode(ωs[i], keffs[i], sourceazi, material;
+           basis_order = basis_orders[i],
+           basis_field_order = basis_field_orders[i]
+        )
+    for i in eachindex(ωs)];
 
-wavemodes_azi = [
-    WaveMode(ωs[i], keffs[i], sourceazi, material;
-       basis_order = basis_orders[i],
-       basis_field_order = basis_field_orders[i]
-       # , source_basis_field_order = basis_field_order
-    )
-for i in eachindex(ωs)]
+    wavemodes_radial = [
+        WaveMode(ωs[i], keffs[i], sourceradial, material;
+           basis_order = basis_orders[i],
+           basis_field_order = basis_field_orders[i]
+        )
+    for i in eachindex(ωs)];
 
-wavemodes_radial = [
-    WaveMode(ωs[i], keffs[i], sourceradial, material;
-       basis_order = basis_orders[i],
-       basis_field_order = basis_field_orders[i]
-       # , source_basis_field_order = basis_field_order
-    )
-for i in eachindex(ωs)]
+    scat_fields_azi = scattering_field.(wavemodes_azi);
+    scat_fields_radial = scattering_field.(wavemodes_radial);
 
-scat_field = scattering_field(wavemode)
-scat_field_azi = scattering_field(wavemode_azi)
+    # pscat_field = scattering_field(pwavemode)
 
-# xs = [ radial_to_cartesian_coordinates([(R - outer_radius(s1)) * rand(),pi * rand(), pi * rand()]) for i in 1:1000];
-# maximum(norm.(scat_field.(xs) - scat_field_azi.(xs)) ./ norm.(scat_field.(xs))) < 1e-10
+    # res = discrete_system_residue(pscat_field, ω, source, material, AzimuthalSymmetry{3}();
+    #     basis_order = basis_order, mesh_points = 5,
+    #     rtol = 1e-2, maxevals = Int(1e4)
+    # )
 
-# pscat_field = scattering_field(pwavemode)
+    rtol = 1e-2; maxevals = Int(1e4);
+    # this below is just to get the typeof tmp, to then avoid a weird unionall error which should hopefully go away when updating Julia at some point
+    tmp = discrete_system(ωs[1], sourceradial, material;
+        basis_order = 0, basis_field_order = 0, rtol = 1.0, maxevals = 4
+    );
+    ST = typeof(tmp);
+    discrete_fields = ST[
+        discrete_system(ωs[i], sourceradial, material;
+            basis_order = basis_orders[i],
+            basis_field_order = basis_field_orders[i],
+            rtol = rtol, maxevals = maxevals
+        )
+    for i in eachindex(ωs)];
 
-# res = discrete_system_residue(pscat_field, ω, source, material, AzimuthalSymmetry{3}();
-#     basis_order = basis_order, mesh_points = 5,
-#     rtol = 1e-2, maxevals = Int(1e4)
-# )
+    xs = [ radial_to_cartesian_coordinates([r,0.0,0.0]) for r in rs];
 
-# using Plots
-# using Statistics
+    eff_scats_azi = [s.(xs) for s in scat_fields_azi];
+    eff_scats_radial = [s.(xs) for s in scat_fields_radial];
+    discrete_scats = [d.coefficient_field.(xs) for d in discrete_fields];
 
-# For the radially symmetric problem
-rtol = 1e-2; maxevals = Int(1e4);
+    # assuming radial or azimuthal symmetry should lead to exactly the same fields
+    errors = [
+        norm.(eff_scats_radial[i] - eff_scats_azi[i]) ./ norm.(eff_scats_radial[i])
+    for i in eachindex(ωs)];
 
-pair_corr = hole_correction_pair_correlation;
+    @test maximum(maximum.(errors)) < 1e-10
 
-discrete_scat = discrete_system(ω, sourceradial, material;
-    # basis_order = 0,
-    # basis_field_order = 0,
-    basis_order = basis_order,
-    basis_field_order = basis_field_order,
-    # mesh_points = 3,
-    # legendre_order = 3,
-    rtol = rtol, maxevals = maxevals
-);
+    # the discrete method does have a difference
+    errors = [
+        norm.(eff_scats_radial[i] - discrete_scats[i]) ./ norm.(eff_scats_radial[i])
+    for i in eachindex(ωs)];
 
+    @test minimum(mean.(errors)) < 1e-4
+    @test maximum(mean.(errors)) < 1e-3
+    @test maximum(maximum.(errors)) < 2e-3
 
-# xs = [ [cos(θ), sin(θ), 1.1] for θ in 0.0:0.6:(2π), r in LinRange(0.0,R,)]
-# xs = [ radial_to_cartesian_coordinates([R - 4*outer_radius(s1),θ,0.0]) for θ in 0.0:0.1:(π)];
-# xs = [ radial_to_cartesian_coordinates([R - 4*outer_radius(s1),0.0,φ]) for φ in 0.0:0.1:(π)];
-rs = 0.0:0.1:(R - 1.1 * outer_radius(s1));
-xs = [ radial_to_cartesian_coordinates([r,0.0,0.0]) for r in rs];
-# xs = [ radial_to_cartesian_coordinates([(R - outer_radius(s1)) * rand(),pi * rand(), pi * rand()]) for i in 1:1000];
-# xs = [ radial_to_cartesian_coordinates([(R - outer_radius(s1)) * rand(),pi * rand(), pi * rand()]) for i in 1:10];
-# xs = [xs; [ radial_to_cartesian_coordinates([2.1*r,θ,0.0]) for θ in 0.0:0.1:(π)]];
-# xs = [ radial_to_cartesian_coordinates([r,0.0,0.0]) for θ in 0.0:0.1:(R-r)];
-
-# pdata = pscat_field.(xs);
-
-ns = lm_to_spherical_harmonic_index.(0:basis_order,0)
-
-data_azi = scat_field_azi.(xs);
-data = scat_field_azi.(xs);
-scatdata = discrete_scat.(xs);
-scatdata_azi = discrete_scat_azi.(xs);
-
-# data4 = deepcopy(data)
-
-data[1][ns]
-scatdata_azi[1][ns]
-scatdata[1][ns]
-
-maximum(norm.(data_azi - data) ./ norm.(data))
-maximum(norm.(scatdata - data) ./ norm.(data))
-maximum(norm.(scatdata_azi - data) ./ norm.(data))
-maximum(norm.(scatdata_azi - scatdata) ./ norm.(scatdata))
-
-mean(norm.(data_azi - data) ./ norm.(data))
-mean(norm.(scatdata - data) ./ norm.(data))
-mean(norm.(scatdata_azi - data) ./ norm.(data))
-mean(norm.(scatdata_azi - scatdata) ./ norm.(scatdata))
-
-findmax(norm.(scatdata - data) ./ norm.(data))
-
-f = imag; plot(rs, [[f(s[1]) for s in scatdata], [f(s[1]) for s in data]])
-
-# pdata0 = [d[1] for d in pdata];
-# pdata1 = [d[3] for d in pdata];
-#
-# pdata11 = [d[4] for d in pdata];
-# pdata1m1 = [d[2] for d in pdata];
-#
-# data0 = [d[1] for d in data];
-# data1 = [d[3] for d in data];
 
 mat_coefs_pwave = material_scattering_coefficients(pwavemode);
 
