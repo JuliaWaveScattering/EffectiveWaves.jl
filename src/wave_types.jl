@@ -118,6 +118,8 @@ struct ScatteringCoefficientsField{T<:AbstractFloat,Sh<:Shape, P<:PhysicalMedium
     medium::P
     material::Material
     coefficient_field::Function
+    basis_order::Int
+    basis_field_order::Int
 end
 
 """
@@ -125,6 +127,10 @@ end
 
 A type to hold the results of methods which produce a function of the scattering field
 """
-function ScatteringCoefficientsField(ω::T, medium::P, material::Material{Dim}, coefficient_field::Function; symmetry::AbstractSymmetry{Dim} = WithoutSymmetry{T,Dim}()) where {T,Dim,P<:PhysicalMedium}
-    return ScatteringCoefficientsField{T,typeof(material.shape),P,typeof(symmetry)}(ω,medium,material,coefficient_field)
+function ScatteringCoefficientsField(ω::T, medium::P, material::Material{Dim}, coefficient_field::Function;
+        symmetry::AbstractSymmetry{Dim} = WithoutSymmetry{T,Dim}(),
+        basis_order::Int = basislength_to_basisorder(P,length(coefficient_field(origin(material.shape)))),
+        basis_field_order::Int = 0
+    ) where {T,Dim,P<:PhysicalMedium}
+    return ScatteringCoefficientsField{T,typeof(material.shape),P,typeof(symmetry)}(ω,medium,material,coefficient_field,basis_order,basis_field_order)
 end

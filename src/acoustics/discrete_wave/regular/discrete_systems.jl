@@ -165,7 +165,7 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
         @warn "Numerical solution has a relative residual error of $(norm(bigK * Fs - bs) / norm(bs)), where the requested relative tolernance was: $rtol. This residual error can be decreased by increasing the basis_field_order (current value: $basis_field_order) for the field."
     end
 
-    function scattered_field(xs::Vector{T})
+    function scattered_field(xs::AbstractVector{T})
         rθφ = cartesian_to_radial_coordinates(xs)
         return δφj(rθφ) * Fs
         # The factor exp(-im * m * φ) is due to azimuthal symmetry
@@ -174,7 +174,11 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
     end
 
 
-    return ScatteringCoefficientsField(ω, source.medium, material, scattered_field; symmetry = AzimuthalSymmetry{Dim}())
+    return ScatteringCoefficientsField(ω, source.medium, material, scattered_field;
+        symmetry = AzimuthalSymmetry{Dim}()),
+        basis_order = basis_order,
+        basis_field_order = basis_field_order
+    )
 end
 
 function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::RadialSymmetry{Dim};
@@ -310,7 +314,7 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
         @warn "Numerical solution has a relative residual error of $(norm(bigK * Fs - bs) / norm(bs)), where the requested relative tolernance was: $rtol. This residual error can be decreased by increasing the basis_field_order (current value: $basis_field_order) for the field."
     end
 
-    function scattered_field(x::Vector{T})
+    function scattered_field(x::AbstractVector{T})
         rθφ = cartesian_to_radial_coordinates(x)
         basis1 = field_basis(rθφ)
 
@@ -321,7 +325,11 @@ function discrete_system(ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, mater
         return [sum(basis1[:, lm_to_n(l,m)] .* Fs[:,l+1]) for l = 0:basis_order for m = -l:l]
     end
 
-    return ScatteringCoefficientsField(ω, source.medium, material, scattered_field; symmetry = RadialSymmetry{Dim}())
+    return ScatteringCoefficientsField(ω, source.medium, material, scattered_field;
+        symmetry = RadialSymmetry{Dim}(),
+        basis_order = basis_order,
+        basis_field_order = basis_field_order
+    )
 end
 
 """

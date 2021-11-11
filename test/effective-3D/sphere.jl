@@ -1,5 +1,5 @@
 using EffectiveWaves
-using LinearAlgebra
+using LinearAlgebra, Statistics
 
 include("test_discrete_solution.jl")
 # Set parameters
@@ -7,7 +7,7 @@ particle_medium = Acoustic(3; ρ=0.01, c=0.01);
 particle_medium = Acoustic(3; ρ=10.0, c=10.0);
 medium = Acoustic(3; ρ=1.0, c=1.0);
 
-R = 8.0
+R = 5.0
 r = 1.0
 
 separation_ratio = 1.02
@@ -18,7 +18,8 @@ ks = kas ./ r
 vol_fraction = 0.12
 
 basis_orders = Int.(round.(4. .* kas)) .+ 1
-basis_field_orders = Int.(round.(2.0 .* ks .* R)) .+ 1
+basis_field_orders = Int.(round.(3.0 .* ks .* R)) .+ 1
+basis_field_orders = max.(basis_field_orders,2)
 
 ωs = ks .* real(medium.c)
 
@@ -79,18 +80,38 @@ keffs = [ks[1] for ks in keff_arr]
     pscat_fields = scattering_field.(pwavemodes_azi);
 
     ## discrete numerical solution of the average integral equations
+
+    # increasing these parameters does lead to more accurate solutions, but convergences is slow
     rtol = 1e-2; maxevals = Int(1e4);
-    discrete_fields = [
-        coeff_field = discrete_system(ωs[i], psource, material;
+    discrete_fields = ScatteringCoefficientsField{Float64,Sphere{Float64,3},Acoustic{Float64,3},AzimuthalSymmetry{3}}[
+        discrete_system(ωs[i], psource, material;
             basis_order = basis_orders[i],
             basis_field_order = basis_field_orders[i],
             rtol = rtol, maxevals = maxevals
         )
-    for i in eachindex(ωs)]
+    for i in eachindex(ωs)];
 
-    d1 = coeff_field.coefficient_field.(xs);
-    d2 = pscat_fields[1].(xs);
-    norm.(d1 - d2) ./ norm.(d2)
+    errors = [norm.(discrete_fields[i].coefficient_field.(xs) - pscat_fields[i].(xs)) ./ norm.(pscat_fields[i].(xs)) for i in eachindex(ωs)];
+
+    @test minimum(mean.(errors)) < 0.01
+    @test maximum(mean.(errors)) < 0.04
+    @test minimum(maximum.(errors)) < 0.03
+    @test maximum(maximum.(errors)) < 0.1
+
+    mat_coefs_pwaves = material_scattering_coefficients.(pwavemodes_azi);
+
+    # inds = findall(abs.(mat_coefs_pwave) .> 1e-6)
+
+    # material_scattering_coefficients(wavemode)
+
+    mat_coefs_field = material_scattering_coefficients_discrete(discrete_fields[2];
+        rtol = rtol,
+        maxevals = maxevals
+    );
+
+    L = length(mat_coefs_pdisc)
+
+
 
 wavemodes_azi = [
     WaveMode(ωs[i], keffs[i], sourceazi, material;

@@ -2,7 +2,7 @@
 module EffectiveWaves
 
 # Here are the main exported functions and types. Note there are other exported functions and types in files such as "effective_wave/export.jl" and "discrete_wave/export.jl"
-export  EffectivePlaneWaveMode, EffectiveRegularWaveMode
+export  EffectivePlaneWaveMode, EffectiveRegularWaveMode, ScatteringCoefficientsField
 
 export  DiscretePlaneWaveMode
 export  MatchPlaneWaveMode # a combination of the Discrete and Effective modes
