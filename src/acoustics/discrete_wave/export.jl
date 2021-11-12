@@ -12,5 +12,6 @@ include("planewaves/integral_form.jl")
 include("planewaves/reflection.jl")
 
 include("regular/discrete_systems.jl")
+include("regular/material_scattering_coefficients.jl")
 
 include("numerical_integration.jl")

@@ -71,7 +71,7 @@ include("match_waves/match_waves.jl")
 include("match_waves/match_arrays.jl")
 include("match_waves/reflection.jl")
 
-include("plot/graphics.jl")
-include("plot/plot.jl")
+include("../plot/graphics.jl")
+include("../plot/plot.jl")
 
 end # module

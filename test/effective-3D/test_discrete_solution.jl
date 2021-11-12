@@ -3,42 +3,6 @@ import EffectiveWaves: AbstractAzimuthalSymmetry
 
 using HCubature, Interpolations, Statistics
 
-function material_scattering_coefficients_discrete(scat_field::ScatteringCoefficientsField;
-        rtol::T = 1e-2,
-        maxevals::Int = Int(5e4)
-    ) where {T,Dim}
-
-
-    lm2n = lm_to_spherical_harmonic_index
-    rθφ2xyz = radial_to_cartesian_coordinates
-
-    v = regular_basis_function(scat_field.medium, scat_field.ω)
-
-    numdensity = number_density(scat_field.material.species)
-
-    function kernel(rθφ)
-        x = rθφ2xyz(rθφ)
-
-        vs = conj.(v(scat_field.basis_order + scat_field.basis_field_order, x))
-        fs = scat_field.coefficient_field(x)
-
-        (rθφ[1]^2 * sin(rθφ[2]) * numdensity) .* [
-            sum(
-                gaunt_coefficient(l,m,dl,dm,l1,m-dm) * vs[lm2n(l1,m-dm)] * fs[lm2n(dl,dm)]
-            for dl = 0:scat_field.basis_order for dm = -dl:dl for l1 in max(abs(m-dm),abs(dl-l)):(dl+l))
-        for l = 0:scat_field.basis_field_order for m = -l:l]
-    end
-
-    (v,err) = hcubature(kernel, SVector(0.0,0.0,-π), SVector(R-outer_radius(s1),π,π)
-        ; rtol=rtol, maxevals = maxevals
-    )
-
-    println("Integration error of $err")
-
-    return v
-
-end
-
 function discrete_system_residue(discrete_coefs, ω::T, source::AbstractSource{T,Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::AbstractAzimuthalSymmetry{Dim};
         basis_order::Int = 1,
         mesh_points::Int = 11,
