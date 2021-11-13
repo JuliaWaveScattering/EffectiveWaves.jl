@@ -12,6 +12,7 @@ function material_scattering_coefficients(scat_field::ScatteringCoefficientsFiel
     numdensity = number_density(scat_field.material.species)
 
     particle_radius = maximum(outer_radius.(scat_field.material.species))
+    R = outer_radius(scat_field.material.shape)
 
     function kernel(rθφ)
         x = rθφ2xyz(rθφ)
