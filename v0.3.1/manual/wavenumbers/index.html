@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Effective wavenumbers · EffectiveWaves.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">EffectiveWaves.jl</span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../introduction/">Quick introduction</a></li><li><a class="tocitem" href="../background/">Background</a></li><li class="is-active"><a class="tocitem" href>Effective wavenumbers</a><ul class="internal"><li><a class="tocitem" href="#Low-frequency"><span>Low frequency</span></a></li><li><a class="tocitem" href="#Low-volume-fraction"><span>Low volume fraction</span></a></li><li><a class="tocitem" href="#wavenumber_general"><span>The general case</span></a></li></ul></li><li><a class="tocitem" href="../reflection/">Reflection and transmission</a></li><li><a class="tocitem" href="../sphere/">Scattering from a sphere</a></li></ul></li><li><a class="tocitem" href="../../library/library/">Library</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../examples/vary_two_species/README/">Vary volume fraction of the two species</a></li><li><a class="tocitem" href="../../examples/equivalent-symmetries/README/">Equivalent symmetries</a></li><li><a class="tocitem" href="../../examples/matched_method/README/">A numerical matching method</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Manual</a></li><li class="is-active"><a href>Effective wavenumbers</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Effective wavenumbers</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/JuliaWaveScattering/EffectiveWaves.jl/blob/master/docs/src/manual/wavenumbers.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Effective-wavenumbers"><a class="docs-heading-anchor" href="#Effective-wavenumbers">Effective wavenumbers</a><a id="Effective-wavenumbers-1"></a><a class="docs-heading-anchor-permalink" href="#Effective-wavenumbers" title="Permalink"></a></h1><p>As the effective wavenumbers depend only on the microstructure, we need only specify the <a href="../../library/library/#EffectiveWaves.Specie"><code>Specie</code></a>s and the background&#39;s <a href="../../library/library/#MultipleScattering.PhysicalMedium"><code>PhysicalMedium</code></a>s properties. At present only <a href="../../library/library/#MultipleScattering.Acoustic"><code>Acoustic</code></a> mediums are defined.</p><p>In the background, this package solves the dispersion equation for plane-waves, as this is simpler. Though we are able to formulate and solve dispersion equations for other waves, see example ...</p><p>For the low frequency and low volume fraction limits, there exist simple analytic formulas that give only one effective wavenumber. Beyond these limits, there are multiple wavenumbers in the <a href="#wavenumber_general">general case</a>.</p><h2 id="Low-frequency"><a class="docs-heading-anchor" href="#Low-frequency">Low frequency</a><a id="Low-frequency-1"></a><a class="docs-heading-anchor-permalink" href="#Low-frequency" title="Permalink"></a></h2><p>In the low frequency limit there are explicit formulas for any volume fraction of particles. These formulas have been confirmed by a number of different analytic methods.</p><p>For acoustics in 3 dimensions we can calculate the effective properties, which we illustrate for the effective density <span>$\rho_*$</span> and bulk modulus <span>$\beta_*$</span>:</p><p class="math-container">\[\frac{1}{\beta_*} = \frac{1}{\beta} + \frac{\langle\Delta \beta_*\rangle}{\beta},\]</p><p class="math-container">\[\rho_* = \rho \frac{1 -\langle\Delta \rho_* \rangle}{1 + 2 \langle\Delta \rho_* \rangle},\]</p><p>where<sup class="footnote-reference"><a id="citeref-1" href="#footnote-1">[1]</a></sup></p><p class="math-container">\[\langle \Delta \beta_* \rangle  =  \sum_j \frac{\beta - \beta_j}{\beta_j}  \varphi_j,\]</p><p>and</p><p class="math-container">\[\langle \Delta \rho_* \rangle  =  \sum_j \frac{\rho - \rho_j}{\rho + 2 \rho_j}   \varphi_j,\]</p><p>where <span>$\varphi_j$</span> is the volume fraction occupied by the particles with the properties <span>$\beta_j$</span> and <span>$\rho_j$</span>, so that <span>$\sum_j \varphi_j = \varphi$</span>, the total particle volume fraction. Note that for spheres <span>$\varphi_j = \frac{4 \pi a_j^3}{3} n_j$</span>, where <span>$a_j$</span> is the radius of the <span>$j$</span> specie, and <span>$n_j$</span> is the number of particles of the <span>$j$</span> specie per volume.</p><p>We use the code below to calculate these quantities.</p><pre><code class="language-julia">spatial_dim = 3
+medium = Acoustic(spatial_dim; ρ=1.2, c=1.5)
+
+# Choose the species
+radius1 = 0.001
+s1 = Specie(
+    Acoustic(spatial_dim; ρ=10.2, c=10.1), radius1;
+    volume_fraction=0.2
+);
+
+radius2 = 0.002
+s2 = Specie(
+    Acoustic(spatial_dim; ρ=0.2, c=4.1), radius2;
+    volume_fraction=0.15
+);
+species = [s1,s2]
+
+# Choose the frequency
+ω = 1e-2
+k = ω / real(medium.c)
+
+# Check that we are indeed in a low frequency limit
+k * radius2 &lt; 1e-4
+
+# output
+
+true</code></pre><p>From these we can get the effective sound speed <span>$c_* = \sqrt{\beta_*/ \rho_*}$</span> and the effective wavenumber <span>$k_* = \omega / c_*$</span>.</p><pre><code class="language-julia">eff_medium = effective_medium(medium, species)
+eff_medium.c
+
+# output
+
+1.735082366476732 + 0.0im</code></pre><h2 id="Low-volume-fraction"><a class="docs-heading-anchor" href="#Low-volume-fraction">Low volume fraction</a><a id="Low-volume-fraction-1"></a><a class="docs-heading-anchor-permalink" href="#Low-volume-fraction" title="Permalink"></a></h2><p>In the limit of a low volume fraction of particles, there we again have explicit formulas. These formulas are more accurate for weak scatterers, i.e. particles that do not scatter much energy.</p><pre><code class="language-julia">
+# Choose the species
+radius1 = 0.3
+s1 = Specie(
+    Acoustic(spatial_dim; ρ=10.2, c=10.1), radius1;
+    volume_fraction=0.02
+);
+
+radius2 = 0.2
+s2 = Specie(
+    Acoustic(spatial_dim; ρ=0.2, c=4.1), radius2;
+    volume_fraction=0.03
+);
+species = [s1,s2]
+
+# Choose the frequency
+ω = 1.0</code></pre><p>As we are dealing with finite frequency, we can specify <code>basis_order</code> the number of multi-poles to consider. In 3D <code>basis_order</code> is maximum degree of the spherical harmonics. This parameter should be increased when increasing the frequency.</p><pre><code class="language-julia">basis_order = 2
+k1 = wavenumber_low_volumefraction(ω, medium, species; basis_order = basis_order)
+
+# output
+
+0.6477267068908865 + 3.20821643199973e-5im</code></pre><h2 id="wavenumber_general"><a class="docs-heading-anchor" href="#wavenumber_general">The general case</a><a id="wavenumber_general-1"></a><a class="docs-heading-anchor-permalink" href="#wavenumber_general" title="Permalink"></a></h2><p>In the general case, there are multiple effective wavenumbers <span>$k_p$</span> for the same incident frequency. These <span>$k_p$</span> require numerical optimisation to find (together with the help of asymptotics). This task can be the most computational demanding.</p><pre><code class="language-julia">
+# Choose the species
+radius1 = 0.3
+s1 = Specie(
+    Acoustic(spatial_dim; ρ=10.2, c=10.1), radius1;
+    volume_fraction=0.2
+);
+
+radius2 = 0.2
+s2 = Specie(
+    Acoustic(spatial_dim; ρ=0.2, c=4.1), radius2;
+    volume_fraction=0.1
+);
+species = [s1,s2]
+
+# Choose the frequency
+ω = 1.0
+
+# Calculate at least 5 of the effective wavenumbers
+kps = wavenumbers(ω, medium, species; basis_order = 2, num_wavenumbers = 5)</code></pre><p>If you have the <code>Plots</code> package installed, you can then visualise the result</p><pre><code class="language-julia">using Plots
+
+scatter(kps,
+    xlab = &quot;Im kp&quot;, ylab = &quot;Re kp&quot;, lab = &quot;&quot;
+    , title = &quot;Effective wavenumbers&quot;)</code></pre><p><img src="../../assets/multiple-wavenumbers.png" alt="multiple-wavenumbers.png"/></p><p>In this case there is one effective wavenumber <span>$k_1$</span> with an imaginary part much smaller than the others. This means that the wavemode <span>$\phi_1$</span> associated with <span>$k_1$</span>, see <a href="../background/#Background">Background</a>, is the only wavemode which makes a significant contribution.</p><p>However, be warned! It is easy to find a case where two effective wavenumbers become important. All we need to have is a specie that scatters wave strongly. Examples of this in acoustics are gas bubbles in a background liquid, or liquid/gas pockets in a background solid.</p><p>For example, we need only lower the sound speed of <code>s1</code> above:</p><pre><code class="language-julia">
+# Choose the species
+s2 = Specie(
+    Acoustic(spatial_dim; ρ=0.2, c=0.1), radius2;
+    volume_fraction=0.1
+);
+species = [s1,s2]
+
+# Calculate at least 5 of the effective wavenumbers
+kps = wavenumbers(ω, medium, species; basis_order = 2, num_wavenumbers = 5)</code></pre><p>If you have the <code>Plots</code> package installed, you can then visualise the result</p><pre><code class="language-julia">using Plots
+
+scatter(kps,
+    xlab = &quot;Im kp&quot;, ylab = &quot;Re kp&quot;, lab = &quot;&quot;
+    , title = &quot;Effective wavenumbers&quot;)</code></pre><p><img src="../../assets/multiple-wavenumbers-2.png" alt="multiple-wavenumbers.png"/></p><section class="footnotes is-size-7"><ul><li class="footnote" id="footnote-1"><a class="tag is-link" href="#citeref-1">1</a>The sums below are actually approximations of integrals over <span>$\varphi_j$</span>.</li></ul></section></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../background/">« Background</a><a class="docs-footer-nextpage" href="../reflection/">Reflection and transmission »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Tuesday 16 November 2021 17:00">Tuesday 16 November 2021</span>. Using Julia version 1.5.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
