@@ -36,7 +36,7 @@ where ``n`` is multi-index for 3 dimensions and ``s`` ranges from 1 to the numbe
 
 In 2D, inconvieniently, an extra factor of ``e^{i k \\mathbf v \\cdot \\mathbf x}`` needs to be multiplied on the right of the above equation where `θ` is calculated from [`transmission_angle`](@ref).
 """
-struct EffectivePlaneWaveMode{T<:AbstractFloat,Dim} <: AbstractWaveMode{T,Dim} #add: P<:PhysicalMedium{T,Dim}
+struct EffectivePlaneWaveMode{T<:AbstractFloat,Dim} <: AbstractWaveMode{T,Dim} #add: P<:PhysicalMedium{Dim}
     ω::T
     wavenumber::Complex{T}
     basis_order::Int
@@ -85,7 +85,7 @@ To translate the mathematics to Julia code we use
   * ``n_1 = `` `EffectiveRegularWaveMode.basis_field_order`
 
 """
-struct EffectiveRegularWaveMode{T<:AbstractFloat,Dim,P<:PhysicalMedium{T,Dim},S<:AbstractSymmetry{Dim}} <: AbstractRegularWaveMode{T,Dim}
+struct EffectiveRegularWaveMode{T<:AbstractFloat,Dim,P<:PhysicalMedium{Dim},S<:AbstractSymmetry{Dim}} <: AbstractRegularWaveMode{T,Dim}
     ω::T
     wavenumber::Complex{T}
     medium::P
@@ -93,7 +93,7 @@ struct EffectiveRegularWaveMode{T<:AbstractFloat,Dim,P<:PhysicalMedium{T,Dim},S<
     eigenvectors::Array{Complex{T}} # the effective eigenvectors, each column is one eigenvector
     basis_order::Int
     basis_field_order::Int
-    function EffectiveRegularWaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource{T}, material::Material{Dim}, eigenvectors::Array{Complex{T}};
+    function EffectiveRegularWaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource, material::Material{Dim}, eigenvectors::Array{Complex{T}};
         basis_order::Int = 2, basis_field_order::Int = 4, kws...
     ) where {T,Dim}
 

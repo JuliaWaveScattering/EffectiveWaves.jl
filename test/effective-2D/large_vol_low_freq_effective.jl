@@ -30,7 +30,7 @@ using EffectiveWaves, Test
     material = Material(Halfspace(normal),species)
 
     # define a plane wave source travelling at a 45 degree angle in relation to the material
-    source = PlaneSource(medium, [cos(pi/4.0),sin(pi/4.0)])
+    source = PlaneSource(medium; direction = [cos(pi/4.0),sin(pi/4.0)])
 
     R = begin
         wave = WaveMode(ω, k_eff, source, material; basis_order=basis_order)

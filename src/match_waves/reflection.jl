@@ -6,7 +6,7 @@ Calculate the reflection coefficient from a matched wave. This requires using bo
 """
 function reflection_coefficient(ω::T, m_wave::MatchPlaneWaveMode{T},
     source::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
-     # medium::PhysicalMedium{T}, specie::Specie{T};
+     # medium::PhysicalMedium, specie::Specie{T};
     kws...) where {T<:AbstractFloat}
 
     R_eff = reflection_coefficient(ω, m_wave.PlaneWaveModes, source, material; x = m_wave.x_match[end], kws...)

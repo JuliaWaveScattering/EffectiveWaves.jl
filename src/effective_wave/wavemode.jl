@@ -8,7 +8,7 @@ scattering_field
 
 
 "Calculates the effective wavenumbers and return Vector{EffectivePlaneWaveMode}."
-function WaveModes(ω::T, source::AbstractSource, material::Material{Dim,S,Sps}; kws...) where {T,Dim,S<:Shape{T,Dim},Sps<:Species{T,Dim}} # without the parametric types we get a "Unreachable reached" error
+function WaveModes(ω::T, source::AbstractSource, material::Material{Dim,S,Sps}; kws...) where {T,Dim,S<:Shape{Dim},Sps<:Species{T,Dim}} # without the parametric types we get a "Unreachable reached" error
 
     # The wavenumbers are calculated without knowledge of the materail symmetry. This is because the plane-wave symmetry leads to all possible wavenumbers and is simple to calculate.
     k_effs = wavenumbers(ω, source.medium, material.species; numberofparticles = material.numberofparticles, kws... )
@@ -26,7 +26,7 @@ end
 
 Returns a concrete subtype of AbstractWaveMode depending on the SetupSymmetry. The returned type should have all the necessary fields to calculate scattered waves (currently not true for EffectivePlanarWaves).
 """
-function WaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource{T}, material::Material{Dim}; kws...) where {T,Dim}
+function WaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource, material::Material{Dim}; kws...) where {T,Dim}
 
     eigvectors = eigenvectors(ω, wavenumber, source, material; kws...)
 
@@ -79,15 +79,15 @@ function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, 
     return [mode1,mode2]
 end
 
-# eigensystem(ω::T, source::AbstractSource{T}, material::Material; kws...) where T<:AbstractFloat = eigensystem(ω, source.medium, material.species, Symmetry(source,material); numberofparticles = material.numberofparticles, kws...)
+# eigensystem(ω::T, source::AbstractSource, material::Material; kws...) where T<:AbstractFloat = eigensystem(ω, source.medium, material.species, Symmetry(source,material); numberofparticles = material.numberofparticles, kws...)
 
 
-function solve_boundary_condition(ω::T, wavenumber::Complex{T}, eigvectors::Array, source::AbstractSource{T}, material::Material; kws...) where T
+function solve_boundary_condition(ω::T, wavenumber::Complex{T}, eigvectors::Array, source::AbstractSource, material::Material; kws...) where T
     return solve_boundary_condition(ω, wavenumber, eigvectors, source, material, Symmetry(source,material); kws...)
 end
 
 
-function solve_boundary_condition(ω::T, wavenumber::Complex{T}, eigvectors1::Array, eigvectors2::Array, source::AbstractSource{T}, material::Material; kws...) where T
+function solve_boundary_condition(ω::T, wavenumber::Complex{T}, eigvectors1::Array, eigvectors2::Array, source::AbstractSource, material::Material; kws...) where T
     return solve_boundary_condition(ω, wavenumber, eigvectors1, eigvectors2, source, material, Symmetry(source,material); kws...)
 end
 
@@ -98,7 +98,7 @@ The eigenvectors from high symmetric scenarios are smaller then the more general
 """
 convert_eigenvector_basis(medium::PhysicalMedium,sym::AbstractSymmetry,eigvecs::Array) = eigvecs
 
-eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource{T}, material::Material; kws...) where T<:AbstractFloat = eigenvectors(ω, k_eff::Complex{T}, source.medium, material.species, Symmetry(source,material); numberofparticles = material.numberofparticles, kws...)
+eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource, material::Material; kws...) where T<:AbstractFloat = eigenvectors(ω, k_eff::Complex{T}, source.medium, material.species, Symmetry(source,material); numberofparticles = material.numberofparticles, kws...)
 
 # For plane waves, it is simpler to write all cases in the format for the most general case. For example, for PlanarAzimuthalSymmetry the eignvectors are much smaller. So we will turn these into the more general eigvector case by padding it with zeros.
 # function eigenvectors(ω::T, k_eff::Complex{T}, source::PlaneSource{T}, material::Material{Dim,S}; kws...) where {T<:AbstractFloat,Dim,S<:Union{Plate,Halfspace}}
@@ -113,7 +113,7 @@ eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource{T}, material::Mate
 #
 # end
 
-function eigenvectors(ω::T, k_eff::Complex{T}, medium::PhysicalMedium{T}, species::Vector{Sp}, symmetry::AbstractSymmetry;
+function eigenvectors(ω::T, k_eff::Complex{T}, medium::PhysicalMedium, species::Vector{Sp}, symmetry::AbstractSymmetry;
         tol::T = 1e-4, kws...
     ) where {T<:AbstractFloat, Sp<:Specie{T}}
 

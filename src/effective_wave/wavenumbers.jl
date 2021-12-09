@@ -5,9 +5,9 @@
 
 Returns all the possible effective wavenumbers with positive imaginary part when using a single type of particle called `specie`.
 """
-wavenumbers(ω::T, medium::PhysicalMedium{T}, specie::Specie{T}; kws...) where T<:Number = wavenumbers(ω, medium, [specie]; kws...)
+wavenumbers(ω::T, medium::PhysicalMedium, specie::Specie{T}; kws...) where T<:Number = wavenumbers(ω, medium, [specie]; kws...)
 
-function wavenumbers(ω::T, source::AbstractSource, material::Material{Dim,S,Sps}; kws...) where {T,Dim,S<:Shape{T,Dim},Sps<:Species{T,Dim}}
+function wavenumbers(ω::T, source::AbstractSource, material::Material{Dim,S,Sps}; kws...) where {T,Dim,S<:Shape{Dim},Sps<:Species{T,Dim}}
     return wavenumbers(ω, source.medium, material.species;
         numberofparticles = material.numberofparticles,
         # symmetry = Symmetry(source,material),
@@ -20,7 +20,7 @@ end
 
 Returns all the possible effective wavenumbers with positive imaginary part. This function requires significantly numerical optimisation and so can be slow.
 """
-function wavenumbers(ω::T, medium::PhysicalMedium{T}, species::Species{T};
+function wavenumbers(ω::T, medium::PhysicalMedium, species::Species{T};
         num_wavenumbers::Int = 2, tol::T = 1e-5,
         max_Imk::T = T(2) + T(20) * imag(wavenumber_low_volumefraction(ω, medium, species; verbose = false)),
         basis_order = 3 * Int(round(maximum(outer_radius.(species)) * ω / abs(medium.c) )) + 1,

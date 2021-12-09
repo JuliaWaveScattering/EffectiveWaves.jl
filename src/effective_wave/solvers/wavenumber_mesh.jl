@@ -1,4 +1,4 @@
-function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMedium{T,Dim}, species::Species{T};
+function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, medium::PhysicalMedium{Dim}, species::Species{T};
         symmetry::AbstractSymmetry = PlanarSymmetry{Dim}(),
         tol::T = 1e-5,
         mesh_refine::T = T(0.4),

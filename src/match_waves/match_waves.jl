@@ -6,11 +6,11 @@ mutable struct MatchPlaneWaveMode{T<:AbstractFloat,Dim}
 end
 
 """
-    match_error(m_wave::MatchPlaneWaveMode{T}, shape::Shape{T}
+    match_error(m_wave::MatchPlaneWaveMode{T}, shape::Shape
 
 Calculates the difference between the match of MatchPlaneWaveMode.PlaneWaveModes and MatchPlaneWaveMode.discrete_wave. When this is small, we know that the method has likely converged.
 """
-function match_error(m_wave::MatchPlaneWaveMode{T}, shape::Shape{T}; apply_norm::Function=norm) where T<:AbstractFloat
+function match_error(m_wave::MatchPlaneWaveMode{T}, shape::Shape; apply_norm::Function=norm) where T<:AbstractFloat
     avg_eff = DiscretePlaneWaveMode(m_wave.x_match, m_wave.PlaneWaveModes,shape)
     j0 = findmin(abs.(m_wave.discrete_wave.x .- m_wave.x_match[1]))[2]
     len = length(m_wave.x_match)

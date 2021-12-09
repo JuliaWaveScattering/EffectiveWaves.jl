@@ -1,4 +1,4 @@
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::RegularSource{T,Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::WithoutSymmetry{3};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::WithoutSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 4,
         # source_basis_field_order::Int = basis_field_order,
@@ -90,7 +90,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
 end
 
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{T,Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::AbstractAzimuthalSymmetry{3};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::AbstractAzimuthalSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 4,
         # source_basis_field_order::Int = basis_field_order,
@@ -195,7 +195,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
 end
 
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{T,Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::RadialSymmetry{3};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::RadialSymmetry{3};
         basis_order::Int = 2,
         kws...
     ) where T
@@ -211,7 +211,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     # the kernel use to weight the species and the field's basis order.
     F = sum(
-        T(2 *(i[1] - 1) + 1) * (-one(T))^(i[1]-1) * eigvectors[i] * (R - rs[i[2]]) * 
+        T(2 *(i[1] - 1) + 1) * (-one(T))^(i[1]-1) * eigvectors[i] * (R - rs[i[2]]) *
         kernelN3D(i[1] - 1, k*(R - rs[i[2]]), k_eff*(R - rs[i[2]])) * scale_number_density * number_density(species[i[2]])
     for i in CartesianIndices(eigvectors)) / (k^T(2) - k_eff^T(2))
 

@@ -1,11 +1,10 @@
 name = "EffectiveWaves"
 uuid = "37e8709b-1ed2-53db-b26a-3571262b3cb4"
 authors = ["Artur L. Gower <arturgower@gmail.com>"]
-version = "0.3.1"
+version = "0.3.2"
 
 [deps]
 ClassicalOrthogonalPolynomials = "b30e2e7b-c4ee-47da-9d5f-2c5c27239acd"
-GSL = "92c85e6c-cbff-5e0c-80f7-495c94daaecd"
 HCubature = "19dc6840-f33b-545b-b366-655c7e3ffd49"
 Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
 IterTools = "c8e1da08-722c-5040-9ed9-7db0dc04731e"
@@ -14,7 +13,6 @@ MDBM = "dd61e66b-39ce-57b0-8813-509f78be4b4d"
 MultipleScattering = "80a8ab25-5750-5d93-a6d7-4adc97cdd5fb"
 OffsetArrays = "6fe1bfb0-de20-5000-8ca7-80f57d26f881"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
-Polynomials = "f27b6e38-b328-58d1-80ce-0feddd5e7a45"
 RecipesBase = "3cdcf5f2-1ef4-517c-9805-6587b60abb01"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 SpecialFunctions = "276daf66-3868-5448-9aa4-cd146d93841b"
@@ -23,7 +21,6 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
 ClassicalOrthogonalPolynomials = "0.3, 0.4, 0.5"
-GSL = "0.6, 0.7, 0.8, 0.9, 1.0"
 HCubature = "1"
 Interpolations = "0.12, ^0.13"
 IterTools = "1"
