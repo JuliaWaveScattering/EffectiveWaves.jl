@@ -1,5 +1,5 @@
 using EffectiveWaves
-using LinearAlgebra, Statistics
+using LinearAlgebra, Statistics, Test
 
 
 @testset "Effective sphere scattering" begin

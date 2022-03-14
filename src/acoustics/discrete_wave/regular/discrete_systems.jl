@@ -20,6 +20,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
         mesh_points::Int = Int(round(sqrt(1.1 * (basis_field_order) * legendre_order ))) + 2,
         rtol::T = 1e-2,
         maxevals::Int = Int(2e4),
+        numdensity = (x1, s1) -> number_density(s1),
         pair_corr = hole_correction_pair_correlation
     ) where {T,Dim}
 
@@ -29,7 +30,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
 
     s1 = material.species[1]
     scale_number_density = one(T) - one(T) / material.numberofparticles
-    bar_numdensity = scale_number_density * number_density(s1)
+    bar_numdensity(x1,s1) = scale_number_density * numdensity(x1,s1)
 
     R = outer_radius(material.shape)
 
@@ -107,7 +108,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
             basis2 = field_basis(rθφ)
 
             U = Uout(x1 - x2)
-            U = U .* (bar_numdensity * pair_corr(x1,s1,x2,s1) * sin(rθφ[2]) * rθφ[1]^2)
+            U = U .* (bar_numdensity(x2,s1) * pair_corr(x1,s1,x2,s1) * sin(rθφ[2]) * rθφ[1]^2)
 
             return reshape(
                 [
@@ -188,6 +189,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
         mesh_points::Int = Int(round(1.1 * legendre_order )) + 2,
         rtol::T = 1e-2,
         maxevals::Int = Int(2e4),
+        numdensity = (x1, s1) -> number_density(s1),
         pair_corr = hole_correction_pair_correlation
     ) where {T,Dim}
 
@@ -197,7 +199,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
 
     s1 = material.species[1]
     scale_number_density = one(T) - one(T) / material.numberofparticles
-    bar_numdensity = scale_number_density * number_density(s1)
+    bar_numdensity(x1,s1) = scale_number_density * numdensity(x1,s1)
 
     R = outer_radius(material.shape)
 
@@ -255,7 +257,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
             basis2 = field_basis(rθφ)
 
             U = Uout(x1 - x2)
-            U = U .* (bar_numdensity * pair_corr(x1,s1,x2,s1) * sin(rθφ[2]) * rθφ[1]^2)
+            U = U .* (bar_numdensity(x2,s1) * pair_corr(x1,s1,x2,s1) * sin(rθφ[2]) * rθφ[1]^2)
 
             data = [
                 sum([
