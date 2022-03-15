@@ -401,15 +401,11 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,Dim}}, 
         return data[:]
     end
 
-   Cs = [
-        begin
-        end
-    for l2 in ls, r2 in rs];
+    Cs = [C_kernal(l2,j2) for l2 in ls, j2 in eachindex(rs)];
 
-    bigK = vcat(Ks...);
+    bigC = vcat(Cs...);
 
-    bs = incident_coefficients(r1s);
-    Fs = bigK \ bs;
+    Fs = bigC \ Bs;
 
 
     return ScatteringCoefficientsField(ω, source.medium, material, scattered_field;
