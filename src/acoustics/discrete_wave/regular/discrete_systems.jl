@@ -334,6 +334,91 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
     )
 end
 
+function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::RadialSymmetry{Dim};
+        basis_order::Int = 1,
+        basis_field_order::Int = Int(round(T(2) * real(ω / source.medium.c) * outer_radius(material.shape))) + 1,
+        mesh_points::Int = Int(round(1.1 * (basis_field_order + 1) )) + 2,
+        numdensity = (x1, s1) -> number_density(s1),
+        pair_corr = hole_correction_pair_correlation,
+        scheme = :trapezoidal
+    ) where {T,Dim}
+
+    if length(material.species) > 1
+        @warn "discrete_system has only been implemented for 1 species for now. Will use only first specie."
+    end
+
+    s1 = material.species[1]
+    scale_number_density = one(T) - one(T) / material.numberofparticles
+    bar_numdensity(x1,s1) = scale_number_density * numdensity(x1,s1)
+
+    R = outer_radius(material.shape)
+    k = ω / source.medium.c
+
+
+
+    ls = 0:basis_order
+    lm_to_n = lm_to_spherical_harmonic_index
+    ls_to_ns = lm_to_n.(ls,0)
+
+    t_matrices = get_t_matrices(source.medium, material.species, ω, basis_order)
+    t_diags = diag.(t_matrices)
+
+    r1s = LinRange(0,R-outer_radius(s1), mesh_points)
+    σs = integration_scheme(r1s; scheme = scheme)
+
+    len = basis_order + 1
+
+    # incident wave coefficients
+    b0 = regular_spherical_coefficients(source)(1,origin(material.shape),ω)[1];
+    Bs = (sqrt(4pi) * b0) .* [
+        t_diags[1][ls_to_ns] .* (-T(1)) .^ ls .* sbesselj.(ls, k*r1) # regular_radial_basis(source.medium, ω, basis_order, r1)[ls_to_ns]
+    for r1 in r1s]
+
+    Bs = vcat(Bs...)
+
+    chi(l5::Int,l6::Int,r1::T,r2::T) = T(-1)^l6 *
+        if(r1 < r2)
+            shankelh1(l6, k*r2) * sbesselj(l5, k*r1)
+        else
+            shankelh1(l5, k*r1) * sbesselj(l6, k*r2)
+        end
+
+    function C_kernal(l2::Int,j2::T)
+
+        term2 = σs[j2] * rs[j2]^2 * numdensity([rs[j2],T(0),T(0)],s1)
+
+        data = term2 .* [
+            t_diags[1][lm_to_n(l,0)] * sum(
+                chi(l5,l6,r1,rs[j2]) * pair_corr_ls(l1,r1,rs[j2]) *
+                gaunt_coefficient(l,0,l1,m1,l5,-m1) * gaunt_coefficient(l1,m1,l2,m2,l6,m1-m2) *
+                gaunt_coefficient(l2,m2,l,0,l4,m2)  * gaunt_coefficient(l4,m2,l5,m1,l6,m2-m1) /
+                (4pi * T(-1)^m2 * Complex{T}(im)^(l0-l5-l6-l2))
+                    for l1 = 0:basis_field_order for l4 = abs(l-l2):(l+l2)
+                for l5 = abs(l-l1):(l+l1) for l6 max(abs(l4-l5),abs(l1-l2)):min(l4+l5,l1+l2)
+            for m1 = -l5:l5 for m1 = max(-l4,m1-l6):min(l4,m1+l6))
+        for l in ls, r1 in rs];
+
+        return data[:]
+    end
+
+   Cs = [
+        begin
+        end
+    for l2 in ls, r2 in rs];
+
+    bigK = vcat(Ks...);
+
+    bs = incident_coefficients(r1s);
+    Fs = bigK \ bs;
+
+
+    return ScatteringCoefficientsField(ω, source.medium, material, scattered_field;
+        symmetry = RadialSymmetry{Dim}(),
+        basis_order = basis_order,
+        basis_field_order = basis_field_order
+    )
+end
+
 """
     outgoing_translation_matrix(ω, ::Acoustic, material::Material{Dim,Sphere{T,Dim}};
         basis_order = 2, tol = 1e-3)
