@@ -401,6 +401,7 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,Dim}}, 
         return data[:]
     end
 
+    # NOTE: This part is untested!
     Cs = [C_kernal(l2,j2) for l2 in ls, j2 in eachindex(rs)];
 
     bigC = vcat(Cs...);
