@@ -355,7 +355,6 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,Dim}}, 
     k = ω / source.medium.c
 
 
-
     ls = 0:basis_order
     lm_to_n = lm_to_spherical_harmonic_index
     ls_to_ns = lm_to_n.(ls,0)
@@ -365,8 +364,6 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,Dim}}, 
 
     r1s = LinRange(0,R-outer_radius(s1), mesh_points)
     σs = integration_scheme(r1s; scheme = scheme)
-
-    len = basis_order + 1
 
     # incident wave coefficients
     b0 = regular_spherical_coefficients(source)(1,origin(material.shape),ω)[1];
@@ -394,7 +391,7 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,Dim}}, 
                 gaunt_coefficient(l2,m2,l,0,l4,m2)  * gaunt_coefficient(l4,m2,l5,m1,l6,m2-m1) /
                 (4pi * T(-1)^m2 * Complex{T}(im)^(l0-l5-l6-l2))
                     for l1 = 0:basis_field_order for l4 = abs(l-l2):(l+l2)
-                for l5 = abs(l-l1):(l+l1) for l6 max(abs(l4-l5),abs(l1-l2)):min(l4+l5,l1+l2)
+                for l5 = abs(l-l1):(l+l1) for l6 = max(abs(l4-l5),abs(l1-l2)):min(l4+l5,l1+l2)
             for m1 = -l5:l5 for m1 = max(-l4,m1-l6):min(l4,m1+l6))
         for l in ls, r1 in rs];
 
