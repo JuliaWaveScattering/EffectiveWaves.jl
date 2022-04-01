@@ -7,6 +7,7 @@ using LinearAlgebra, Statistics
 end
 
 include("complex.jl")
+include("statistics.jl")
 
 # Single effective wavenumber tests
     @time include("effective-2D/strong_low_freq_effective.jl")
