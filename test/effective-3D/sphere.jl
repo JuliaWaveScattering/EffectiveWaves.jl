@@ -206,10 +206,10 @@ using LinearAlgebra, Statistics, Test
 
     a12 = 2.0 * s1.exclusion_distance * outer_radius(s1)
 
-    pair_corr_inf(z) = hole_correction_pair_correlation([0.0,0.0,0.0],s1, [0.0,0.0,z],s1)
-    gls_pair_radial = EffectiveWaves.gls_pair_radial_fun(pair_corr_inf, a12; polynomial_order = basis_field_order)
-
-    gls_pair_radial(2.0,6.0)
+    # pair_corr_inf(z) = hole_correction_pair_correlation([0.0,0.0,0.0],s1, [0.0,0.0,z],s1)
+    # gls_pair_radial = EffectiveWaves.gls_pair_radial_fun(pair_corr_inf, a12; polynomial_order = basis_field_order)
+    #
+    # gls_pair_radial(2.0,6.0)
 
     # discrete_field_radial = discrete_system_radial(ω, sourceradial, material, Symmetry(sourceradial,material);
     #     basis_order = basis_order, basis_field_order = basis_field_order,
