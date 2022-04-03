@@ -337,9 +337,9 @@ end
 function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::RadialSymmetry{Dim};
         basis_order::Int = 1,
         basis_field_order::Int = Int(round(T(2) * real(ω / source.medium.c) * outer_radius(material.shape))) + 1,
-        mesh_points::Int = Int(round(1.1 * (basis_field_order + 1) )) + 2,
-        numdensity = (x1, s1) -> number_density(s1),
-        pair_corr = hole_correction_pair_correlation,
+        mesh_points::Int = Int((basis_field_order + 1)^2),
+        numdensity::Function = (x1, s1) -> number_density(s1),
+        gls_pair_radial::Function = (r1,r2) -> r1 + r1 < one(T) ? zero(T) : one(T),
         scheme = :trapezoidal
     ) where {T,Dim}
 
@@ -354,7 +354,6 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,Dim}}, 
     R = outer_radius(material.shape)
     k = ω / source.medium.c
 
-
     ls = 0:basis_order
     lm_to_n = lm_to_spherical_harmonic_index
     ls_to_ns = lm_to_n.(ls,0)
@@ -362,14 +361,14 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,Dim}}, 
     t_matrices = get_t_matrices(source.medium, material.species, ω, basis_order)
     t_diags = diag.(t_matrices)
 
-    r1s = LinRange(0,R-outer_radius(s1), mesh_points)
-    σs = integration_scheme(r1s; scheme = scheme)
+    rs = LinRange(0,R-outer_radius(s1), mesh_points)
+    σs = integration_scheme(rs; scheme = scheme)
 
     # incident wave coefficients
     b0 = regular_spherical_coefficients(source)(1,origin(material.shape),ω)[1];
     Bs = (sqrt(4pi) * b0) .* [
         t_diags[1][ls_to_ns] .* (-T(1)) .^ ls .* sbesselj.(ls, k*r1) # regular_radial_basis(source.medium, ω, basis_order, r1)[ls_to_ns]
-    for r1 in r1s]
+    for r1 in rs]
 
     Bs = vcat(Bs...)
 
@@ -380,38 +379,67 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,Dim}}, 
             shankelh1(l5, k*r1) * sbesselj(l6, k*r2)
         end
 
-    function C_kernal(l2::Int,j2::T)
+
+    function C_kernal(l2::Int,j2::Int)
 
         term2 = σs[j2] * rs[j2]^2 * numdensity([rs[j2],T(0),T(0)],s1)
 
         data = term2 .* [
-            t_diags[1][lm_to_n(l,0)] * sum(
-                chi(l5,l6,r1,rs[j2]) * pair_corr_ls(l1,r1,rs[j2]) *
-                gaunt_coefficient(l,0,l1,m1,l5,-m1) * gaunt_coefficient(l1,m1,l2,m2,l6,m1-m2) *
-                gaunt_coefficient(l2,m2,l,0,l4,m2)  * gaunt_coefficient(l4,m2,l5,m1,l6,m2-m1) /
-                (4pi * T(-1)^m2 * Complex{T}(im)^(l0-l5-l6-l2))
-                    for l1 = 0:basis_field_order for l4 = abs(l-l2):(l+l2)
+            if norm(gls_pair_radial(r1,rs[j2])) < sqrt(eps(T))
+                zero(Complex{T})
+            else
+                gls = gls_pair_radial(r1,rs[j2])
+                t_diags[1][lm_to_n(l,0)] *
+                sum(
+                    chi(l5,l6,r1,rs[j2]) * gls[l1+1] *
+                    gaunt_coefficient(l,0,l1,m1,l5,-m1) * gaunt_coefficient(l1,m1,l2,m2,l6,m1-m2) *
+                    gaunt_coefficient(l2,m2,l,0,l4,m2)  * gaunt_coefficient(l4,m2,l5,m1,l6,m2-m1) /
+                    (4pi * T(-1)^m2 * Complex{T}(im)^(l-l5-l6-l2))
+                for l1 = 0:basis_field_order for l4 = abs(l-l2):(l+l2)
                 for l5 = abs(l-l1):(l+l1) for l6 = max(abs(l4-l5),abs(l1-l2)):min(l4+l5,l1+l2)
-            for m1 = -l5:l5 for m1 = max(-l4,m1-l6):min(l4,m1+l6))
+                for m1 = max(-l1,-l5):min(l1,l5) for m2 = max(-l2,-l4,m1-l6):min(l2,l4,m1+l6))
+            end
         for l in ls, r1 in rs];
 
         return data[:]
     end
 
-    # NOTE: This part is untested! Commit again and again
-    Cs = [C_kernal(l2,j2) for l2 in ls, j2 in eachindex(rs)];
+    Cs = [C_kernal(l2,j2) for l2 in ls, j2 in eachindex(rs)][:];
+    bigC = hcat(Cs...);
+    #NOTE bigC[:,M2] == Cs[M2]
 
-    bigC = vcat(Cs...);
+    Fs = (I - bigC) \ Bs;
+    Fs = reshape(Fs,(basis_order+1,length(rs)))
 
-    Fs = bigC \ Bs;
+    # Approximate with a Legendre series
+    P = Legendre{T}()
+    polynomial_order = max(1,length(r1s) - 2)
 
+    r1_max = maximum(r1s);
+    rbars = T(2.0) .* r1s ./ r1_max .- T(1.0);
+    Pmat = P[rbars, 1:(polynomial_order + 1)];
 
+    projector_mat =  inv(transpose(Pmat) * (Pmat)) * transpose(Pmat);
+    projector_mat = transpose(projector_mat);
+
+    pls_arr = Fs * projector_mat;
+
+    function scattered_field(r::T)
+        Ps = P[2r / r1_max - T(1), 1:(polynomial_order + 1)]
+
+        return pls_arr * Ps
+    end
+    # Fs ~ hcat(scattered_field.(r1s)...)
+
+    # NOTE: need to think about this type, it is exactly the same as the discrete method above, but needs to be dispatched different (for say material_scattering_coefficients) due to a different number of coefficients for the F.   
     return ScatteringCoefficientsField(ω, source.medium, material, scattered_field;
         symmetry = RadialSymmetry{Dim}(),
         basis_order = basis_order,
         basis_field_order = basis_field_order
     )
 end
+
+
 
 """
     outgoing_translation_matrix(ω, ::Acoustic, material::Material{Dim,Sphere{T,Dim}};

@@ -26,7 +26,7 @@ Return a function ``gls_fun``. For any radial distances ``r_1`` and ``r_2`` we h
 The function `gls_fun` is calculated from the function `pair_corr_distance`, where `pair_corr_distance(sqrt(r1^2 + r2^2 - 2r1 * r2 * cos(θ12)))` gives the pair correlation.
 """
 function gls_pair_radial_fun(pair_corr_distance::Function, a12::T;
-            polynomial_order::Int = 15, mesh_size::Int = 2*polynomial_order,
+            polynomial_order::Int = 15, mesh_size::Int = 3*polynomial_order,
         ) where T
     P = Legendre()
 
@@ -37,7 +37,7 @@ function gls_pair_radial_fun(pair_corr_distance::Function, a12::T;
 
     return function (r1,r2)
         if (r1 + r2 < a12)
-            return zero(typeof(a12))
+            return zeros(typeof(a12), polynomial_order + 1)
         else
             data = pair_corr_distance.(sqrt.(r1^2 .+ r2^2 .- 2r1 .* r2 .* us))
             pls = projector_mat * data

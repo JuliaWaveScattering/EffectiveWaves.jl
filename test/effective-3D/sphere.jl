@@ -1,11 +1,11 @@
-using EffectiveWaves
+using EffectiveWaves, ClassicalOrthogonalPolynomials
 using LinearAlgebra, Statistics, Test
 
 
 @testset "Effective sphere scattering" begin
 
-    # include("test_discrete_solution.jl")
-# Set parameters
+## Set parameters
+    # include("../discrete_wave/utils.jl")
     particle_medium = Acoustic(3; ρ=0.01, c=0.01);
     particle_medium = Acoustic(3; ρ=10.0, c=10.0);
     medium = Acoustic(3; ρ=1.0, c=1.0);
@@ -196,8 +196,38 @@ using LinearAlgebra, Statistics, Test
     @test errors[1] < 1e-5
     @test errors[2] < 2e-3
 
+# Test the reduced radial discrete method
 
-# [mat_coefs_pwave[inds] mat_coefs_disc2[inds] mat_coefs_disc[inds]]
+    # source = sourceradial
+    # basis_order = basis_orders[1]
+    # ω = ωs[1]
+    # basis_field_order = basis_field_orders[1]
+    # T = Float64
+
+    a12 = 2.0 * s1.exclusion_distance * outer_radius(s1)
+
+    pair_corr_inf(z) = hole_correction_pair_correlation([0.0,0.0,0.0],s1, [0.0,0.0,z],s1)
+    gls_pair_radial = EffectiveWaves.gls_pair_radial_fun(pair_corr_inf, a12; polynomial_order = basis_field_order)
+
+    gls_pair_radial(2.0,6.0)
+
+    # discrete_field_radial = discrete_system_radial(ω, sourceradial, material, Symmetry(sourceradial,material);
+    #     basis_order = basis_order, basis_field_order = basis_field_order,
+    #     gls_pair_radial = gls_pair_radial
+    # )
+
+    # df0s = [d[1] for d in discrete_scats[1]];
+    # df1s = [d[3] for d in discrete_scats[1]];
+    #
+    # zs = [x[3] for x in xs];
+    # using Plots
+    # plot(zs,abs.(df0s))
+    # plot(zs,abs.(df1s))
+    #
+    # scatter(abs.(discrete_field_radial[1,:]))
+    # scatter(abs.(discrete_field_radial[2,:]))
+    #
+    # eff_scats_radial[1]
 
 # Calculate low frequency scattering
     # Linc = basis_order + basis_field_order

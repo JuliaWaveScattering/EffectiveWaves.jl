@@ -32,9 +32,8 @@ include("statistics.jl")
     include("discretisation/numerical_integration.jl")
     include("discretisation/integrated_reflection.jl")
     include("discretisation/average_integrand_kernel.jl")
-
-# Test discretisation for 3D
-    include("effective-3D/discrete_solver.jl")
+    # Test discretisation for 3D
+    include("discretisation/discrete_solver.jl")
 
 # Test matching method
     include("match-wave/match_low_volumefraction.jl")
