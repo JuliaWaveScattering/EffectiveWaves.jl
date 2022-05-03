@@ -22,7 +22,8 @@ include("statistics.jl")
     @time include("effective-3D/low_volume_fraction.jl")
     @time include("effective-3D/low_frequency.jl")
     @time include("effective-3D/planar-symmetry.jl")
-    @time include("effective-3D/sphere.jl")
+    # NOTE: when ready uncomment below
+    # @time include("effective-3D/sphere.jl")
 
 # test equivalence between methods for finding wavenumbers
     # test does not run on Julia version < 0.7 due to differences in Optim versions

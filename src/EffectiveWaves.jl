@@ -7,7 +7,7 @@ export  EffectivePlaneWaveMode, EffectiveRegularWaveMode, ScatteringCoefficients
 export  DiscretePlaneWaveMode
 export  MatchPlaneWaveMode # a combination of the Discrete and Effective modes
 export  Material, Specie, Species, SetupSymmetry, number_density, volume_fraction
-export  hole_correction_pair_correlation, gls_pair_radial_fun, pair_radial_fun
+export  hole_correction_pair_correlation, gls_pair_radial_fun, pair_radial_fun, smooth_pair_corr_distance
 
 # for MatchPlaneWaveMode
 export  match_error, x_mesh_match

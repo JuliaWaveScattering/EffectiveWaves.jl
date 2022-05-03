@@ -4,6 +4,38 @@ function hole_correction_pair_correlation(x1::AbstractVector{T},s1::Specie{T}, x
     return  overlapping ? one(T) : zero(T)
 end
 
+function smooth_pair_corr_distance(pair_corr_distance::Function, a12::T; smoothing::T = T(0), max_distance::T = T(20*a12),
+        polynomial_order::Int = 15, mesh_size::Int = 10*polynomial_order + 1
+    ) where T
+
+    if smoothing > T(1.0)
+        @warn "smoothing should be in [0,1], setting smoothing = 1"
+        smoothing = T(1.0)
+    elseif smoothing < T(0.0)
+        @warn "smoothing should be in [0,1], setting smoothing = 0"
+        smoothing < T(0.0)
+    end
+
+    zs = collect(LinRange(zero(T), max_distance, mesh_size))
+
+    inds = findall(abs.(zs .- a12) .< a12*smoothing/T(2) )
+    deleteat!(zs,inds)
+    data = pair_corr_distance.(zs)
+
+    P = Legendre()
+    ls = 0:polynomial_order
+
+    Pmat = P[2zs ./ max_distance .- T(1.0), ls .+ 1];
+
+    projector_mat = inv(transpose(Pmat) * (Pmat)) * transpose(Pmat);
+    pls = projector_mat * data
+
+    return function (z)
+        Ps = P[2z / max_distance - T(1.0), ls .+ 1]
+        return sum(Ps .* pls)
+    end
+end
+
 # function constant_number_density_fun(material::Material)
 #
 #     @warn "the constant_number_density doesn't currently verify if the whole particle is inside the shape"
@@ -26,14 +58,24 @@ Return a function ``gls_fun``. For any radial distances ``r_1`` and ``r_2`` we h
 The function `gls_fun` is calculated from the function `pair_corr_distance`, where `pair_corr_distance(sqrt(r1^2 + r2^2 - 2r1 * r2 * cos(θ12)))` gives the pair correlation.
 """
 function gls_pair_radial_fun(pair_corr_distance::Function, a12::T;
-            polynomial_order::Int = 15, mesh_size::Int = 3*polynomial_order,
+            polynomial_order::Int = 15, mesh_size::Int = 10*polynomial_order + 1,
+            sigma_approximation = true
         ) where T
     P = Legendre()
+    ls = 0:polynomial_order
+
+    if sigma_approximation
+        sigmas = [one(T); sin.(pi .* ls[2:end] ./ (polynomial_order+1)) ./ (pi .* ls[2:end] ./ (polynomial_order+1))]
+    else
+        sigmas = ones(T,polynomial_order+1)
+    end
+    S = diagm(sigmas)
 
     us = LinRange(-1.0, 1.0, mesh_size)
-    Pmat = P[us, 1:(polynomial_order + 1)];
+    Pmat = P[us, ls .+ 1];
     Pmat = [Pmat[i] * T(2i[2] - 1) / (4pi) for i in CartesianIndices(Pmat)];
-    projector_mat =  inv(transpose(Pmat) * (Pmat)) * transpose(Pmat);
+
+    projector_mat =  S * inv(transpose(Pmat) * (Pmat)) * transpose(Pmat);
 
     return function (r1,r2)
         if (r1 + r2 < a12)
@@ -42,6 +84,7 @@ function gls_pair_radial_fun(pair_corr_distance::Function, a12::T;
             data = pair_corr_distance.(sqrt.(r1^2 .+ r2^2 .- 2r1 .* r2 .* us))
             pls = projector_mat * data
             # data ~ Pmat * pls
+
             return pls
         end
     end
@@ -55,11 +98,13 @@ Return a function `pair_radial` such that `pair_radial(r1,r2, cos(θ12))` gives 
 The function `pair_radial` is calculated from the function `pair_corr_distance`, where `pair_corr_distance(sqrt(r1^2 + r2^2 - 2r1 * r2 * cos(θ12)))` gives the pair correlation.
 """
 function pair_radial_fun(pair_corr_distance::Function, a12::T; polynomial_order::Int = 15, kws...) where T
+
     gls_fun = gls_pair_radial_fun(pair_corr_distance, a12; polynomial_order = polynomial_order, kws...)
     P = Legendre()
 
     return function (r1,r2,u)
         Pus = P[u, 1:(polynomial_order + 1)] .* (2 .* (0:polynomial_order) .+ 1) ./ (4pi)
+
         return sum(Pus .* gls_fun(r1,r2))
     end
 end

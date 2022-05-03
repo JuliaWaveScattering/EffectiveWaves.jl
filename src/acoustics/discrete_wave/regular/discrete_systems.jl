@@ -174,7 +174,6 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
         # return azi_factor .* (as * field_basis(rθφ[1:2]))
     end
 
-
     return ScatteringCoefficientsField(ω, source.medium, material, scattered_field;
         symmetry = AzimuthalSymmetry{Dim}(),
         basis_order = basis_order,
@@ -182,22 +181,24 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
     )
 end
 
-function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::RadialSymmetry{Dim};
+function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::RadialSymmetry{3};
         basis_order::Int = 1,
         basis_field_order::Int = Int(round(T(2) * real(ω / source.medium.c) * outer_radius(material.shape))) + 1,
         legendre_order::Int = basis_field_order + 1,
         mesh_points::Int = Int(round(1.1 * legendre_order )) + 2,
-        rtol::T = 1e-2,
+        rtol::T = 1e-2, ptol::T = 1e-2,
         maxevals::Int = Int(2e4),
         numdensity = (x1, s1) -> number_density(s1),
         pair_corr = hole_correction_pair_correlation
-    ) where {T,Dim}
+    ) where T
 
     if length(material.species) > 1
         @warn "discrete_system has only been implemented for 1 species for now. Will use only first specie."
     end
 
     s1 = material.species[1]
+    a12 = 2.0 * s1.exclusion_distance * outer_radius(s1);
+
     scale_number_density = one(T) - one(T) / material.numberofparticles
     bar_numdensity(x1,s1) = scale_number_density * numdensity(x1,s1)
 
@@ -251,9 +252,12 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
 
         fun = function (rθφ::SVector{3,T})
             x2 = rθφ2xyz(rθφ)
-            if pair_corr(x1,s1,x2,s1) ≈ zero(T)
+            if r1 + rθφ[1] < a12
                 return Kzero
             end
+            # if pair_corr(x1,s1,x2,s1) < ptol || norm(x1 - x2) < a12
+            #     return Kzero
+            # end
             basis2 = field_basis(rθφ)
 
             U = Uout(x1 - x2)
@@ -328,20 +332,95 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
     end
 
     return ScatteringCoefficientsField(ω, source.medium, material, scattered_field;
-        symmetry = RadialSymmetry{Dim}(),
+        symmetry = RadialSymmetry{3}(),
         basis_order = basis_order,
         basis_field_order = basis_field_order
     )
 end
 
-function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::RadialSymmetry{Dim};
+# using EffectiveWaves
+# particle_medium = Acoustic(3; ρ=0.1, c=0.1);
+# medium = Acoustic(3; ρ=1.0, c=1.0);
+#
+# R = 5.0
+# r = 1.0
+#
+# T = Float64
+# separation_ratio = 1.02
+#
+# kas = [0.01,0.2]
+# kas = [0.002]
+# kas = [0.1]
+# ks = kas ./ r
+#
+# vol_fraction = 0.12
+# vol_fraction = 0.05
+#
+# tol = 1e-7
+#
+# basis_orders = Int.(round.(4. .* kas)) .+ 1
+# basis_orders = Int.(round.(0.0 .* kas)) .+ 1
+# basis_field_orders = Int.(round.(4.0 .* ks .* R)) .+ 1
+# basis_field_orders = max.(basis_field_orders,2)
+#
+# basis_order = basis_orders[1]
+# basis_field_order = basis_field_orders[1]
+#
+# ωs = ks .* real(medium.c)
+# ω = ωs[1]
+#
+# s1 = Specie(
+#     particle_medium, Sphere(r);
+#     number_density = vol_fraction / volume(Sphere(r)),
+#     exclusion_distance = separation_ratio
+# );
+#
+# species = [s1]
+# # species = [s1,s1]
+#
+# region_shape = Sphere([0.0,0.0,0.0], R)
+# material = Material(Sphere(R),species);
+#
+#
+# a12 = 2.0 * s1.exclusion_distance * outer_radius(s1)
+# rs = 0.0:0.1:(R - a12);
+# xs = [ radial_to_cartesian_coordinates([0.0,0.0,r]) for r in rs];
+#
+# eff_medium = effective_medium(medium, species; numberofparticles = material.numberofparticles)
+# ks_low = ωs ./ eff_medium.c
+#
+# source =  regular_spherical_source(medium, [1.0+0.0im];
+#    position = [0.0,0.0,0.0], symmetry = RadialSymmetry{3}()
+# );
+#
+# polynomial_order = 2
+#
+# pair_corr_inf(z) = hole_correction_pair_correlation([0.0,0.0,0.0],s1, [0.0,0.0,z],s1)
+#
+# pair_corr_inf_smooth = smooth_pair_corr_distance(
+#     pair_corr_inf, a12;
+#     smoothing = 1.0, max_distance = 2R,
+#     polynomial_order = polynomial_order
+# )
+#
+# gls_radial = gls_pair_radial_fun(pair_corr_inf_smooth, a12;
+#     sigma_approximation = false,
+#     polynomial_order = polynomial_order
+# )
+
+
+function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::RadialSymmetry{3};
         basis_order::Int = 1,
         basis_field_order::Int = Int(round(T(2) * real(ω / source.medium.c) * outer_radius(material.shape))) + 1,
-        mesh_points::Int = Int((basis_field_order + 1)^2),
+        # basis_field_order = Int(round(T(2) * real(ω / source.medium.c) * outer_radius(material.shape))) + 1,
+        polynomial_order::Int = 10,
+        mesh_points::Int = Int(basis_field_order + 1)^2,
+        # mesh_points = Int(basis_field_order + 1)^2,
         numdensity::Function = (x1, s1) -> number_density(s1),
-        gls_pair_radial::Function = (r1,r2) -> r1 + r1 < one(T) ? zero(T) : one(T),
-        scheme = :trapezoidal
-    ) where {T,Dim}
+        # numdensity = (x1, s1) -> number_density(s1),
+        scheme = :trapezoidal,
+        pair_kws...
+    ) where T
 
     if length(material.species) > 1
         @warn "discrete_system has only been implemented for 1 species for now. Will use only first specie."
@@ -351,8 +430,25 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,Dim}}, 
     scale_number_density = one(T) - one(T) / material.numberofparticles
     bar_numdensity(x1,s1) = scale_number_density * numdensity(x1,s1)
 
+    a12 = 2.0 * s1.exclusion_distance * outer_radius(s1)
     R = outer_radius(material.shape)
     k = ω / source.medium.c
+
+    function calculate_gls_fun(;
+            pair_corr_distance::Function = z ->  hole_correction_pair_correlation(
+                [0.0,0.0,0.0],material.species[1], [0.0,0.0,z],material.species[1]
+            ),
+            sigma_approximation = true,
+            gls_pair_radial::Function = gls_pair_radial_fun(
+                pair_corr_distance, a12;
+                polynomial_order = polynomial_order,
+                sigma_approximation = sigma_approximation
+            )
+        )
+        gls_pair_radial
+    end
+
+    gls_function = calculate_gls_fun(; pair_kws...)
 
     ls = 0:basis_order
     lm_to_n = lm_to_spherical_harmonic_index
@@ -361,13 +457,14 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,Dim}}, 
     t_matrices = get_t_matrices(source.medium, material.species, ω, basis_order)
     t_diags = diag.(t_matrices)
 
-    rs = LinRange(0,R-outer_radius(s1), mesh_points)
+    rs = LinRange(0, R - outer_radius(s1), mesh_points)
     σs = integration_scheme(rs; scheme = scheme)
 
     # incident wave coefficients
     b0 = regular_spherical_coefficients(source)(1,origin(material.shape),ω)[1];
+    # regular_radial_basis(source.medium, ω, basis_order, r1)[ls_to_ns]
     Bs = (sqrt(4pi) * b0) .* [
-        t_diags[1][ls_to_ns] .* (-T(1)) .^ ls .* sbesselj.(ls, k*r1) # regular_radial_basis(source.medium, ω, basis_order, r1)[ls_to_ns]
+        t_diags[1][ls_to_ns] .* (-T(1)) .^ ls .* sbesselj.(ls, k*r1)
     for r1 in rs]
 
     Bs = vcat(Bs...)
@@ -379,65 +476,105 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,Dim}}, 
             shankelh1(l5, k*r1) * sbesselj(l6, k*r2)
         end
 
-
     function C_kernal(l2::Int,j2::Int)
 
-        term2 = σs[j2] * rs[j2]^2 * numdensity([rs[j2],T(0),T(0)],s1)
+        term2 = σs[j2] * rs[j2]^2 * bar_numdensity([T(0),T(0),rs[j2]],s1)
+        a12 = 2*outer_radius(s1)*s1.exclusion_distance
 
         data = term2 .* [
-            if norm(gls_pair_radial(r1,rs[j2])) < sqrt(eps(T))
+        begin
+            # if abs(r1 - rs[j2]) < 2a12
+            #     gls = gls_pair_near_radial(r1,rs[j2])
+            #     L1 = 2polynomial_order
+            # else
+                gls = gls_function(r1,rs[j2])
+                L1 = polynomial_order
+            # end
+            if r1 + rs[j2] < a12
                 zero(Complex{T})
             else
-                gls = gls_pair_radial(r1,rs[j2])
                 t_diags[1][lm_to_n(l,0)] *
                 sum(
-                    chi(l5,l6,r1,rs[j2]) * gls[l1+1] *
-                    gaunt_coefficient(l,0,l1,m1,l5,-m1) * gaunt_coefficient(l1,m1,l2,m2,l6,m1-m2) *
-                    gaunt_coefficient(l2,m2,l,0,l4,m2)  * gaunt_coefficient(l4,m2,l5,m1,l6,m2-m1) /
-                    (4pi * T(-1)^m2 * Complex{T}(im)^(l-l5-l6-l2))
-                for l1 = 0:basis_field_order for l4 = abs(l-l2):(l+l2)
-                for l5 = abs(l-l1):(l+l1) for l6 = max(abs(l4-l5),abs(l1-l2)):min(l4+l5,l1+l2)
-                for m1 = max(-l1,-l5):min(l1,l5) for m2 = max(-l2,-l4,m1-l6):min(l2,l4,m1+l6))
+                    gls[l1+1] *
+                    sum(
+                        (chi(l5,l6,r1,rs[j2]) * Complex{T}(im)^(l-l5-l6-l2) /
+                        (4pi)^2) *
+                        sum(
+                            T(-1)^m2 *
+                            gaunt_coefficient(l,0,l1,m1,l5,-m1) * gaunt_coefficient(l1,m1,l2,m2,l6,m1-m2) *
+                            gaunt_coefficient(l2,m2,l,0,l4,m2) * gaunt_coefficient(l4,m2,l5,m1,l6,m2-m1)
+                        for m1 = max(-l1,-l5):min(l1,l5)
+                        for m2 = max(-l2,-l4,m1-l6):min(l2,l4,m1+l6))
+                    for l4 = abs(l-l2):(l+l2)
+                    for l5 = abs(l-l1):(l+l1)
+                    for l6 = max(abs(l4-l5),abs(l1-l2)):min(l4+l5,l1+l2))
+                for l1 = 0:L1)
             end
+        end
         for l in ls, r1 in rs];
 
         return data[:]
     end
 
     Cs = [C_kernal(l2,j2) for l2 in ls, j2 in eachindex(rs)][:];
+
     bigC = hcat(Cs...);
     #NOTE bigC[:,M2] == Cs[M2]
 
     Fs = (I - bigC) \ Bs;
+    # CHECK:
+    # norm(Fs - (Bs + bigC * Fs)) / norm(Bs)
+    # norm(Fs - (Bs + bigC * Fs))
+
+    # if  norm((I - bigC) * Fs - Bs)/norm(Bs) > 0.001
+    #     @warn "Numerical solution has a relative residual error of $(norm((I - bigC) * Fs - Bs)/norm(Bs)), which is larger than expected. This residual error can be decreased by increasing the basis_field_order (current value: $basis_field_order) for the field."
+    # end
+
     Fs = reshape(Fs,(basis_order+1,length(rs)))
+    # reshape([(l,r) for l in ls, r in rs][:],(basis_order+1,length(rs)))
 
     # Approximate with a Legendre series
     P = Legendre{T}()
-    polynomial_order = max(1,length(r1s) - 2)
+    legendre_order = max(1,Int(round(length(rs)/2.0)) - 1)
 
-    r1_max = maximum(r1s);
-    rbars = T(2.0) .* r1s ./ r1_max .- T(1.0);
-    Pmat = P[rbars, 1:(polynomial_order + 1)];
+    r1_max = maximum(rs);
+    rbars = T(2.0) .* rs ./ r1_max .- T(1.0);
+    Pmat = P[rbars, 1:(legendre_order + 1)];
 
     projector_mat =  inv(transpose(Pmat) * (Pmat)) * transpose(Pmat);
     projector_mat = transpose(projector_mat);
 
     pls_arr = Fs * projector_mat;
+    # Fs ~ pls_arr * transpose(Pmat)
+    # norm(Fs - pls_arr * transpose(Pmat)) / norm(Fs)
 
-    function scattered_field(r::T)
-        Ps = P[2r / r1_max - T(1), 1:(polynomial_order + 1)]
+    function scattered_field(xs::AbstractVector{T})
+        r,θ,φ = cartesian_to_radial_coordinates(xs)
 
-        return pls_arr * Ps
+        Ps = P[2r / r1_max - T(1), 1:(legendre_order + 1)]
+        Fls = pls_arr * Ps
+
+        # Fls_arr = [
+        #     pls_arr * P[2r / r1_max - T(1), 1:(legendre_order + 1)]
+        # for r in rs]
+        # norm(Fs - hcat(Fls_arr...)) / norm(Fs)
+
+        conj_Ys = conj.(spherical_harmonics(basis_order, θ, φ));
+        fns = [
+            Fls[l+1] * conj_Ys[lm_to_n(l,m)]
+        for l = 0:basis_order for m = -l:l]
+
+        return fns
     end
-    # Fs ~ hcat(scattered_field.(r1s)...)
 
-    # NOTE: need to think about this type, it is exactly the same as the discrete method above, but needs to be dispatched different (for say material_scattering_coefficients) due to a different number of coefficients for the F.   
+    # NOTE: need to think about this type, it is exactly the same as the discrete method above
     return ScatteringCoefficientsField(ω, source.medium, material, scattered_field;
-        symmetry = RadialSymmetry{Dim}(),
+        symmetry = RadialSymmetry{3}(),
         basis_order = basis_order,
         basis_field_order = basis_field_order
     )
 end
+
 
 
 
