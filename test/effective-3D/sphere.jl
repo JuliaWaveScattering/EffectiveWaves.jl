@@ -288,8 +288,8 @@ end
 
 ## Set parameters
     # include("../discretisation/utils.jl")
-    particle_medium = Acoustic(3; ρ=0.1, c=0.1);
     particle_medium = Acoustic(3; ρ=10.01, c=10.01);
+    particle_medium = Acoustic(3; ρ=0.1, c=0.1);
     medium = Acoustic(3; ρ=1.0, c=1.0);
 
     R = 5.0
@@ -299,20 +299,29 @@ end
 
     kas = [0.01,0.2]
     kas = [0.002]
-    kas = [0.1]
+    kas = [0.6]
+    kas = [0.02]
     kas = [0.3]
+    kas = [0.1]
     ks = kas ./ r
 
     vol_fraction = 0.05
     vol_fraction = 0.15
+    vol_fraction = 0.2
     # vol_fraction = 0.04
+
+    import EffectiveWaves: discrete_system_radial
+    import EffectiveWaves: discrete_system
 
     tol = 1e-7
 
     basis_orders = Int.(round.(4. .* kas)) .+ 1
     basis_orders = Int.(round.(0.0 .* kas)) .+ 1
-    basis_field_orders = Int.(round.(4.0 .* ks .* R)) .+ 1
+    basis_orders = Int.(round.(0.0 .* kas))
+    # basis_orders = Int.(round.(0.0 .* kas)) .+ 2
+    basis_field_orders = Int.(round.(3.0 .* ks .* R)) .+ 1
     basis_field_orders = max.(basis_field_orders,2)
+    basis_field_orders = [8]
 
     ωs = ks .* real(medium.c)
 
@@ -336,11 +345,15 @@ end
     t_diags = diag.(t_matrices)
 
     a12 = 2.0 * s1.exclusion_distance * outer_radius(s1)
-    rs = 0.0:0.02:(R - a12);
-    xs = [ radial_to_cartesian_coordinates([r,0.0,0.0]) for r in rs];
+    rs = 0.0:0.02:(R - outer_radius(s1));
+    xs = [
+        radial_to_cartesian_coordinates([r,0.5,0.6])
+    for r in rs];
 
     eff_medium = effective_medium(medium, species; numberofparticles = material.numberofparticles)
     ks_low = ωs ./ eff_medium.c
+
+    # import EffectiveWaves: discrete_system_radial
 
     keff_arr = [
         wavenumbers(ωs[i], medium, species;
@@ -363,12 +376,15 @@ end
     for i in eachindex(ωs)];
 
     scat_fields_radial = scattering_field.(wavemodes_radial);
-    eff_scats_radial = [s.(xs) for s in scat_fields_radial];
+    eff_scats_radial = [ s.(xs) for s in scat_fields_radial];
 
 
 ## Use a smooth pair- correlation
     # polynomial_order = 80
-    polynomial_order = 15
+    polynomial_order = 23
+    polynomial_order = 0
+    # polynomial_order = 35
+    # polynomial_order = 0
 
     pair_corr_inf(z) = hole_correction_pair_correlation([0.0,0.0,0.0],s1, [0.0,0.0,z],s1)
 
@@ -378,15 +394,27 @@ end
         polynomial_order = polynomial_order
     )
 
-    # using Plots
-    # zs = 0.0:0.01:(2R)
-    # plot(pair_corr_inf_smooth,zs)
-    # plot!(pair_corr_inf,zs, linestyle=:dash)
+    using Plots
+    zs = 0.0:0.01:(2R)
+    plot(pair_corr_inf_smooth,zs)
+    plot!(pair_corr_inf,zs, linestyle=:dash)
 
     gls_radial = gls_pair_radial_fun(pair_corr_inf_smooth, a12;
         sigma_approximation = false,
         polynomial_order = polynomial_order
     )
+
+    scatter(gls_radial(3.0,4.0))
+
+    g0s = [gls_radial(0.0,r)[1] for r in rs]
+    # g1s = [gls_radial(0.0,r)[2] for r in rs]
+    # g2s = [gls_radial(0.0,r)[3] for r in rs]
+    # g5s = [gls_radial(0.0,r)[6] for r in rs]
+    #
+    plot(rs,g0s)
+    # plot(rs,g1s)
+    # plot(rs,g2s)
+    # plot(rs,g5s)
 
     # pair_radial_smooth = pair_radial_fun(pair_corr_inf_smooth, a12;
     #     sigma_approximation = false,
@@ -400,14 +428,15 @@ end
         return sum(Pus .* gls_radial(r1,r2))
     end
 
-    plot!(zs,pair_radial_smooth2.(zs,0.0,0.0))
-    plot!(zs,pair_radial_smooth2.(zs ./ 2,zs ./ 2,-1.0), linestyle=:dot)
+    plot(zs,pair_radial_smooth2.(zs,0.0,0.0))
+    plot!(zs,pair_corr_inf_smooth.(zs), linestyle=:dash)
+
+    # plot!(zs,pair_radial_smooth2.(zs ./ 2,zs ./ 2,-1.0), linestyle=:dot)
     # costhetas = -1.0:0.1:1.0
-    #
     # plot(costhetas, pair_radial.(4.01,0.0,costhetas))
 
     function pair_corr_smooth(x1,s1,x2,s2)
-        if norm(x1) < 1e-10 || norm(x2) < 1e-10
+        if norm(x1) < 1e-12 || norm(x2) < 1e-12
             pair_radial_smooth2(norm(x1),norm(x2),0.0)
         else
             pair_radial_smooth2(norm(x1),norm(x2),dot(x1,x2) / (norm(x1)*norm(x2)))
@@ -418,8 +447,9 @@ end
     # plot!(pair_corr_inf_smooth2,zs, linestyle=:dash)
 
     gls_radial_simple(r1,r2) = [exp(-4r1 - 4r2)]
+    gls_radial_simple(r1,r2) = 4pi
 
-    pair_corr_simple(x1,s1,x2,s2) = gls_radial_simple(norm(x1),norm(x2))[1]
+    pair_corr_simple(x1,s1,x2,s2) = gls_radial_simple(norm(x1),norm(x2))[1] / (4pi)
 
 ## Reduced radial method
     # import EffectiveWaves: discrete_system_radial
@@ -433,8 +463,8 @@ end
             # mesh_points = 24,
             # pair_corr_distance = pair_corr_inf,
             # pair_corr_distance = pair_corr_inf_smooth,
-            # gls_pair_radial = gls_radial_simple,
-            gls_pair_radial = gls_radial,
+            gls_pair_radial = gls_radial_simple,
+            # gls_pair_radial = gls_radial,
             sigma_approximation = false
         )
     for i in eachindex(ωs)];
@@ -446,7 +476,6 @@ end
     mat_dcoefs_radial = [
         material_scattering_coefficients(discrete_field_radials[i]; rtol = 1e-3,maxevals = Int(5e3))
     for i in eachindex(ωs)];
-
 # fully numerical method
     tmp = discrete_system(ωs[1], sourceradial, material;
         basis_order = 0, basis_field_order = 0, rtol = 1.0, maxevals = 4
@@ -458,8 +487,8 @@ end
         discrete_system(ωs[i], sourceradial, material;
             basis_order = basis_orders[i],
             basis_field_order = basis_field_orders[i],
-            rtol = 2e-3, maxevals = Int(1e5),
-            # pair_corr = pair_corr_simple
+            rtol = 5e-3, maxevals = Int(1e5),
+            pair_corr = pair_corr_simple
             # pair_corr = pair_corr_smooth
         )
     for i in eachindex(ωs)];
@@ -475,7 +504,6 @@ end
     mat_coefs_radial = material_scattering_coefficients.(wavemodes_radial);
 
    i = 1;
-
    abs(mat_dcoefs_radial[i][1])
    abs(mat_dcoefs[i][1])
    abs(mat_coefs_radial[i][1])
@@ -494,15 +522,43 @@ end
    df0s = [d[j] for d in discrete_scats[i]];
    # df1s = [d[3] for d in discrete_scats[2]];
 
+   # rad_scats2 = scattered_field.(xs);
+   # df_rad2s = [s[j] for s in rad_scats2];
+
    zs = [x[3] for x in xs];
    zs - norm.(xs);
 
-   # using Plots
-   # fun = abs;
-   # plot(zs,fun.(df0s))
-   # plot!(zs,fun.(df_rad0s), linestyle = :dash)
-   # plot!(zs,fun.(eff_rad0s), linestyle = :dot)
+   using Plots
+   gr(linewidth=2.0)
+   fun = abs;
+   plot(zs,fun.(df0s), lab = "$fun fully discrete")
+   plot!(zs,fun.(df_rad0s), linestyle = :dash, lab = "$fun discrete radial")
+   plot!(zs,fun.(eff_rad0s),
+        linestyle = :dot,
+        lab = "$fun eff. wave method",
+        xlab = "radial distance",
+        ylab = ""
+   )
+   abs(df0s[2] - df0s[1]) / (zs[2] - zs[1])
+   abs(eff_rad0s[2] - eff_rad0s[1]) / (zs[2] - zs[1])
+   abs(df_rad0s[2] - df_rad0s[1]) / (zs[2] - zs[1])
 
+
+
+   # plot!(xlim=(0.0,2.0))
+   # savefig("sound-soft-compare-radial-l=1.pdf")
    # plot(zs,fun.(df1s))
-   # plot!(zs,fun.(df_rad1s))
+
+
+   chi(r1::T,r2::T) = T(-1)^0 *
+       if(r1 + r2 < a12)
+           Complex{T}(0)
+       elseif(r1 < r2)
+           shankelh1(0, k*r2) * sbesselj(0, k*r1)
+       else
+           shankelh1(0, k*r1) * sbesselj(0, k*r2)
+       end
+
+    plot(rs,[real.(chi.(2.2,rs)),imag.(chi.(2.2,rs))],lab="")
 end
+# plot!(zs,fun.(df_rad1s))

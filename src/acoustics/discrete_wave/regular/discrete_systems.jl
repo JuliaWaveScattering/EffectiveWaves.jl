@@ -418,9 +418,10 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
         # mesh_points = Int(basis_field_order + 1)^2,
         numdensity::Function = (x1, s1) -> number_density(s1),
         # numdensity = (x1, s1) -> number_density(s1),
-        scheme = :trapezoidal,
-        pair_kws...
+        scheme = :trapezoidal, pair_kws...
     ) where T
+
+    # basis_field_order = 14
 
     if length(material.species) > 1
         @warn "discrete_system has only been implemented for 1 species for now. Will use only first specie."
@@ -463,11 +464,10 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
     # incident wave coefficients
     b0 = regular_spherical_coefficients(source)(1,origin(material.shape),ω)[1];
     # regular_radial_basis(source.medium, ω, basis_order, r1)[ls_to_ns]
-    Bs = (sqrt(4pi) * b0) .* [
-        t_diags[1][ls_to_ns] .* (-T(1)) .^ ls .* sbesselj.(ls, k*r1)
-    for r1 in rs]
 
-    Bs = vcat(Bs...)
+    Bs = (sqrt(4pi) * b0) .* [
+        t_diags[1][lm_to_n(l,0)] * (-T(1))^l * sbesselj(l, k*r1)
+    for l in ls, r1 in rs][:]
 
     chi(l5::Int,l6::Int,r1::T,r2::T) = T(-1)^l6 *
         if(r1 < r2)
@@ -521,32 +521,78 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
     bigC = hcat(Cs...);
     #NOTE bigC[:,M2] == Cs[M2]
 
-    Fs = (I - bigC) \ Bs;
+    # B = reshape(Bs,(basis_order+1,length(rs)))
+
+    # m = 140;
+    # tmp = reshape(bigC[:,m],(basis_order+1,length(rs)))
+    # plot(rs,[real.(tmp[1,:]),imag.(tmp[1,:])])
+    # plot!(rs,[real.(tmp[2,:]),imag.(tmp[2,:])])
+
+    A = I - bigC
+    # A * Fs =   Bs;
+
+    # Add the constraint of the derivative at the origin
+    Ms = [ (l2,j2) for l2 in ls, j2 in eachindex(rs)][:]
+    G = [
+        if M2[1] == l
+            if M2[2] == 1
+                Complex{T}(1)
+            elseif M2[2] == 2
+                -Complex{T}(1)
+            else
+                Complex{T}(0)
+            end
+        else Complex{T}(0)
+        end
+    for l = ls[1:2:end], M2 in Ms];
+    #
+    # invAhA = inv(adjoint(A)*A)
+    # Fs = Fc - invAhA * adjoint(G) * inv(G*invAhA*adjoint(G)) * G * Fc
+
+    # MA = vcat(A,G)
+    # Fs = MA \ vcat(Bs,zeros(size(G,1)));
+
+    Fs = A \ Bs;
+
+    # Fs = Fc
+
+    # A = rand(3,3)
+    # G = rand(2,3)
+    #
+    # MA = vcat(A,G)
+    # b = rand(3)
+    #
+    # x = MA \ vcat(b,[0,0])
+    # MA
+
+
+    # NOTE: G * Fs = 0
+
     # CHECK:
     # norm(Fs - (Bs + bigC * Fs)) / norm(Bs)
     # norm(Fs - (Bs + bigC * Fs))
 
-    # if  norm((I - bigC) * Fs - Bs)/norm(Bs) > 0.001
-    #     @warn "Numerical solution has a relative residual error of $(norm((I - bigC) * Fs - Bs)/norm(Bs)), which is larger than expected. This residual error can be decreased by increasing the basis_field_order (current value: $basis_field_order) for the field."
-    # end
-
+    # Fc = reshape(Fc,(basis_order+1,length(rs)))
     Fs = reshape(Fs,(basis_order+1,length(rs)))
     # reshape([(l,r) for l in ls, r in rs][:],(basis_order+1,length(rs)))
 
     # Approximate with a Legendre series
     P = Legendre{T}()
-    legendre_order = max(1,Int(round(length(rs)/2.0)) - 1)
+    legendre_order = max(1,Int(round(sqrt(length(rs)))))
 
     r1_max = maximum(rs);
     rbars = T(2.0) .* rs ./ r1_max .- T(1.0);
     Pmat = P[rbars, 1:(legendre_order + 1)];
 
-    projector_mat =  inv(transpose(Pmat) * (Pmat)) * transpose(Pmat);
-    projector_mat = transpose(projector_mat);
+    # Pmat * pls_arr ~ tranpose(Fs)
+    pls_arr = transpose(Pmat \ transpose(Fs))
 
-    pls_arr = Fs * projector_mat;
+    FsP = pls_arr * transpose(Pmat)
     # Fs ~ pls_arr * transpose(Pmat)
-    # norm(Fs - pls_arr * transpose(Pmat)) / norm(Fs)
+
+    if  norm(A * FsP[:] - Bs)/norm(Bs) > 0.001
+        @warn "Numerical solution has a relative residual error of $(norm((I - bigC) * FsP[:] - Bs)/norm(Bs)), which is larger than expected. This residual error can be decreased by increasing the basis_field_order (current value: $basis_field_order) for the field."
+    end
 
     function scattered_field(xs::AbstractVector{T})
         r,θ,φ = cartesian_to_radial_coordinates(xs)

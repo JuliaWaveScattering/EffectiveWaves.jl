@@ -3,6 +3,8 @@ using LinearAlgebra, Statistics, Test
 
 @testset "Pair-correlation tests" begin
 
+    # import EffectiveWaves: gls_pair_radial_fun
+
     particle_medium = Acoustic(3; ρ=0.0, c=0.0);
 
     exclusion_distance = 1.01
