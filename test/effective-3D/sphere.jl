@@ -353,7 +353,7 @@ end
     for i in eachindex(ωs)];
 
     # avoid right next to the surface due the boundary layer
-    rs = 0.0:0.01:(R - outer_radius(s1));
+    rs = 0.0:0.01:(R - 2*outer_radius(s1));
     xs = [ radial_to_cartesian_coordinates([r,0.2,1.2]) for r in rs];
 
     errors = [
@@ -374,7 +374,7 @@ end
         abs(norm(mat_coefs_pwaves[i][1:length(mat_coefs_discretes[i])]) / norm(mat_coefs_discretes[i]) - 1.0)
     for i in eachindex(ωs)];
 
-    @test errors[1] < 2e-4
+    @test errors[1] < 1e-4
     @test errors[2] < 3e-3
 
 ## Radially symmetric scattering from a sphere
@@ -445,8 +445,8 @@ end
     for i in eachindex(ωs)];
 
     @test minimum(mean.(errors)) < 1e-4
-    @test maximum(mean.(errors)) < 2e-3
-    @test maximum(maximum.(errors)) < 5e-3
+    @test maximum(mean.(errors)) < 1e-3
+    @test maximum(maximum.(errors)) < 2e-3
 
     mat_coefs_radial = material_scattering_coefficients.(wavemodes_radial);
 
@@ -500,7 +500,7 @@ end
     for i in eachindex(ωs)];
 
     @test mean(mean.(errors)) < 1e-3
-    @test maximum(mean.(errors)) < 2e-3
+    @test maximum(mean.(errors)) < 1e-3
     @test maximum(maximum.(errors)) < 4e-3
 
     mat_coefs_disc_radial2 = [
