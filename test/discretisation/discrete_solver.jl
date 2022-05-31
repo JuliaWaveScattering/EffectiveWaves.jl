@@ -49,3 +49,53 @@
     @test mean(error) < tol
 
 end
+
+@testset "Legendre polynomial approximation"
+
+    P = Legendre{Float64}()
+
+    polynomial_order = 5
+    mesh_points = 3*(polynomial_order + 1)
+    mesh_points = (polynomial_order + 1)^2
+
+    rs = LinRange(0,5,mesh_points)
+    r2s = LinRange(0,5,4*mesh_points)
+
+    r1_max = maximum(rs);
+    rbars = 2.0 .* rs ./ r1_max .- (1.0);
+    r2bars = 2.0 .* r2s ./ r1_max .- (1.0);
+
+    data = cos.(rs) .* (1.0 .+ 4 .* exp.(-10 .* rs.^4))
+    data2 = cos.(r2s) .* (1.0 .+ 4 .* exp.(-10 .* r2s.^4))
+    # plot(rs,data)
+    # plot!(r2s,data2)
+
+    Pmat = P[rbars, 1:(polynomial_order + 1)];
+    P2mat = P[r2bars, 1:(polynomial_order + 1)];
+
+    # pls_arr * transpose(Pmat) ~ data
+    # Pmat * transpose(pls_arr) ~ transpose(data)
+    pls_arr = Pmat \ data
+
+    ws = (0:polynomial_order) .+ 1/2
+    σs = integration_scheme(rbars; scheme = :trapezoidal)
+    tls_arr = ws .* (transpose(Pmat) * (σs .* data))
+
+    λ = 1e-7
+    cls_arr = inv(transpose(Pmat) * Pmat + λ*I) * transpose(Pmat) * data
+
+    norm(Pmat * pls_arr - data) / norm(data)
+    norm(Pmat * tls_arr - data) / norm(data)
+    norm(Pmat * cls_arr - data) / norm(data)
+    norm(P2mat * pls_arr - data2) / norm(data2)
+    norm(P2mat * tls_arr - data2) / norm(data2)
+    norm(P2mat * cls_arr - data2) / norm(data2)
+
+    scatter(rs,data)
+    # plot!(rs,Pmat * pls_arr, linestyle = :dash)
+    plot!(r2s,P2mat * pls_arr, linestyle = :dash)
+    # plot!(r2s,P2mat * tls_arr, linestyle = :dash)
+    plot!(r2s,P2mat * cls_arr, linestyle = :dash)
+
+
+end

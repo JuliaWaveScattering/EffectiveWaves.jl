@@ -184,8 +184,9 @@ end
 function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::RadialSymmetry{3};
         basis_order::Int = 1,
         basis_field_order::Int = Int(round(T(2) * real(ω / source.medium.c) * outer_radius(material.shape))) + 1,
-        legendre_order::Int = basis_field_order + 1,
-        mesh_points::Int = Int(round(1.1 * legendre_order )) + 2,
+        legendre_order::Int = 2basis_field_order + 1,
+        # mesh_points::Int = 3 * (legendre_order + 1),
+        mesh_points::Int = 3 * (legendre_order + 1),
         rtol::T = 1e-2, ptol::T = 1e-2,
         maxevals::Int = Int(2e4),
         numdensity = (x1, s1) -> number_density(s1),
@@ -255,9 +256,9 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
             if r1 + rθφ[1] < a12
                 return Kzero
             end
-            # if pair_corr(x1,s1,x2,s1) < ptol || norm(x1 - x2) < a12
-            #     return Kzero
-            # end
+            if pair_corr(x1,s1,x2,s1) < ptol || norm(x1 - x2) < a12
+                return Kzero
+            end
             basis2 = field_basis(rθφ)
 
             U = Uout(x1 - x2)
@@ -338,83 +339,13 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
     )
 end
 
-# using EffectiveWaves
-# particle_medium = Acoustic(3; ρ=0.1, c=0.1);
-# medium = Acoustic(3; ρ=1.0, c=1.0);
-#
-# R = 5.0
-# r = 1.0
-#
-# T = Float64
-# separation_ratio = 1.02
-#
-# kas = [0.01,0.2]
-# kas = [0.002]
-# kas = [0.1]
-# ks = kas ./ r
-#
-# vol_fraction = 0.12
-# vol_fraction = 0.05
-#
-# tol = 1e-7
-#
-# basis_orders = Int.(round.(4. .* kas)) .+ 1
-# basis_orders = Int.(round.(0.0 .* kas)) .+ 1
-# basis_field_orders = Int.(round.(4.0 .* ks .* R)) .+ 1
-# basis_field_orders = max.(basis_field_orders,2)
-#
-# basis_order = basis_orders[1]
-# basis_field_order = basis_field_orders[1]
-#
-# ωs = ks .* real(medium.c)
-# ω = ωs[1]
-#
-# s1 = Specie(
-#     particle_medium, Sphere(r);
-#     number_density = vol_fraction / volume(Sphere(r)),
-#     exclusion_distance = separation_ratio
-# );
-#
-# species = [s1]
-# # species = [s1,s1]
-#
-# region_shape = Sphere([0.0,0.0,0.0], R)
-# material = Material(Sphere(R),species);
-#
-#
-# a12 = 2.0 * s1.exclusion_distance * outer_radius(s1)
-# rs = 0.0:0.1:(R - a12);
-# xs = [ radial_to_cartesian_coordinates([0.0,0.0,r]) for r in rs];
-#
-# eff_medium = effective_medium(medium, species; numberofparticles = material.numberofparticles)
-# ks_low = ωs ./ eff_medium.c
-#
-# source =  regular_spherical_source(medium, [1.0+0.0im];
-#    position = [0.0,0.0,0.0], symmetry = RadialSymmetry{3}()
-# );
-#
-# polynomial_order = 2
-#
-# pair_corr_inf(z) = hole_correction_pair_correlation([0.0,0.0,0.0],s1, [0.0,0.0,z],s1)
-#
-# pair_corr_inf_smooth = smooth_pair_corr_distance(
-#     pair_corr_inf, a12;
-#     smoothing = 1.0, max_distance = 2R,
-#     polynomial_order = polynomial_order
-# )
-#
-# gls_radial = gls_pair_radial_fun(pair_corr_inf_smooth, a12;
-#     sigma_approximation = false,
-#     polynomial_order = polynomial_order
-# )
-
-
 function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::RadialSymmetry{3};
         basis_order::Int = 1,
         basis_field_order::Int = Int(round(T(2) * real(ω / source.medium.c) * outer_radius(material.shape))) + 1,
         # basis_field_order = Int(round(T(2) * real(ω / source.medium.c) * outer_radius(material.shape))) + 1,
         polynomial_order::Int = 10,
-        mesh_points::Int = Int(basis_field_order + 1)^2,
+        legendre_order::Int = 2basis_field_order + 1,
+        mesh_points::Int = 3 * (legendre_order + 1),
         # mesh_points = Int(basis_field_order + 1)^2,
         numdensity::Function = (x1, s1) -> number_density(s1),
         # numdensity = (x1, s1) -> number_density(s1),
@@ -521,50 +452,9 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
     bigC = hcat(Cs...);
     #NOTE bigC[:,M2] == Cs[M2]
 
-    # B = reshape(Bs,(basis_order+1,length(rs)))
-
-    # m = 140;
-    # tmp = reshape(bigC[:,m],(basis_order+1,length(rs)))
-    # plot(rs,[real.(tmp[1,:]),imag.(tmp[1,:])])
-    # plot!(rs,[real.(tmp[2,:]),imag.(tmp[2,:])])
-
     A = I - bigC
-    # A * Fs =   Bs;
-
-    # Add the constraint of the derivative at the origin
-    Ms = [ (l2,j2) for l2 in ls, j2 in eachindex(rs)][:]
-    G = [
-        if M2[1] == l
-            if M2[2] == 1
-                Complex{T}(1)
-            elseif M2[2] == 2
-                -Complex{T}(1)
-            else
-                Complex{T}(0)
-            end
-        else Complex{T}(0)
-        end
-    for l = ls[1:2:end], M2 in Ms];
-    #
-    # invAhA = inv(adjoint(A)*A)
-    # Fs = Fc - invAhA * adjoint(G) * inv(G*invAhA*adjoint(G)) * G * Fc
-
-    # MA = vcat(A,G)
-    # Fs = MA \ vcat(Bs,zeros(size(G,1)));
 
     Fs = A \ Bs;
-
-    # Fs = Fc
-
-    # A = rand(3,3)
-    # G = rand(2,3)
-    #
-    # MA = vcat(A,G)
-    # b = rand(3)
-    #
-    # x = MA \ vcat(b,[0,0])
-    # MA
-
 
     # NOTE: G * Fs = 0
 
@@ -578,7 +468,6 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
 
     # Approximate with a Legendre series
     P = Legendre{T}()
-    legendre_order = max(1,Int(round(sqrt(length(rs)))))
 
     r1_max = maximum(rs);
     rbars = T(2.0) .* rs ./ r1_max .- T(1.0);
