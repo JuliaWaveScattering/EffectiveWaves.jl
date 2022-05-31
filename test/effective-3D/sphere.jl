@@ -1,7 +1,6 @@
 using EffectiveWaves, ClassicalOrthogonalPolynomials
 using LinearAlgebra, Statistics, Test
 
-
 @testset "Discrete radial system for sphere scattering" begin
 
 ## Set parameters
@@ -472,10 +471,10 @@ end
         polynomial_order = polynomial_order
     )
 
-    using Plots
-    zs = 0.0:0.01:(2R)
-    plot(pair_corr_inf_smooth,zs)
-    plot!(pair_corr_inf,zs, linestyle=:dash)
+    # using Plots
+    # zs = 0.0:0.01:(2R)
+    # plot(pair_corr_inf_smooth,zs)
+    # plot!(pair_corr_inf,zs, linestyle=:dash)
 
     gls_radial = gls_pair_radial_fun(pair_corr_inf_smooth, a12;
         sigma_approximation = false,
