@@ -75,5 +75,5 @@ using LinearAlgebra, Statistics, Test
     p_infs = pair_corr_inf.(sqrt.(r1s.^2 .+ r2s.^2 .- 2r1s .* r2s .* cosθs));
 
     @test mean(abs.(p_rads - p_infs)) < 1e-3
-    @test maximum(abs.(p_rads - p_infs)) < 0.52 # infinite sharp function may have point wise error of 0.5, but exceptionally rare.
+    @test maximum(abs.(p_rads - p_infs)) < 0.6 # infinite sharp function may have point wise error of 0.5, but exceptionally rare.
 end
