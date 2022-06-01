@@ -1,5 +1,6 @@
 using EffectiveWaves, Test
 using LinearAlgebra, Statistics
+using ClassicalOrthogonalPolynomials
 
 @testset "Check material definitions" begin
     include("../src/acoustics/acoustic_mediums.jl")

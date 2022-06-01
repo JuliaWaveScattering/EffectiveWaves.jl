@@ -50,13 +50,13 @@
 
 end
 
-@testset "Legendre polynomial approximation"
+@testset "Legendre polynomial approximation" begin
 
     P = Legendre{Float64}()
 
-    polynomial_order = 5
+    polynomial_order = 25
     mesh_points = 3*(polynomial_order + 1)
-    mesh_points = (polynomial_order + 1)^2
+    # mesh_points = (polynomial_order + 1)^2
 
     rs = LinRange(0,5,mesh_points)
     r2s = LinRange(0,5,4*mesh_points)
@@ -81,21 +81,22 @@ end
     σs = integration_scheme(rbars; scheme = :trapezoidal)
     tls_arr = ws .* (transpose(Pmat) * (σs .* data))
 
-    λ = 1e-7
+    λ = 1e-6
     cls_arr = inv(transpose(Pmat) * Pmat + λ*I) * transpose(Pmat) * data
 
-    norm(Pmat * pls_arr - data) / norm(data)
-    norm(Pmat * tls_arr - data) / norm(data)
-    norm(Pmat * cls_arr - data) / norm(data)
-    norm(P2mat * pls_arr - data2) / norm(data2)
-    norm(P2mat * tls_arr - data2) / norm(data2)
-    norm(P2mat * cls_arr - data2) / norm(data2)
+    # norm(Pmat * pls_arr - data) / norm(data)
+    # norm(Pmat * tls_arr - data) / norm(data)
+    # norm(Pmat * cls_arr - data) / norm(data)
+    @test norm(P2mat * pls_arr - data2) / norm(data2) < 5e-3
+    @test norm(P2mat * tls_arr - data2) / norm(data2) < 0.6
+    @test norm(P2mat * cls_arr - data2) / norm(data2) < 5e-3
 
-    scatter(rs,data)
-    # plot!(rs,Pmat * pls_arr, linestyle = :dash)
-    plot!(r2s,P2mat * pls_arr, linestyle = :dash)
-    # plot!(r2s,P2mat * tls_arr, linestyle = :dash)
-    plot!(r2s,P2mat * cls_arr, linestyle = :dash)
-
+# using Plots
+#
+#     scatter(rs,data)
+#     plot!(rs,Pmat * pls_arr, linestyle = :dash)
+#     plot!(r2s,P2mat * pls_arr, linestyle = :dash)
+#     plot!(r2s,P2mat * tls_arr, linestyle = :dash)
+#     plot!(r2s,P2mat * cls_arr, linestyle = :dash)
 
 end
