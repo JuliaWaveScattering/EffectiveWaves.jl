@@ -44,7 +44,7 @@ using LinearAlgebra, Statistics, Test
 
 
 
-## The full discrete system does no calculate the translation matrix for |r1 - r2| <= a12 , whereas the radial method does. To get an exact match between the methods we will use a special pair-correlation which does not allow two particles on the same spherical annulus
+## The full discrete system does not calculate the translation matrix for |r1 - r2| <= a12 , whereas the radial method does. To get an exact match between the methods we will use a special pair-correlation which does not allow two particles on the same spherical annulus
 
     polynomial_order = 1
     P = Legendre()
@@ -131,24 +131,26 @@ using LinearAlgebra, Statistics, Test
     basis_orders = basis_orders .* 0
 
     polynomial_order = 60
-    polynomial_order = 15
+    polynomial_order = 20
     pair_corr_inf(z) = hole_correction_pair_correlation([0.0,0.0,0.0],s1, [0.0,0.0,z],s1)
 
-    pair_corr_inf_smooth = smooth_pair_corr_distance(
-        pair_corr_inf, a12;
-        smoothing = 0.2, max_distance = 2R,
-        polynomial_order = polynomial_order
-    )
+    # pair_corr_inf_smooth = smooth_pair_corr_distance(
+    #     pair_corr_inf, a12;
+    #     smoothing = 0.0, max_distance = 2R,
+    #     polynomial_order = polynomial_order
+    # )
 
     # using Plots
     # zs = 0.0:0.01:(2R)
     # plot(pair_corr_inf_smooth,zs)
     # plot!(pair_corr_inf,zs, linestyle=:dash)
 
-    gls_radial = gls_pair_radial_fun(pair_corr_inf_smooth, a12;
+    gls_radial = gls_pair_radial_fun(pair_corr_inf, a12;
         sigma_approximation = false,
         polynomial_order = polynomial_order
     )
+
+    # plot(abs.(gls_radial(3.0,3.0)), ylims = (0.0,2.5))
 
     P = Legendre{Float64}()
     function pair_radial_smooth2(r1,r2,u)
@@ -219,15 +221,21 @@ using LinearAlgebra, Statistics, Test
         abs(mat_dcoefs_radial[i][1] - mat_dcoefs[i][1]) / abs(mat_dcoefs[i][1])
     for i in eachindex(mat_dcoefs_radial)]
 
-    @test errors[1] < 2e-3
-    @test errors[2] < 2e-2
+    @test errors[1] < 1e-3
+    @test errors[2] < 1e-2
 
     errors = [
         norm(discrete_rad_scats[i] - discrete_scats[i]) / norm(discrete_rad_scats[i])
     for i in eachindex(discrete_rad_scats)];
 
-    @test errors[1] < 4e-3
-    @test errors[2] < 4e-2
+    # i = 2
+    # fun = abs
+    # plot(rs, abs.([d[1] for d in discrete_scats[i]]))
+    # plot!(rs, abs.([d[1] for d in discrete_rad_scats[i]]), linestyle=:dash)
+
+    @test errors[1] < 2e-3
+    @test errors[2] < 2e-2
+
 
    #  # mat_coefs_radial = material_scattering_coefficients.(wavemodes_radial);
    # abs(mat_dcoefs_radial[i][1] - mat_dcoefs[i][1]) / abs(mat_dcoefs[i][1])
