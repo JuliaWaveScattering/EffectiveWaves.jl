@@ -115,3 +115,13 @@ function pair_radial_fun(pair_corr_distance::Function, a12::T; polynomial_order:
         return sum(Pus .* gls_fun(r1,r2))
     end
 end
+
+function pair_radial_to_pair_corr(pair_radial::Function)
+    function (x1,s1,x2,s2)
+        if norm(x1) < 1e-12 || norm(x2) < 1e-12
+            pair_radial(norm(x1),norm(x2),0.0)
+        else
+            pair_radial(norm(x1),norm(x2),dot(x1,x2) / (norm(x1)*norm(x2)))
+        end
+    end
+end

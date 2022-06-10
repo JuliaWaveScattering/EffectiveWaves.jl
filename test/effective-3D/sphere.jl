@@ -134,17 +134,17 @@ using LinearAlgebra, Statistics, Test
     polynomial_order = 20
     pair_corr_inf(z) = hole_correction_pair_correlation([0.0,0.0,0.0],s1, [0.0,0.0,z],s1)
 
-    # pair_corr_inf_smooth = smooth_pair_corr_distance(
-    #     pair_corr_inf, a12;
-    #     smoothing = 0.0, max_distance = 2R,
-    #     polynomial_order = polynomial_order
-    # )
+    pair_corr_inf_smooth = smooth_pair_corr_distance(
+        pair_corr_inf, a12;
+        smoothing = 0.0, max_distance = 2R,
+        polynomial_order = polynomial_order
+    )
 
     # using Plots
     # zs = 0.0:0.01:(2R)
     # plot(pair_corr_inf_smooth,zs)
     # plot!(pair_corr_inf,zs, linestyle=:dash)
-
+    #
     gls_radial = gls_pair_radial_fun(pair_corr_inf, a12;
         sigma_approximation = false,
         polynomial_order = polynomial_order
@@ -175,6 +175,7 @@ using LinearAlgebra, Statistics, Test
     # import EffectiveWaves: discrete_system_radial
     discrete_field_radials = [
         discrete_system_radial(ωs[i], sourceradial, material, Symmetry(sourceradial,material);
+            # h12 = a12,
             basis_order = basis_orders[i],
             basis_field_order = basis_field_orders[i],
             polynomial_order = polynomial_order,

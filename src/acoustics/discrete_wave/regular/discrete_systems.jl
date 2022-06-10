@@ -367,20 +367,22 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
     k = ω / source.medium.c
 
     function calculate_gls_fun(;
-            pair_corr_distance::Function = z ->  hole_correction_pair_correlation(
+            pair_corr::Function = hole_correction_pair_correlation,
+            pair_corr_distance::Function = z ->  pair_corr(
                 [0.0,0.0,0.0],material.species[1], [0.0,0.0,z],material.species[1]
             ),
-            sigma_approximation = true,
+            sigma_approximation = false,
             gls_pair_radial::Function = gls_pair_radial_fun(
                 pair_corr_distance, a12;
                 polynomial_order = polynomial_order,
                 sigma_approximation = sigma_approximation
-            )
+            ),
+            h12 = R
         )
-        gls_pair_radial
+        gls_pair_radial, h12
     end
 
-    gls_function = calculate_gls_fun(; pair_kws...)
+    gls_function, h12 = calculate_gls_fun(; pair_kws...)
 
     ls = 0:basis_order
     lm_to_n = lm_to_spherical_harmonic_index
@@ -414,16 +416,13 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
 
         data = term2 .* [
         begin
-            # if abs(r1 - rs[j2]) < 2a12
-            #     gls = gls_pair_near_radial(r1,rs[j2])
-            #     L1 = 2polynomial_order
-            # else
-                gls = gls_function(r1,rs[j2])
-                L1 = polynomial_order
-            # end
             if r1 + rs[j2] < a12
                 zero(Complex{T})
+            elseif abs(r1 - rs[j2]) > h12
+                chi(l,l2,r1,rs[j2]) * 4pi * T(-1)^l * T(2l2 + 1)
             else
+                gls = gls_function(r1,rs[j2])
+                L1 = polynomial_order
                 t_diags[1][lm_to_n(l,0)] *
                 sum(
                     gls[l1+1] *

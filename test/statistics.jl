@@ -36,14 +36,22 @@ using LinearAlgebra, Statistics, Test
 
     r1 = 4.0; r2 = 4.2;
     cosθs = LinRange(0.6,1.0,200);
+
+
+    pair_corr = pair_radial_to_pair_corr(pair_radial)
+
+    p_corrs = map(eachindex(cosθs)) do i
+        sinθ = sqrt(1.0 - cosθs[i]^2)
+        x1 = [0.0, 0.0, r1]
+        x2 = [r2 * sinθ, 0.0, r2 * cosθs[i]]
+        pair_corr(x1,s1,x2,s1)
+    end;
+
     p_rads = pair_radial.(r1,r2,cosθs);
     p_infs = pair_corr_inf_smooth.(sqrt.(r1^2 .+ r2.^2 .- 2r1 .* r2 .* cosθs))
 
-    maximum(abs.(p_rads - p_infs))
 
-    # plot(cosθs, p_rads)
-    # plot!(cosθs,p_infs)
-
+    @test maximum(abs.(p_corrs - p_infs)) < 1e-3
     @test maximum(abs.(p_rads - p_infs)) < 1e-3
 
     polynomial_order = 90;
