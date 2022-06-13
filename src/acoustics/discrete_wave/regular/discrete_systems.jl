@@ -416,6 +416,7 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
 
         data = term2 .* [
         begin
+            t_diags[1][lm_to_n(l,0)] *
             if r1 + rs[j2] < a12
                 zero(Complex{T})
             elseif abs(r1 - rs[j2]) > h12
@@ -423,7 +424,6 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
             else
                 gls = gls_function(r1,rs[j2])
                 L1 = polynomial_order
-                t_diags[1][lm_to_n(l,0)] *
                 sum(
                     gls[l1+1] *
                     sum(

@@ -473,16 +473,17 @@ end
 
     pair_corr_inf(z) = hole_correction_pair_correlation([0.0,0.0,0.0],s1, [0.0,0.0,z],s1)
 
+    polynomial_order = 20
     polynomial_order = 15
     pair_corr_inf_smooth = smooth_pair_corr_distance(
         pair_corr_inf, a12;
-        smoothing = 0.3, max_distance = 2R,
+        smoothing = 0.5, max_distance = 2R,
         polynomial_order = polynomial_order
     )
 
     # using Plots
     # zs = 0.0:0.01:(2R)
-    # plot(pair_corr_inf_smooth,zs)
+    # plot!(pair_corr_inf_smooth,zs)
     # plot!(pair_corr_inf,zs, linestyle=:dash)
 
     gls_radial = gls_pair_radial_fun(pair_corr_inf_smooth, a12;
@@ -490,10 +491,13 @@ end
         polynomial_order = polynomial_order
     )
 
+    # import EffectiveWaves: discrete_system_radial
+
     discrete_field_radials = [
         discrete_system_radial(ωs[i], sourceradial, material, Symmetry(sourceradial,material);
             basis_order = basis_orders[i],
             basis_field_order = basis_field_orders[i],
+            h12 = a12,
             # polynomial_order = 15,
             # pair_corr_distance = pair_corr_inf
             gls_pair_radial = gls_radial
@@ -511,6 +515,10 @@ end
     @test mean(mean.(errors)) < 1e-3
     @test maximum(mean.(errors)) < 1e-3
     @test maximum(maximum.(errors)) < 4e-3
+
+    # 0.000207 -> 0.000181
+    # 0.00040 -> 0.000347
+    # 0.00160 -> 0.00165
 
     mat_coefs_disc_radial2 = [
         material_scattering_coefficients(discrete_field_radials[i];
