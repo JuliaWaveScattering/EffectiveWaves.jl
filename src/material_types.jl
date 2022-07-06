@@ -18,7 +18,10 @@ struct Specie{T<:AbstractFloat,Dim,P<:AbstractParticle{Dim}}
 end
 
 # Convenience constructor which does not require explicit types/parameters
-function Specie(p::AbstractParticle{Dim}; number_density::T = 0.0, volume_fraction::T = number_density * volume(p), exclusion_distance::T = 1.005) where {Dim,T<:AbstractFloat}
+function Specie(p::AbstractParticle{Dim};
+        number_density::T = 0.0,
+        volume_fraction::T = number_density * volume(p), exclusion_distance::T = 1.005
+    ) where {Dim,T<:AbstractFloat}
     Specie{T,Dim,typeof(p)}(p,volume_fraction,exclusion_distance)
 end
 
@@ -80,9 +83,13 @@ end
 # Convenience constructor which does not require explicit types/parameters
 function Material(shape::S,species::Sps) where {T,Dim,S<:Shape{Dim},Sps<:Species{T,Dim}}
 
-    V = volume(shape)
+    rmax = maximum(outer_radius.(species))
+
+    # the volume of the shape that contains all the particle centres
+    Vn = volume(Shape(shape; addtodimensions = -rmax))
+
     numberofparticles = round(sum(
-        volume_fraction(s) * V / volume(s)
+        number_density(s) * Vn
     for s in species))
 
     Material{Dim,S,Sps}(shape,species,numberofparticles)
