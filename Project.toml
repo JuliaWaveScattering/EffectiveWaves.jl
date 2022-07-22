@@ -1,7 +1,7 @@
 name = "EffectiveWaves"
 uuid = "37e8709b-1ed2-53db-b26a-3571262b3cb4"
 authors = ["Artur L. Gower <arturgower@gmail.com>"]
-version = "0.3.2"
+version = "0.3.3"
 
 [deps]
 ClassicalOrthogonalPolynomials = "b30e2e7b-c4ee-47da-9d5f-2c5c27239acd"
