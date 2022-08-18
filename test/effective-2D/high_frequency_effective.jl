@@ -18,7 +18,7 @@ using LinearAlgebra
 
         tol = 1e-5 # low tolerance to speed up wavenumbers
         k_eff_φs = wavenumber_low_volumefraction(ωs2, medium, species; basis_order=basis_order)
-        k_effs = [wavenumbers(ω, medium, species; tol=tol, num_wavenumbers=1, basis_order=basis_order) for ω in ωs2]
+        k_effs = [wavenumbers(ω, medium, species; tol=tol, num_wavenumbers=2, basis_order=basis_order) for ω in ωs2]
 
         inds = [argmin(abs.(k_effs[i] .- k_eff_φs[i])) for i in eachindex(ωs2)]
         k_effs2 = [k_effs[i][inds[i]] for i in eachindex(inds)]

@@ -28,27 +28,56 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{Dim}, species::Species{T
         )
 
         # guess initial mesh for lowest attenuating wavenumbers
-        x_step = T(2) * max(abs(real(kφ)), real(k0), sqrt(eps(T)))
-        ys = [imag(kφ), sqrt(eps(T))]
+        x_step = T(4) * mesh_size * max(abs(real(kφ)), real(k0), sqrt(eps(T)))
+        xs = LinRange(-x_step,x_step,2 * mesh_points + 3)
+        xs = [xs; [real(k0), real(kφ)]]
 
-        k_dim_vecs = [[x,y] for x in LinRange(-x_step,x_step,2 * mesh_points + 3) for y in ys]
+        # ys = [imag(kφ),imag(kφ)^2, sqrt(imag(kφ)), sqrt(eps(T))]
+        ys = [imag(kφ), sqrt(eps(T))]
+        ymin = minimum(ys);
+        ymax = T(2) * mesh_size * maximum(ys)
+        ys = LinRange(ymin, ymax, mesh_points)
+        ys = [ys; [eps(T), imag(kφ)]]
+
+        k_dim_vecs = [[x,y] for x in xs for y in ys]
         # k_vecs is non-dimensional
         k_vecs = k_dim_vecs ./ kscale
 
         low_tol = min(1e-4, sqrt(tol))
 
     # Generate some asymptotic wavenumbers
-        k_asyms = asymptotic_monopole_wavenumbers(ω, medium, species; num_wavenumbers = num_wavenumbers)
+        k_asyms = asymptotic_monopole_wavenumbers(ω, medium, species;
+            num_wavenumbers = num_wavenumbers + 2)
         k_asyms = k_asyms ./ kscale
 
-    # Use asymptotic results to estimate maximum possible imaginary part.
-        max_Imk = maximum(imag.(k_asyms))
+    # Use asymptotic results to estimate maximum imaginary and real part.
+        max_Imk = maximum([imag.(k_asyms); imag(kφ)])
+        max_Rek = maximum([real.(k_asyms); real(kφ)])
+        min_Rek = minimum([real.(k_asyms); real(kφ)])
+
+        function constraint(vec::Vector{T})
+            local cons = zero(T)
+            if vec[1] > max_Rek
+                cons = cons -one(T) + exp(T(10.0) * (vec[1] - max_Rek))
+            end
+            if vec[1] < min_Rek
+                cons = cons -one(T) + exp(T(10.0) * (min_Rek - vec[1]))
+            end
+            if vec[2] > max_Imk
+                cons = cons -one(T) + exp(T(10.0) * (vec[2] - max_Imk))
+            end
+
+            return cons
+        end
+        inds = findall(constraint.(k_vecs) .< one(T))
+        k_vecs = k_vecs[inds]
 
     # The dispersion equation is given by: `dispersion([k1,k2]) = 0` where k_eff = k1 + im*k2.
         dispersion_dim = dispersion_equation(ω, medium, species, symmetry;
             tol = low_tol, numberofparticles = numberofparticles,
             kws...)
-        dispersion(vec::Vector{T}) = dispersion_dim((vec[1] + vec[2]*im) .* kscale)
+
+        dispersion(vec::Vector{T}) = constraint(vec) + dispersion_dim((vec[1] + vec[2]*im) .* kscale)
 
         k_vecs = [
             optimize(dispersion, kvec, #inner_optimizer,

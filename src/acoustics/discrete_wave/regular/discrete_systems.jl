@@ -510,8 +510,6 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
 end
 
 
-
-
 """
     outgoing_translation_matrix(ω, ::Acoustic, material::Material{Dim,Sphere{T,Dim}};
         basis_order = 2, tol = 1e-3)
