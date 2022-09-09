@@ -36,15 +36,36 @@ end
 # Shorthand for all Vectors of species
 Species{Dim,P} = Vector{S} where S<:Specie{Dim,P}
 
-# """
-#     ParticulateMicrostructure
-#
-# Represents potentially multi-species and also holds information on the pair correlation. That is, how the particles are distributed on average.
-# """
-# struct ParticulateMicrostructure{Dim}
-#     species::Species{Dim}
-#     paircorrelations::AbstractMatix{PairCorrelationVariation}
-# end
+"""
+    PairCorrelation
+
+Represents the pair correlation between two types of species, which could be the same.
+"""
+struct PairCorrelation
+    "distance between particles centres"
+    r::AbstractVector{T} where T <: Number
+    "variation of the pair correlation from 1 (uncorrelated case)"
+    dp::AbstractVector{T} where T <: Number
+end
+
+abstract type AbstractMicrostructure{Dim} end
+
+"""
+    ParticulateMicrostructure
+
+Represents potentially multi-species and also holds information on the pair correlation. That is, how the particles are distributed on average.
+"""
+struct ParticulateMicrostructure{Dim} <: AbstractMicrostructure{Dim}
+    species::Species{Dim}
+    paircorrelations::AbstractMatrix{PairCorrelation}
+    function ParticulateMicrostructure{Dim}(sps::Species{Dim},ps::AbstractMatrix{PairCorrelation}) where Dim
+        #
+        if size(ps,1) != length(sps) || size(ps,2) != length(sps)
+            @error "the number of rows, and number of columns, of the matrix $paircorrelations needs to be equal to the length of $sps"
+        end
+        new{Dim}(sps,ps)
+    end
+end
 
 "Returns the volume fraction of the specie."
 volume_fraction(s::Specie) = s.volume_fraction
@@ -79,13 +100,13 @@ t_matrix(s::Specie, medium::PhysicalMedium, ω::AbstractFloat, order::Integer) =
 
 Creates a material filled with [`Specie`](@ref)'s inside `region`.
 """
-struct Material{Dim,S<:Shape,Sps<:Species}
+struct Material{Dim,S<:Shape}
     shape::S
-    species::Sps
+    species::Species
     numberofparticles::Number
     # Enforce that the Dims and Types are all the same
-    function Material{Dim,S,Sps}(shape::S,species::Sps,numberofparticles::Number = Inf) where {T,Dim,S<:Shape{Dim},Sps<:Species{Dim}}
-        new{Dim,S,Sps}(shape,species,numberofparticles)
+    function Material{Dim,S}(shape::S,species::Sps,numberofparticles::Number = Inf) where {T,Dim,S<:Shape{Dim},Sps<:Species{Dim}}
+        new{Dim,S}(shape,species,numberofparticles)
     end
 end
 
@@ -101,7 +122,7 @@ function Material(shape::S,species::Sps) where {T,Dim,S<:Shape{Dim},Sps<:Species
         number_density(s) * Vn
     for s in species))
 
-    Material{Dim,S,Sps}(shape,species,numberofparticles)
+    Material{Dim,S}(shape,species,numberofparticles)
 end
 
 function Material(shape::S,specie::Sp) where {Dim,S<:Shape{Dim},Sp<:Specie{Dim}}

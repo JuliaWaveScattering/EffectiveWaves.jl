@@ -8,7 +8,7 @@ scattering_field
 
 
 "Calculates the effective wavenumbers and return Vector{EffectivePlaneWaveMode}."
-function WaveModes(ω::T, source::AbstractSource, material::Material{Dim,S,Sps}; kws...) where {T,Dim,S<:Shape{Dim},Sps<:Species{Dim}} # without the parametric types we get a "Unreachable reached" error
+function WaveModes(ω::T, source::AbstractSource, material::Material{Dim,S}; kws...) where {T,Dim,S<:Shape{Dim}} # without the parametric types we get a "Unreachable reached" error
 
     # The wavenumbers are calculated without knowledge of the materail symmetry. This is because the plane-wave symmetry leads to all possible wavenumbers and is simple to calculate.
     k_effs = wavenumbers(ω, source.medium, material.species; numberofparticles = material.numberofparticles, kws... )

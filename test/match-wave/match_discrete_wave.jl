@@ -29,7 +29,7 @@ using EffectiveWaves, Test
 
     # import StaticArrays: SVector
     #
-    # function unreachable_test(ω::T, source::AbstractSource, material::Material{Dim,S,Sps}; kws...) where {T,Dim,S<:Shape{Dim},Sps<:Species{Dim}}
+    # function unreachable_test(ω::T, source::AbstractSource, material::Material{Dim,S}; kws...) where {T,Dim,S<:Shape{Dim}}
     #
     #     k_effs = rand(2) + rand(2) .* im
     #     wave_effs = map(k_effs) do k_eff
