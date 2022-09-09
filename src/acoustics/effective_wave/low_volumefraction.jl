@@ -1,15 +1,15 @@
 wavenumber_low_volumefraction(ω::Number, medium::PhysicalMedium, specie::Specie; kws...) = wavenumber_low_volumefraction(ω, medium, [specie]; kws...)
 
-wavenumber_low_volumefraction(ωs::AbstractVector{T}, medium::PhysicalMedium, species::AbstractVector{Specie}; kws...) where T <: Number = [wavenumber_low_volumefraction(ω, medium, species; kws...) for ω in ωs]
+wavenumber_low_volumefraction(ωs::AbstractVector{T}, medium::PhysicalMedium, species::Species; kws...) where T <: Number = [wavenumber_low_volumefraction(ω, medium, species; kws...) for ω in ωs]
 
 wavenumber_low_volumefraction(ωs::AbstractVector{T}, medium::PhysicalMedium, specie::Specie; kws...)  where T <: Number = [wavenumber_low_volumefraction(ω, medium, [specie]; kws...) for ω in ωs]
 
 """
-    wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,Dim}, species::Species{T,Dim}; basis_order::Int = 2)
+    wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,Dim}, species::Species{Dim}; basis_order::Int = 2)
 
 Explicit formula for one effective wavenumber based on a low particle volume fraction expansion.
 """
-function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,3}, species::Species{T,3};
+function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,3}, species::Species{3};
         basis_order::Int = 2, verbose::Bool = true, numberofparticles::T = Inf
     ) where T
 
@@ -52,7 +52,7 @@ function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,3}, species::Sp
     return (imag(sqrt(kT2)) > zero(T)) ? sqrt(kT2) : -sqrt(kT2)
 end
 
-function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,2}, species::Species{T,2};
+function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,2}, species::Species{2};
     basis_order::Int = 2, verbose::Bool = true, numberofparticles::T = Inf) where T
 
     volfrac = sum(volume_fraction.(species))
@@ -96,7 +96,7 @@ function reflection_coefficient_low_volumefraction(ω::T, psource::PlaneSource{T
     return R
 end
 
-function wavenumber_very_low_volumefraction(ω::Number, medium::Acoustic{T,2}, species::Species{T,2}; tol=1e-6, verbose = false) where T<:Number
+function wavenumber_very_low_volumefraction(ω::Number, medium::Acoustic{T,2}, species::Species{2}; tol=1e-6, verbose = false) where T<:Number
 
   volume_fraction = sum(sp.volume_fraction for sp in species)
   if volume_fraction >= 0.4

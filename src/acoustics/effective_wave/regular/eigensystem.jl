@@ -1,5 +1,5 @@
 # The eigensystem when no symmetry is present
-function eigensystem(ω::T, medium::PhysicalMedium{3}, species::Species{T,3}, ::WithoutSymmetry{3};
+function eigensystem(ω::T, medium::PhysicalMedium{3}, species::Species{3}, ::WithoutSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         numberofparticles::Number = Inf,
@@ -61,7 +61,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{3}, species::Species{T,3}, ::
     return MM
 end
 
-function eigensystem(ω::T, medium::PhysicalMedium{3}, species::Species{T,3}, ::AbstractAzimuthalSymmetry;
+function eigensystem(ω::T, medium::PhysicalMedium{3}, species::Species{3}, ::AbstractAzimuthalSymmetry;
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         numberofparticles::Number = Inf,
@@ -125,7 +125,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{3}, species::Species{T,3}, ::
     return MM
 end
 
-function eigensystem(ω::T, medium::PhysicalMedium{3}, species::Species{T,3}, ::RadialSymmetry{3};
+function eigensystem(ω::T, medium::PhysicalMedium{3}, species::Species{3}, ::RadialSymmetry{3};
         basis_order::Int = 2,
         kws...) where {T<:AbstractFloat}
 

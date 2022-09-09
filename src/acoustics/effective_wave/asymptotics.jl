@@ -3,7 +3,7 @@
 
 Calculates the asymptotic effective wavenumbers for monopole scatterers by assuming a large number of wavenumbers. The 2D results are deduced in [Section 5](https://arxiv.org/pdf/1905.06996.pdf).
 """
-function asymptotic_monopole_wavenumbers(ω::T, medium::Acoustic{T,2}, species::Species{T,2};
+function asymptotic_monopole_wavenumbers(ω::T, medium::Acoustic{T,2}, species::Species{2};
         num_wavenumbers = 2
     ) where T
 
@@ -33,7 +33,7 @@ function asymptotic_monopole_wavenumbers(ω::T, medium::Acoustic{T,2}, species::
    return [kns; kps]
 end
 
-function asymptotic_monopole_wavenumbers(ω::T, medium::Acoustic{T,3}, species::Species{T,3};
+function asymptotic_monopole_wavenumbers(ω::T, medium::Acoustic{T,3}, species::Species{3};
         num_wavenumbers = 2
     ) where T
 

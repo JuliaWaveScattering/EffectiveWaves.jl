@@ -1,5 +1,5 @@
 "The effective low frequency bulk modulus and density of a material filled with particles"
-function effective_medium(medium::Acoustic{T,Dim}, species::Species{T,Dim};
+function effective_medium(medium::Acoustic{T,Dim}, species::Species{Dim};
         numberofparticles::Number = Inf
     ) where {T<:AbstractFloat,Dim}
 

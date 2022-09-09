@@ -12,7 +12,7 @@ function convert_eigenvector_basis(medium::Acoustic{T,3},sym::PlanarAzimuthalSym
     return reshape(v,basisorder_to_basislength(Acoustic{T,3},basis_order),S,P)
 end
 
-function eigensystem(ω::T, medium::Acoustic{T,2}, species::Species{T,2}, ::AbstractPlanarSymmetry;
+function eigensystem(ω::T, medium::Acoustic{T,2}, species::Species{2}, ::AbstractPlanarSymmetry;
         basis_order::Int = 2,
         numberofparticles::Number = Inf,
         kws...) where {T<:AbstractFloat}
@@ -61,7 +61,7 @@ function eigensystem(ω::T, medium::Acoustic{T,2}, species::Species{T,2}, ::Abst
     return MM
 end
 
-function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::AbstractPlanarSymmetry;
+function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{3}, ::AbstractPlanarSymmetry;
         basis_order::Int = 2,
         direction_eff::Union{AbstractVector{T},AbstractVector{Complex{T}}} = [0.0,0.0,1.0],
         numberofparticles::Number = Inf,
@@ -121,7 +121,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::Abst
     return MM
 end
 
-function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{T,3}, ::PlanarAzimuthalSymmetry{3};
+function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{3}, ::PlanarAzimuthalSymmetry{3};
         basis_order::Int = 2,
         numberofparticles::Number = Inf,
         kws...) where {T<:AbstractFloat}

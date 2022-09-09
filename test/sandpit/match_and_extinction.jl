@@ -3,7 +3,7 @@
 Returns YT, which connects the effective and average wave through α = YT*A.
 The matching region is X[XL:end].
 "
-function match_only_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T}}, XL::Int, X::AbstractVector{T}, medium::Medium{T}, species::Species{T}; θin::T = 0.0) where T<:Number
+function match_only_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T}}, XL::Int, X::AbstractVector{T}, medium::Medium{T}, species::Species; θin::T = 0.0) where T<:Number
 
     XJ = length(X)
     k = ω/medium.c

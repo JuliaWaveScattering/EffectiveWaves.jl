@@ -33,19 +33,17 @@ function Specie(medium::P, radius::AbstractFloat; kws...) where P<:PhysicalMediu
     Specie(Particle(medium, radius); kws...)
 end
 
-
 # Shorthand for all Vectors of species
-# Species{T<:AbstractFloat,Dim,P} = Vector{S} where S<:Specie{T,Dim,P}
+Species{Dim,P} = Vector{S} where S<:Specie{Dim,P}
 
 # """
-#     Species
+#     ParticulateMicrostructure
 #
 # Represents potentially multi-species and also holds information on the pair correlation. That is, how the particles are distributed on average.
 # """
-# struct Species{T<:AbstractFloat,Dim,P<:AbstractParticle{Dim}}
-#     particle::P
-#     volume_fraction::T
-#     exclusion_distance::T
+# struct ParticulateMicrostructure{Dim}
+#     species::Species{Dim}
+#     paircorrelations::AbstractMatix{PairCorrelationVariation}
 # end
 
 "Returns the volume fraction of the specie."
@@ -86,13 +84,13 @@ struct Material{Dim,S<:Shape,Sps<:Species}
     species::Sps
     numberofparticles::Number
     # Enforce that the Dims and Types are all the same
-    function Material{Dim,S,Sps}(shape::S,species::Sps,numberofparticles::Number = Inf) where {T,Dim,S<:Shape{Dim},Sps<:Species{T,Dim}}
+    function Material{Dim,S,Sps}(shape::S,species::Sps,numberofparticles::Number = Inf) where {T,Dim,S<:Shape{Dim},Sps<:Species{Dim}}
         new{Dim,S,Sps}(shape,species,numberofparticles)
     end
 end
 
 # Convenience constructor which does not require explicit types/parameters
-function Material(shape::S,species::Sps) where {T,Dim,S<:Shape{Dim},Sps<:Species{T,Dim}}
+function Material(shape::S,species::Sps) where {T,Dim,S<:Shape{Dim},Sps<:Species{Dim}}
 
     rmax = maximum(outer_radius.(species))
 

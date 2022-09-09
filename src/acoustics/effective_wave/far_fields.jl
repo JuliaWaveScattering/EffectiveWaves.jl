@@ -4,7 +4,7 @@ d2D(x,m) = diffbesselj(m,x)*diffhankelh1(m,x) + (1.0 - (m/x)^2)*besselj(m,x)*han
 
 d3D(x,m) = x * diffsbesselj(m,x) * (x * diffshankelh1(m,x) + shankelh1(m,x)) + (x^2 + - m * (m+1)) * sbesselj(m,x)^2
 
-function far_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{T,2}; basis_order = 2) where T<:Number
+function far_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{2}; basis_order = 2) where T<:Number
 
     Zs = - get_t_matrices(medium, species, ω, basis_order)
     num_density_inv = one(T)/sum(number_density.(species))
@@ -16,7 +16,7 @@ function far_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{T,2}; 
     return far_field
 end
 
-function diff_far_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{T}; tol=1e-6, basis_order = 2, verbose = false, kws...) where T<:Number
+function diff_far_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{2}; tol=1e-6, basis_order = 2, verbose = false, kws...) where T<:Number
 
     Zs = - get_t_matrices(medium, species, ω, basis_order)
     num_density_inv = one(T) / sum(number_density.(species))
@@ -28,7 +28,7 @@ function diff_far_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{T
     return far_field
 end
 
-function pair_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{T}; tol::T = T(1e-6), basis_order = 2) where T<:Number
+function pair_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{2}; tol::T = T(1e-6), basis_order = 2) where T<:Number
 
     Zs = - get_t_matrices(medium, species, ω, basis_order)
     num_density_inv = one(T)/sum(number_density.(species))

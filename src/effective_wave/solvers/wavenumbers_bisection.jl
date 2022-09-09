@@ -1,5 +1,5 @@
 # NOTE: PlanarAzimuthalSymmetry() does not included all possible wavenumbers
-function wavenumbers_bisection(ω::T, medium::PhysicalMedium{Dim}, species::Species{T,Dim};
+function wavenumbers_bisection(ω::T, medium::PhysicalMedium{Dim}, species::Species{Dim};
         symmetry::AbstractSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(),
         tol::T = 1e-5,
         num_wavenumbers = 3,

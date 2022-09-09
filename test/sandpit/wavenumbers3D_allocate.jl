@@ -1,5 +1,5 @@
 
-function wavematrix3D_allocate(ω::T, medium::Medium{T}, species::Species{T};
+function wavematrix3D_allocate(ω::T, medium::Medium{T}, species::Species;
         dim = 3, tol::T = 1e-4,
         basis_order::Int = maximum_basis_order(ω, medium, species; tol=tol),
         radius_multiplier::T = T(1.005),
