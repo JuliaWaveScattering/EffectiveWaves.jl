@@ -26,7 +26,7 @@ end
 
 
 "low volfrac and low wavenumber. Fails badly for strong scatterers"
-function one_species_low_wavenumber(ωs, medium::Acoustic{T,2}, sp::Specie{T,2}) where T<:AbstractFloat
+function one_species_low_wavenumber(ωs, medium::Acoustic{T,2}, sp::Specie{2}) where T<:AbstractFloat
   φ = sp.volume_fraction
   kS = 1.0/sp.particle.medium.c
   k = 1.0/medium.c

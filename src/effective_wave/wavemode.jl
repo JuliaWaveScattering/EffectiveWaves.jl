@@ -115,7 +115,7 @@ eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource, material::Materia
 
 function eigenvectors(ω::T, k_eff::Complex{T}, medium::PhysicalMedium, species::Vector{Sp}, symmetry::AbstractSymmetry;
         tol::T = 1e-4, kws...
-    ) where {T<:AbstractFloat, Sp<:Specie{T}}
+    ) where {T<:AbstractFloat, Sp<:Specie}
 
     MM = eigensystem(ω, medium, species, symmetry; kws...)
 

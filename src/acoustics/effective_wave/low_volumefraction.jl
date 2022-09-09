@@ -1,8 +1,8 @@
 wavenumber_low_volumefraction(ω::Number, medium::PhysicalMedium, specie::Specie; kws...) = wavenumber_low_volumefraction(ω, medium, [specie]; kws...)
 
-wavenumber_low_volumefraction(ωs::AbstractVector{T}, medium::PhysicalMedium, species::Species{T}; kws...) where T<:Number = [wavenumber_low_volumefraction(ω, medium, species; kws...) for ω in ωs]
+wavenumber_low_volumefraction(ωs::AbstractVector{T}, medium::PhysicalMedium, species::AbstractVector{Specie}; kws...) where T <: Number = [wavenumber_low_volumefraction(ω, medium, species; kws...) for ω in ωs]
 
-wavenumber_low_volumefraction(ωs::AbstractVector{T}, medium::PhysicalMedium, specie::Specie{T}; kws...) where T<:Number = [wavenumber_low_volumefraction(ω, medium, [specie]; kws...) for ω in ωs]
+wavenumber_low_volumefraction(ωs::AbstractVector{T}, medium::PhysicalMedium, specie::Specie; kws...)  where T <: Number = [wavenumber_low_volumefraction(ω, medium, [specie]; kws...) for ω in ωs]
 
 """
     wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,Dim}, species::Species{T,Dim}; basis_order::Int = 2)
