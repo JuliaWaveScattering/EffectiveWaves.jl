@@ -25,7 +25,7 @@
     species = [s1]
     material = Material(Sphere(R),species);
 
-    a12 = 2.0 * minimum(outer_radius(s) * s.exclusion_distance for s in material.species)
+    a12 = 2.0 * minimum(outer_radius(s) * s.exclusion_distance for s in material.microstructure.species)
 
     tol = 1e-2
 

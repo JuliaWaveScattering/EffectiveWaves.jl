@@ -102,8 +102,8 @@ struct EffectiveRegularWaveMode{T<:AbstractFloat,Dim,P<:PhysicalMedium{Dim},S<:A
 
         if size(eigenvectors,1) != eigenvector_length(S; basis_order = basis_order, basis_field_order = basis_field_order)
             throw(DimensionMismatch("size(eigenvectors,1) does not match the dimensions for a regular eigenvector with symmetry: $S."))
-        elseif size(eigenvectors,2) != length(material.species)
-            throw(DimensionMismatch("size(eigenvectors,2) does not match the number of difference species length(material.species) = $(length(material.species)    )."))
+        elseif size(eigenvectors,2) != length(material.microstructure.species)
+            throw(DimensionMismatch("size(eigenvectors,2) does not match the number of difference species length(material.microstructure.species) = $(length(material.microstructure.species)    )."))
         end
 
         return new{T,Dim,P,typeof(S)}(ω, wavenumber, source.medium, material, eigenvectors, basis_order, basis_field_order)

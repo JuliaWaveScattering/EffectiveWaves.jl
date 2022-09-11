@@ -9,7 +9,7 @@ function reflection_coefficient(ω::T, dwave::DiscretePlaneWaveMode{T},
 
     θin = transmission_angle(source,material)
 
-    R = T(2)*number_density(material.species) / (cos(θin)*k^2)*sum(
+    R = T(2)*number_density(material.microstructure.species) / (cos(θin)*k^2)*sum(
         im^T(m)*exp(im*k*dwave.x[j]*cos(θin) - im*θin*m)*dwave.amplitudes[j,m+M+1,1]*σ[j]
     for m=-M:M, j in eachindex(dwave.x))
 

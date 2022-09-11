@@ -20,7 +20,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigenvectors::Array{
     extinction_matrix = T(2) .* transpose(vec(
         [
             exp(im*n*(θin - θ_eff)) * scale_number_density * number_density(s)
-        for n = -basis_order:basis_order, s in material.species]
+        for n = -basis_order:basis_order, s in material.microstructure.species]
     ))
 
     forcing = [im * field(psource,zeros(T,2),ω) * kcos_in * (kcos_eff - kcos_in)]
@@ -64,9 +64,9 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     I1(F::Array{Complex{T}}, k_effz::Complex{T}) = sum(
         - F[lm_to_n(dl,dm),j,p] * Ys[lm_to_n(dl,dm)] * im^T(dl+1) * T(2π) * T(-1)^dl *
-        exp(im * (k_effz - kz)*(Z0 + outer_radius(material.species[j]))) *
-        scale_number_density * number_density(material.species[j]) / (k*kz * (kz - k_effz))
-    for p = 1:size(F,3), dl = 0:basis_order for dm = -dl:dl, j in eachindex(material.species))
+        exp(im * (k_effz - kz)*(Z0 + outer_radius(material.microstructure.species[j]))) *
+        scale_number_density * number_density(material.microstructure.species[j]) / (k*kz * (kz - k_effz))
+    for p = 1:size(F,3), dl = 0:basis_order for dm = -dl:dl, j in eachindex(material.microstructure.species))
 
     forcing = - field(psource,zeros(T,3),ω)
 
@@ -115,15 +115,15 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors1::Array{C
 
     I1(F::Array{Complex{T}}, k_effz::Complex{T}) = sum(
         - F[lm_to_n(dl,dm),j,p] * Ys[lm_to_n(dl,dm)] * im^T(dl+1) * T(2π) * T(-1)^dl *
-        exp(im * (k_effz - kz)*(Z1 + outer_radius(material.species[j]))) *
-        scale_number_density * number_density(material.species[j]) / (k*kz * (kz - k_effz))
-    for p = 1:size(F,3), dl = 0:basis_order for dm = -dl:dl, j in eachindex(material.species))
+        exp(im * (k_effz - kz)*(Z1 + outer_radius(material.microstructure.species[j]))) *
+        scale_number_density * number_density(material.microstructure.species[j]) / (k*kz * (kz - k_effz))
+    for p = 1:size(F,3), dl = 0:basis_order for dm = -dl:dl, j in eachindex(material.microstructure.species))
 
     I2(F::Array{Complex{T}}, k_effz::Complex{T}) = sum(
         - F[lm_to_n(dl,dm),j,p] * Ys[lm_to_n(dl,dm)] * im^T(dl+1) * T(2π) * T(-1)^dm *
-        exp(im * (k_effz + kz)*(Z2 - outer_radius(material.species[j]))) *
-        scale_number_density * number_density(material.species[j]) / (k*kz * (kz + k_effz))
-    for p = 1:size(F,3), dl = 0:basis_order for dm = -dl:dl, j in eachindex(material.species))
+        exp(im * (k_effz + kz)*(Z2 - outer_radius(material.microstructure.species[j]))) *
+        scale_number_density * number_density(material.microstructure.species[j]) / (k*kz * (kz + k_effz))
+    for p = 1:size(F,3), dl = 0:basis_order for dm = -dl:dl, j in eachindex(material.microstructure.species))
 
     MIs = [I1(eigvectors1,k1_effz) I1(eigvectors2,k2_effz);
            I2(eigvectors1,k1_effz) I2(eigvectors2,k2_effz)]

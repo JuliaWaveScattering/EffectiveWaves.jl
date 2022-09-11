@@ -1,4 +1,4 @@
-dispersion_equation(ω::AbstractFloat, source::AbstractSource, material::Material; kws...) = dispersion_equation(ω, source.medium, material.species, Symmetry(source,material); kws...)
+dispersion_equation(ω::AbstractFloat, source::AbstractSource, material::Material; kws...) = dispersion_equation(ω, source.medium, material.microstructure.species, Symmetry(source,material); kws...)
 
 
 function dispersion_equation(ω::T, medium::PhysicalMedium{Dim}, species::Species{Dim}, symmetry::AbstractSymmetry = PlanarSymmetry{Dim}();

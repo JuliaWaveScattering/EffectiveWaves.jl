@@ -2,7 +2,7 @@
 function reflection_coefficients(ωs::Union{T,AbstractVector{T}}, psource::PlaneSource{T,Dim}, material::Material{Dim,Halfspace{T,Dim}}; kws...) where {T<:Number,Dim}
 
     Rs = map(ωs) do ω
-        k_effs = wavenumbers(ω, psource.medium, material.species; kws...)
+        k_effs = wavenumbers(ω, psource.medium, material.microstructure.species; kws...)
         w_effs = [
             WaveMode(ω, k_eff, psource, material; kws...)
         for k_eff in k_effs]

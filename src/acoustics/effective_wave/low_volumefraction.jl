@@ -82,16 +82,16 @@ function reflection_coefficient_low_volumefraction(ω::T, psource::PlaneSource{T
 
     θin = transmission_angle(psource,material)
     θ_ref = T(π) - T(2)*θin
-    fo = far_field_pattern(ω, psource.medium, material.species; kws...)
-    dfo = diff_far_field_pattern(ω, psource.medium, material.species; kws...)
-    foo = pair_field_pattern(ω, psource.medium, material.species; kws...)
+    fo = far_field_pattern(ω, psource.medium, material.microstructure.species; kws...)
+    dfo = diff_far_field_pattern(ω, psource.medium, material.microstructure.species; kws...)
+    foo = pair_field_pattern(ω, psource.medium, material.microstructure.species; kws...)
 
     k = ω / psource.medium.c
     α = k*cos(θin)
     R1 = im*fo(θ_ref)
     R2 = im*foo(θ_ref) + T(2)*fo(zero(T)) / (α^2.0) * (sin(θin)*cos(θin)*dfo(θ_ref) - fo(θ_ref))
 
-    num_density = sum(number_density.(material.species))
+    num_density = sum(number_density.(material.microstructure.species))
     R = (R1 + num_density*R2)*num_density/(α^2.0)
     return R
 end

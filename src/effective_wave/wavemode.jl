@@ -11,7 +11,7 @@ scattering_field
 function WaveModes(ω::T, source::AbstractSource, material::Material{Dim,S}; kws...) where {T,Dim,S<:Shape{Dim}} # without the parametric types we get a "Unreachable reached" error
 
     # The wavenumbers are calculated without knowledge of the materail symmetry. This is because the plane-wave symmetry leads to all possible wavenumbers and is simple to calculate.
-    k_effs = wavenumbers(ω, source.medium, material.species; numberofparticles = material.numberofparticles, kws... )
+    k_effs = wavenumbers(ω, source.medium, material.microstructure.species; numberofparticles = material.numberofparticles, kws... )
 
     # The wavemodes need to know the material symmetry as the eigenvectors do depend on material shape and symetry.
     wave_effs = [
@@ -79,7 +79,7 @@ function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, 
     return [mode1,mode2]
 end
 
-# eigensystem(ω::T, source::AbstractSource, material::Material; kws...) where T<:AbstractFloat = eigensystem(ω, source.medium, material.species, Symmetry(source,material); numberofparticles = material.numberofparticles, kws...)
+# eigensystem(ω::T, source::AbstractSource, material::Material; kws...) where T<:AbstractFloat = eigensystem(ω, source.medium, material.microstructure.species, Symmetry(source,material); numberofparticles = material.numberofparticles, kws...)
 
 
 function solve_boundary_condition(ω::T, wavenumber::Complex{T}, eigvectors::Array, source::AbstractSource, material::Material; kws...) where T
@@ -98,12 +98,12 @@ The eigenvectors from high symmetric scenarios are smaller then the more general
 """
 convert_eigenvector_basis(medium::PhysicalMedium,sym::AbstractSymmetry,eigvecs::Array) = eigvecs
 
-eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource, material::Material; kws...) where T<:AbstractFloat = eigenvectors(ω, k_eff::Complex{T}, source.medium, material.species, Symmetry(source,material); numberofparticles = material.numberofparticles, kws...)
+eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource, material::Material; kws...) where T<:AbstractFloat = eigenvectors(ω, k_eff::Complex{T}, source.medium, material.microstructure.species, Symmetry(source,material); numberofparticles = material.numberofparticles, kws...)
 
 # For plane waves, it is simpler to write all cases in the format for the most general case. For example, for PlanarAzimuthalSymmetry the eignvectors are much smaller. So we will turn these into the more general eigvector case by padding it with zeros.
 # function eigenvectors(ω::T, k_eff::Complex{T}, source::PlaneSource{T}, material::Material{Dim,S}; kws...) where {T<:AbstractFloat,Dim,S<:Union{Plate,Halfspace}}
 #
-#     eigvecs = eigenvectors(ω, k_eff, source.medium, material.species, Symmetry(source,material); kws...)
+#     eigvecs = eigenvectors(ω, k_eff, source.medium, material.microstructure.species, Symmetry(source,material); kws...)
 #
 #     if Symmetry(source,material) == PlanarAzimuthalSymmetry{Dim}()
 #         eigvecs = azimuthal_to_planar_eigenvector(typeof(source.medium),eigvecs)

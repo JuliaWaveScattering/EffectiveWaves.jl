@@ -13,7 +13,7 @@ function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psou
     θin = transmission_angle(psource,material)
 
     θ_ref = pi - θ_eff - θin
-    S = length(material.species)
+    S = length(material.microstructure.species)
     ho = wave_eff.basis_order
 
     kcos_eff = wave_eff.wavenumber * dot(- conj(material.shape.normal), wave_eff.direction)
@@ -22,7 +22,7 @@ function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psou
     kθ = kcos_in + kcos_eff
     R = 2.0im / (kcos_in * kθ)
     R = R*sum(
-        exp(im*n*θ_ref + im*x*kθ) * number_density(material.species[l]) *
+        exp(im*n*θ_ref + im*x*kθ) * number_density(material.microstructure.species[l]) *
         # sum(wave_eff.eigenvectors[n+ho+1,l,:])
         wave_eff.eigenvectors[n+ho+1,l,1]
     for n=-ho:ho, l=1:S)
@@ -35,7 +35,7 @@ function reflection_coefficient(wavemode::EffectivePlaneWaveMode{T,Dim}, psource
     # Unpacking parameters
     k = wavemode.ω / psource.medium.c
 
-    species = material.species
+    species = material.microstructure.species
     S = length(species)
     rs = outer_radius.(species)
 
@@ -75,7 +75,7 @@ function reflection_transmission_coefficients(wavemodes::Vector{E}, psource::Pla
     k = ω / psource.medium.c
 
 
-    species = material.species
+    species = material.microstructure.species
     S = length(species)
     rs = outer_radius.(species)
 

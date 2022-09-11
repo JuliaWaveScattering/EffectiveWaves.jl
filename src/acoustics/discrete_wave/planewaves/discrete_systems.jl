@@ -6,7 +6,7 @@ function discrete_wave_system(ω::T, X::AbstractVector{T}, source::PlaneSource{T
         kws...
     ) where T<:AbstractFloat
 
-    specie = material.species[1]
+    specie = material.microstructure.species[1]
     t_vec = t_matrix(specie, source.medium, ω, basis_order)
 
     k = real(ω / source.medium.c)

@@ -77,7 +77,7 @@ function DiscretePlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, 
     ) where T<:Number
 
     k = real(ω/source.medium.c)
-    specie = material.species[1]
+    specie = material.microstructure.species[1]
 
     if x == [zero(T)]
         if isempty(wave_effs)

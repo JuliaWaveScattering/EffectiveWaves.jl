@@ -11,11 +11,11 @@ function discrete_system_residue(discrete_coefs, ω::T, source::AbstractSource{A
         pair_corr = hole_correction_pair_correlation
     ) where {T,Dim}
 
-    if length(material.species) > 1
+    if length(material.microstructure.species) > 1
         @warn "discrete_system has only been implemented for 1 species for now. Will use only first specie."
     end
 
-    s1 = material.species[1]
+    s1 = material.microstructure.species[1]
     scale_number_density = one(T) - one(T) / material.numberofparticles
     bar_numdensity = scale_number_density * number_density(s1)
 
@@ -28,7 +28,7 @@ function discrete_system_residue(discrete_coefs, ω::T, source::AbstractSource{A
         basis_order = basis_order, tol = rtol
     )
 
-    t_matrices = get_t_matrices(source.medium, material.species, ω, basis_order)
+    t_matrices = get_t_matrices(source.medium, material.microstructure.species, ω, basis_order)
     t_diags = diag.(t_matrices)
 
     rθφ2xyz = radial_to_cartesian_coordinates

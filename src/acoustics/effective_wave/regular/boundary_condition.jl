@@ -12,7 +12,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     k = ω / source.medium.c
 
-    species = material.species
+    species = material.microstructure.species
     S = length(species)
     rs = outer_radius.(species)
 
@@ -102,7 +102,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     k = ω / source.medium.c
 
     scale_number_density = one(T) - one(T) / material.numberofparticles
-    species = material.species
+    species = material.microstructure.species
     S = length(species)
     rs = outer_radius.(species)
 
@@ -203,7 +203,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     k = ω / source.medium.c
 
     scale_number_density = one(T) - one(T) / material.numberofparticles
-    species = material.species
+    species = material.microstructure.species
     S = length(species)
     rs = outer_radius.(species)
 

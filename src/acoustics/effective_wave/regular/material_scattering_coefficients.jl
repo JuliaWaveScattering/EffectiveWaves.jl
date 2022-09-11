@@ -115,7 +115,7 @@ function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3
     # Unpacking parameters
     k = wavemode.ω / wavemode.medium.c
 
-    species = wavemode.material.species
+    species = wavemode.material.microstructure.species
     S = length(species)
     rs = outer_radius.(species)
 
@@ -158,7 +158,7 @@ function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3
     # Unpacking parameters
     k = wavemode.ω / wavemode.medium.c
 
-    species = wavemode.material.species
+    species = wavemode.material.microstructure.species
     S = length(species)
     rs = outer_radius.(species)
 
@@ -202,7 +202,7 @@ function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3
     k_eff = wavemode.wavenumber
     R = outer_radius(wavemode.material.shape)
 
-    species = wavemode.material.species
+    species = wavemode.material.microstructure.species
     S = length(species)
     rs = outer_radius.(species)
 

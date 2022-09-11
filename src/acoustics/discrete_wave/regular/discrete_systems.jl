@@ -24,11 +24,11 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
         pair_corr = hole_correction_pair_correlation
     ) where {T,Dim}
 
-    if length(material.species) > 1
+    if length(material.microstructure.species) > 1
         @warn "discrete_system has only been implemented for 1 species for now. Will use only first specie."
     end
 
-    s1 = material.species[1]
+    s1 = material.microstructure.species[1]
     scale_number_density = one(T) - one(T) / material.numberofparticles
     bar_numdensity(x1,s1) = scale_number_density * numdensity(x1,s1)
 
@@ -42,7 +42,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
         basis_order = basis_order, tol = rtol
     )
 
-    t_matrices = get_t_matrices(source.medium, material.species, ω, basis_order)
+    t_matrices = get_t_matrices(source.medium, material.microstructure.species, ω, basis_order)
     t_diags = diag.(t_matrices)
 
     rθφ2xyz = radial_to_cartesian_coordinates
@@ -193,11 +193,11 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
         pair_corr = hole_correction_pair_correlation
     ) where T
 
-    if length(material.species) > 1
+    if length(material.microstructure.species) > 1
         @warn "discrete_system has only been implemented for 1 species for now. Will use only first specie."
     end
 
-    s1 = material.species[1]
+    s1 = material.microstructure.species[1]
     a12 = 2.0 * s1.exclusion_distance * outer_radius(s1);
 
     scale_number_density = one(T) - one(T) / material.numberofparticles
@@ -216,7 +216,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
     lm_to_n = lm_to_spherical_harmonic_index
     ls_to_ns = lm_to_n.(0:basis_order,0)
 
-    t_matrices = get_t_matrices(source.medium, material.species, ω, basis_order)
+    t_matrices = get_t_matrices(source.medium, material.microstructure.species, ω, basis_order)
     t_diags = diag.(t_matrices)
 
     rθφ2xyz = radial_to_cartesian_coordinates
@@ -354,11 +354,11 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
 
     # basis_field_order = 14
 
-    if length(material.species) > 1
+    if length(material.microstructure.species) > 1
         @warn "discrete_system has only been implemented for 1 species for now. Will use only first specie."
     end
 
-    s1 = material.species[1]
+    s1 = material.microstructure.species[1]
     scale_number_density = one(T) - one(T) / material.numberofparticles
     bar_numdensity(x1,s1) = scale_number_density * numdensity(x1,s1)
 
@@ -369,7 +369,7 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
     function calculate_gls_fun(;
             pair_corr::Function = hole_correction_pair_correlation,
             pair_corr_distance::Function = z ->  pair_corr(
-                [0.0,0.0,0.0],material.species[1], [0.0,0.0,z],material.species[1]
+                [0.0,0.0,0.0],material.microstructure.species[1], [0.0,0.0,z],material.microstructure.species[1]
             ),
             sigma_approximation = false,
             gls_pair_radial::Function = gls_pair_radial_fun(
@@ -388,7 +388,7 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
     lm_to_n = lm_to_spherical_harmonic_index
     ls_to_ns = lm_to_n.(ls,0)
 
-    t_matrices = get_t_matrices(source.medium, material.species, ω, basis_order)
+    t_matrices = get_t_matrices(source.medium, material.microstructure.species, ω, basis_order)
     t_diags = diag.(t_matrices)
 
     rs = LinRange(0, R - outer_radius(s1), mesh_points)
@@ -520,8 +520,8 @@ function outgoing_translation_matrix(ω::T, medium::Acoustic{T,Dim}, material::M
         basis_order::Int = 2, tol::T = 1e-3) where {T,Dim}
 
     L = basisorder_to_basislength(typeof(medium), basis_order);
-    R = outer_radius(material.shape) - minimum(outer_radius.(material.species))
-    a12 = T(2) * minimum(outer_radius(s) * s.exclusion_distance for s in material.species)
+    R = outer_radius(material.shape) - minimum(outer_radius.(material.microstructure.species))
+    a12 = T(2) * minimum(outer_radius(s) * s.exclusion_distance for s in material.microstructure.species)
 
     rθφ2xyz = radial_to_cartesian_coordinates
 

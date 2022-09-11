@@ -46,6 +46,16 @@ struct PairCorrelation
     r::AbstractVector{T} where T <: Number
     "variation of the pair correlation from 1 (uncorrelated case)"
     dp::AbstractVector{T} where T <: Number
+
+    function PairCorrelation(r::AbstractVector,dp::AbstractVector; tol::AbstractFloat = 1e-4)
+        if size(dp) != size(r)
+            @error "the size of vector of distances `r` (currently $(size(r))) should be the same as the size of the pair-correlation variation `dp` (currently $(size(dp)))."
+        end
+        if abs(dp[end]) > tol
+            @warn "For the pair-correlation to be accurate, we expect it to be long enough (in terms of the distance `r`) such that the particle positions become uncorrelatd. They become uncorrelated when `dp[end]` tends to zero."
+        end
+        new(r,dp)
+    end
 end
 
 abstract type AbstractMicrostructure{Dim} end
@@ -102,27 +112,45 @@ Creates a material filled with [`Specie`](@ref)'s inside `region`.
 """
 struct Material{Dim,S<:Shape}
     shape::S
-    species::Species
+    microstructure::AbstractMicrostructure{Dim}
     numberofparticles::Number
     # Enforce that the Dims and Types are all the same
-    function Material{Dim,S}(shape::S,species::Sps,numberofparticles::Number = Inf) where {T,Dim,S<:Shape{Dim},Sps<:Species{Dim}}
-        new{Dim,S}(shape,species,numberofparticles)
+    function Material{Dim,S}(shape::S,micro::M,num::Number = Inf) where {Dim,S<:Shape{Dim},M<:AbstractMicrostructure{Dim}}
+        new{Dim,S}(shape,micro,num)
     end
 end
 
 # Convenience constructor which does not require explicit types/parameters
-function Material(shape::S,species::Sps) where {T,Dim,S<:Shape{Dim},Sps<:Species{Dim}}
+function Material(shape::S,species::Sps) where {Dim,S<:Shape{Dim},Sps<:Species{Dim}}
 
-    rmax = maximum(outer_radius.(species))
+    @warn "no pair-correlation was specified for the species. Will use the default that particles can not overlap, but are otherwise their positions are uncorrelated. This is often called \"Hole Correction\""
+
+    ps = [
+        begin
+            a12 = outer_radius(s1) * s1.exclusion_distance + outer_radius(s2) * s2.exclusion_distance
+            r = [a12]
+            dp = [zero(typeof(a12))]
+            PairCorrelation(r,dp)
+        end
+    for s1 in species, s2 in species]
+
+    micro = ParticulateMicrostructure{Dim}(species,ps)
+
+    return Material(shape,micro)
+end
+
+function Material(shape::S,micro::PM) where {Dim,S<:Shape{Dim},PM<:ParticulateMicrostructure{Dim}}
+
+    rmax = maximum(outer_radius.(micro.species))
 
     # the volume of the shape that contains all the particle centres
     Vn = volume(Shape(shape; addtodimensions = -rmax))
 
     numberofparticles = round(sum(
         number_density(s) * Vn
-    for s in species))
+    for s in micro.species))
 
-    Material{Dim,S}(shape,species,numberofparticles)
+    Material{Dim,S}(shape,micro,numberofparticles)
 end
 
 function Material(shape::S,specie::Sp) where {Dim,S<:Shape{Dim},Sp<:Specie{Dim}}

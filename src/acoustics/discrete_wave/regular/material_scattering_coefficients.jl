@@ -10,7 +10,7 @@ function material_scattering_coefficients(scat_field::ScatteringCoefficientsFiel
 
     v = regular_basis_function(scat_field.medium, scat_field.ω)
 
-    particle_radius = maximum(outer_radius.(scat_field.material.species))
+    particle_radius = maximum(outer_radius.(scat_field.material.microstructure.species))
     R = outer_radius(scat_field.material.shape)
 
     function kernel(rθφ)
@@ -19,7 +19,7 @@ function material_scattering_coefficients(scat_field::ScatteringCoefficientsFiel
         vs = conj.(v(scat_field.basis_order + scat_field.basis_field_order, x))
         fs = scat_field.coefficient_field(x)
 
-        (rθφ[1]^2 * sin(rθφ[2]) * numdensity(x,scat_field.material.species[1])) .* [
+        (rθφ[1]^2 * sin(rθφ[2]) * numdensity(x,scat_field.material.microstructure.species[1])) .* [
             sum(
                 gaunt_coefficient(l,m,dl,dm,l1,m-dm) * vs[lm2n(l1,m-dm)] * fs[lm2n(dl,dm)]
             for dl = 0:scat_field.basis_order for dm = -dl:dl for l1 in max(abs(m-dm),abs(dl-l)):(dl+l))
@@ -49,7 +49,7 @@ function material_scattering_coefficients(scat_field::ScatteringCoefficientsFiel
 
     rθφ2xyz = radial_to_cartesian_coordinates
 
-    particle_radius = maximum(outer_radius.(scat_field.material.species))
+    particle_radius = maximum(outer_radius.(scat_field.material.microstructure.species))
 
     function kernel(r)
         x = rθφ2xyz([r,0.0,0.0])
@@ -58,7 +58,7 @@ function material_scattering_coefficients(scat_field::ScatteringCoefficientsFiel
 
         fs = scat_field.coefficient_field(x)
 
-        (4.0 * π * r^2 * numdensity([r,0,0],scat_field.material.species[1])) .* sum(
+        (4.0 * π * r^2 * numdensity([r,0,0],scat_field.material.microstructure.species[1])) .* sum(
             (-1.0) .^ ls .* sqrt.(2.0 .* ls .+ 1.0) .* fs[lm2n.(ls,0)] .* js
         )
     end
