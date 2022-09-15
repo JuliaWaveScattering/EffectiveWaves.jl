@@ -9,8 +9,8 @@ The minimum distance between any two particles will equal `outer_radius(Specie) 
 """
 struct Specie{Dim,P<:AbstractParticle{Dim}}
     particle::P
-    volume_fraction::AbstractFloat
-    exclusion_distance::AbstractFloat
+    volume_fraction::Float64
+    exclusion_distance::Float64
 end
 
 # Convenience constructor which does not require explicit types/parameters
@@ -35,17 +35,17 @@ Species{Dim,P} = Vector{S} where S<:Specie{Dim,P}
 """
     ParticulateMicrostructure
 
-Represents potentially multi-species and also holds information on the pair correlation. That is, how the particles are distributed on average.
+Represents a microstructure filled with multiply species of particles. ParticulateMicrostructure.paircorrelations specifies the pair correlation between each of the species. That is, how the particles are distributed on average.
 """
-struct ParticulateMicrostructure{Dim} <: Microstructure{Dim}
+struct ParticulateMicrostructure{Dim,PC<:PairCorrelation} <: Microstructure{Dim}
     species::Species{Dim}
-    paircorrelations::AbstractMatrix{PC} where PC <: PairCorrelation
+    paircorrelations::Matrix{PC}
     function ParticulateMicrostructure{Dim}(sps::Species{Dim}, ps::AbstractMatrix{PC}) where {Dim, PC <: PairCorrelation}
         #
         if size(ps,1) != length(sps) || size(ps,2) != length(sps)
             @error "the number of rows, and number of columns, of the matrix $paircorrelations needs to be equal to the length of $sps"
         end
-        new{Dim}(sps,ps)
+        new{Dim,PC}(sps,ps)
     end
 end
 
@@ -101,7 +101,7 @@ Creates a material filled with [`Specie`](@ref)'s inside `region`.
 struct Material{Dim,S<:Shape}
     shape::S
     microstructure::Microstructure{Dim}
-    numberofparticles::Number
+    numberofparticles::Float64
     # Enforce that the Dims and Types are all the same
     function Material{Dim,S}(shape::S,micro::M,num::Number = Inf) where {Dim,S<:Shape{Dim},M<:Microstructure{Dim}}
         new{Dim,S}(shape,micro,num)
@@ -117,9 +117,9 @@ function Material(shape::S,micro::PM) where {Dim,S<:Shape{Dim},PM<:ParticulateMi
     # the volume of the shape that contains all the particle centres
     Vn = volume(Shape(shape; addtodimensions = -rmax))
 
-    numberofparticles = round(sum(
+    numberofparticles = sum(
         number_density(s) * Vn
-    for s in micro.species))
+    for s in micro.species)
 
     Material{Dim,S}(shape,micro,numberofparticles)
 end

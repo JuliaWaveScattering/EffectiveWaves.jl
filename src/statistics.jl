@@ -13,9 +13,9 @@ Represents the pair correlation between two types of species, which could be the
 """
 struct DiscretePairCorrelation <: PairCorrelation
     "distance between particles centres"
-    r::AbstractVector{T} where T <: Number
+    r::Vector{Float64}
     "variation of the pair correlation from 1 (uncorrelated case)"
-    dp::AbstractVector{T} where T <: Number
+    dp::Vector{Float64}
 
     function DiscretePairCorrelation(r::AbstractVector,dp::AbstractVector; tol::AbstractFloat = 1e-4)
         if size(dp) != size(r)

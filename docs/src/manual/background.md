@@ -16,7 +16,7 @@ The simplest case is when using an incident plane wave and material in the shape
 
 In more detail, the package actually solves for the average scattering coefficient $\langle f_n\rangle (\mathbf r_1)$, of order ``n`` and for a particle centred at $\mathbf r_1$, which is then used to calculate the  average field $\langle u(x) \rangle$.   
 
-For planar symmetry, the $\langle f_n\rangle also have to be plane waves, which allows us to  represent
+For planar symmetry, the $\langle f_n\rangle$ also have to be plane waves, which allows us to  represent
 
 $\langle f_n\rangle (\mathbf r_1) = \sum_p F_{p,n} \mathrm e^{i \mathbf k_p \cdot \mathbf r_1}$
 
