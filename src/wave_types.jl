@@ -1,8 +1,3 @@
-abstract type AbstractWaveMode{T,Dim} end
-
-abstract type AbstractRegularWaveMode{T,Dim} <: AbstractWaveMode{T,Dim} end
-
-
 # Each type of symmetry leads to effective eigenvectors with a different length.
 eigenvector_length(::PlanarSymmetry{3}; basis_order::Int) =  Int((1 + basis_order)^2)
 eigenvector_length(::PlanarSymmetry{2}; basis_order::Int) =  Int((1 + 2*basis_order))

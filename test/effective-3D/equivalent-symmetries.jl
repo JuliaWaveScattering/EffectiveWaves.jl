@@ -14,6 +14,7 @@ s2 = Specie(
     volume_fraction=0.1
 );
 species = [s1,s2]
+micro = Microstructure(species)
 # species = [s1]
 
 ω = 0.9
@@ -23,11 +24,11 @@ basis_order = 2
 
 ### Test the equivalence between dispersion equations
 
-    R_det = dispersion_equation(ω, medium, species, RadialSymmetry{spatial_dim}(); basis_order = basis_order)
-    AP_det = dispersion_equation(ω, medium, species, PlanarAzimuthalSymmetry{spatial_dim}(); basis_order = basis_order)
-    P_det = dispersion_equation(ω, medium, species, PlanarSymmetry{spatial_dim}(); basis_order = basis_order)
-    AR_det = dispersion_equation(ω, medium, species, AzimuthalSymmetry{spatial_dim}(); basis_order = basis_order)
-    Reg_det = dispersion_equation(ω, medium, species, WithoutSymmetry{spatial_dim}(); basis_order = basis_order)
+    R_det = dispersion_equation(ω, medium, micro, RadialSymmetry{spatial_dim}(); basis_order = basis_order)
+    AP_det = dispersion_equation(ω, medium, micro, PlanarAzimuthalSymmetry{spatial_dim}(); basis_order = basis_order)
+    P_det = dispersion_equation(ω, medium, micro, PlanarSymmetry{spatial_dim}(); basis_order = basis_order)
+    AR_det = dispersion_equation(ω, medium, micro, AzimuthalSymmetry{spatial_dim}(); basis_order = basis_order)
+    Reg_det = dispersion_equation(ω, medium, micro, WithoutSymmetry{spatial_dim}(); basis_order = basis_order)
 
     # Lighter to calculate wavenumbers (also known as the eigenvalues) when assume more symmmetries
 
@@ -36,11 +37,11 @@ basis_order = 2
     #     num_wavenumbers = 2, tol = tol,  basis_order = basis_order,
     #     symmetry = RadialSymmetry{3}())
 
-    AP_kps = wavenumbers(ω, medium, species;
+    AP_kps = wavenumbers(ω, medium, micro;
         num_wavenumbers = 2, tol = tol,  basis_order = basis_order,
         symmetry = PlanarAzimuthalSymmetry())
 
-    P_kps = wavenumbers(ω, medium, species;
+    P_kps = wavenumbers(ω, medium, micro;
         num_wavenumbers = 2, tol = tol, basis_order = basis_order,
         symmetry = PlanarSymmetry{3}())
 
@@ -60,7 +61,7 @@ basis_order = 2
     @test maximum(AR_det.(AP_kps)) < tol^2
     @test maximum(Reg_det.(AP_kps)) < tol^3
 
-    P_disp = dispersion_complex(ω, medium, species,  PlanarSymmetry{spatial_dim}(); tol = tol, basis_order = basis_order)
+    P_disp = dispersion_complex(ω, medium, micro,  PlanarSymmetry{spatial_dim}(); tol = tol, basis_order = basis_order)
 
     # However, there do exist effective wavenumbers for plane-waves which have eigen-vectors that do not satisfy azimuthal symmetry. This is why maximum(AP_det.(P_kps)) != 0.0
     @test maximum(P_det.(P_kps)) < tol
@@ -72,7 +73,7 @@ basis_order = 2
     basis_order = 2
     basis_field_order = 2*basis_order
 
-    Reg_MM = eigensystem(ω, medium, species, WithoutSymmetry{spatial_dim}();
+    Reg_MM = eigensystem(ω, medium, micro, WithoutSymmetry{spatial_dim}();
             basis_order = basis_order,
             basis_field_order = basis_field_order
     )
@@ -105,7 +106,7 @@ basis_order = 2
     RvM = reshape(RvM,(:,(basis_order+1)^2,S,size(RvM)[end]))
     Pvs = reshape(sum([RvM[i] * Ys[i[1]] / 1.0im^ls[i[1]] for i in CartesianIndices(RvM)], dims=1),(:,size(RvM)[end]))
 
-    P_MM = eigensystem(ω, medium, species, PlanarSymmetry{spatial_dim}();
+    P_MM = eigensystem(ω, medium, micro, PlanarSymmetry{spatial_dim}();
             direction_eff = direction_eff,
             basis_order = basis_order
     )
@@ -132,6 +133,7 @@ end
         volume_fraction=0.1
     );
     species = [s1,s2]
+    micro = Microstructure(species)
     # species = [s1]
 
     ω = 0.9
@@ -140,7 +142,7 @@ end
     basis_order = 2
     basis_field_order = 2*basis_order
 
-    kps = wavenumbers(ω, medium, species;
+    kps = wavenumbers(ω, medium, micro;
         num_wavenumbers = 2, tol = tol,  basis_order = basis_order,
         symmetry = PlanarAzimuthalSymmetry())
     k_eff = kps[1]

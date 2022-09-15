@@ -79,7 +79,7 @@ function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, 
     return [mode1,mode2]
 end
 
-# eigensystem(ω::T, source::AbstractSource, material::Material; kws...) where T<:AbstractFloat = eigensystem(ω, source.medium, material.microstructure.species, Symmetry(source,material); numberofparticles = material.numberofparticles, kws...)
+# eigensystem(ω::T, source::AbstractSource, material::Material; kws...) where T<:AbstractFloat = eigensystem(ω, source.medium, material.microstructure, Symmetry(source,material); numberofparticles = material.numberofparticles, kws...)
 
 
 function solve_boundary_condition(ω::T, wavenumber::Complex{T}, eigvectors::Array, source::AbstractSource, material::Material; kws...) where T

@@ -1,5 +1,5 @@
 # The eigensystem when no symmetry is present
-function eigensystem(ω::T, medium::PhysicalMedium{3}, species::Species{3}, ::WithoutSymmetry{3};
+function eigensystem(ω::T, medium::PhysicalMedium{3}, micro::ParticulateMicrostructure{3}, ::WithoutSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         numberofparticles::Number = Inf,
@@ -8,7 +8,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{3}, species::Species{3}, ::Wi
     scale_number_density = one(T) - one(T) / numberofparticles
 
     k = ω/medium.c
-    sps = species
+    sps = micro.species
 
     S = length(sps)
     L = basis_order
@@ -61,7 +61,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{3}, species::Species{3}, ::Wi
     return MM
 end
 
-function eigensystem(ω::T, medium::PhysicalMedium{3}, species::Species{3}, ::AbstractAzimuthalSymmetry;
+function eigensystem(ω::T, medium::PhysicalMedium{3}, micro::ParticulateMicrostructure{3}, ::AbstractAzimuthalSymmetry;
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         numberofparticles::Number = Inf,
@@ -70,7 +70,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{3}, species::Species{3}, ::Ab
     scale_number_density = one(T) - one(T) / numberofparticles
 
     k = ω/medium.c
-    sps = species
+    sps = micro.species
 
     S = length(sps)
     L = basis_order
@@ -94,7 +94,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{3}, species::Species{3}, ::Ab
 
         (m == dm && l == dl && l1 == l2 && s1 == s2 ? 1.0 : 0.0) +
         if minl3 <= maxl3
-            as[s1,s2] * scale_number_density * number_density(species[s2]) * t_diags[s1][len(l)] *
+            as[s1,s2] * scale_number_density * number_density(sps[s2]) * t_diags[s1][len(l)] *
             sum(l3 ->
                 gaunt_coefficient(l,m,dl,dm,l3,m-dm) *
                 gaunt_coefficient(l1,-dm,l2,-m,l3,m-dm) * Ns[l3+1,s1,s2]
@@ -125,13 +125,13 @@ function eigensystem(ω::T, medium::PhysicalMedium{3}, species::Species{3}, ::Ab
     return MM
 end
 
-function eigensystem(ω::T, medium::PhysicalMedium{3}, species::Species{3}, ::RadialSymmetry{3};
+function eigensystem(ω::T, medium::PhysicalMedium{3}, micro::ParticulateMicrostructure{3}, ::RadialSymmetry{3};
         basis_order::Int = 2,
         kws...) where {T<:AbstractFloat}
 
-        MM = eigensystem(ω, medium, species, PlanarAzimuthalSymmetry{3}(); basis_order = basis_order, kws...)
+        MM = eigensystem(ω, medium, micro.species, PlanarAzimuthalSymmetry{3}(); basis_order = basis_order, kws...)
 
-        factors = [Complex{T}(im)^(-l) * sqrt(T(2l + 1)) for l = 0:basis_order, s = 1:length(species)][:]
+        factors = [Complex{T}(im)^(-l) * sqrt(T(2l + 1)) for l = 0:basis_order, s = 1:length(micro.species)][:]
 
         MMR(keff::Complex{T}) = MM(keff) * diagm(factors)
 

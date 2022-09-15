@@ -12,7 +12,7 @@ function convert_eigenvector_basis(medium::Acoustic{T,3},sym::PlanarAzimuthalSym
     return reshape(v,basisorder_to_basislength(Acoustic{T,3},basis_order),S,P)
 end
 
-function eigensystem(ω::T, medium::Acoustic{T,2}, species::Species{2}, ::AbstractPlanarSymmetry;
+function eigensystem(ω::T, medium::Acoustic{T,2}, micro::ParticulateMicrostructure{2}, ::AbstractPlanarSymmetry;
         basis_order::Int = 2,
         numberofparticles::Number = Inf,
         kws...) where {T<:AbstractFloat}
@@ -23,7 +23,7 @@ function eigensystem(ω::T, medium::Acoustic{T,2}, species::Species{2}, ::Abstra
     end
 
     k = ω / medium.c
-    sps = species
+    sps = micro.species
     S = length(sps)
     ho = basis_order
 
@@ -61,7 +61,7 @@ function eigensystem(ω::T, medium::Acoustic{T,2}, species::Species{2}, ::Abstra
     return MM
 end
 
-function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{3}, ::AbstractPlanarSymmetry;
+function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostructure{3}, ::AbstractPlanarSymmetry;
         basis_order::Int = 2,
         direction_eff::Union{AbstractVector{T},AbstractVector{Complex{T}}} = [0.0,0.0,1.0],
         numberofparticles::Number = Inf,
@@ -71,6 +71,8 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{3}, ::Abstra
     if numberofparticles > 1
         scale_number_density = one(T) - one(T) / numberofparticles
     end
+
+    species = micro.species
 
     k = ω/medium.c
     S = length(species)
@@ -121,7 +123,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{3}, ::Abstra
     return MM
 end
 
-function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{3}, ::PlanarAzimuthalSymmetry{3};
+function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostructure{3}, ::PlanarAzimuthalSymmetry{3};
         basis_order::Int = 2,
         numberofparticles::Number = Inf,
         kws...) where {T<:AbstractFloat}
@@ -130,6 +132,8 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, species::Species{3}, ::Planar
     if numberofparticles > 1
         scale_number_density = one(T) - one(T) / numberofparticles
     end
+
+    species = micro.species
 
     k = ω/medium.c
     S = length(species)

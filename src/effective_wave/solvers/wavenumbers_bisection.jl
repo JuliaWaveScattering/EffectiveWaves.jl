@@ -1,9 +1,9 @@
 # NOTE: PlanarAzimuthalSymmetry() does not included all possible wavenumbers
-function wavenumbers_bisection(ω::T, medium::PhysicalMedium{Dim}, species::Species{Dim};
+function wavenumbers_bisection(ω::T, medium::PhysicalMedium{Dim}, micro::Microstructure{Dim};
         symmetry::AbstractSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(),
         tol::T = 1e-5,
         num_wavenumbers = 3,
-        box_k::Vector{Vector{T}} = box_keff(ω, medium, species; tol = tol),
+        box_k::Vector{Vector{T}} = box_keff(ω, medium, micro.species; tol = tol),
         bisection_mesh_points::Int = Int(round(2 - log(tol))) + 25 * num_wavenumbers,
         fixedparameters::Optim.FixedParameters = NelderMeadparameters(),
         optimoptions::Optim.Options{T} = Optim.Options(
@@ -14,8 +14,8 @@ function wavenumbers_bisection(ω::T, medium::PhysicalMedium{Dim}, species::Spec
 
     ko = real(ω / medium.c)
 
-    disp = dispersion_complex(ω, medium, species, symmetry; kws...)
-    # disp = dispersion_complex(ω, medium, species, symmetry; basis_order = basis_order)
+    disp = dispersion_complex(ω, medium, micro, symmetry; kws...)
+    # disp = dispersion_complex(ω, medium, micro, symmetry; basis_order = basis_order)
 
     function f(x, y)
         z = disp(x + y*im)
@@ -46,7 +46,7 @@ function wavenumbers_bisection(ω::T, medium::PhysicalMedium{Dim}, species::Spec
     sols = sols[1:min(length(sols),10*num_wavenumbers)]
 
     # Add some guess from asymptotics
-    kφ = wavenumber_low_volumefraction(ω, medium, species)
+    kφ = wavenumber_low_volumefraction(ω, medium, micro)
 
     k_real = max(abs(real(kφ)), real(ko), sqrt(eps(T)))
     k_imag = [imag(kφ), sqrt(eps(T))]

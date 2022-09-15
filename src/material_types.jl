@@ -1,7 +1,3 @@
-# """Extract the dimension of the space that this physical property lives in"""
-# dim(p::AbstractSymmetry{Dim}) where {Dim} = Dim
-
-
 """
     Specie
 
@@ -37,44 +33,36 @@ end
 Species{Dim,P} = Vector{S} where S<:Specie{Dim,P}
 
 """
-    PairCorrelation
-
-Represents the pair correlation between two types of species, which could be the same.
-"""
-struct PairCorrelation
-    "distance between particles centres"
-    r::AbstractVector{T} where T <: Number
-    "variation of the pair correlation from 1 (uncorrelated case)"
-    dp::AbstractVector{T} where T <: Number
-
-    function PairCorrelation(r::AbstractVector,dp::AbstractVector; tol::AbstractFloat = 1e-4)
-        if size(dp) != size(r)
-            @error "the size of vector of distances `r` (currently $(size(r))) should be the same as the size of the pair-correlation variation `dp` (currently $(size(dp)))."
-        end
-        if abs(dp[end]) > tol
-            @warn "For the pair-correlation to be accurate, we expect it to be long enough (in terms of the distance `r`) such that the particle positions become uncorrelatd. They become uncorrelated when `dp[end]` tends to zero."
-        end
-        new(r,dp)
-    end
-end
-
-abstract type AbstractMicrostructure{Dim} end
-
-"""
     ParticulateMicrostructure
 
 Represents potentially multi-species and also holds information on the pair correlation. That is, how the particles are distributed on average.
 """
-struct ParticulateMicrostructure{Dim} <: AbstractMicrostructure{Dim}
+struct ParticulateMicrostructure{Dim} <: Microstructure{Dim}
     species::Species{Dim}
-    paircorrelations::AbstractMatrix{PairCorrelation}
-    function ParticulateMicrostructure{Dim}(sps::Species{Dim},ps::AbstractMatrix{PairCorrelation}) where Dim
+    paircorrelations::AbstractMatrix{PC} where PC <: PairCorrelation
+    function ParticulateMicrostructure{Dim}(sps::Species{Dim}, ps::AbstractMatrix{PC}) where {Dim, PC <: PairCorrelation}
         #
         if size(ps,1) != length(sps) || size(ps,2) != length(sps)
             @error "the number of rows, and number of columns, of the matrix $paircorrelations needs to be equal to the length of $sps"
         end
         new{Dim}(sps,ps)
     end
+end
+
+function Microstructure(sps::Species{Dim}) where Dim
+
+    @warn "No pair-correlation was specified for the species. Will use the default that assumes that particles can not overlap, but, otherwise, their positions are uncorrelated. This is often called \"Hole Correction\""
+
+    ps = [
+        begin
+            a12 = outer_radius(s1) * s1.exclusion_distance + outer_radius(s2) * s2.exclusion_distance
+            r = [a12]
+            dp = [zero(typeof(a12))]
+            DiscretePairCorrelation(r,dp)
+        end
+    for s1 in sps, s2 in sps]
+
+    return ParticulateMicrostructure{Dim}(sps,ps)
 end
 
 "Returns the volume fraction of the specie."
@@ -112,32 +100,15 @@ Creates a material filled with [`Specie`](@ref)'s inside `region`.
 """
 struct Material{Dim,S<:Shape}
     shape::S
-    microstructure::AbstractMicrostructure{Dim}
+    microstructure::Microstructure{Dim}
     numberofparticles::Number
     # Enforce that the Dims and Types are all the same
-    function Material{Dim,S}(shape::S,micro::M,num::Number = Inf) where {Dim,S<:Shape{Dim},M<:AbstractMicrostructure{Dim}}
+    function Material{Dim,S}(shape::S,micro::M,num::Number = Inf) where {Dim,S<:Shape{Dim},M<:Microstructure{Dim}}
         new{Dim,S}(shape,micro,num)
     end
 end
 
-# Convenience constructor which does not require explicit types/parameters
-function Material(shape::S,species::Sps) where {Dim,S<:Shape{Dim},Sps<:Species{Dim}}
-
-    @warn "no pair-correlation was specified for the species. Will use the default that particles can not overlap, but are otherwise their positions are uncorrelated. This is often called \"Hole Correction\""
-
-    ps = [
-        begin
-            a12 = outer_radius(s1) * s1.exclusion_distance + outer_radius(s2) * s2.exclusion_distance
-            r = [a12]
-            dp = [zero(typeof(a12))]
-            PairCorrelation(r,dp)
-        end
-    for s1 in species, s2 in species]
-
-    micro = ParticulateMicrostructure{Dim}(species,ps)
-
-    return Material(shape,micro)
-end
+Material(s::Shape,sps::Species) = Material(s, Microstructure(sps))
 
 function Material(shape::S,micro::PM) where {Dim,S<:Shape{Dim},PM<:ParticulateMicrostructure{Dim}}
 

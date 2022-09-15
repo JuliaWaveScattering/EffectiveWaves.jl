@@ -1,9 +1,9 @@
 # NOTE: PlanarAzimuthalSymmetry() does not included all possible wavenumbers
-function wavenumbers_bisection_robust(ω::T, medium::PhysicalMedium{Dim}, species::Species{Dim};
+function wavenumbers_bisection_robust(ω::T, medium::PhysicalMedium{Dim}, micro::Microstructure{Dim};
         symmetry::AbstractSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(),
         tol::T = 1e-5,
         num_wavenumbers = 3,
-        box_k::Vector{Vector{T}} = box_keff(ω, medium, species; tol = tol),
+        box_k::Vector{Vector{T}} = box_keff(ω, medium, micro.species; tol = tol),
         bisection_mesh_points::Int = Int(round(2 - log(tol))) + 3 * num_wavenumbers,
         bisection_iteration::Int = Int(round(-log(tol) / 3)),
         fixedparameters::Optim.FixedParameters = NelderMeadparameters(),
@@ -14,10 +14,10 @@ function wavenumbers_bisection_robust(ω::T, medium::PhysicalMedium{Dim}, specie
         kws...) where {T,Dim}
 
     # exact low-frequency effective wavenumber is known exactly
-    ko = real(ω / effective_medium(medium, species).c)
+    ko = real(ω / effective_medium(medium, micro).c)
 
-    disp = dispersion_complex(ω, medium, species, symmetry; kws...)
-    # disp = dispersion_complex(ω, medium, species, symmetry; basis_order = basis_order)
+    disp = dispersion_complex(ω, medium, micro, symmetry; kws...)
+    # disp = dispersion_complex(ω, medium, micro, symmetry; basis_order = basis_order)
 
     freal(x, y)::T = real(disp(x + y*im))
     fimag(x, y)::T = imag(disp(x + y*im))

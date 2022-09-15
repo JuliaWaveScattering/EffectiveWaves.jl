@@ -1,3 +1,92 @@
+struct PercusYevick <: PairCorrelationType
+    # volume_fraction::AbstractFloat
+end
+
+struct HoleCorrection <: PairCorrelationType
+    # volume_fraction::AbstractFloat
+end
+
+"""
+    DiscretePairCorrelation
+
+Represents the pair correlation between two types of species, which could be the same.
+"""
+struct DiscretePairCorrelation <: PairCorrelation
+    "distance between particles centres"
+    r::AbstractVector{T} where T <: Number
+    "variation of the pair correlation from 1 (uncorrelated case)"
+    dp::AbstractVector{T} where T <: Number
+
+    function DiscretePairCorrelation(r::AbstractVector,dp::AbstractVector; tol::AbstractFloat = 1e-4)
+        if size(dp) != size(r)
+            @error "the size of vector of distances `r` (currently $(size(r))) should be the same as the size of the pair-correlation variation `dp` (currently $(size(dp)))."
+        end
+        if abs(dp[end]) > tol
+            @warn "For the pair-correlation to be accurate, we expect it to be long enough (in terms of the distance `r`) such that the particle positions become uncorrelatd. They become uncorrelated when `dp[end]` tends to zero."
+        end
+        new(r,dp)
+    end
+end
+
+PairCorrelation(r::AbstractVector{T},dp::AbstractVector{T}) where T <: AbstractFloat = DiscretePairCorrelation(r,dp)
+
+function DiscretePairCorrelation(s::Specie{Dim}, pc::PercusYevick, distances::AbstractVector{T};
+        rtol::T = 1e-3, maxevals::Int = Int(2e4)
+    ) where {T<:AbstractFloat, Dim}
+
+    R = 2 * outer_radius(s) * s.exclusion_distance
+
+    # Note that f if the volume fraction of the species including the exclusion volume around each particle
+    f = number_density(s) * π * R^3 / 6
+    α = - (1 + 2f)^2 / (1 - f)^4
+    β = 6f * (1 + f/2)^2 / (1 - f)^4
+    δ = - f * (1 + 2f)^2 / (2 * (1 - f)^4)
+
+    function F(x)
+        A = 24δ / x^6 - 2β / x^4
+        B = (α + 2β + 4δ) / x^3 - 24δ / x^5
+        C = - (α + β + δ) / x^2 + (2β + 12δ) / x^4 - 24δ / x^6
+
+        return A + B * sin(x) + C * cos(x)
+    end
+
+    G(x) = (α + 2β + 4δ) * sin(x) / x^2 - (α + β + δ) * cos(x) / x
+
+    ker_fun(r) = x -> (x * F(x) / (1 - 24f * F(x)) - G(x)) * sin(r * x / R)
+
+    ## Below we estimate the domain of integration needed
+
+    ker = ker_fun(R)
+
+    data = ker.(distances)
+    maxker = maximum(data)
+
+    d = 5 * R
+    max_xs = LinRange(d, 30 * d, 200)
+
+    imax = findfirst(ker.(max_xs) ./ maxker .< rtol)
+    max_x = max_xs[imax]
+
+    (I,E) = hquadrature(ker, eps(T), max_x;
+        rtol=rtol, maxevals=maxevals
+    )
+    println("I = ", maximum(abs.(I)) )
+    println("For rtol = $rtol, the estimated relative error when calculating the integral of the Percus-Yevick is: ", abs(E/I))
+
+    dp = map(distances) do r
+        ker = ker_fun(r)
+        int_ker = hquadrature(ker, 10eps(T), max_x;
+            rtol = rtol, maxevals = maxevals
+        )[1]
+
+        η = r / R
+        9f * (1 + f) / (2 * η * (1 - f)^3) + 2 / (η*pi) * int_ker
+    end
+
+    return DiscretePairCorrelation(distances,dp; tol = rtol)
+end
+
+
 function hole_correction_pair_correlation(x1::AbstractVector{T},s1::Specie, x2::AbstractVector{T},s2::Specie) where T <: Number
     overlapping = norm(x1 - x2) > outer_radius(s1) * s1.exclusion_distance + outer_radius(s2) * s2.exclusion_distance
 

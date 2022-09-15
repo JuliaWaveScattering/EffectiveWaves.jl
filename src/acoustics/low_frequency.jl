@@ -1,10 +1,13 @@
+effective_medium(medium::Acoustic, sps::Species; kws...) = effective_medium(medium, Microstructure(sps); kws...)
+
 "The effective low frequency bulk modulus and density of a material filled with particles"
-function effective_medium(medium::Acoustic{T,Dim}, species::Species{Dim};
+function effective_medium(medium::Acoustic{T,Dim}, micro::Microstructure{Dim};
         numberofparticles::Number = Inf
     ) where {T<:AbstractFloat,Dim}
 
+    species = micro.species
     scale_number_density = one(T) - one(T) / numberofparticles
-    φ = scale_number_density * sum(volume_fraction.(species))
+    φ = scale_number_density * volume_fraction(species)
 
     # calculate effective properties
     β = medium.ρ*medium.c^2 # medium bulk modulus

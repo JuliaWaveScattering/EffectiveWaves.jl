@@ -1,5 +1,5 @@
 # NOTE: PlanarAzimuthalSymmetry() does not include all possible wavenumbers
-function wavenumbers_path(ω::T, medium::PhysicalMedium{Dim}, species::Species{Dim};
+function wavenumbers_path(ω::T, medium::PhysicalMedium{Dim}, micro::Microstructure{Dim};
         symmetry::AbstractSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(),
         tol::T = 1e-5,
         mesh_points::Int = 3,
@@ -16,14 +16,14 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{Dim}, species::Species{D
         mesh_points = iseven(mesh_points) ? mesh_points + 1 : mesh_points
 
     # find at least one root to use as a scale for dk_x and dk_y
-        eff_medium = effective_medium(medium, species; numberofparticles = numberofparticles)
+        eff_medium = effective_medium(medium, micro; numberofparticles = numberofparticles)
         k0 = ω / eff_medium.c
         if isnan(k0) k0 = ω + T(0)*im end
         # abs(k0) can be used to non-dimensionlise k_vec
         # kscale = abs(k0)
         kscale = one(T)
 
-        kφ = wavenumber_low_volumefraction(ω, medium, species;
+        kφ = wavenumber_low_volumefraction(ω, medium, micro;
             verbose = false, numberofparticles = numberofparticles
         )
 
@@ -46,7 +46,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{Dim}, species::Species{D
         low_tol = min(1e-4, sqrt(tol))
 
     # Generate some asymptotic wavenumbers
-        k_asyms = asymptotic_monopole_wavenumbers(ω, medium, species;
+        k_asyms = asymptotic_monopole_wavenumbers(ω, medium, micro;
             num_wavenumbers = num_wavenumbers + 2)
         k_asyms = k_asyms ./ kscale
 
@@ -73,7 +73,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{Dim}, species::Species{D
         k_vecs = k_vecs[inds]
 
     # The dispersion equation is given by: `dispersion([k1,k2]) = 0` where k_eff = k1 + im*k2.
-        dispersion_dim = dispersion_equation(ω, medium, species, symmetry;
+        dispersion_dim = dispersion_equation(ω, medium, micro, symmetry;
             tol = low_tol, numberofparticles = numberofparticles,
             kws...)
 

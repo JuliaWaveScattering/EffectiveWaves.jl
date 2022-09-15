@@ -1,11 +1,17 @@
+
+
 """
     asymptotic_monopole_wavenumbers(ω, medium::Acoustic, species; num_wavenumbers = 2)
 
 Calculates the asymptotic effective wavenumbers for monopole scatterers by assuming a large number of wavenumbers. The 2D results are deduced in [Section 5](https://arxiv.org/pdf/1905.06996.pdf).
 """
-function asymptotic_monopole_wavenumbers(ω::T, medium::Acoustic{T,2}, species::Species{2};
+asymptotic_monopole_wavenumbers(ω::T, medium::Acoustic{T}, sps::Species; kws...) where T = asymptotic_monopole_wavenumbers(ω, medium, Microstructure(sps); kws...)
+
+function asymptotic_monopole_wavenumbers(ω::T, medium::Acoustic{T,2}, micro::Microstructure{2};
         num_wavenumbers = 2
     ) where T
+
+    species = micro.species
 
     P = Int(round(num_wavenumbers / 2) + 1)
     k = ω / medium.c
@@ -33,11 +39,13 @@ function asymptotic_monopole_wavenumbers(ω::T, medium::Acoustic{T,2}, species::
    return [kns; kps]
 end
 
-function asymptotic_monopole_wavenumbers(ω::T, medium::Acoustic{T,3}, species::Species{3};
+function asymptotic_monopole_wavenumbers(ω::T, medium::Acoustic{T,3}, micro::Microstructure{3};
         num_wavenumbers = 2
     ) where T
 
    @warn "asymptotic_monopole_wavenumbers has not yet been implemented for 3D acoustics, will use 2D acoustics instead."
+
+   species = micro.species
 
    medium2D = Acoustic(2; ρ=medium.ρ, c=medium.c)
 

@@ -1,19 +1,25 @@
-wavenumber_low_volumefraction(ω::Number, medium::PhysicalMedium, specie::Specie; kws...) = wavenumber_low_volumefraction(ω, medium, [specie]; kws...)
+wavenumber_low_volumefraction(ω::Number, medium::PhysicalMedium, specie::Specie; kws...) = wavenumber_low_volumefraction(ω, medium, Microstructure([specie]); kws...)
 
-wavenumber_low_volumefraction(ωs::AbstractVector{T}, medium::PhysicalMedium, species::Species; kws...) where T <: Number = [wavenumber_low_volumefraction(ω, medium, species; kws...) for ω in ωs]
+wavenumber_low_volumefraction(ω::Number, medium::PhysicalMedium, species::Species; kws...) = wavenumber_low_volumefraction(ω, medium, Microstructure(species); kws...)
 
-wavenumber_low_volumefraction(ωs::AbstractVector{T}, medium::PhysicalMedium, specie::Specie; kws...)  where T <: Number = [wavenumber_low_volumefraction(ω, medium, [specie]; kws...) for ω in ωs]
+wavenumber_low_volumefraction(ωs::AbstractVector{<:Number}, medium::PhysicalMedium, species::Species; kws...) = wavenumber_low_volumefraction(ωs, medium, Microstructure(species); kws...)
+
+wavenumber_low_volumefraction(ωs::AbstractVector{<:Number}, medium::PhysicalMedium, specie::Specie; kws...) = wavenumber_low_volumefraction(ωs, medium, Microstructure([specie]); kws...)
+
+wavenumber_low_volumefraction(ωs::AbstractVector{<:Number}, medium::PhysicalMedium, micro::Microstructure; kws...) = [wavenumber_low_volumefraction(ω, medium, micro; kws...) for ω in ωs]
+
 
 """
-    wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,Dim}, species::Species{Dim}; basis_order::Int = 2)
+    wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,Dim}, micro::Microstructure{Dim}; basis_order::Int = 2)
 
 Explicit formula for one effective wavenumber based on a low particle volume fraction expansion.
 """
-function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,3}, species::Species{3};
+function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostructure{3};
         basis_order::Int = 2, verbose::Bool = true, numberofparticles::T = Inf
     ) where T
 
-    volfrac = sum(volume_fraction.(species))
+    species = micro.species
+    volfrac = volume_fraction(species)
     if volfrac >= 0.4 && verbose
     @warn("the volume fraction $(round(100*volfrac))% is too high, expect a relative error of approximately $(round(100*volfrac^3.0))%")
     end
@@ -52,10 +58,11 @@ function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,3}, species::Sp
     return (imag(sqrt(kT2)) > zero(T)) ? sqrt(kT2) : -sqrt(kT2)
 end
 
-function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,2}, species::Species{2};
+function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,2}, micro::ParticulateMicrostructure{2};
     basis_order::Int = 2, verbose::Bool = true, numberofparticles::T = Inf) where T
 
-    volfrac = sum(volume_fraction.(species))
+    species = micro.species
+    volfrac = volume_fraction(species)
     if volfrac >= 0.4 && verbose
     @warn("the volume fraction $(round(100*volfrac))% is too high, expect a relative error of approximately $(round(100*volfrac^3.0))%")
     end

@@ -1,19 +1,24 @@
-# Loads all files
 module EffectiveWaves
 
-# Here are the main exported functions and types. Note there are other exported functions and types in files such as "effective_wave/export.jl" and "discrete_wave/export.jl"
+# Note: many functions and types are exported in files such as "effective_wave/export.jl" and "discrete_wave/export.jl"
+
+## main types and functions
 export  EffectivePlaneWaveMode, EffectiveRegularWaveMode, ScatteringCoefficientsField
 
 export  DiscretePlaneWaveMode
 export  MatchPlaneWaveMode # a combination of the Discrete and Effective modes
-export  Material, Specie, Species, SetupSymmetry, number_density, volume_fraction
-export  hole_correction_pair_correlation, gls_pair_radial_fun, pair_radial_fun
+export  Material, Microstructure, ParticulateMicrostructure
+export  Specie, Species, SetupSymmetry, number_density, volume_fraction
+
+## Pair correlation
+export PairCorrelation, PercusYevick, HoleCorrection, DiscretePairCorrelation
+export hole_correction_pair_correlation, gls_pair_radial_fun, pair_radial_fun
 export smooth_pair_corr_distance, pair_radial_to_pair_corr
 
 # for MatchPlaneWaveMode
 export  match_error, x_mesh_match
 
-# for effective waves
+## effective waves
 export wavenumbers, wavenumber, asymptotic_monopole_wavenumbers, eigenvectors, convert_eigenvector_basis, eigenvector_length
 export WaveModes, WaveMode, wavemode_wienerhopf
 export solve_boundary_condition, scattering_field, material_scattering_coefficients, material_scattered_waves
@@ -25,12 +30,10 @@ export scattering_amplitudes_average
 export  reflection_coefficient, reflection_coefficients, reflection_transmission_coefficients, planewave_amplitudes
 export  effective_medium
 
-# List of shorthand for some materials
-export  Brick, IronArmco, LeadAnnealed, RubberGum, FusedSilica, GlassPyrex,
-        ClayRock, WaterDistilled, Glycerol, Hexadecane, Acetone, Benzene,
-        Nitrobenzene, OliveOil, SodiumNitrate, AirDry,
-        LimeStone, Clay, Calcite, SilicaQuartz
+## Shorthand for some materials
+export  Brick, IronArmco, LeadAnnealed, RubberGum, FusedSilica, GlassPyrex, ClayRock, WaterDistilled, Glycerol, Hexadecane, Acetone, Benzene, Nitrobenzene, OliveOil, SodiumNitrate, AirDry, LimeStone, Clay, Calcite, SilicaQuartz
 
+## imports
 import Base.isequal, Base.(==), Base.zero
 import SpecialFunctions: besselj, hankelh1
 import StaticArrays: SVector
@@ -60,6 +63,7 @@ using ClassicalOrthogonalPolynomials: Legendre
 
 using MDBM
 
+include("abstract_types.jl")
 include("material_types.jl")
 include("statistics.jl")
 include("wave_types.jl")
