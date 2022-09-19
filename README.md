@@ -24,14 +24,21 @@ For more examples and details go to [docs/src/examples/](docs/src/examples/).
 This library was originally written by [Artur L Gower](https://arturgower.github.io/).
 Contributions are very welcome.
 
+The implementation of the Percus-Yevick pair correlation was based [these notes [5]][https://github.com/JuliaWaveScattering/EffectiveWaves.jl/blob/master/docs/src/theory/P-Y.pdf].
+
+The low frequency effective properties was based on [these notes][https://github.com/JuliaWaveScattering/EffectiveWaves.jl/blob/master/docs/src/theory/LowFrequencyReflection.pdf].
+
 ## References
-[[1]](http://rspa.royalsocietypublishing.org/content/474/2212/20170864) Gower AL, Smith MJ, Parnell WJ, Abrahams ID. Reflection from a multi-species material and its transmitted effective wavenumber. Proc. R. Soc. A. 2018 Apr 1;474(2212):20170864.
+[[1]](http://rspa.royalsocietypublishing.org/content/474/2212/20170864) Gower AL, Smith MJ, Parnell WJ, Abrahams ID. "Reflection from a multi-species material and its transmitted effective wavenumber". Proc. R. Soc. A. 2018 Apr 1;474(2212):20170864.
 
-[[2]](https://epubs.siam.org/doi/abs/10.1137/18M122306X) Gower, Artur L., William J. Parnell, and I. David Abrahams. "Multiple waves propagate in random particulate materials." SIAM Journal on Applied Mathematics 79.6 (2019): 2569-2592.
+[[2]](https://epubs.siam.org/doi/abs/10.1137/18M122306X) Gower, Artur L., William J. Parnell, and I. David Abrahams. "Multiple waves propagate in random particulate materials". SIAM Journal on Applied Mathematics 79.6 (2019): 2569-2592.
 
-[[3]](https://royalsocietypublishing.org/doi/full/10.1098/rspa.2019.0344) Gower, Artur L., I. David Abrahams, and William J. Parnell. "A proof that multiple waves propagate in ensemble-averaged particulate materials." Proceedings of the Royal Society A 475.2229 (2019): 20190344.
+[[3]](https://royalsocietypublishing.org/doi/full/10.1098/rspa.2019.0344) Gower, Artur L., I. David Abrahams, and William J. Parnell. "A proof that multiple waves propagate in ensemble-averaged particulate materials". Proceedings of the Royal Society A 475.2229 (2019): 20190344.
 
-[[4]](https://arxiv.org/abs/2010.00934) Gower, Artur Lewis, and Gerhard Kristensson. "Effective Waves for Random Three-dimensional Particulate Materials." arXiv preprint arXiv:2010.00934 (2020).
+[[4]](https://arxiv.org/abs/2010.00934) Artur L. Gower and Gerhard Kristensson. "Effective Waves for Random Three-dimensional Particulate Materials". New Journal of Physics (2021).
+
+[[5]](https://github.com/JuliaWaveScattering/EffectiveWaves.jl/blob/master/docs/src/theory/P-Y.pdf) Gerhard Kristensson. "The Percus-Yevick approximation". [github.com/JuliaWaveScattering/EffectiveWaves.jl][https://github.com/JuliaWaveScattering/EffectiveWaves.jl] (2022).
+
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
 [docs-dev-url]: https://JuliaWaveScattering.github.io/EffectiveWaves.jl/dev

@@ -8,6 +8,7 @@ include("acoustic_mediums.jl")
 
 include("low_frequency.jl")
 
+include("effective_wave/special_functions.jl")
 include("effective_wave/asymptotics.jl")
 
 include("effective_wave/planewaves/eigensystem.jl")

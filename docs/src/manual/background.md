@@ -1,4 +1,4 @@
-# Background
+# Theoretical background
 
 Assume that ``u(x)`` represents some field governed by a Helmholtz equation, such as a pressure field for acoustics. If ``u(x)`` is the transmitted field through a material filled with randomly placed particles, or inhomogeneities, then ``u(x)`` will be depend on the exact positions and types of particles. This makes $u(x)$ difficult to calculate and to experimentally measure exactly. For these reasons we focus on calculating the ensemble average $\langle u(x)\rangle$ over all possible configurations of the inhomogeneities.
 

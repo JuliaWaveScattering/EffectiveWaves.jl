@@ -1,10 +1,16 @@
 struct PercusYevick <: PairCorrelationType
-    # volume_fraction::AbstractFloat
+    "Relative tolerance used when calculating the Percus-Yevick approximation"
+    rtol::Float64
+    "Maximum number of quadture evaluations when calculating the Percus-Yevick approximation"
+    maxevals::Int
+    "Maximum number of points for the pair correlation"
+    maxsize::Int
 end
 
 struct HoleCorrection <: PairCorrelationType
-    # volume_fraction::AbstractFloat
 end
+
+PercusYevick(; rtol::AbstractFloat = 1e-2, maxevals::Int = Int(2e4), maxsize::Int = 50) = PercusYevick(rtol, maxevals, maxsize)
 
 """
     DiscretePairCorrelation
@@ -17,7 +23,7 @@ struct DiscretePairCorrelation <: PairCorrelation
     "variation of the pair correlation from 1 (uncorrelated case)"
     dp::Vector{Float64}
 
-    function DiscretePairCorrelation(r::AbstractVector,dp::AbstractVector; tol::AbstractFloat = 1e-4)
+    function DiscretePairCorrelation(r::AbstractVector, dp::AbstractVector; tol::AbstractFloat = 1e-3)
         if size(dp) != size(r)
             @error "the size of vector of distances `r` (currently $(size(r))) should be the same as the size of the pair-correlation variation `dp` (currently $(size(dp)))."
         end
@@ -30,14 +36,103 @@ end
 
 PairCorrelation(r::AbstractVector{T},dp::AbstractVector{T}) where T <: AbstractFloat = DiscretePairCorrelation(r,dp)
 
-function DiscretePairCorrelation(s::Specie{Dim}, pc::PercusYevick, distances::AbstractVector{T};
-        rtol::T = 1e-3, maxevals::Int = Int(2e4)
-    ) where {T<:AbstractFloat, Dim}
+function DiscretePairCorrelation(s1::Specie, s2::Specie)
 
-    R = 2 * outer_radius(s) * s.exclusion_distance
+    # Have no pair correlation, then only hole correction will be used.
+
+    T = typeof(outer_radius(s1))
+
+    # a12 = outer_radius(s1) * s1.exclusion_distance + outer_radius(s2) * s2.exclusion_distance
+    # r = [a12]
+    # dp = [zero(typeof(a12))]
+
+    return DiscretePairCorrelation(T[],T[])
+end
+
+"""
+    DiscretePairCorrelation(s::Specie, pc::PercusYevick, distances::AbstractVector)
+
+Generates a DiscretePairCorrelation for the specie `s` by using the Percus-Yevick approximation. This distribution assumes particles are distributed accoriding to a random uniform distribution, and that particles can not overlap.
+"""
+function DiscretePairCorrelation(s1::Specie{3}, pc::PairCorrelationType;
+        distances::AbstractVector{T} where T<:AbstractFloat = Float64[]
+    )
+
+    r1 = outer_radius(s1) * s1.exclusion_distance
+
+    R = 2r1
+    numdensity = number_density(s1)
+
+    automatic_dist = if isempty(distances)
+        distances = R:(pc.rtol):(10R)
+        if length(distances) > pc.maxsize
+            distances = distances[1:pc.maxsize]
+        end
+
+        true
+    else false
+    end
+
+    dp = calculate_pair_correlation(R, distances, pc;
+        number_density = numdensity
+    )
+
+    if automatic_dist
+        i = findfirst(reverse(abs.(dp)) .> pc.rtol)
+        if isnothing(i)
+            dp = typeof(dp)[]
+            distances = typeof(dp)[]
+        else
+            dp = dp[1:end-i+1]
+            distances = distances[1:end-i+1]
+        end
+    end
+
+    return DiscretePairCorrelation(distances, dp; tol = pc.rtol)
+end
+
+function DiscretePairCorrelation(s1::Specie{3}, s2::Specie{3}, pc::PercusYevick;
+        distances::AbstractVector{T} where T<:AbstractFloat = Float64[]
+    )
+
+    r1 = outer_radius(s1) * s1.exclusion_distance
+    r2 = outer_radius(s2) * s2.exclusion_distance
+
+    if r1 != r2
+        @warn "Percus-Yevick approximation has only been implemented for particles of the same size. Will use the average size of both particles and the combine volume fraction"
+    end
+
+    R = r1 + r2
+    numdensity = number_density(s1) + number_density(s2)
+
+    automatic_dist = if isempty(distances)
+        distances = R:(10pc.rtol):(10R)
+        true
+    else false
+    end
+
+    dp = calculate_pair_correlation(R, distances, pc;
+        number_density = numdensity
+    )
+
+    if automatic_dist
+        i = findfirst(reverse(abs.(dp)) .> pc.rtol)
+        dp = dp[1:end-i]
+        distances = distances[1:end-i]
+    end
+
+    return DiscretePairCorrelation(distances, dp; tol = pc.rtol)
+end
+
+function calculate_pair_correlation(R::T, distances::AbstractVector{T}, pc::PercusYevick;
+        number_density::T = 0
+    ) where T
+
+    rtol = pc.rtol;
+    maxevals = pc.maxevals;
 
     # Note that f if the volume fraction of the species including the exclusion volume around each particle
-    f = number_density(s) * π * R^3 / 6
+    f = number_density * π * R^3 / 6
     α = - (1 + 2f)^2 / (1 - f)^4
     β = 6f * (1 + f/2)^2 / (1 - f)^4
     δ = - f * (1 + 2f)^2 / (2 * (1 - f)^4)
@@ -58,22 +153,24 @@ function DiscretePairCorrelation(s::Specie{Dim}, pc::PercusYevick, distances::Ab
 
     ker = ker_fun(R)
 
-    data = ker.(distances)
-    maxker = maximum(data)
+    maxker = ker.(distances) |> maximum
 
     d = 5 * R
     max_xs = LinRange(d, 30 * d, 200)
 
     imax = findfirst(ker.(max_xs) ./ maxker .< rtol)
-    max_x = max_xs[imax]
+    max_x = isnothing(imax) ? max_xs[end] : max_xs[imax]
 
     (I,E) = hquadrature(ker, eps(T), max_x;
-        rtol=rtol, maxevals=maxevals
+        rtol = rtol, maxevals = maxevals
     )
-    println("I = ", maximum(abs.(I)) )
-    println("For rtol = $rtol, the estimated relative error when calculating the integral of the Percus-Yevick is: ", abs(E/I))
+    if abs(E/I) > rtol
+        @warn "For rtol = $rtol, the estimated relative error when calculating the integral of the Percus-Yevick is: ", abs(E/I)
+    end
 
     dp = map(distances) do r
+        if r < R return zero(T) end
+
         ker = ker_fun(r)
         int_ker = hquadrature(ker, 10eps(T), max_x;
             rtol = rtol, maxevals = maxevals
@@ -83,9 +180,8 @@ function DiscretePairCorrelation(s::Specie{Dim}, pc::PercusYevick, distances::Ab
         9f * (1 + f) / (2 * η * (1 - f)^3) + 2 / (η*pi) * int_ker
     end
 
-    return DiscretePairCorrelation(distances,dp; tol = rtol)
+    return dp
 end
-
 
 function hole_correction_pair_correlation(x1::AbstractVector{T},s1::Specie, x2::AbstractVector{T},s2::Specie) where T <: Number
     overlapping = norm(x1 - x2) > outer_radius(s1) * s1.exclusion_distance + outer_radius(s2) * s2.exclusion_distance

@@ -149,17 +149,23 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
         s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
     for s1 in species, s2 in species]
 
-    function M_component(keff::Complex{T},Ns::Array{Complex{T}},l,s1,dl,s2)::Complex{T}
+    # Pre calculations for pair correlation
+    # Am going to assume the discrete pair correlation is sampled on the same mesh for every specie. Otherwise the code will be too inefficient.
+    pair_rs, hks, gs = precalculate_pair_correlations(micro, ho)
+
+    function M_component(keff::Complex{T}, Ns::Array{Complex{T}},l,s1,dl,s2)::Complex{T}
         (l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
         4pi * as[s1,s2] * scale_number_density * number_density(species[s2]) * t_diags[s1][baselen(l)] *
         sum(
             Complex{T}(im)^(-l1) * sqrt((2*l1+1)/(4pi) ) * Ns[l1+1,s1,s2] *
             gaunt_coefficient(dl,0,l,0,l1,0)
-        for l1 in abs(dl-l):(dl+l)) / (keff^2.0 - k^2.0)
+        for l1 in abs(dl-l):(dl+l)) ./ (keff^2.0 - k^2.0)
     end
 
     function MM(keff::Complex{T})::Matrix{Complex{T}}
-        Ns = [kernelN3D(l,k*as[s1,s2],keff*as[s1,s2]) for l = 0:2ho, s1 = 1:S, s2 = 1:S]
+
+        Ns = kernelN3D(k, keff, as, pair_rs, gs, hks, basis_order)
+
         ind2 = 1
         for s2 = 1:S, dl = 0:ho
             ind1 = 1

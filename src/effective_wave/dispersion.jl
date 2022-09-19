@@ -19,7 +19,7 @@ function dispersion_equation(ω::T, medium::PhysicalMedium{Dim}, micro::Microstr
     constraint(k_eff::Complex{T}) = (imag(k_eff) < -low_tol) ? (-one(T) + exp(-T(100.0) * imag(k_eff))) : zero(T)
 
     function detMM(k_eff::Complex{T})
-        constraint(k_eff) + abs(det(MM(k_eff)))
+        constraint(k_eff) + abs2(det(MM(k_eff)))
     end
 
     return detMM

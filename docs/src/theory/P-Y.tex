@@ -1,0 +1,175 @@
+\documentclass[12pt,a4paper]{article}
+
+\input myarticle.sty
+\input mypackages.tex
+\input mymathmacros.tex
+
+\newcommand{\numden}{n_{0}}
+
+\begin{document}
+
+\title{The Percus-Yevick approximation}
+\author{Gerhard Kristensson}
+\date{\today}
+\maketitle
+
+This document is a review of the Percus-Yevick approximation as it is used in ~\cite{TEAT-7272}.
+
+\section{Hard spheres}
+For hard spheres in a particulate material without boundaries, the Percus-Yevick (P-Y) approximation~\cite{Percus+Yevick1958} can be evaluated exactly.
+We follow~\cite{Wertheim1963,Tsang+etal2001} closely, and start by defining the function
+\begin{equation*}
+  h(\rv)=g(\rv)-1,\quad \rv\in\BbR^3
+\end{equation*}
+This function satisfies the Ornstein-Zernike equation
+\begin{equation*}
+  h(\rv)=c(\rv)+\numden\iiint\limits_{\BbR^3}c(\rv')h(\rv-\rv')\diff v',\quad \rv\in\BbR^3
+\end{equation*}
+where $c(\rv)$ is the direct correlation function.
+The integral defines the indirect correlation function $h(\rv)$.
+Ornstein-Zernike equation is of convolution type, and its Fourier transform is
+\begin{equation*}
+  \hat{h}(\vec{\xi})=\hat{c}(\vec{\xi})+\numden\hat{c}(\vec{\xi})\hat{h}(\vec{\xi}),\quad \vec{\xi}\in\BbR^3
+\end{equation*}
+with solution
+\begin{equation*}
+  \hat{h}(\vec{\xi})=\frac{\hat{c}(\vec{\xi})}{1-\numden\hat{c}(\vec{\xi})},\quad \vec{\xi}\in\BbR^3
+\end{equation*}
+The structure factor $S(\vec{\xi})$ is defined as
+\begin{equation*}
+  S(\vec{\xi})=1+\numden\hat{h}(\vec{\xi})
+\end{equation*}
+
+The direct correlation function $c(\rv)$ is now determined.
+It is convenient to introduce a new function $y(\rv)$ as ($R=2a$)
+\begin{equation*}
+  y(\rv)=\begin{cases}
+           -c(\rv), & r<R \\
+           g(\rv), & r\geq R
+         \end{cases}
+\end{equation*}
+
+\section{The Percus-Yevick approximation}
+In the P-Y approximation, we replace $h(\rv)-c(\rv)$ with $y(\rv)-1$ everywhere in space.
+We then have
+\begin{equation*}
+  c(\rv)=\begin{cases}
+           -y(\rv), & r<R \\
+           h(\rv)+1-g(\rv)=0, & r\geq R
+         \end{cases}
+\end{equation*}
+and the Ornstein-Zernike equation becomes
+\begin{equation*}
+  y(\rv)-1=-\numden\iiint\limits_{r'<R}y(\rv')(g(\rv-\rv')-1)\diff v',\quad \rv\in\BbR^3
+\end{equation*}
+or
+\begin{equation*}
+  y(\rv)=1+\numden\iiint\limits_{\substack{r'<R\\|\rv-\rv'|<R}}y(\rv')\,\diff v'-\numden\iiint\limits_{\substack{r'<R\\|\rv-\rv'|\geq R}}y(\rv')(y(\rv-\rv')-1)\,\diff v'
+\end{equation*}
+This has a closed form solution for $c(\rv)$, $r<R$, which is~\cite{Wertheim1963}
+\begin{equation*}
+  c(\rv)=c(r)=\begin{cases}
+           \alpha+\beta (r/R)+\delta(r/R)^3, & r<R \\
+           0, & r\geq R
+         \end{cases}
+\end{equation*}
+where
+\begin{equation*}
+  \left\{\begin{aligned}
+           &\alpha=-\frac{(1+2f)^2}{(1-f)^4}\\
+           &\beta=6f\frac{(1+f/2)^2}{(1-f)^4}
+         \end{aligned}\right.\qquad
+         \left\{\begin{aligned}
+           &\delta=-f\frac{(1+2f)^2}{2(1-f)^4}\\
+           &f=\frac{\numden\pi R^3}{6}
+         \end{aligned}\right.
+\end{equation*}
+with Fourier transform
+\begin{multline*}
+  \hat{c}(\vec{\xi})=\hat{c}(\xi)=\iiint\limits_{\BbR^3}c(r)\eu^{-\iu\vec{\xi}\cdot\rv}\diff v
+  =4\pi\int_{0}^{R}\left(\alpha+\beta (r/R)+\delta(r/R)^3\right)\mathrm{j}_0(\xi r)\,r^2\diff r\\
+  =\frac{4\pi R^3}{\xi R}\int_{0}^{1}\left(\alpha x+\beta x^2+\delta x^4\right)\sin(\xi Rx)\,\diff x
+%   =\frac{4\pi R^3}{\xi R}\Biggl\{\alpha\left(\frac{\sin(\xi R)}{\xi^2 R^2}-\frac{\cos(\xi R)}{\xi R}\right)\\
+%                   +\beta\left(\frac{2\sin(\xi R)}{\xi^2 R^2}+\left(\frac{2}{\xi^2R^2}-1\right)\frac{\cos(\xi R)}{\xi R}-\frac{2}{\xi^3 R^3}\right)\\
+%   +\delta\left(\frac{4\sin(\xi R)}{\xi^2 R^2}\left(1-\frac{6}{\xi^2R^2}\right)-\left(1-\frac{12}{\xi^2R^2}+\frac{24}{\xi^4R^4}\right)\frac{\cos(\xi R)}{\xi R}+\frac{24}{\xi^5 R^5}\right)\Biggr\}\\
+    =4\pi R^3F(\xi R)
+\end{multline*}
+where we introduced the function $F(x)$, defined as
+\begin{equation}\label{eq:P-Y 1}
+F(x)=A(x)+B(x)\sin(x)+C(x)\cos(x)=O(1/x^2),\quad\text{as }x\to\infty
+\end{equation}
+where
+\begin{equation*}
+  \left\{\begin{aligned}
+           &A(x)=\frac{24\delta}{x^6}-\frac{2\beta}{x^4}\\
+           &B(x)=\frac{\alpha+2\beta+4\delta}{x^3}-\frac{24\delta}{x^5}\\
+           &C(x)=-\frac{\alpha+\beta+\delta}{x^2}+\frac{2\beta+12\delta}{x^4}-\frac{24\delta}{x^6}
+         \end{aligned}\right.
+\end{equation*}
+
+Finally,
+\begin{equation*}
+  h(\rv)=h(r)=\frac{1}{8\pi^3}\iiint\limits_{\BbR^3}\frac{\hat{c}(\vec{\xi})}{1-\numden\hat{c}(\vec{\xi})}\eu^{\iu\vec{\xi}\cdot\rv}\diff \xi^3
+  =\frac{1}{2\pi^2 r}\int_{0}^{\infty}\frac{\hat{c}(\xi)}{1-\numden\hat{c}(\xi)}\sin(\xi r)\,\xi\diff\xi
+\end{equation*}
+Reformulate the solution to
+\begin{equation*}
+ h(r)=\frac{2R}{\pi r}\int_{0}^{\infty}\frac{xF(x)}{1-24fF(x)}\sin(xr/R)\,\diff x
+\end{equation*}
+and $g(r)=h(r)+1$.
+
+The integral in the computation of the function $h(r)$ is poorly converging at infinity, and we need to extract the slowly converging tail.
+Make an asymptotic analysis of the integrand as $x\to\infty$.
+We get
+\begin{equation*}
+\frac{xF(x)}{1-24fF(x)}
+%=\frac{x\left(\frac{\alpha+2\beta+4\delta}{x^3}\sin(x)-\frac{\alpha+\beta+\delta}{x^2}\cos(x)+O(x^{-4})\right)}{1+O(x^{-2})}\\
+=G(x)+O(x^{-3})
+\end{equation*}
+where
+\begin{equation}\label{eq:P-Y 3}
+G(x)=\left(\alpha+2\beta+4\delta\right)\frac{\sin(x)}{x^2}-\left(\alpha+\beta+\delta\right)\frac{\cos(x)}{x}
+\end{equation}
+Use the integrals~\cite{Gradshteyn+Ryzhik2007}
+\begin{equation*}
+ \int_{0}^{\infty}\frac{\cos(x)\sin(\eta x)}{x}\,\diff x=\frac{\pi}{2},\quad \eta>1
+\end{equation*}
+and
+\begin{equation*}
+ \int_{0}^{\infty}\frac{\sin(x)\sin(\eta x)}{x^2}\,\diff x=\frac{\pi}{2},\quad \eta>1
+\end{equation*}
+to evaluate ($\eta=r/R\in[1,\infty)$)
+\begin{equation*}
+ h(r)=9f\frac{1+f}{2\eta(1-f)^3}%\frac{\alpha+2\beta+4\delta}{\eta}-\frac{\alpha+\beta+\delta}{\eta}
+ +\frac{2}{\eta\pi}\int_{0}^{\infty}\left(\frac{xF(x)}{1-24fF(x)}-G(x)\right)\sin(\eta x)\,\diff x
+\end{equation*}
+
+\section{Examples}
+
+In Figure~\ref{fig:P-Y}, we illustrate the calculations made in this note for different volume fractions $f$.
+
+\begin{figure}[t]
+\begin{center}
+    \begin{tikzpicture}[scale=1,>=latex]
+  \begin{axis}[ymin=0,ymax=2.1,xmin=0,xmax=5.3,
+           minor x tick num=1, minor y tick num=4,
+           xtick={0,1,...,10},
+           xlabel={$r/(2a)$},ylabel={$g(r/(2a))$},
+           legend style={draw=none,at={(0.4,0.95)},anchor=north west},
+           legend cell align=left]
+    \addplot[line width=0.5pt] file {P-Y_f=0.05.txt};
+    \addplot[line width=0.5pt,red] file {P-Y_f=0.1.txt};
+    \addplot[line width=0.5pt,blue] file {P-Y_f=0.15.txt};
+    \addplot[line width=0.5pt,green] file {P-Y_f=0.2.txt};
+    \addplot[line width=0.5pt,dashed] coordinates {(0,0) (1,0) (1,1) (5.3,1)};
+    \legend{$f=5\%$,$f=10\%$,$f=15\%$,$f=20\%$,Hole Correction}
+  \end{axis}
+  \end{tikzpicture}
+\end{center}
+    \caption{The hole correction (HC) and the Percus-Yevick approximation for volume fractions $f=0.05$,  $f=0.1$, $f=0.15$, and $f=0.2$.}
+\label{fig:P-Y}
+\end{figure}
+
+\referencelist
+
+\end{document}

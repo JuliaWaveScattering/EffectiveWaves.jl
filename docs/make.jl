@@ -15,6 +15,7 @@ makedocs(
             "manual/introduction.md",
             "manual/background.md",
             "manual/wavenumbers.md",
+            "manual/pair-correlation.md",
             "manual/reflection.md",
             "manual/sphere.md"
         ],

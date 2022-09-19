@@ -18,6 +18,11 @@ function Specie(p::AbstractParticle{Dim};
         number_density::AbstractFloat = 0.0,
         volume_fraction::AbstractFloat = number_density * volume(p), exclusion_distance::AbstractFloat = 1.005
     ) where Dim
+
+    if number_density == 0.0 && volume_fraction == 0.0
+            @warn println("zero volume fraction or number density was chosen.")
+    end
+
     Specie{Dim,typeof(p)}(p,volume_fraction,exclusion_distance)
 end
 
@@ -49,17 +54,29 @@ struct ParticulateMicrostructure{Dim,PC<:PairCorrelation} <: Microstructure{Dim}
     end
 end
 
+Microstructure(s::Specie, pc::PairCorrelationType, kws...) = Microstructure([s], pc, kws...) 
+
+function Microstructure(sps::Species{Dim}, pc::PairCorrelationType, kws...) where Dim
+
+    ps = Array{DiscretePairCorrelation}(undef, length(sps), length(sps))
+
+    for i in eachindex(sps), j in eachindex(sps)
+        ps[i,j] = if i == j
+            DiscretePairCorrelation(sps[i],pc,kws...)
+        else
+            DiscretePairCorrelation(sps[i],sps[j],pc,kws...)
+        end
+    end
+
+    return ParticulateMicrostructure{Dim}(sps,ps)
+end
+
 function Microstructure(sps::Species{Dim}) where Dim
 
     @warn "No pair-correlation was specified for the species. Will use the default that assumes that particles can not overlap, but, otherwise, their positions are uncorrelated. This is often called \"Hole Correction\""
 
     ps = [
-        begin
-            a12 = outer_radius(s1) * s1.exclusion_distance + outer_radius(s2) * s2.exclusion_distance
-            r = [a12]
-            dp = [zero(typeof(a12))]
-            DiscretePairCorrelation(r,dp)
-        end
+        DiscretePairCorrelation(s1,s2)
     for s1 in sps, s2 in sps]
 
     return ParticulateMicrostructure{Dim}(sps,ps)

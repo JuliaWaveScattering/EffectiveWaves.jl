@@ -43,17 +43,18 @@ function asymptotic_monopole_wavenumbers(ω::T, medium::Acoustic{T,3}, micro::Mi
         num_wavenumbers = 2
     ) where T
 
-   @warn "asymptotic_monopole_wavenumbers has not yet been implemented for 3D acoustics, will use 2D acoustics instead."
+    @warn "asymptotic_monopole_wavenumbers has not yet been implemented for 3D acoustics, will use 2D acoustics instead."
 
-   species = micro.species
+    species = micro.species
 
-   medium2D = Acoustic(2; ρ=medium.ρ, c=medium.c)
+    medium2D = Acoustic(2; ρ=medium.ρ, c=medium.c)
 
-   species2D = [
-       Specie(Acoustic(2; ρ = s.particle.medium.ρ, c = s.particle.medium.c), Circle(outer_radius(s));
+    species2D = [
+        Specie(Acoustic(2; ρ = s.particle.medium.ρ, c = s.particle.medium.c), Circle(outer_radius(s));
            volume_fraction = volume_fraction(s))
-   for s in species]
+    for s in species]
 
+    micro2D = ParticulateMicrostructure{2}(species2D, micro.paircorrelations)
 
-   return asymptotic_monopole_wavenumbers(ω, medium2D, species2D; num_wavenumbers = num_wavenumbers)
+    return asymptotic_monopole_wavenumbers(ω, medium2D, micro2D; num_wavenumbers = num_wavenumbers)
 end

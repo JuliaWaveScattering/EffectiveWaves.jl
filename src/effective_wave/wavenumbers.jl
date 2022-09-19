@@ -25,7 +25,7 @@ Returns all the possible effective wavenumbers with positive imaginary part. Thi
 function wavenumbers(ω::T, medium::PhysicalMedium, micro::Microstructure;
         num_wavenumbers::Int = 2, tol::T = 1e-5,
         max_Imk::T = T(2) + T(20) * imag(wavenumber_low_volumefraction(ω, medium, micro; verbose = false)),
-        basis_order = 3 * Int(round(maximum(outer_radius.(micro.species)) * ω / abs(medium.c) )) + 1,
+        basis_order::Int = 3 * Int(round(maximum(outer_radius.(micro.species)) * ω / abs(medium.c) )) + 1,
         # max_Rek::T = T(2) + T(20) * abs(real(wavenumber_low_volumefraction(ω, medium, species; verbose = false))),
         kws...) where T<:Number
 

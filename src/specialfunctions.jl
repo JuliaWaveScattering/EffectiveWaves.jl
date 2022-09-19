@@ -1,20 +1,6 @@
 export kernelN2D, kernelN3D # haven't figured out how best to dispath for kernelN
 export transmission_angle_wiener, transmission_angle, transmission_direction
 
-function kernelN2D(n::Int,x::Union{T,Complex{T}},y::Union{T,Complex{T}}) where T<:AbstractFloat
-        h = hankelh1(n,x); dh = diffhankelh1(n,x)
-        j = besselj(n,y);  dj = diffbesselj(n,y)
-
-    return x * dh * j - y * h * dj
-end
-
-function kernelN3D(n::Int,x::Union{T,Complex{T}},y::Union{T,Complex{T}}) where T<:AbstractFloat
-    h = shankelh1(n,x); dh = diffshankelh1(n,x)
-    j = sbesselj(n,y);  dj = diffsbesselj(n,y)
-
-    return x * dh * j - y * h * dj
-end
-
 """
     transmission_direction(k_eff::Complex, incident_wavevector::AbstractArray, surface_normal::AbstractArray)
 

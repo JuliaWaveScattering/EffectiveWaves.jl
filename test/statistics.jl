@@ -1,9 +1,37 @@
 using EffectiveWaves
 using LinearAlgebra, Statistics, Test
+using CSV
+
+@testset "Pair-correlation Percus-Yevick" begin
+
+    # Load reference data
+    stdir = if intersect(readdir(),["test"]) |> isempty
+        ""
+    else "test/"
+    end
+
+    file = CSV.File("$(stdir)data/P-Y_f=0.25.txt"; header = 1)
+    distances = file.r
+    dp_reference = file.field .- 1.0
+
+    # generate data from function in package
+    s1 = Specie(
+        Acoustic(3; ρ = 0.0, c = 0.0),
+        Sphere(0.5),
+        volume_fraction = 0.25,
+        exclusion_distance = 1.00
+    );
+    R = 2*outer_radius(s1) * s1.exclusion_distance
+
+    py = DiscretePairCorrelation(s1, PercusYevick(rtol=1e-3, maxevals = 2e4); distances = distances)
+
+    i = findfirst(distances .> R)
+
+    @test norm(py.dp[i:end] - dp_reference[i:end]) / norm(dp_reference[i:end]) < 0.02
+    @test abs(py.dp[i+1] - dp_reference[i+1]) / norm(dp_reference[i+1]) < 0.007
+end
 
 @testset "Pair-correlation tests" begin
-
-    # import EffectiveWaves: gls_pair_radial_fun
 
     particle_medium = Acoustic(3; ρ=0.0, c=0.0);
 

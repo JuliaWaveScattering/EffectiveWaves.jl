@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Gower"
+  given-names: "Artur Lewis"
+  orcid: "https://orcid.org/0000-0002-3229-5451"
+title: "EffectiveWaves.jl A Julia package to calculate ensemble averaged waves in heterogeneous materials"
+version: 0.3.4
+date-released: 2018-12-18
+url: "https://github.com/JuliaWaveScattering/EffectiveWaves.jl"
