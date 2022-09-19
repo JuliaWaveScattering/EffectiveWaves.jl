@@ -54,7 +54,7 @@ struct ParticulateMicrostructure{Dim,PC<:PairCorrelation} <: Microstructure{Dim}
     end
 end
 
-Microstructure(s::Specie, pc::PairCorrelationType, kws...) = Microstructure([s], pc, kws...) 
+Microstructure(s::Specie, pc::PairCorrelationType, kws...) = Microstructure([s], pc, kws...)
 
 function Microstructure(sps::Species{Dim}, pc::PairCorrelationType, kws...) where Dim
 
@@ -70,6 +70,8 @@ function Microstructure(sps::Species{Dim}, pc::PairCorrelationType, kws...) wher
 
     return ParticulateMicrostructure{Dim}(sps,ps)
 end
+
+Microstructure(s::Specie) = Microstructure([s])
 
 function Microstructure(sps::Species{Dim}) where Dim
 

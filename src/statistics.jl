@@ -24,10 +24,10 @@ struct DiscretePairCorrelation <: PairCorrelation
     dp::Vector{Float64}
 
     function DiscretePairCorrelation(r::AbstractVector, dp::AbstractVector; tol::AbstractFloat = 1e-3)
-        if size(dp) != size(r)
+        if !isempty(dp) && size(dp) != size(r)
             @error "the size of vector of distances `r` (currently $(size(r))) should be the same as the size of the pair-correlation variation `dp` (currently $(size(dp)))."
         end
-        if abs(dp[end]) > tol
+        if !isempty(dp) && abs(dp[end]) > tol
             @warn "For the pair-correlation to be accurate, we expect it to be long enough (in terms of the distance `r`) such that the particle positions become uncorrelatd. They become uncorrelated when `dp[end]` tends to zero."
         end
         new(r,dp)

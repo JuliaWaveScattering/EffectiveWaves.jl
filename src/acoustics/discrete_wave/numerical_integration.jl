@@ -9,7 +9,9 @@ function integration_scheme(x::AbstractVector{T}; scheme::Symbol = :trapezoidal,
         return [0.]
     end
 
-    if scheme == :trapezoidal
+    return if isempty(x)
+        T[]
+    elseif scheme == :trapezoidal
         trapezoidal_scheme(x; kws...)
     elseif scheme == :simpson
         simpson_scheme(x; kws...)

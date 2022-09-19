@@ -15,7 +15,7 @@ s = Specie(
     Acoustic(3; ρ = 0.1, c = 0.1),
     Sphere(r),
     volume_fraction = 0.3,
-    exclusion_distance = 1.00
+    exclusion_distance = 1.01
 );
 
 # output
@@ -57,19 +57,18 @@ First we calculate the wavenumbers with the simplest pair correlation (hole corr
 
 micro = Microstructure(s);
 
-ω = 0.4
+ω = 2.0
 
 kps = wavenumbers(ω, medium, micro;
-    basis_order = 1, num_wavenumbers = 1
+    basis_order = 1, num_wavenumbers = 5
 )
 
-pair_type = PercusYevick(rtol = 5e-2)
+pair_type = PercusYevick(rtol = 5e-2, maxsize=40)
 micro = Microstructure(s, pair_type);
 
-kps = wavenumbers(ω, medium, micro;
-    basis_order = 1, num_wavenumbers = 1
+kps2 = wavenumbers(ω, medium, micro;
+    basis_order = 1, num_wavenumbers = 5
 )
-
 
 ```
 

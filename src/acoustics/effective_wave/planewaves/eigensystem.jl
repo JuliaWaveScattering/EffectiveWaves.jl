@@ -151,7 +151,9 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
 
     # Pre calculations for pair correlation
     # Am going to assume the discrete pair correlation is sampled on the same mesh for every specie. Otherwise the code will be too inefficient.
-    pair_rs, hks, gs = precalculate_pair_correlations(micro, ho)
+    if length(micro.paircorrelations[1].r) > 1
+        pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
+    end
 
     function M_component(keff::Complex{T}, Ns::Array{Complex{T}},l,s1,dl,s2)::Complex{T}
         (l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
@@ -164,7 +166,14 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
 
     function MM(keff::Complex{T})::Matrix{Complex{T}}
 
-        Ns = kernelN3D(k, keff, as, pair_rs, gs, hks, basis_order)
+        Ns = [
+            kernelN3D(l,k*as[s1,s2],keff*as[s1,s2])
+        for l = 0:2ho, s1 = 1:S, s2 = 1:S]
+
+        # For a pair correlation which is not hole correction need to add a finite integral
+        if length(micro.paircorrelations[1].r) > 1
+            Ns = Ns + kernelW3D(k, keff, pair_rs, gs, hks, basis_order)
+        end
 
         ind2 = 1
         for s2 = 1:S, dl = 0:ho

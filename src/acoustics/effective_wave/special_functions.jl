@@ -12,33 +12,32 @@ function kernelN3D(n::Int,x::Union{T,Complex{T}},y::Union{T,Complex{T}}) where T
     return x * dh * j - y * h * dj
 end
 
-function kernelN3D(k::Union{T,Complex{T}}, keff::Complex{T}, as::Matrix{T}, pair_rs::AbstractVector{T}, gs::Matrix{T}, hks::AbstractVector{T}, basis_order::Int) where T<:AbstractFloat
+function kernelW3D(k::Union{T,Complex{T}}, keff::Complex{T}, pair_rs::AbstractVector{T}, gs::Matrix{V}, hks::AbstractVector{W}, basis_order::Int) where {T<:AbstractFloat, V<:AbstractVector{T}, W<:AbstractVector}
+
+    S = size(gs,1)
 
     jkeffs = [
         sbesselj.(l, keff .* pair_rs)
     for l in 0:(2basis_order+1)]
 
     Wkers = [
-        keff .* hks[l] .* jkeffs[l+1] - k .* hks[l+1] .* jkeffs[l]
+        keff .* hks[l+1] .* jkeffs[l+2] - k .* hks[l+2] .* jkeffs[l+1]
     for l = 0:2basis_order]
 
+    Wkers2 = [
+        (circshift(Wkers[l],-1) - Wkers[l])[1:end-1]
+    for l in eachindex(Wkers)]
+
     Ws = [
-        sum(
-            (circshift(Wker[l+1],-1) - Wker[l+1])[1:end-1] .* gs[s1,s2]
-        )
-    for l = 0:2basis_order, s1 = 1:S, s2 = 1:S]
+        sum(Wkers2[l+1] .* gs[i])
+    for l = 0:2basis_order, i in CartesianIndices(gs)]
 
-    Ns = [
-        kernelN3D(l,k*as[s1,s2],keff*as[s1,s2])
-    for l = 0:2ho, s1 = 1:S, s2 = 1:S]
-
-    Ns = Ns + Ws;
-
-    return Ns
+    return Ws
 end
 
-function precalculate_pair_correlations(micro::Microstructure, basis_order)
-    pair_rs = micro.paircorrelations.r
+function precalculate_pair_correlations(micro::Microstructure, k::Union{T,Complex{T}} where T, basis_order::Int)
+
+    pair_rs = micro.paircorrelations[1].r
     hks = [shankelh1.(l, k .* pair_rs) for l in 0:(2basis_order+1)]
     σs = integration_scheme(pair_rs)
 
@@ -46,7 +45,7 @@ function precalculate_pair_correlations(micro::Microstructure, basis_order)
         g = p.dp .* σs .* pair_rs .^2
 
         # calculate segments of integrals between r_j and r_j+1
-        (circshift(g,-1) + g)[1:end-1] ./ T(2)
+        (circshift(g,-1) + g)[1:end-1] ./ 2
     end
 
     return pair_rs, hks, gs
