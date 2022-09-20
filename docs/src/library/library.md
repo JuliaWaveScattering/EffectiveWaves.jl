@@ -22,7 +22,7 @@ Currently the physical medium can be [Acoustic](https://juliawavescattering.gith
 Much of the code is dispatched based on the underlying symmetries of the problem
 
 ## The symmetry of the material and source
-The symmetry shared between the material shape and source are used to specialise the form of the wavemode, see [Background](@ref).  
+The symmetry shared between the material shape and source are used to specialise the form of the wavemode, see [Theoretical background](@ref).  
 ```@docs
 Symmetry
 WithoutSymmetry

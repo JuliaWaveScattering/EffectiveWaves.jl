@@ -1,6 +1,6 @@
 # Equivalent symmetries
 
-Here we show how to formulate dispersion equations for wave mode which are not just plane waves. See [Background](@ref) for an overview.
+Here we show how to formulate dispersion equations for wave mode which are not just plane waves. See [Theoretical background](@ref) for an overview.
 
 The dispersion equations become simpler the more symmetries that are shared between the incident wave and the material geometry. The simplest case is [`PlanarAzimuthalSymmetry`](@ref), and includes the case where a plane wave is directly incident upon a flat surface. If no symmetries are present, then the type [`WithoutSymmetry`](@ref) is used and leads to a general dispersion equation for materials which occupy a [simple connected domain](https://en.wikipedia.org/wiki/Simply_connected_space). This general dispersion equation has spurious roots and is computationally heavier to solve, see [Gower & Kristensson 2020](https://arxiv.org/pdf/2010.00934.pdf).  
 

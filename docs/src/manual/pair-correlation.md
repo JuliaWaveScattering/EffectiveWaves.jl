@@ -70,8 +70,11 @@ kps2 = wavenumbers(ω, medium, micro;
     basis_order = 1, num_wavenumbers = 2
 )
 
+# output
+
+
 ```
-We can see that in this case, the effective wavenumbers with (`kps2`) and without (`kps`) Percus Yevick are similar. 
+We can see that in this case, the effective wavenumbers with (`kps2`) and without (`kps`) Percus Yevick are similar.
 
 ## References
 

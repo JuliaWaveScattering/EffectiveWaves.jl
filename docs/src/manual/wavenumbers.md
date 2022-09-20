@@ -142,7 +142,7 @@ scatter(kps,
 ```
 ![multiple-wavenumbers.png](../assets/multiple-wavenumbers.png)
 
-In this case there is one effective wavenumber $k_1$ with an imaginary part much smaller than the others. This means that the wavemode $\phi_1$ associated with $k_1$, see [Background](@ref), is the only wavemode which makes a significant contribution.
+In this case there is one effective wavenumber $k_1$ with an imaginary part much smaller than the others. This means that the wavemode $\phi_1$ associated with $k_1$, see [Theoretical background](@ref), is the only wavemode which makes a significant contribution.
 
 However, be warned! It is easy to find a case where two effective wavenumbers become important. All we need to have is a specie that scatters wave strongly. Examples of this in acoustics are gas bubbles in a background liquid, or liquid/gas pockets in a background solid.
 

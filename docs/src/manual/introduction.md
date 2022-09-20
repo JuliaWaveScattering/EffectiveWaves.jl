@@ -2,7 +2,7 @@
 
 How do you take a reliable measurement of a material whose microstructure is random? For example, the microstructure may have randomly placed particles. When using wave scattering or spectroscopy, each measurement can lead to a different outcome. Lots of example are shown in the package [MultipleScattering.jl](https://juliawavescattering.github.io/MultipleScattering.jl/dev/).
 
-To obtain a repeatable measurement we can take an average of several measurements (average over time or space). This is the same as taking an [ensemble average](https://en.wikipedia.org/wiki/Statistical_ensemble_(mathematical_physics)) over all possible arrangements of the microstructure. This package calculates the ensemble average of scattering and transmission fields for acoustics, and potentially elastic waves and electromagnetic waves. For an overview of the mathematics, see [Background](@ref Background).
+To obtain a repeatable measurement we can take an average of several measurements (average over time or space). This is the same as taking an [ensemble average](https://en.wikipedia.org/wiki/Statistical_ensemble_(mathematical_physics)) over all possible arrangements of the microstructure. This package calculates the ensemble average of scattering and transmission fields for acoustics, and potentially elastic waves and electromagnetic waves. For an overview of the mathematics, see [Theoretical background](@ref).
 
 This package calculates the average scattered and transmitted wave for a number of scenarios, including: in a plate, a sphere, and a halfspace (links needed). In all these scenarios, the first step is to calculate the effective wavenumbers.
 
