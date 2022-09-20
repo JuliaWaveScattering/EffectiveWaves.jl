@@ -24,6 +24,10 @@ function eigensystem(ω::T, medium::PhysicalMedium{3}, micro::ParticulateMicrost
         s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
     for s1 in sps, s2 in sps]
 
+    if length(micro.paircorrelations[1].r) > 1
+        pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
+    end
+
     function M_component(keff,Ns,l,m,l2,m2,s1,dl,dm,l1,m1,s2)::Complex{T}
         minl3 = max(abs(m1-m2),abs(dl-l),abs(l1-l2))
         maxl3 = min(abs(dl+l),abs(l1+l2))
@@ -41,9 +45,17 @@ function eigensystem(ω::T, medium::PhysicalMedium{3}, micro::ParticulateMicrost
     end
 
     function MM(keff::Complex{T})::Matrix{Complex{T}}
+
         Ns = [
             kernelN3D(l3,k*as[s1,s2],keff*as[s1,s2])
-        for l3 = 0:min(2L1,2L), s1 = 1:S, s2 = 1:S] ./  (keff^2.0 - k^2.0)
+        for l3 = 0:min(2L1,2L), s1 = 1:S, s2 = 1:S]
+
+        # For a pair correlation which is not hole correction need to add a finite integral
+        if length(micro.paircorrelations[1].r) > 1
+            Ns = Ns + kernelW3D(k, keff, pair_rs, gs, hks, basis_order)
+        end
+
+        Ns = Ns ./  (keff^2.0 - k^2.0)
 
         # The order of the indices below is important
         ind2 = 1
@@ -87,6 +99,10 @@ function eigensystem(ω::T, medium::PhysicalMedium{3}, micro::ParticulateMicrost
         s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
     for s1 in sps, s2 in sps]
 
+    if length(micro.paircorrelations[1].r) > 1
+        pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
+    end
+
     # the index for the T-matrix below needs to be changed when seperating correctly the 2D and 3D case.
     function M_component(keff,Ns,l,m,l2,s1,dl,dm,l1,s2)::Complex{T}
         minl3 = max(abs(m-dm),abs(dl-l),abs(l1-l2))
@@ -108,7 +124,14 @@ function eigensystem(ω::T, medium::PhysicalMedium{3}, micro::ParticulateMicrost
     function MM(keff::Complex{T})::Matrix{Complex{T}}
         Ns = [
             kernelN3D(l3,k*as[s1,s2],keff*as[s1,s2])
-        for l3 = 0:min(2L1,2L), s1 = 1:S, s2 = 1:S] ./ (keff^2.0 - k^2.0)
+        for l3 = 0:min(2L1,2L), s1 = 1:S, s2 = 1:S]
+
+        # For a pair correlation which is not hole correction need to add a finite integral
+        if length(micro.paircorrelations[1].r) > 1
+            Ns = Ns + kernelW3D(k, keff, pair_rs, gs, hks, basis_order)
+        end
+
+        Ns = Ns ./ (keff^2.0 - k^2.0)
 
         ind2 = 1
         for s2 = 1:S for dl = 0:L for dm = -dl:dl for l1 = abs(dm):L1

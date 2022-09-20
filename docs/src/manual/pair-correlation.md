@@ -54,13 +54,12 @@ The more points sampled within the pair correlation the longer it will take to c
 First we calculate the wavenumbers with the simplest pair correlation (hole correction), and then compare the results with Percus-Yevick.
 
 ```jldoctest pair; output = false, filter = r".*"s
+ω = 1.2
 
 micro = Microstructure(s);
 
-ω = 1.2
-
 kps = wavenumbers(ω, medium, micro;
-    basis_order = 1, num_wavenumbers = 2
+    basis_order = 1, num_wavenumbers = 4
 )
 
 pair_type = PercusYevick(3; rtol = 5e-2, maxsize=40)
@@ -74,6 +73,8 @@ kps2 = wavenumbers(ω, medium, micro;
 
 
 ```
+![../kps-PY-30-pair.png](../assets/kps-PY-30-pair.png)
+
 We can see that in this case, the effective wavenumbers with (`kps2`) and without (`kps`) Percus Yevick are similar.
 
 ## References

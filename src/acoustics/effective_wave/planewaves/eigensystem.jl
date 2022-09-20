@@ -97,6 +97,10 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
         s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
     for s1 in species, s2 in species]
 
+    if length(micro.paircorrelations[1].r) > 1
+        pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
+    end
+
     function M_component(keff::Complex{T},Ns::Array{Complex{T}},l::Int,m::Int,s1::Int,dl::Int,dm::Int,s2::Int)::Complex{T}
         (m == dm && l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
         4pi * as[s1,s2] * scale_number_density * number_density(species[s2]) * t_diags[s1][baselen(l)] *
@@ -108,6 +112,12 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
 
     function MM(keff::Complex{T})::Matrix{Complex{T}}
         Ns = [kernelN3D(l,k*as[s1,s2],keff*as[s1,s2]) for l = 0:2ho, s1 = 1:S, s2 = 1:S]
+
+        # For a pair correlation which is not hole correction need to add a finite integral
+        if length(micro.paircorrelations[1].r) > 1
+            Ns = Ns + kernelW3D(k, keff, pair_rs, gs, hks, basis_order)
+        end
+
         ind2 = 1
         for s2 = 1:S, dl = 0:ho for dm = -dl:dl
             ind1 = 1

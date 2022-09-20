@@ -39,13 +39,10 @@ function precalculate_pair_correlations(micro::Microstructure, k::Union{T,Comple
 
     pair_rs = micro.paircorrelations[1].r
     hks = [shankelh1.(l, k .* pair_rs) for l in 0:(2basis_order+1)]
-    σs = integration_scheme(pair_rs)
 
     gs = map(micro.paircorrelations) do p
-        g = p.dp .* σs .* pair_rs .^2
-
         # calculate segments of integrals between r_j and r_j+1
-        (circshift(g,-1) + g)[1:end-1] ./ 2
+        (circshift(p.dp,-1) + p.dp)[1:end-1] ./ 2
     end
 
     return pair_rs, hks, gs
