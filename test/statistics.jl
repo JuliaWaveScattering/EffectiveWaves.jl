@@ -23,7 +23,7 @@ using CSV
     );
     R = 2*outer_radius(s1) * s1.exclusion_distance
 
-    py = DiscretePairCorrelation(s1, PercusYevick(rtol=1e-3, maxevals = 2e4); distances = distances)
+    py = DiscretePairCorrelation(s1, PercusYevick(rtol=1e-3, maxevals = Int(2e4)); distances = distances)
 
     i = findfirst(distances .> R)
 

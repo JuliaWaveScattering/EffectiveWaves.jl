@@ -12,7 +12,7 @@ medium = Acoustic(3; ρ=1.2, c=1.0)
 # Choose the species
 r = 0.5
 s = Specie(
-    Acoustic(3; ρ = 0.1, c = 0.1),
+    Acoustic(3; ρ = 0.01, c = 0.01),
     Sphere(r),
     volume_fraction = 0.3,
     exclusion_distance = 1.01
@@ -57,20 +57,21 @@ First we calculate the wavenumbers with the simplest pair correlation (hole corr
 
 micro = Microstructure(s);
 
-ω = 2.0
+ω = 1.2
 
 kps = wavenumbers(ω, medium, micro;
-    basis_order = 1, num_wavenumbers = 5
+    basis_order = 1, num_wavenumbers = 2
 )
 
 pair_type = PercusYevick(rtol = 5e-2, maxsize=40)
 micro = Microstructure(s, pair_type);
 
 kps2 = wavenumbers(ω, medium, micro;
-    basis_order = 1, num_wavenumbers = 5
+    basis_order = 1, num_wavenumbers = 2
 )
 
 ```
+We can see that in this case, the effective wavenumbers with (`kps2`) and without (`kps`) Percus Yevick are similar. 
 
 ## References
 

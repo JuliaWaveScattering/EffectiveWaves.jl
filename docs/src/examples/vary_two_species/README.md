@@ -9,7 +9,7 @@ end
 Here we demonstrate how varying the volume fraction of two different species of particles changes the effective wave speed and attenuation.
 
 ## Define the material
-```jldoctest; output = false
+```jldoctest; output = false, filter = r".*"s
 using EffectiveWaves
 
 # for fixed total volume fraction
@@ -19,10 +19,8 @@ background = Acoustic(3; ρ = 1.0, c = 1.0) # 3 for a 3D material.
 gas_particle = Particle(Acoustic(3; ρ = 0.3, c = 0.3), 0.5) # 0.5 is the radius
 solid_particle = Particle(Acoustic(3; ρ = 1000.0, c = 1000.0), 1.5)
 
-solid_particle.shape # hide
-
 # output
-Sphere{Float64,3}([0.0, 0.0, 0.0], 1.5)
+
 ```
 
 ## Calculate how the wavenumbers change when varying the volume fractions
