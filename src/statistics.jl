@@ -1,4 +1,4 @@
-struct PercusYevick <: PairCorrelationType
+struct PercusYevick{Dim} <: PairCorrelationType
     "Relative tolerance used when calculating the Percus-Yevick approximation"
     rtol::Float64
     "Maximum number of quadture evaluations when calculating the Percus-Yevick approximation"
@@ -10,7 +10,7 @@ end
 struct HoleCorrection <: PairCorrelationType
 end
 
-PercusYevick(; rtol::AbstractFloat = 1e-2, maxevals::Int = Int(2e4), maxsize::Int = 50) = PercusYevick(rtol, maxevals, maxsize)
+PercusYevick(Dim; rtol::AbstractFloat = 1e-2, maxevals::Int = Int(2e4), maxsize::Int = 50) = PercusYevick{Dim}(rtol, maxevals, maxsize)
 
 """
     DiscretePairCorrelation
@@ -91,7 +91,7 @@ function DiscretePairCorrelation(s1::Specie{3}, pc::PairCorrelationType;
     return DiscretePairCorrelation(distances, dp; tol = pc.rtol)
 end
 
-function DiscretePairCorrelation(s1::Specie{3}, s2::Specie{3}, pc::PercusYevick;
+function DiscretePairCorrelation(s1::Specie{3}, s2::Specie{3}, pc::PairCorrelationType;
         distances::AbstractVector{T} where T<:AbstractFloat = Float64[]
     )
 
@@ -124,7 +124,7 @@ function DiscretePairCorrelation(s1::Specie{3}, s2::Specie{3}, pc::PercusYevick;
     return DiscretePairCorrelation(distances, dp; tol = pc.rtol)
 end
 
-function calculate_pair_correlation(R::T, distances::AbstractVector{T}, pc::PercusYevick;
+function calculate_pair_correlation(R::T, distances::AbstractVector{T}, pc::PercusYevick{3};
         number_density::T = 0
     ) where T
 

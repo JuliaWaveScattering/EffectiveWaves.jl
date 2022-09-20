@@ -25,7 +25,7 @@ Next we create a microstructure that has only this species, and has a specific p
 
 ```jldoctest pair; output = false, filter = r".*"s
 
-pair_type = PercusYevick(rtol = 1e-2, maxsize = 200)
+pair_type = PercusYevick(3; rtol = 1e-2, maxsize = 200)
 
 micro = Microstructure(s, pair_type);
 
@@ -63,7 +63,7 @@ kps = wavenumbers(ω, medium, micro;
     basis_order = 1, num_wavenumbers = 2
 )
 
-pair_type = PercusYevick(rtol = 5e-2, maxsize=40)
+pair_type = PercusYevick(3; rtol = 5e-2, maxsize=40)
 micro = Microstructure(s, pair_type);
 
 kps2 = wavenumbers(ω, medium, micro;
