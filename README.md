@@ -24,9 +24,9 @@ For more examples and details go to [docs/src/examples/](docs/src/examples/).
 This library was originally written by [Artur L Gower](https://arturgower.github.io/).
 Contributions are very welcome.
 
-The implementation of the Percus-Yevick pair correlation was based [these notes [5]][https://github.com/JuliaWaveScattering/EffectiveWaves.jl/blob/master/docs/src/theory/P-Y.pdf].
+The implementation of the Percus-Yevick pair correlation was based [these notes [5]](https://github.com/JuliaWaveScattering/EffectiveWaves.jl/blob/master/docs/src/theory/P-Y.pdf).
 
-The low frequency effective properties was based on [these notes][https://github.com/JuliaWaveScattering/EffectiveWaves.jl/blob/master/docs/src/theory/LowFrequencyReflection.pdf].
+The low frequency effective properties was based on [these notes](https://github.com/JuliaWaveScattering/EffectiveWaves.jl/blob/master/docs/src/theory/LowFrequencyReflection.pdf).
 
 ## References
 [[1]](http://rspa.royalsocietypublishing.org/content/474/2212/20170864) Gower AL, Smith MJ, Parnell WJ, Abrahams ID. "Reflection from a multi-species material and its transmitted effective wavenumber". Proc. R. Soc. A. 2018 Apr 1;474(2212):20170864.
@@ -37,7 +37,7 @@ The low frequency effective properties was based on [these notes][https://github
 
 [[4]](https://arxiv.org/abs/2010.00934) Artur L. Gower and Gerhard Kristensson. "Effective Waves for Random Three-dimensional Particulate Materials". New Journal of Physics (2021).
 
-[[5]](https://github.com/JuliaWaveScattering/EffectiveWaves.jl/blob/master/docs/src/theory/P-Y.pdf) Gerhard Kristensson. "The Percus-Yevick approximation". [github.com/JuliaWaveScattering/EffectiveWaves.jl][https://github.com/JuliaWaveScattering/EffectiveWaves.jl] (2022).
+[[5]](https://github.com/JuliaWaveScattering/EffectiveWaves.jl/blob/master/docs/src/theory/P-Y.pdf) Gerhard Kristensson. "The Percus-Yevick approximation". [github.com/JuliaWaveScattering/EffectiveWaves.jl](https://github.com/JuliaWaveScattering/EffectiveWaves.jl) (2022).
 
 
 [docs-dev-img]: https://img.shields.io/badge/docs-dev-blue.svg
