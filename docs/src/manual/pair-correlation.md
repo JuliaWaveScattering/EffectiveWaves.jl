@@ -47,7 +47,7 @@ which we can compare with Figure 8.3.1 from [1] below.
 
 Note that for $x < 1$ the two particles of radius 0.5 would overlap, so the pair correlation should be zero. Also note that `dp` is the variation from uncorrelated, which is why we add 1.0 to get the pair correlation.
 
-# Calculate an effective wavenumber
+## Effective wavenumbers
 
 The more points sampled within the pair correlation the longer it will take to calculate the effective wavenumber.
 
@@ -76,6 +76,36 @@ kps2 = wavenumbers(ω, medium, micro;
 ![../kps-PY-30-pair.png](../assets/kps-PY-30-pair.png)
 
 We can see that in this case, the effective wavenumbers with (`kps2`) and without (`kps`) Percus Yevick are similar.
+
+## Reflection and transmission
+
+Similar to the previous section on reflection, first we define the material and incident wave
+
+```jldoctest pair; output = false, filter = r".*"s
+normal = [0.0,0.0,-1.0] # an outward normal to the surface
+
+width = 50.0 # plate width
+origin = 
+plate = Plate(normal,width,plate.origin)
+
+# Define the material region
+material = Material(plate,species)
+
+wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
+RTeff = reflection_transmission_coefficients(wavemodes, source, material);
+
+
+material = Material(Halfspace(normal),species)
+
+# define a plane wave source travelling at a 45 degree angle in relation to the material
+source = PlaneSource(medium, [cos(pi/4.0),sin(pi/4.0)])
+
+R = reflection_coefficient(ω,source, eff_medium, material.shape)
+
+# output
+
+
+```
 
 ## References
 
