@@ -139,7 +139,7 @@ origin = [0.0,0.0,width/2] # the centre of the plate
 
 # the size of the effective low frequency limit material is one particle radius smaller
 plate_low = Plate(normal,width - 2r,origin)
-halfspace_low = Halfspace(normal,halfspace.origin - r)
+halfspace_low = Halfspace(normal,[0.0,0.0,r])
 
 # define a plane wave source travelling at a 45 degree angle in relation to the material
 source = PlaneSource(medium, [cos(pi/4.0),0.0,sin(pi/4.0)])
