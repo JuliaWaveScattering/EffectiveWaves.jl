@@ -1,4 +1,6 @@
 struct PercusYevick{Dim} <: PairCorrelationType
+    "The size of each element of the mesh relative to the particle radius"
+    meshsize::Float64
     "Relative tolerance used when calculating the Percus-Yevick approximation"
     rtol::Float64
     "Maximum number of quadture evaluations when calculating the Percus-Yevick approximation"
@@ -10,7 +12,7 @@ end
 struct HoleCorrection <: PairCorrelationType
 end
 
-PercusYevick(Dim; rtol::AbstractFloat = 1e-2, maxevals::Int = Int(2e4), maxsize::Int = 50) = PercusYevick{Dim}(rtol, maxevals, maxsize)
+PercusYevick(Dim; rtol::AbstractFloat = 1e-3, meshsize::AbstractFloat = 0.2, maxevals::Int = Int(2e4), maxsize::Int = 50) = PercusYevick{Dim}(meshsize, rtol, maxevals, maxsize)
 
 """
     DiscretePairCorrelation
@@ -64,7 +66,7 @@ function DiscretePairCorrelation(s1::Specie{3}, pc::PairCorrelationType;
     numdensity = number_density(s1)
 
     automatic_dist = if isempty(distances)
-        distances = R:(pc.rtol):(10R)
+        distances = R:(pc.meshsize * r1):(10R)
         if length(distances) > pc.maxsize
             distances = distances[1:pc.maxsize]
         end
@@ -75,16 +77,16 @@ function DiscretePairCorrelation(s1::Specie{3}, pc::PairCorrelationType;
 
     dp = calculate_pair_correlation(R, distances, pc;
         number_density = numdensity
-    )
+    );
 
     if automatic_dist
         i = findfirst(reverse(abs.(dp)) .> pc.rtol)
         if isnothing(i)
             dp = typeof(dp)[]
             distances = typeof(dp)[]
-        else
-            dp = dp[1:end-i+1]
-            distances = distances[1:end-i+1]
+        elseif i > 1
+            dp = dp[1:end-i+2]
+            distances = distances[1:end-i+2]
         end
     end
 
@@ -106,7 +108,11 @@ function DiscretePairCorrelation(s1::Specie{3}, s2::Specie{3}, pc::PairCorrelati
     numdensity = number_density(s1) + number_density(s2)
 
     automatic_dist = if isempty(distances)
-        distances = R:(10pc.rtol):(10R)
+        distances = R:(pc.meshsize * (r1 + r2) / 2):(10R)
+        if length(distances) > pc.maxsize
+            distances = distances[1:pc.maxsize]
+        end
+
         true
     else false
     end
@@ -117,8 +123,13 @@ function DiscretePairCorrelation(s1::Specie{3}, s2::Specie{3}, pc::PairCorrelati
 
     if automatic_dist
         i = findfirst(reverse(abs.(dp)) .> pc.rtol)
-        dp = dp[1:end-i]
-        distances = distances[1:end-i]
+        if isnothing(i)
+            dp = typeof(dp)[]
+            distances = typeof(dp)[]
+        else
+            dp = dp[1:end-i+1]
+            distances = distances[1:end-i+1]
+        end
     end
 
     return DiscretePairCorrelation(distances, dp; tol = pc.rtol)

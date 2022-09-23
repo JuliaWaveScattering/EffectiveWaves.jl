@@ -11,7 +11,7 @@ scattering_field
 function WaveModes(ω::T, source::AbstractSource, material::Material{Dim,S}; kws...) where {T,Dim,S<:Shape{Dim}} # without the parametric types we get a "Unreachable reached" error
 
     # The wavenumbers are calculated without knowledge of the materail symmetry. This is because the plane-wave symmetry leads to all possible wavenumbers and is simple to calculate.
-    k_effs = wavenumbers(ω, source.medium, material.microstructure.species; numberofparticles = material.numberofparticles, kws... )
+    k_effs = wavenumbers(ω, source.medium, material.microstructure; numberofparticles = material.numberofparticles, kws... )
 
     # The wavemodes need to know the material symmetry as the eigenvectors do depend on material shape and symetry.
     wave_effs = [
@@ -98,7 +98,12 @@ The eigenvectors from high symmetric scenarios are smaller then the more general
 """
 convert_eigenvector_basis(medium::PhysicalMedium,sym::AbstractSymmetry,eigvecs::Array) = eigvecs
 
-eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource, material::Material; kws...) where T<:AbstractFloat = eigenvectors(ω, k_eff::Complex{T}, source.medium, material.microstructure.species, Symmetry(source,material); numberofparticles = material.numberofparticles, kws...)
+function eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource, material::Material; kws...) where T<:AbstractFloat
+    eigenvectors(ω, k_eff::Complex{T}, source.medium, material.microstructure, Symmetry(source,material);
+        numberofparticles = material.numberofparticles,
+        kws...
+    )
+end
 
 # For plane waves, it is simpler to write all cases in the format for the most general case. For example, for PlanarAzimuthalSymmetry the eignvectors are much smaller. So we will turn these into the more general eigvector case by padding it with zeros.
 # function eigenvectors(ω::T, k_eff::Complex{T}, source::PlaneSource{T}, material::Material{Dim,S}; kws...) where {T<:AbstractFloat,Dim,S<:Union{Plate,Halfspace}}
@@ -113,11 +118,11 @@ eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource, material::Materia
 #
 # end
 
-function eigenvectors(ω::T, k_eff::Complex{T}, medium::PhysicalMedium, species::Species, symmetry::AbstractSymmetry;
+function eigenvectors(ω::T, k_eff::Complex{T}, medium::PhysicalMedium, micro::Microstructure, symmetry::AbstractSymmetry;
         tol::T = 1e-4, kws...
     ) where T<:AbstractFloat
 
-    MM = eigensystem(ω, medium, species, symmetry; kws...)
+    MM = eigensystem(ω, medium, micro, symmetry; kws...)
 
     # calculate eigenvectors
     MM_svd = svd(MM(k_eff))
@@ -132,7 +137,7 @@ function eigenvectors(ω::T, k_eff::Complex{T}, medium::PhysicalMedium, species:
     eigvectors = MM_svd.V[:,inds]
 
     # Reshape to separate different species and eigenvectors
-    S = length(species)
+    S = length(micro.species)
 
     # pads with zeros if necessary to match the more general case with less symmetry
     eigvectors = convert_eigenvector_basis(medium,symmetry,reshape(eigvectors,(:,S,size(eigvectors,2))))
