@@ -12,7 +12,8 @@ medium = Acoustic(3; ρ=1.2, c=1.0)
 # Choose the species
 r = 0.5
 s = Specie(
-    Acoustic(3; ρ = 0.1, c = 0.1),
+    Acoustic(3; ρ = 0.01, c = 0.01),
+    #Acoustic(3; ρ = 0.1, c = 0.1),
     Sphere(r),
     volume_fraction = 0.3,
     exclusion_distance = 1.01
@@ -110,6 +111,8 @@ wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
 
 RTeff = reflection_transmission_coefficients(wavemodes, source, material)
 
+abs.(RTeff)
+
 # output
 
 
@@ -123,7 +126,10 @@ wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
 
 RTeff = reflection_transmission_coefficients(wavemodes, source, material)
 
+abs.(RTeff)
+
 # output
+
 ```
 
 ## References
