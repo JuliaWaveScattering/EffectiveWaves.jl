@@ -1,6 +1,8 @@
 # Pair correlation
 
-In the previous example there was no mention on how the particles are distributed. This can be specified by choosing a pair correlation. Choosing the particle distribution only affects the effective wavenumbers and wavemodes, see refs...
+In the previous example there was no mention on how the particles are distributed. This can be specified by choosing a pair correlation, and when no pair correlation is specified, the default is to assume that particles are uncorrelated, except they can not overlap.
+
+Choosing the particle distribution only affects the effective wavenumbers and wavemodes, see references [1,2]
 
 ## Percus-Yevick
 
@@ -136,4 +138,6 @@ abs.(RTeff)
 
 [1] Kong, Jin Au, Leung Tsang, Kung-Hau Ding, and Chi On Ao. Scattering of electromagnetic waves: numerical simulations. John Wiley & Sons, 2004.
 
-[[2]](https://github.com/JuliaWaveScattering/EffectiveWaves.jl/blob/master/docs/src/theory/P-Y.pdf) Gerhard Kristensson. "The Percus-Yevick approximation". [github.com/JuliaWaveScattering/EffectiveWaves.jl][https://github.com/JuliaWaveScattering/EffectiveWaves.jl] (2022).
+[[2]](https://github.com/JuliaWaveScattering/EffectiveWaves.jl/blob/master/docs/src/theory/P-Y.pdf) Gerhard Kristensson. "The Percus-Yevick approximation". [github.com/JuliaWaveScattering/EffectiveWaves.jl](https://github.com/JuliaWaveScattering/EffectiveWaves.jl]) (2022).
+
+[[3]](https://iopscience.iop.org/article/10.1088/1367-2630/abdfee/pdf) Gower, Artur L., and Gerhard Kristensson. "Effective waves for random three-dimensional particulate materials." New Journal of Physics 23.6 (2021): 063083.
