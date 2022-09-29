@@ -36,8 +36,12 @@ function eigensystem(ω::T, medium::Acoustic{T,2}, micro::ParticulateMicrostruct
         s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
     for s1 in sps, s2 in sps]
 
+    if length(micro.paircorrelations[1].r) > 1
+        pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
+    end
+
     function M_component(keff,Ns,j,l,m,n)
-        (n == m ? 1.0 : 0.0)*(j == l ? 1.0 : 0.0) - 2.0pi * scale_number_density * number_density(sps[l]) * t_matrices[l][m+ho+1,m+ho+1] * Ns[n-m + 2ho+1,j,l] / (k^2.0-keff^2.0)
+        (n == m ? 1.0 : 0.0)*(j == l ? 1.0 : 0.0) + 2.0pi * scale_number_density * number_density(sps[l]) * t_matrices[l][m+ho+1,m+ho+1] * Ns[n-m + 2ho+1,j,l] / (keff^2.0 - k^2.0)
     end
 
     # this matrix is needed to calculate the eigenvectors
@@ -45,6 +49,11 @@ function eigensystem(ω::T, medium::Acoustic{T,2}, micro::ParticulateMicrostruct
         Ns = [
             kernelN2D(m,k*as[s1,s2],keff*as[s1,s2])
         for m = (-2ho):2ho, s1 = 1:S, s2 = 1:S]
+
+        # For a pair correlation which is not hole correction need to add a finite integral
+        if length(micro.paircorrelations[1].r) > 1
+            Ns = Ns + kernelW2D(k, keff, pair_rs, gs, hks, basis_order)
+        end
 
         ind2 = 1
         for l = 1:S for n = -ho:ho

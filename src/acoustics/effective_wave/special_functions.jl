@@ -21,7 +21,7 @@ function kernelW3D(k::Union{T,Complex{T}}, keff::Complex{T}, pair_rs::AbstractVe
     for l in 0:(2basis_order+1)]
 
     Wkers = [
-        keff .* hks[l+1] .* jkeffs[l+2] - k .* hks[l+2] .* jkeffs[l+1]
+        (keff .* hks[l+1] .* jkeffs[l+2] - k .* hks[l+2] .* jkeffs[l+1]) .* pair_rs.^2
     for l = 0:2basis_order]
 
     Wkers2 = [
@@ -35,10 +35,48 @@ function kernelW3D(k::Union{T,Complex{T}}, keff::Complex{T}, pair_rs::AbstractVe
     return Ws
 end
 
-function precalculate_pair_correlations(micro::Microstructure, k::Union{T,Complex{T}} where T, basis_order::Int)
+function kernelW2D(k::Union{T,Complex{T}}, keff::Complex{T}, pair_rs::AbstractVector{T}, gs::Matrix{V}, hks::AbstractVector{W}, basis_order::Int) where {T<:AbstractFloat, V<:AbstractVector{T}, W<:AbstractVector}
+
+    S = size(gs,1)
+
+    jkeffs = [
+        besselj.(m, keff .* pair_rs)
+    for m in -basis_order:basis_order]
+
+    Wkers = [
+        (keff .* hks[l+1] .* jkeffs[l+2] - k .* hks[l+2] .* jkeffs[l+1]) .* pair_rs
+    for l = 0:2basis_order]
+
+    Wkers2 = [
+        (circshift(Wkers[l],-1) - Wkers[l])[1:end-1]
+    for l in eachindex(Wkers)]
+
+    Ws = [
+        sum(Wkers2[l+1] .* gs[i])
+    for l = 0:2basis_order, i in CartesianIndices(gs)]
+
+    return Ws
+end
+
+function precalculate_pair_correlations(micro::Microstructure{3}, k::Union{T,Complex{T}} where T, basis_order::Int)
 
     pair_rs = micro.paircorrelations[1].r
-    hks = [shankelh1.(l, k .* pair_rs) for l in 0:(2basis_order+1)]
+
+    hks =  [shankelh1.(l, k .* pair_rs) for l in 0:(2basis_order+1)]
+
+    gs = map(micro.paircorrelations) do p
+        # calculate segments of integrals between r_j and r_j+1
+        (circshift(p.dp,-1) + p.dp)[1:end-1] ./ 2
+    end
+
+    return pair_rs, hks, gs
+end
+
+function precalculate_pair_correlations(micro::Microstructure{2}, k::Union{T,Complex{T}} where T, basis_order::Int)
+
+    pair_rs = micro.paircorrelations[1].r
+
+    hks = [hankelh1.(m, k .* pair_rs) for m in -basis_order:basis_order]
 
     gs = map(micro.paircorrelations) do p
         # calculate segments of integrals between r_j and r_j+1

@@ -1,9 +1,9 @@
 # The eigensystem when no symmetry is present
-function eigensystem(ω::T, medium::PhysicalMedium{3}, micro::ParticulateMicrostructure{3}, ::WithoutSymmetry{3};
+function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostructure{3}, ::WithoutSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         numberofparticles::Number = Inf,
-        kws...) where {T<:AbstractFloat}
+        kws...) where T<:AbstractFloat
 
     scale_number_density = one(T) - one(T) / numberofparticles
 
@@ -73,11 +73,11 @@ function eigensystem(ω::T, medium::PhysicalMedium{3}, micro::ParticulateMicrost
     return MM
 end
 
-function eigensystem(ω::T, medium::PhysicalMedium{3}, micro::ParticulateMicrostructure{3}, ::AbstractAzimuthalSymmetry;
+function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostructure{3}, ::AbstractAzimuthalSymmetry;
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         numberofparticles::Number = Inf,
-        kws...) where {T<:AbstractFloat}
+        kws...) where T<:AbstractFloat
 
     scale_number_density = one(T) - one(T) / numberofparticles
 
@@ -148,7 +148,7 @@ function eigensystem(ω::T, medium::PhysicalMedium{3}, micro::ParticulateMicrost
     return MM
 end
 
-function eigensystem(ω::T, medium::PhysicalMedium{3}, micro::ParticulateMicrostructure{3}, ::RadialSymmetry{3};
+function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostructure{3}, ::RadialSymmetry{3};
         basis_order::Int = 2,
         kws...) where {T<:AbstractFloat}
 
