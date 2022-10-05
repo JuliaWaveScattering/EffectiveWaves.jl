@@ -54,6 +54,13 @@ struct ParticulateMicrostructure{Dim,PC<:PairCorrelation} <: Microstructure{Dim}
     end
 end
 
+function Microstructure(sps::Species{Dim}, ps::AbstractMatrix{PC}) where {Dim, PC <: PairCorrelation}
+    ParticulateMicrostructure{Dim}(sps, ps)
+end
+
+Microstructure(s::Specie, ps::PairCorrelation) = Microstructure([s], [ps][:,:])
+
+
 Microstructure(s::Specie, pc::PairCorrelationType, kws...) = Microstructure([s], pc, kws...)
 
 function Microstructure(sps::Species{Dim}, pc::PairCorrelationType, kws...) where Dim

@@ -41,11 +41,11 @@ function kernelW2D(k::Union{T,Complex{T}}, keff::Complex{T}, pair_rs::AbstractVe
 
     jkeffs = [
         besselj.(m, keff .* pair_rs)
-    for m in -basis_order:basis_order]
+    for m in -2basis_order:(1+2basis_order)]
 
     Wkers = [
         (keff .* hks[l+1] .* jkeffs[l+2] - k .* hks[l+2] .* jkeffs[l+1]) .* pair_rs
-    for l = 0:2basis_order]
+    for l = 0:4basis_order]
 
     Wkers2 = [
         (circshift(Wkers[l],-1) - Wkers[l])[1:end-1]
@@ -53,7 +53,7 @@ function kernelW2D(k::Union{T,Complex{T}}, keff::Complex{T}, pair_rs::AbstractVe
 
     Ws = [
         sum(Wkers2[l+1] .* gs[i])
-    for l = 0:2basis_order, i in CartesianIndices(gs)]
+    for l = 0:4basis_order, i in CartesianIndices(gs)]
 
     return Ws
 end
@@ -76,7 +76,7 @@ function precalculate_pair_correlations(micro::Microstructure{2}, k::Union{T,Com
 
     pair_rs = micro.paircorrelations[1].r
 
-    hks = [hankelh1.(m, k .* pair_rs) for m in -basis_order:basis_order]
+    hks = [hankelh1.(m, k .* pair_rs) for m in -2basis_order:(1+2basis_order)]
 
     gs = map(micro.paircorrelations) do p
         # calculate segments of integrals between r_j and r_j+1

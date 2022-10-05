@@ -17,6 +17,8 @@ include("statistics.jl")
     include("effective-2D/large_vol_low_freq_effective.jl")
     include("effective-2D/weak_scatterers_effective.jl")
 
+    include("effective-2D/pair-correlation.jl")
+
 
 # Eigensystems for different symmetries (i.e. a sphere fille with particles or a halfspace filled with particles)
     include("effective-3D/equivalent-symmetries.jl")
