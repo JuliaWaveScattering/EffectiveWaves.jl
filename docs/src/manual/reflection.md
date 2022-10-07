@@ -14,7 +14,7 @@ $u_\text{R} = R e^{i (k_x x + k_y y - k_z z)}.$
 
 The code below calculates $R$, which is called the reflection coefficient. Both reflection and transmission are simpler to calculate when there exists only [one effective wavenumber](@ref two-dim-acoustics-one_reflection). Currently, we have only implemented the reflection coefficient for multiple effective wavenumbers for [2D acoustics](@ref two-dim-acoustic-multiple-reflection).
 
-Many tests for 3D reflection and transmission are in [test/effective-3D/planar-symmetry.jl](../../../test/effective-3D/planar-symmetry.jl), while tests for 2D are in the files in the folder [test/effective-2D](../../../test/effective-2D).  
+Many tests for 3D reflection and transmission are in [test/acoustics-3D/planar-symmetry.jl](../../../test/acoustics-3D/planar-symmetry.jl), while tests for 2D are in the files in the folder [test/acoustics-2D](../../../test/acoustics-2D).  
 
 The formulas used to calculate the below can mostly be found in [Gower & Kristensson 2020](https://arxiv.org/pdf/2010.00934.pdf) and [Gower et al. 2018](https://arxiv.org/abs/1712.05427)
 
