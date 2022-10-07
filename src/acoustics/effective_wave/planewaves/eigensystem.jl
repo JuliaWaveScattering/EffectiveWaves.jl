@@ -124,7 +124,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
 
         # For a pair correlation which is not hole correction need to add a finite integral
         if length(micro.paircorrelations[1].r) > 1
-            Ns = Ns + kernelW3D(k, keff, pair_rs, gs, hks, basis_order)
+            Ns = Ns + kernelW3D(k, keff, pair_rs, gs, hks, ho)
         end
 
         ind2 = 1

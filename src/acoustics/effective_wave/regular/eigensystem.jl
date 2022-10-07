@@ -100,7 +100,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
     for s1 in sps, s2 in sps]
 
     if length(micro.paircorrelations[1].r) > 1
-        pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
+        pair_rs, hks, gs = precalculate_pair_correlations(micro, k, L)
     end
 
     # the index for the T-matrix below needs to be changed when seperating correctly the 2D and 3D case.
@@ -128,7 +128,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
 
         # For a pair correlation which is not hole correction need to add a finite integral
         if length(micro.paircorrelations[1].r) > 1
-            Ns = Ns + kernelW3D(k, keff, pair_rs, gs, hks, basis_order)
+            Ns = Ns + kernelW3D(k, keff, pair_rs, gs, hks, L)
         end
 
         Ns = Ns ./ (keff^2.0 - k^2.0)

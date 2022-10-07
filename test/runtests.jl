@@ -26,8 +26,9 @@ include("statistics.jl")
     include("acoustics-3D/low_volume_fraction.jl")
     include("acoustics-3D/low_frequency.jl")
     include("acoustics-3D/planar-symmetry.jl")
-    # NOTE: when ready uncomment below
     include("acoustics-3D/sphere.jl")
+    include("acoustics-3D/pair-correlation.jl")
+
 
 # test equivalence between methods for finding wavenumbers
     # test does not run on Julia version < 0.7 due to differences in Optim versions
@@ -35,7 +36,6 @@ include("statistics.jl")
 
 # Test functions used for the discretisation
     include("discretisation/numerical_integration.jl")
-    include("discretisation/integrated_reflection.jl")
 
     # Test discretisation for 3D
     include("discretisation/function-approximations.jl")

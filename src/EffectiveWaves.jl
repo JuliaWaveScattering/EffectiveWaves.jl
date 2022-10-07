@@ -13,7 +13,7 @@ export  Specie, Species, SetupSymmetry, number_density, volume_fraction
 ## Pair correlation
 export PairCorrelation, PercusYevick, HoleCorrection, DiscretePairCorrelation
 export hole_correction_pair_correlation, gls_pair_radial_fun, pair_radial_fun
-export smooth_pair_corr_distance, pair_radial_to_pair_corr
+export calculate_pair_correlation, smooth_pair_corr_distance, pair_radial_to_pair_corr
 
 # for MatchPlaneWaveMode
 export  match_error, x_mesh_match
