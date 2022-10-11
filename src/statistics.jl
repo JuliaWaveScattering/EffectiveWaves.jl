@@ -200,6 +200,50 @@ function hole_correction_pair_correlation(x1::AbstractVector{T},s1::Specie, x2::
     return  overlapping ? one(T) : zero(T)
 end
 
+distances = 0.4:0.1:5.0
+particle_centres = [rand(3) for i = 1:100]
+
+function calculate_pair_correlation(particle_centres::Vector{v} where v <: AbstractVector{T}, R::T;
+        mesh_size::Int = 100,
+        maximum_distance::T = 5 * minimum([norm(particle_centres[1] - p) for p in particle_centres[2:end]])
+    ) where T
+
+    dz = (maximum_distance - R) / mesh_size;
+    distances = LinRange(R + dz/2.0, maximum_distance - dz/2.0, mesh_size)
+
+    bins = zeros(length(distances));
+
+    ind = CartesianIndices(particle_centres[1])
+
+    xs = [p[i] for p in particle_centres, i in ind]
+    xmin = minimum(xs; dims = 1)
+    xmax = maximum(xs; dims = 1)
+
+
+
+
+    box2 = Box(c[:], dimensions[:])
+
+    Box(boxcorners::Vector{S})
+
+    J = length(xyzs)
+
+    for j in 1:J, i in (j+1):J
+        dist = norm(xyzs[i] - xyzs[j])
+
+        if a12 < dist < pair_range
+            prob_i = prob_radial(norm(xyzs[i]))
+            prob_j = prob_radial(norm(xyzs[j]))
+
+            n = 1 + Int(round((Nz-1) * (dist - dists[1]) / (dists[end] - dists[1])))
+            dist_bins[n] += 2.0 / (J * (J-1) *  prob_j * prob_i)
+        end
+    end
+
+
+
+end
+
 function smooth_pair_corr_distance(pair_corr_distance::Function, a12::T; smoothing::T = T(0), max_distance::T = T(20*a12),
         polynomial_order::Int = 15, mesh_size::Int = 10*polynomial_order + 4
     ) where T
