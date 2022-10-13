@@ -104,6 +104,7 @@ function DiscretePairCorrelation(s::Specie{Dim}, pairtype::PairCorrelationType;
     end
 
     d = DiscretePairCorrelation(s, distances, pairtype);
+    dp = d.dp
 
     if automatic_dist
         i = findfirst(reverse(abs.(d.dp)) .> pairtype.rtol)
@@ -113,7 +114,6 @@ function DiscretePairCorrelation(s::Specie{Dim}, pairtype::PairCorrelationType;
         elseif i > 1
             dp = d.dp[1:end-i+2]
             distances = distances[1:end-i+2]
-        else dp = d.dp
         end
     end
 
