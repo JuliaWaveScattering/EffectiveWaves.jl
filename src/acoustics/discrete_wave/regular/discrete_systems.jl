@@ -198,7 +198,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
     end
 
     s1 = material.microstructure.species[1]
-    a12 = 2.0 * s1.exclusion_distance * outer_radius(s1);
+    a12 = 2.0 * s1.seperation_ratio * outer_radius(s1);
 
     scale_number_density = one(T) - one(T) / material.numberofparticles
     bar_numdensity(x1,s1) = scale_number_density * numdensity(x1,s1)
@@ -362,7 +362,7 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
     scale_number_density = one(T) - one(T) / material.numberofparticles
     bar_numdensity(x1,s1) = scale_number_density * numdensity(x1,s1)
 
-    a12 = 2.0 * s1.exclusion_distance * outer_radius(s1)
+    a12 = 2.0 * s1.seperation_ratio * outer_radius(s1)
     R = outer_radius(material.shape)
     k = ω / source.medium.c
 
@@ -412,7 +412,7 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
     function C_kernal(l2::Int,j2::Int)
 
         term2 = σs[j2] * rs[j2]^2 * bar_numdensity([T(0),T(0),rs[j2]],s1)
-        a12 = 2*outer_radius(s1)*s1.exclusion_distance
+        a12 = 2*outer_radius(s1)*s1.seperation_ratio
 
         data = term2 .* [
         begin
@@ -521,7 +521,7 @@ function outgoing_translation_matrix(ω::T, medium::Acoustic{T,Dim}, material::M
 
     L = basisorder_to_basislength(typeof(medium), basis_order);
     R = outer_radius(material.shape) - minimum(outer_radius.(material.microstructure.species))
-    a12 = T(2) * minimum(outer_radius(s) * s.exclusion_distance for s in material.microstructure.species)
+    a12 = T(2) * minimum(outer_radius(s) * s.seperation_ratio for s in material.microstructure.species)
 
     rθφ2xyz = radial_to_cartesian_coordinates
 

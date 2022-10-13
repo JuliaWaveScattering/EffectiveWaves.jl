@@ -3,20 +3,38 @@ using LinearAlgebra
 
 @testset "3D pair-correlation" begin
 
-    # NOTE: the package has only Percus-Yevick and hole-correction implemented
-    r = 1.0
+    # NOTE: the package has only Percus-Yevick, MonteCarloPairCorrelation, and HoleCorrection implemented
 
     # choose the type of pair correlation
-    pair_type = PercusYevick(3; rtol = 1e-2, maxsize = 50)
+    pairtype = PercusYevick(3; rtol = 1e-3, maxlength = 50)
 
     s = Specie(
         Acoustic(3; ρ = 10.0, c = 10.0),
-        Sphere(r),
-        volume_fraction = 0.3,
-        exclusion_distance = 1.01
+        Sphere(1.0),
+        volume_fraction = 0.15,
+        seperation_ratio = 1.0
     );
 
-    micro = Microstructure(s, pair_type);
+    pairtype_mc = MonteCarloPairCorrelation(3; rtol = 1e-3, iterations = 50)
+
+    # Using Monte-carlo is far heavier
+    micro_mc = Microstructure(s, pairtype_mc);
+
+    # Note that the volume fraction achieved with the MonteCarlo approach is not exactly the same as the one requested
+    micro_mc.paircorrelations[1].number_density * volume(s)
+
+    # s = Specie(
+    #     Acoustic(3; ρ = 10.0, c = 10.0),
+    #     Sphere(r),
+    #     volume_fraction = micro. ,
+    #     seperation_ratio = 1.0
+    # );
+    micro = Microstructure(s, pairtype);
+
+    # using Plots
+    #
+    # plot(micro.paircorrelations[1].r, micro.paircorrelations[1].dp)
+    # plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].dp)
 
     length(micro.paircorrelations[1].dp)
 

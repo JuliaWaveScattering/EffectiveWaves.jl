@@ -45,7 +45,7 @@ function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, mat
 
     if first(x) == - one(T)
         # using non-dimensional wave_non_effs and a12k results in non-dimensional mesh X
-        a12k = T(2) * k * material.microstructure.species[1].exclusion_distance * outer_radius(material.microstructure.species[1])
+        a12k = T(2) * k * material.microstructure.species[1].seperation_ratio * outer_radius(material.microstructure.species[1])
         L_match, X =  x_mesh_match(wave_non_effs; a12 = a12k, tol = tol, max_size=max_size)
     else
         X = x .* real(k)

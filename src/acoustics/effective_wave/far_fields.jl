@@ -35,7 +35,7 @@ function pair_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{2}; t
 
     pair_field(θ::T) where T <: Number = -T(π)*num_density_inv^(2.0)*sum(
         begin
-            a12 = (outer_radius(species[i]) * species[i].exclusion_distance + outer_radius(species[j]) * species[j].exclusion_distance )
+            a12 = (outer_radius(species[i]) * species[i].seperation_ratio + outer_radius(species[j]) * species[j].seperation_ratio )
             number_density(species[i]) * number_density(species[j]) * a12^2.0 * d2D(a12*ω/medium.c,m-n) * Zs[i][n+basis_order+1,n+basis_order+1] * Zs[j][m+basis_order+1,m+basis_order+1]*exp(im*m*θ)
         end
     for i in eachindex(species), j in eachindex(species),

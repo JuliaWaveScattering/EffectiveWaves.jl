@@ -34,7 +34,7 @@ function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,3}, micro::Part
     Ts = get_t_matrices(medium, species, ω, basis_order)
 
     # Non-dimensional exclusion distance between particles
-    kas = k .* [s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2) for s1 in species, s2 in species]
+    kas = k .* [s1.seperation_ratio * outer_radius(s1) + s2.seperation_ratio * outer_radius(s2) for s1 in species, s2 in species]
 
     Ts_diag = diag.(Ts)
     fo = scale_number_density * sum(

@@ -8,10 +8,10 @@ export  EffectivePlaneWaveMode, EffectiveRegularWaveMode, ScatteringCoefficients
 export  DiscretePlaneWaveMode
 export  MatchPlaneWaveMode # a combination of the Discrete and Effective modes
 export  Material, Microstructure, ParticulateMicrostructure
-export  Specie, Species, SetupSymmetry, number_density, volume_fraction
+export  Specie, Species, SetupSymmetry, number_density, volume_fraction, exclusion_distance
 
 ## Pair correlation
-export PairCorrelation, PercusYevick, HoleCorrection, DiscretePairCorrelation
+export PairCorrelation, PercusYevick, MonteCarloPairCorrelation, HoleCorrection, DiscretePairCorrelation
 export hole_correction_pair_correlation, gls_pair_radial_fun, pair_radial_fun
 export calculate_pair_correlation, smooth_pair_corr_distance, pair_radial_to_pair_corr
 
@@ -40,6 +40,7 @@ import StaticArrays: SVector
 import Statistics: mean, std
 
 import IterTools: groupby
+import Accessors: @set
 
 using Reexport
 @reexport using MultipleScattering

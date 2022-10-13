@@ -23,7 +23,7 @@ using LinearAlgebra, Statistics, Test
     s1 = Specie(
         particle_medium, Sphere(r);
         number_density = vol_fraction / volume(Sphere(r)),
-        exclusion_distance = separation_ratio
+        seperation_ratio = separation_ratio
     );
 
     species = [s1]
@@ -36,7 +36,7 @@ using LinearAlgebra, Statistics, Test
        position = [0.0,0.0,0.0], symmetry = RadialSymmetry{3}()
     );
 
-    a12 = 2.0 * s1.exclusion_distance * outer_radius(s1)
+    a12 = 2.0 * s1.seperation_ratio * outer_radius(s1)
     rs = 0.0:0.02:(R - outer_radius(s1));
     xs = [
         radial_to_cartesian_coordinates([r,0.5,0.6])
@@ -299,13 +299,13 @@ end
     s1 = Specie(
         particle_medium, Sphere(r);
         number_density = vol_fraction / volume(Sphere(r)),
-        exclusion_distance = separation_ratio
+        seperation_ratio = separation_ratio
     );
 
     species = [s1]
     # species = [s1,s1]
 
-    a12 = 2.0 * outer_radius(s1) * s1.exclusion_distance
+    a12 = 2.0 * outer_radius(s1) * s1.seperation_ratio
 
 
 ## define sources and material

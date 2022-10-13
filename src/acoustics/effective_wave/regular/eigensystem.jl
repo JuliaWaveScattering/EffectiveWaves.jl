@@ -21,7 +21,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
     len(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
 
     as = [
-        s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
+        s1.seperation_ratio * outer_radius(s1) + s2.seperation_ratio * outer_radius(s2)
     for s1 in sps, s2 in sps]
 
     if length(micro.paircorrelations[1].r) > 1
@@ -96,7 +96,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
     len(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
 
     as = [
-        s1.exclusion_distance * outer_radius(s1) + s2.exclusion_distance * outer_radius(s2)
+        s1.seperation_ratio * outer_radius(s1) + s2.seperation_ratio * outer_radius(s2)
     for s1 in sps, s2 in sps]
 
     if length(micro.paircorrelations[1].r) > 1

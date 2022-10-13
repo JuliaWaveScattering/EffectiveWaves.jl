@@ -6,12 +6,12 @@ using EffectiveWaves, Test
     medium = Acoustic(2; ρ=1.0, c=1.0)
     ms = MultipleScattering
 
-    exclusion_distance = 1.005
+    seperation_ratio = 1.005
 
     specie = Specie(Particle(
         Acoustic(2; ρ=0.5, c=0.5), ms.Circle(0.4));
         volume_fraction=0.001,
-        exclusion_distance=exclusion_distance
+        seperation_ratio=seperation_ratio
     )
 
     θin = 0.2

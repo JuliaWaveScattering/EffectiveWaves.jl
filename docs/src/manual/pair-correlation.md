@@ -15,10 +15,9 @@ medium = Acoustic(3; ρ=1.2, c=1.0)
 r = 0.5
 s = Specie(
     Acoustic(3; ρ = 0.01, c = 0.01),
-    #Acoustic(3; ρ = 0.1, c = 0.1),
     Sphere(r),
     volume_fraction = 0.3,
-    exclusion_distance = 1.01
+    seperation_ratio = 1.01
 );
 
 # output
@@ -28,7 +27,7 @@ Next we create a microstructure that has only this species, and has a specific p
 
 ```jldoctest pair; output = false, filter = r".*"s
 
-pair_type = PercusYevick(3; rtol = 1e-2, maxsize = 200)
+pair_type = PercusYevick(3; rtol = 1e-2, maxlength = 200)
 
 micro = Microstructure(s, pair_type);
 
@@ -66,7 +65,7 @@ kps = wavenumbers(ω, medium, micro;
     basis_order = 1, num_wavenumbers = 4
 )
 
-pair_type = PercusYevick(3; meshsize = 0.1, maxsize = 50)
+pair_type = PercusYevick(3; meshsize = 0.1, maxlength = 50)
 micro = Microstructure(s, pair_type);
 
 kps2 = wavenumbers(ω, medium, micro;

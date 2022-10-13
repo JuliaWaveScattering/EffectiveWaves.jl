@@ -6,13 +6,41 @@ struct PercusYevick{Dim} <: PairCorrelationType
     "Maximum number of quadture evaluations when calculating the Percus-Yevick approximation"
     maxevals::Int
     "Maximum number of points for the pair correlation"
-    maxsize::Int
+    maxlength::Int
+end
+
+PercusYevick(Dim; rtol::AbstractFloat = 1e-3, meshsize::AbstractFloat = 0.2, maxevals::Int = Int(2e4), maxlength::Int = 50) = PercusYevick{Dim}(meshsize, rtol, maxevals, maxlength)
+
+"""
+    MonteCarloPairCorrelation{Dim} <: PairCorrelationType
+
+Currently only used to create pair-correlations for particles that are uniformly randomly placed, except they can not overlap.
+"""
+struct MonteCarloPairCorrelation{Dim} <: PairCorrelationType
+    "The max nubmer elements for the mesh"
+    maxlength::Int
+    "The size of each element of the mesh relative to the particle radius"
+    meshsize::Float64
+    "Number of partilces configurations to take into account"
+    iterations::Int
+    "Maximum number of points for the pair correlation"
+    numberofparticles::Int
+    "Relative tolerance"
+    rtol::Float64
+end
+
+function MonteCarloPairCorrelation(Dim;
+        iterations::Int = 1, meshsize::AbstractFloat = 0.2,
+        numberofparticles::Number = 1e4,
+        maxlength::Int = 50,
+        rtol::AbstractFloat = 1e-3
+    )
+    MonteCarloPairCorrelation{Dim}(maxlength, meshsize, iterations, Int(round(numberofparticles)),rtol)
 end
 
 struct HoleCorrection <: PairCorrelationType
 end
 
-PercusYevick(Dim; rtol::AbstractFloat = 1e-3, meshsize::AbstractFloat = 0.2, maxevals::Int = Int(2e4), maxsize::Int = 50) = PercusYevick{Dim}(meshsize, rtol, maxevals, maxsize)
 
 """
     DiscretePairCorrelation
@@ -24,126 +52,105 @@ struct DiscretePairCorrelation <: PairCorrelation
     r::Vector{Float64}
     "variation of the pair correlation from 1 (uncorrelated case)"
     dp::Vector{Float64}
+    "the average number of particles divided by the volume containing the centre of the particles"
+    number_density::Float64
 
-    function DiscretePairCorrelation(r::AbstractVector, dp::AbstractVector; tol::AbstractFloat = 1e-3)
+    function DiscretePairCorrelation(r::AbstractVector, dp::AbstractVector, number_density::AbstractFloat; tol::AbstractFloat = 1e-3)
         if !isempty(dp) && size(dp) != size(r)
             @error "the size of vector of distances `r` (currently $(size(r))) should be the same as the size of the pair-correlation variation `dp` (currently $(size(dp)))."
         end
         if !isempty(dp) && abs(dp[end]) > tol
             @warn "For the pair-correlation to be accurate, we expect it to be long enough (in terms of the distance `r`) such that the particle positions become uncorrelatd. They become uncorrelated when `dp[end]` tends to zero."
         end
-        new(r,dp)
+        new(r,dp,number_density)
     end
 end
 
 PairCorrelation(r::AbstractVector{T},dp::AbstractVector{T}) where T <: AbstractFloat = DiscretePairCorrelation(r,dp)
 
+# Have no pair correlation, then only hole correction will be used.
 function DiscretePairCorrelation(s1::Specie, s2::Specie)
-
-    # Have no pair correlation, then only hole correction will be used.
-
     T = typeof(outer_radius(s1))
-
-    # a12 = outer_radius(s1) * s1.exclusion_distance + outer_radius(s2) * s2.exclusion_distance
-    # r = [a12]
-    # dp = [zero(typeof(a12))]
 
     return DiscretePairCorrelation(T[],T[])
 end
 
+
 """
-    DiscretePairCorrelation(s::Specie, pc::PercusYevick, distances::AbstractVector)
+    DiscretePairCorrelation(s::Specie, pairtype::PercusYevick, distances::AbstractVector)
 
 Generates a DiscretePairCorrelation for the specie `s` by using the Percus-Yevick approximation. This distribution assumes particles are distributed accoriding to a random uniform distribution, and that particles can not overlap.
 """
-function DiscretePairCorrelation(s1::Specie{3}, pc::PairCorrelationType;
-        distances::AbstractVector{T} where T<:AbstractFloat = Float64[]
-    )
+function DiscretePairCorrelation(s::Specie{Dim}, pairtype::PairCorrelationType;
+        distances::AbstractVector{T} = Float64[],
+        maximum_distance::T = 12exclusion_distance(s)
+    ) where {Dim,  T<:AbstractFloat}
 
-    r1 = outer_radius(s1) * s1.exclusion_distance
+    r1 = exclusion_distance(s)
 
     R = 2r1
-    numdensity = number_density(s1)
+    numdensity = number_density(s)
 
     automatic_dist = if isempty(distances)
-        distances = R:(pc.meshsize * r1):(10R)
-        if length(distances) > pc.maxsize
-            distances = distances[1:pc.maxsize]
+        dr = pairtype.meshsize * r1
+        # the distances should be in the centre of the mesh element.
+        distances = (R+dr/2):dr:maximum_distance
+        if length(distances) > pairtype.maxlength
+            distances = distances[1:pairtype.maxlength]
         end
 
         true
     else false
     end
 
-    dp = calculate_pair_correlation(R, distances, pc;
-        number_density = numdensity
-    );
+    d = DiscretePairCorrelation(s, distances, pairtype);
 
     if automatic_dist
-        i = findfirst(reverse(abs.(dp)) .> pc.rtol)
+        i = findfirst(reverse(abs.(d.dp)) .> pairtype.rtol)
         if isnothing(i)
-            dp = typeof(dp)[]
-            distances = typeof(dp)[]
+            dp = typeof(d.dp)[]
+            distances = typeof(d.dp)[]
         elseif i > 1
-            dp = dp[1:end-i+2]
+            dp = d.dp[1:end-i+2]
             distances = distances[1:end-i+2]
+        else dp = d.dp
         end
     end
 
-    return DiscretePairCorrelation(distances, dp; tol = pc.rtol)
+    return DiscretePairCorrelation(distances, dp, d.number_density)
 end
 
-function DiscretePairCorrelation(s1::Specie{3}, s2::Specie{3}, pc::PairCorrelationType;
-        distances::AbstractVector{T} where T<:AbstractFloat = Float64[]
-    )
+function DiscretePairCorrelation(s1::Specie{Dim}, s2::Specie{Dim}, pairtype::PairCorrelationType; kws...) where Dim
 
-    r1 = outer_radius(s1) * s1.exclusion_distance
-    r2 = outer_radius(s2) * s2.exclusion_distance
-
-    if r1 != r2
-        @warn "Percus-Yevick approximation has only been implemented for particles of the same size. Will use the average size of both particles and the combine volume fraction"
+    if outer_radius(s1) != outer_radius(s2)
+        @warn "Calculating any pair-correlation has only been implemented for particles of the same size. Will use a crude approximation which combines both particles into one average particle"
     end
 
-    R = r1 + r2
+    a = (outer_radius(s1) + outer_radius(s2)) / 2
+    sep_ratio = (s1.seperation_ratio + s2.seperation_ratio) / 2
     numdensity = number_density(s1) + number_density(s2)
 
-    automatic_dist = if isempty(distances)
-        distances = R:(pc.meshsize * (r1 + r2) / 2):(10R)
-        if length(distances) > pc.maxsize
-            distances = distances[1:pc.maxsize]
-        end
 
-        true
-    else false
-    end
+    # replace both particles by an average particle
+    sm = Specie(
+        Acoustic(Dim), radius1;
+        number_density = numdensity,
+        seperation_ratio = sep_ratio
+    );
 
-    dp = calculate_pair_correlation(R, distances, pc;
-        number_density = numdensity
-    )
-
-    if automatic_dist
-        i = findfirst(reverse(abs.(dp)) .> pc.rtol)
-        if isnothing(i)
-            dp = typeof(dp)[]
-            distances = typeof(dp)[]
-        else
-            dp = dp[1:end-i+1]
-            distances = distances[1:end-i+1]
-        end
-    end
-
-    return DiscretePairCorrelation(distances, dp; tol = pc.rtol)
+    return DiscretePairCorrelation(sm, pairtype; kws...)
 end
 
-function calculate_pair_correlation(R::T, distances::AbstractVector{T}, pc::PercusYevick{3};
-        number_density::T = 0
-    ) where T
+function DiscretePairCorrelation(s::Specie{3}, distances::AbstractVector{T}, pairtype::PercusYevick{3}) where T
 
-    rtol = pc.rtol;
-    maxevals = pc.maxevals;
+    R = 2 * outer_radius(s) * s.seperation_ratio
+    numdensity = number_density(s)
+
+    rtol = pairtype.rtol;
+    maxevals = pairtype.maxevals;
 
     # Note that f if the volume fraction of the species including the exclusion volume around each particle
-    f = number_density * π * R^3 / 6
+    f = numdensity * π * R^3 / 6
     α = - (1 + 2f)^2 / (1 - f)^4
     β = 6f * (1 + f/2)^2 / (1 - f)^4
     δ = - f * (1 + 2f)^2 / (2 * (1 - f)^4)
@@ -191,56 +198,107 @@ function calculate_pair_correlation(R::T, distances::AbstractVector{T}, pc::Perc
         9f * (1 + f) / (2 * η * (1 - f)^3) + 2 / (η*pi) * int_ker
     end
 
-    return dp
+    return DiscretePairCorrelation(distances, dp, numdensity; tol = pairtype.rtol)
+end
+
+function DiscretePairCorrelation(s::Specie{Dim}, distances::AbstractVector{T}, pairtype::MonteCarloPairCorrelation{Dim}) where {T, Dim}
+
+    numdensity = number_density(s)
+    a = outer_radius(s)
+    R = 2a * s.seperation_ratio
+
+    vol = pairtype.numberofparticles / numdensity
+    l = (vol)^(1/Dim)
+
+    # NOTE: when calling random_particles, the region specified will completely contain the whole of all particles. However, to better align with the theory, we need to use the region containing the particle centres, which leeds to the correction below.
+    l = l + a
+
+    region_shape = Box(zeros(T,Dim), zeros(T,Dim) .+ l)
+    large_region_shape = Box(zeros(T,Dim), zeros(T,Dim) .+ (l  + 2R))
+    large_region_shape_numdensity = Box(zeros(T,Dim), zeros(T,Dim) .+ (l - a + 2R))
+
+    large_N = Int(round(numdensity * volume(large_region_shape_numdensity)))
+
+    dpcs = map(1:pairtype.iterations) do i
+        ps = random_particles(s.particle.medium, s.particle.shape, large_region_shape, large_N;
+            separation_ratio = s.seperation_ratio
+        )
+
+        DiscretePairCorrelation(origin.(filter(p -> p ⊆ region_shape, ps)), distances, pairtype)
+    end
+
+    nums = [d.number_density for d in dpcs]
+    achieved_number_density = mean(nums)
+    std_number_density = std(nums)
+
+    if abs(achieved_number_density / number_density(s) - 1) > 0.01
+        @warn "The requested volume fraction of the pair correlation was $(s.volume_fraction). The achieved volume fraction was $(achieved_number_density * volume(s)) with std $( std(nums) *  volume(s))"
+    end
+
+    return DiscretePairCorrelation(distances, mean(d.dp for d in dpcs), achieved_number_density)
+
 end
 
 function hole_correction_pair_correlation(x1::AbstractVector{T},s1::Specie, x2::AbstractVector{T},s2::Specie) where T <: Number
-    overlapping = norm(x1 - x2) > outer_radius(s1) * s1.exclusion_distance + outer_radius(s2) * s2.exclusion_distance
+    overlapping = norm(x1 - x2) > outer_radius(s1) * s1.seperation_ratio + outer_radius(s2) * s2.seperation_ratio
 
     return  overlapping ? one(T) : zero(T)
 end
 
-distances = 0.4:0.1:5.0
-particle_centres = [rand(3) for i = 1:100]
 
-function calculate_pair_correlation(particle_centres::Vector{v} where v <: AbstractVector{T}, R::T;
-        mesh_size::Int = 100,
-        maximum_distance::T = 5 * minimum([norm(particle_centres[1] - p) for p in particle_centres[2:end]])
-    ) where T
+"""
+    calculate_pair_correlation(particle_centres::Vector, R::T, MonteCarloPairCorrelation{Dim}())
 
-    dz = (maximum_distance - R) / mesh_size;
-    distances = LinRange(R + dz/2.0, maximum_distance - dz/2.0, mesh_size)
+Calculates the isotropic pair correlation from one configuration of particles. To use many configurations of particles, call this function for each, then take the average of the pair-correlation.
+"""
+function DiscretePairCorrelation(particle_centres::Vector{v} where v <: AbstractVector{T}, distances::AbstractVector{T}, pairtype::MonteCarloPairCorrelation{Dim};
+        dz::T = distances[2] - distances[1],
+        maximum_distance::T = distances[end] + dz/2,
+        minimum_distance::T = distances[1] - dz/2
+    ) where {T, Dim}
 
-    bins = zeros(length(distances));
+    N = length(distances)
 
-    ind = CartesianIndices(particle_centres[1])
+    p2s = particle_centres
 
-    xs = [p[i] for p in particle_centres, i in ind]
+    ind = CartesianIndices(p2s[1])
+
+    xs = [p[i] for p in p2s, i in ind]
+
     xmin = minimum(xs; dims = 1)
     xmax = maximum(xs; dims = 1)
 
+    c = (xmin + xmax)[:] ./ 2.0;
+    dims = (xmax - xmin)[:];
+    outer_box = Box(c,dims)
+    inner_box = Box(c,dims .- 2 * maximum_distance)
 
+    p1s = filter(x -> x ∈ inner_box, p2s)
 
+    if length(p1s) < 10
+        @error "There are only $(length(p1s)) particles in the feasible region. This is not enough to calculate the pair-correlation. To increase this number, and get a more accurate result, try: 1) increasing the number of particles or 2) using a shorter distance for the pair-correlation"
+    end
 
-    box2 = Box(c[:], dimensions[:])
+    bins = zeros(N);
 
-    Box(boxcorners::Vector{S})
+    for p1 in p1s, p2 in p2s
+        dist = norm(p1 - p2)
 
-    J = length(xyzs)
-
-    for j in 1:J, i in (j+1):J
-        dist = norm(xyzs[i] - xyzs[j])
-
-        if a12 < dist < pair_range
-            prob_i = prob_radial(norm(xyzs[i]))
-            prob_j = prob_radial(norm(xyzs[j]))
-
-            n = 1 + Int(round((Nz-1) * (dist - dists[1]) / (dists[end] - dists[1])))
-            dist_bins[n] += 2.0 / (J * (J-1) *  prob_j * prob_i)
+        if minimum_distance <= dist <= maximum_distance
+            n = 1 + Int(round((N-1) * (dist - minimum_distance) / (maximum_distance - minimum_distance)))
+            bins[n] += 1.0
         end
     end
 
+    J1 = length(p1s)
+    J2 = length(p2s)
 
+    numdensity = J2 / volume(outer_box)
+    scaling = (1 / ((2 * (Dim - 1)) * pi * dz)) * J2 / ((J2 - 1) * J1 * numdensity)
+
+    dp = scaling .* bins ./ (distances .^(Dim - 1)) .- T(1)
+
+    return DiscretePairCorrelation(distances,dp,numdensity)
 
 end
 

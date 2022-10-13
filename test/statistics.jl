@@ -19,11 +19,13 @@ using CSV
         Acoustic(3; ρ = 0.0, c = 0.0),
         Sphere(0.5),
         volume_fraction = 0.25,
-        exclusion_distance = 1.00
+        seperation_ratio = 1.00
     );
-    R = 2*outer_radius(s1) * s1.exclusion_distance
+    R = 2*outer_radius(s1) * s1.seperation_ratio
 
-    py = DiscretePairCorrelation(s1, PercusYevick(3; rtol=1e-3, maxevals = Int(2e4)); distances = distances)
+    pairtype = PercusYevick(3; rtol=1e-3, maxevals = Int(2e4))
+
+    py = DiscretePairCorrelation(s1, pairtype; distances = distances)
 
     i = findfirst(distances .> R)
 
@@ -35,14 +37,14 @@ end
 
     particle_medium = Acoustic(3; ρ=0.0, c=0.0);
 
-    exclusion_distance = 1.01
+    seperation_ratio = 1.01
 
     s1 = Specie(
-        particle_medium, Sphere(0.8), exclusion_distance = exclusion_distance
+        particle_medium, Sphere(0.8), seperation_ratio = seperation_ratio
     );
 
     # minimal distance between particle centres
-    a12 = 2.0 * s1.exclusion_distance * outer_radius(s1)
+    a12 = 2.0 * s1.seperation_ratio * outer_radius(s1)
     R = 10.0
     polynomial_order = 40
 
