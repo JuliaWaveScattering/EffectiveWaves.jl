@@ -31,10 +31,10 @@ using LinearAlgebra
     # );
     micro = Microstructure(s, pairtype);
 
-    # using Plots
-    #
-    # plot(micro.paircorrelations[1].r, micro.paircorrelations[1].dp)
-    # plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].dp)
+    using Plots
+
+    plot(micro.paircorrelations[1].r, micro.paircorrelations[1].dp)
+    plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].dp)
 
     length(micro.paircorrelations[1].dp)
 
