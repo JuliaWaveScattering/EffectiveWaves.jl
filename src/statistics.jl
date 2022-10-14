@@ -284,8 +284,10 @@ function DiscretePairCorrelation(particle_centres::Vector{v} where v <: Abstract
     for p1 in p1s, p2 in p2s
         dist = norm(p1 - p2)
 
-        if minimum_distance <= dist <= maximum_distance
-            n = 1 + Int(round((N-1) * (dist - minimum_distance) / (maximum_distance - minimum_distance)))
+        if minimum_distance < dist < maximum_distance
+            n = 1 + Int(round(
+                -1/2 + N * (dist - minimum_distance) / (maximum_distance - minimum_distance)
+            ))
             bins[n] += 1.0
         end
     end
