@@ -211,20 +211,28 @@ function DiscretePairCorrelation(s::Specie{Dim}, distances::AbstractVector{T}, p
     l = (vol)^(1/Dim)
 
     # NOTE: when calling random_particles, the region specified will completely contain the whole of all particles. However, to better align with the theory, we need to use the region containing the particle centres, which leeds to the correction below.
-    l = l + a
+    la = l + a
 
-    region_shape = Box(zeros(T,Dim), zeros(T,Dim) .+ l)
-    large_region_shape = Box(zeros(T,Dim), zeros(T,Dim) .+ (l  + 2R))
-    large_region_shape_numdensity = Box(zeros(T,Dim), zeros(T,Dim) .+ (l - a + 2R))
+    zs = zeros(T,Dim)
+    region_shape = Box(zs .+ la)
+    region_shape_numdensity = Box(zs .+ l)
+
+    large_region_shape = Box(zs .+ la  .+ 2R)
+    large_region_shape_numdensity = Box(zs .+ l .+ 2R)
 
     large_N = Int(round(numdensity * volume(large_region_shape_numdensity)))
 
     dpcs = map(1:pairtype.iterations) do i
         ps = random_particles(s.particle.medium, s.particle.shape, large_region_shape, large_N;
             separation_ratio = s.seperation_ratio
-        )
+        );
 
-        DiscretePairCorrelation(origin.(filter(p -> p ⊆ region_shape, ps)), distances, pairtype)
+        # using the cookie cutter method to keep only the particles slightly away from the boundary where particles concentrate.
+        particle_centres = origin.(filter(p -> p ⊆ region_shape, ps));
+
+        DiscretePairCorrelation(particle_centres, distances, pairtype;
+            region_particle_centres = region_shape_numdensity
+        )
     end
 
     nums = [d.number_density for d in dpcs]
@@ -254,23 +262,28 @@ Calculates the isotropic pair correlation from one configuration of particles. T
 function DiscretePairCorrelation(particle_centres::Vector{v} where v <: AbstractVector{T}, distances::AbstractVector{T}, pairtype::MonteCarloPairCorrelation{Dim};
         dz::T = distances[2] - distances[1],
         maximum_distance::T = distances[end] + dz/2,
-        minimum_distance::T = distances[1] - dz/2
+        minimum_distance::T = distances[1] - dz/2,
+        region_particle_centres::Shape = Box(zeros(Dim))
     ) where {T, Dim}
 
     N = length(distances)
 
     p2s = particle_centres
 
-    ind = CartesianIndices(p2s[1])
+    if norm(region_particle_centres.dimensions) == 0.0
+        ind = CartesianIndices(p2s[1])
+        xs = [p[i] for p in p2s, i in ind]
 
-    xs = [p[i] for p in p2s, i in ind]
+        xmin = minimum(xs; dims = 1)
+        xmax = maximum(xs; dims = 1)
 
-    xmin = minimum(xs; dims = 1)
-    xmax = maximum(xs; dims = 1)
-
-    c = (xmin + xmax)[:] ./ 2.0;
-    dims = (xmax - xmin)[:];
-    outer_box = Box(c,dims)
+        c = (xmin + xmax)[:] ./ 2.0;
+        dims = (xmax - xmin)[:];
+        region_particle_centres = Box(c,dims)
+    else
+        dims = region_particle_centres.dimensions
+        c = origin(region_particle_centres)
+    end
     inner_box = Box(c,dims .- 2 * maximum_distance)
 
     p1s = filter(x -> x ∈ inner_box, p2s)
@@ -295,7 +308,7 @@ function DiscretePairCorrelation(particle_centres::Vector{v} where v <: Abstract
     J1 = length(p1s)
     J2 = length(p2s)
 
-    numdensity = J2 / volume(outer_box)
+    numdensity = J2 / volume(region_particle_centres)
     scaling = (1 / ((2 * (Dim - 1)) * pi * dz)) * J2 / ((J2 - 1) * J1 * numdensity)
 
     dp = scaling .* bins ./ (distances .^(Dim - 1)) .- T(1)

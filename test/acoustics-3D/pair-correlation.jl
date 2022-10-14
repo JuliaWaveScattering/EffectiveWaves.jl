@@ -6,8 +6,11 @@ using LinearAlgebra
     # NOTE: the package has only Percus-Yevick, MonteCarloPairCorrelation, and HoleCorrection implemented
 
     # choose the type of pair correlation
-    pairtype = PercusYevick(3; rtol = 1e-3, maxlength = 50)
-    pairtype_mc = MonteCarloPairCorrelation(3; rtol = 1e-3, maxlength = 50, iterations = 50)
+    pairtype = PercusYevick(3; rtol = 1e-3, meshsize = 0.05, maxlength = 250)
+
+    pairtype = PercusYevick(3; rtol = 1e-3, meshsize = 0.05, maxlength = 250)
+    pairtype_mc = MonteCarloPairCorrelation(3; rtol = 1e-3, meshsize = 0.09, maxlength = 250, iterations = 150)
+    # pairtype = MonteCarloPairCorrelation(3; rtol = 1e-3, meshsize = 0.09, maxlength = 250, iterations = 150)
 
     s = Specie(
         Acoustic(3; ρ = 10.0, c = 10.0),
@@ -24,8 +27,8 @@ using LinearAlgebra
 
     # s = Specie(
     #     Acoustic(3; ρ = 10.0, c = 10.0),
-    #     Sphere(r),
-    #     volume_fraction = micro. ,
+    #     Sphere(1.0),
+    #     volume_fraction = 0.123 ,
     #     seperation_ratio = 1.0
     # );
     micro = Microstructure(s, pairtype);
@@ -33,7 +36,7 @@ using LinearAlgebra
     using Plots
 
     plot(micro.paircorrelations[1].r, micro.paircorrelations[1].dp)
-    plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].dp)
+    plot!(micro_mc.paircorrelations[1].r, (micro_mc.paircorrelations[1].dp .+ 1) .* 0.96 .- 1.0)
 
     length(micro.paircorrelations[1].dp)
 

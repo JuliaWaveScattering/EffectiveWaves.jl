@@ -138,9 +138,10 @@ function eigenvectors(ω::T, k_eff::Complex{T}, medium::PhysicalMedium, micro::M
 
     # Reshape to separate different species and eigenvectors
     S = length(micro.species)
+    eigvectors = reshape(eigvectors,(:,S,size(eigvectors,2)))
 
     # pads with zeros if necessary to match the more general case with less symmetry
-    eigvectors = convert_eigenvector_basis(medium,symmetry,reshape(eigvectors,(:,S,size(eigvectors,2))))
+    eigvectors = convert_eigenvector_basis(medium,symmetry,eigvectors)
 
     return eigvectors
 end
