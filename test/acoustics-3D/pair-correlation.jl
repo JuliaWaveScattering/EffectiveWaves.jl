@@ -7,6 +7,7 @@ using LinearAlgebra
 
     # choose the type of pair correlation
     pairtype = PercusYevick(3; rtol = 1e-3, maxlength = 50)
+    pairtype_mc = MonteCarloPairCorrelation(3; rtol = 1e-3, maxlength = 50, iterations = 50)
 
     s = Specie(
         Acoustic(3; ρ = 10.0, c = 10.0),
@@ -14,8 +15,6 @@ using LinearAlgebra
         volume_fraction = 0.15,
         seperation_ratio = 1.0
     );
-
-    pairtype_mc = MonteCarloPairCorrelation(3; rtol = 1e-3, iterations = 50)
 
     # Using Monte-carlo is far heavier
     micro_mc = Microstructure(s, pairtype_mc);

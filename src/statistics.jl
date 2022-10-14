@@ -55,7 +55,7 @@ struct DiscretePairCorrelation <: PairCorrelation
     "the average number of particles divided by the volume containing the centre of the particles"
     number_density::Float64
 
-    function DiscretePairCorrelation(r::AbstractVector, dp::AbstractVector, number_density::AbstractFloat; tol::AbstractFloat = 1e-3)
+    function DiscretePairCorrelation(r::AbstractVector, dp::AbstractVector; number_density::AbstractFloat = 0.0, tol::AbstractFloat = 1e-3)
         if !isempty(dp) && size(dp) != size(r)
             @error "the size of vector of distances `r` (currently $(size(r))) should be the same as the size of the pair-correlation variation `dp` (currently $(size(dp)))."
         end
@@ -72,7 +72,7 @@ PairCorrelation(r::AbstractVector{T},dp::AbstractVector{T}) where T <: AbstractF
 function DiscretePairCorrelation(s1::Specie, s2::Specie)
     T = typeof(outer_radius(s1))
 
-    return DiscretePairCorrelation(T[],T[],zero(T))
+    return DiscretePairCorrelation(T[],T[])
 end
 
 
@@ -117,7 +117,7 @@ function DiscretePairCorrelation(s::Specie{Dim}, pairtype::PairCorrelationType;
         end
     end
 
-    return DiscretePairCorrelation(distances, dp, d.number_density)
+    return DiscretePairCorrelation(distances, dp; number_density = d.number_density)
 end
 
 function DiscretePairCorrelation(s1::Specie{Dim}, s2::Specie{Dim}, pairtype::PairCorrelationType; kws...) where Dim
@@ -198,7 +198,7 @@ function DiscretePairCorrelation(s::Specie{3}, distances::AbstractVector{T}, pai
         9f * (1 + f) / (2 * η * (1 - f)^3) + 2 / (η*pi) * int_ker
     end
 
-    return DiscretePairCorrelation(distances, dp, numdensity; tol = pairtype.rtol)
+    return DiscretePairCorrelation(distances, dp; number_density = numdensity, tol = pairtype.rtol)
 end
 
 function DiscretePairCorrelation(s::Specie{Dim}, distances::AbstractVector{T}, pairtype::MonteCarloPairCorrelation{Dim}) where {T, Dim}
@@ -235,7 +235,7 @@ function DiscretePairCorrelation(s::Specie{Dim}, distances::AbstractVector{T}, p
         @warn "The requested volume fraction of the pair correlation was $(s.volume_fraction). The achieved volume fraction was $(achieved_number_density * volume(s)) with std $( std(nums) *  volume(s))"
     end
 
-    return DiscretePairCorrelation(distances, mean(d.dp for d in dpcs), achieved_number_density)
+    return DiscretePairCorrelation(distances, mean(d.dp for d in dpcs); number_density = achieved_number_density)
 
 end
 
@@ -298,7 +298,7 @@ function DiscretePairCorrelation(particle_centres::Vector{v} where v <: Abstract
 
     dp = scaling .* bins ./ (distances .^(Dim - 1)) .- T(1)
 
-    return DiscretePairCorrelation(distances,dp,numdensity)
+    return DiscretePairCorrelation(distances,dp; number_density = numdensity)
 
 end
 

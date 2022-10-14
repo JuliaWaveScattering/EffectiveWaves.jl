@@ -12,10 +12,9 @@ using LinearAlgebra
     rs = (2r):0.1:(4r)
 
     # input your data here.
-    numdensity = 0.2
     g_data = 1.0 .+ cos.(rs) .* exp.( -(2r .- rs).^4 )
 
-    dp = DiscretePairCorrelation(rs, g_data .- 1.0, numdensity)
+    dp = DiscretePairCorrelation(rs, g_data .- 1.0)
 
     s1 = Specie(Acoustic(2; ρ=10.0, c=12.0),Circle(r); volume_fraction = 0.15)
 
