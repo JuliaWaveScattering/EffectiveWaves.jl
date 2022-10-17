@@ -1,3 +1,5 @@
+# NOTE: when checking against the literature, we find the same values for the PercusYevick approxiation, but do not find the same values for our method for the MonteCarloPairCorrelation
+
 using EffectiveWaves, Test
 using LinearAlgebra
 
@@ -8,14 +10,13 @@ using LinearAlgebra
     # choose the type of pair correlation
     pairtype = PercusYevick(3; rtol = 1e-3, meshsize = 0.05, maxlength = 250)
 
-    pairtype_mc = MonteCarloPairCorrelation(3; rtol = 1e-3, meshsize = 0.2, maxlength = 250, iterations = 550)
-    # pairtype = MonteCarloPairCorrelation(3; rtol = 1e-3, meshsize = 0.09, maxlength = 250, iterations = 150)
+    # pairtype_mc = MonteCarloPairCorrelation(3; rtol = 1e-3, meshsize = 0.2, maxlength = 250, iterations = 550)
+    pairtype_mc = MonteCarloPairCorrelation(3; rtol = 1e-3, maxlength = 250, iterations = 10)
 
     s = Specie(
         Acoustic(3; ρ = 10.0, c = 10.0),
         Sphere(1.0),
-        # volume_fraction = 0.15,
-        volume_fraction = 0.05,
+        volume_fraction = 0.15,
         seperation_ratio = 1.0
     );
 
@@ -25,19 +26,42 @@ using LinearAlgebra
     # Note that the volume fraction achieved with the MonteCarlo approach is not exactly the same as the one requested
     vol_mc = micro_mc.paircorrelations[1].number_density * volume(s)
 
+    # PercusYevick only seems to match when using a lower volume fraction. We have yet to determine why.
+
     s_py = Specie(
         Acoustic(3; ρ = 10.0, c = 10.0),
         Sphere(1.0),
         volume_fraction = vol_mc,
-        # volume_fraction = 0.12,
         seperation_ratio = 1.0
     );
     micro = Microstructure(s_py, pairtype);
 
-    using Plots
 
-    plot(micro.paircorrelations[1].r, micro.paircorrelations[1].dp)
-    plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].dp)
+    # s_py = Specie(
+    #     Acoustic(3; ρ = 10.0, c = 10.0),
+    #     Sphere(0.5),
+    #     number_density = 0.59,
+    #     # volume_fraction = 0.5 * 4pi/(3*8),
+    #     seperation_ratio = 1.0
+    # );
+
+    # Rls = sqrt.(1 .+ 0.07 .* (0:60))
+    # Rls = sqrt.(1 .+ 0.02 .* (0:60))
+    # distances = sqrt.(circshift(Rls,-1).^2 ./ 2 + Rls.^2 ./ 2)
+    # distances = distances[1:end-1]
+    #
+    # dpc = DiscretePairCorrelation(s_py,distances, pairtype)
+    # dpc.dp
+    #
+    # using Plots
+    # plot(dpc.r, dpc.dp .+ 1.0)
+    # plot!(xlims = (0.95,1.3))
+
+
+    # using Plots
+    #
+    # plot(micro.paircorrelations[1].r, micro.paircorrelations[1].dp)
+    # plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].dp)
 
     length(micro.paircorrelations[1].dp)
 
