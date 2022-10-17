@@ -211,7 +211,7 @@ function DiscretePairCorrelation(s::Specie{Dim}, distances::AbstractVector{T}, p
     l = (vol)^(1/Dim)
 
     # NOTE: when calling random_particles, the region specified will completely contain the whole of all particles. However, to better align with the theory, we need to use the region containing the particle centres, which leeds to the correction below.
-    la = l + a
+    la = l + 2a
 
     zs = zeros(T,Dim)
     region_shape = Box(zs .+ la)
@@ -228,6 +228,7 @@ function DiscretePairCorrelation(s::Specie{Dim}, distances::AbstractVector{T}, p
         );
 
         # using the cookie cutter method to keep only the particles slightly away from the boundary where particles concentrate.
+        # ps = filter(p -> p ⊆ region_shape, ps);
         particle_centres = origin.(filter(p -> p ⊆ region_shape, ps));
 
         DiscretePairCorrelation(particle_centres, distances, pairtype;
@@ -266,7 +267,6 @@ function DiscretePairCorrelation(particle_centres::Vector{v} where v <: Abstract
         region_particle_centres::Shape = Box(zeros(Dim))
     ) where {T, Dim}
 
-    N = length(distances)
 
     p2s = particle_centres
 
@@ -279,10 +279,12 @@ function DiscretePairCorrelation(particle_centres::Vector{v} where v <: Abstract
 
         c = (xmin + xmax)[:] ./ 2.0;
         dims = (xmax - xmin)[:];
-        region_particle_centres = Box(c,dims)
+        outer_box = Box(c,dims)
+
     else
         dims = region_particle_centres.dimensions
         c = origin(region_particle_centres)
+        outer_box = region_particle_centres
     end
     inner_box = Box(c,dims .- 2 * maximum_distance)
 
@@ -292,6 +294,7 @@ function DiscretePairCorrelation(particle_centres::Vector{v} where v <: Abstract
         @error "There are only $(length(p1s)) particles in the feasible region. This is not enough to calculate the pair-correlation. To increase this number, and get a more accurate result, try: 1) increasing the number of particles or 2) using a shorter distance for the pair-correlation"
     end
 
+    N = length(distances)
     bins = zeros(N);
 
     for p1 in p1s, p2 in p2s
@@ -308,8 +311,10 @@ function DiscretePairCorrelation(particle_centres::Vector{v} where v <: Abstract
     J1 = length(p1s)
     J2 = length(p2s)
 
-    numdensity = J2 / volume(region_particle_centres)
-    scaling = (1 / ((2 * (Dim - 1)) * pi * dz)) * J2 / ((J2 - 1) * J1 * numdensity)
+    numdensity = J2 / volume(outer_box)
+
+    # scaling = (1 / ((2 * (Dim - 1)) * pi * dz)) * J2 / ((J2 - 1) * J1 * numdensity)
+    scaling = (1 / ((2 * (Dim - 1)) * pi * dz)) / (J1 * numdensity)
 
     dp = scaling .* bins ./ (distances .^(Dim - 1)) .- T(1)
 

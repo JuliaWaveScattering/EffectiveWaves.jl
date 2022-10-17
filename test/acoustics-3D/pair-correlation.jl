@@ -8,14 +8,14 @@ using LinearAlgebra
     # choose the type of pair correlation
     pairtype = PercusYevick(3; rtol = 1e-3, meshsize = 0.05, maxlength = 250)
 
-    pairtype = PercusYevick(3; rtol = 1e-3, meshsize = 0.05, maxlength = 250)
-    pairtype_mc = MonteCarloPairCorrelation(3; rtol = 1e-3, meshsize = 0.09, maxlength = 250, iterations = 150)
+    pairtype_mc = MonteCarloPairCorrelation(3; rtol = 1e-3, meshsize = 0.2, maxlength = 250, iterations = 550)
     # pairtype = MonteCarloPairCorrelation(3; rtol = 1e-3, meshsize = 0.09, maxlength = 250, iterations = 150)
 
     s = Specie(
         Acoustic(3; ρ = 10.0, c = 10.0),
         Sphere(1.0),
-        volume_fraction = 0.15,
+        # volume_fraction = 0.15,
+        volume_fraction = 0.05,
         seperation_ratio = 1.0
     );
 
@@ -23,20 +23,21 @@ using LinearAlgebra
     micro_mc = Microstructure(s, pairtype_mc);
 
     # Note that the volume fraction achieved with the MonteCarlo approach is not exactly the same as the one requested
-    micro_mc.paircorrelations[1].number_density * volume(s)
+    vol_mc = micro_mc.paircorrelations[1].number_density * volume(s)
 
-    # s = Specie(
-    #     Acoustic(3; ρ = 10.0, c = 10.0),
-    #     Sphere(1.0),
-    #     volume_fraction = 0.123 ,
-    #     seperation_ratio = 1.0
-    # );
-    micro = Microstructure(s, pairtype);
+    s_py = Specie(
+        Acoustic(3; ρ = 10.0, c = 10.0),
+        Sphere(1.0),
+        volume_fraction = vol_mc,
+        # volume_fraction = 0.12,
+        seperation_ratio = 1.0
+    );
+    micro = Microstructure(s_py, pairtype);
 
     using Plots
 
     plot(micro.paircorrelations[1].r, micro.paircorrelations[1].dp)
-    plot!(micro_mc.paircorrelations[1].r, (micro_mc.paircorrelations[1].dp .+ 1) .* 0.96 .- 1.0)
+    plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].dp)
 
     length(micro.paircorrelations[1].dp)
 
