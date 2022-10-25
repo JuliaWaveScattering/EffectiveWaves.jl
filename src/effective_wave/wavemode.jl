@@ -129,7 +129,7 @@ function eigenvectors(ω::T, k_eff::Complex{T}, medium::PhysicalMedium, micro::M
     inds = findall(MM_svd.S .< tol)
 
     if isempty(inds)
-        @warn("No eigenvectors found with the tolerance tol = $tol. Will use only one eigenvector with the eigenvalue $(MM_svd.S[end]), which should be less than tol.")
+        @warn("No eigenvectors found with the tolerance tol = $tol. Will return only one eigenvector with the tolernace $(MM_svd.S[end])")
         inds = [length(MM_svd.S)]
     end
 

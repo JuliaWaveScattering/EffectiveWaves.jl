@@ -10,13 +10,14 @@ using LinearAlgebra
     # choose the type of pair correlation
     pairtype = PercusYevick(3; rtol = 1e-3, meshsize = 0.05, maxlength = 250)
 
-    # pairtype_mc = MonteCarloPairCorrelation(3; rtol = 1e-3, meshsize = 0.2, maxlength = 250, iterations = 550)
-    pairtype_mc = MonteCarloPairCorrelation(3; rtol = 1e-3, maxlength = 250, iterations = 10)
+    pairtype_mc = MonteCarloPairCorrelation(3; rtol = 1e-3, maxlength = 250, iterations = 300, numberofparticles = 1e4)
+    # pairtype_mc = MonteCarloPairCorrelation(3; rtol = 1e-3, maxlength = 250, meshsize = 0.1,iterations = 600)
 
     s = Specie(
         Acoustic(3; ρ = 10.0, c = 10.0),
-        Sphere(1.0),
-        volume_fraction = 0.15,
+        # Sphere(1.5),
+        Sphere(0.5),
+        volume_fraction = 0.2,
         seperation_ratio = 1.0
     );
 
@@ -30,8 +31,9 @@ using LinearAlgebra
 
     s_py = Specie(
         Acoustic(3; ρ = 10.0, c = 10.0),
-        Sphere(1.0),
+        Sphere(0.5),
         volume_fraction = vol_mc,
+        # volume_fraction = vol_mc*0.76,
         seperation_ratio = 1.0
     );
     micro = Microstructure(s_py, pairtype);
@@ -60,8 +62,23 @@ using LinearAlgebra
 
     # using Plots
     #
+    # # for vol = 5%
+    # # micro_mc5 = deepcopy(micro_mc)
     # plot(micro.paircorrelations[1].r, micro.paircorrelations[1].dp)
-    # plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].dp)
+    # plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].dp * 1.42,
+    # linestyle = :dash)
+    #
+    # # for vol = 10%
+    # plot(micro.paircorrelations[1].r, micro.paircorrelations[1].dp)
+    # plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].dp * 1.38)
+    #
+    # # for vol = 15%
+    # plot(micro.paircorrelations[1].r, micro.paircorrelations[1].dp)
+    # plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].dp * 1.38)
+    #
+    # # for vol = 20%
+    # plot(micro.paircorrelations[1].r, micro.paircorrelations[1].dp)
+    # plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].dp * 1.38)
 
     length(micro.paircorrelations[1].dp)
 

@@ -314,9 +314,11 @@ function DiscretePairCorrelation(particle_centres::Vector{v} where v <: Abstract
     numdensity = J2 / volume(outer_box)
 
     # scaling = (1 / ((2 * (Dim - 1)) * pi * dz)) * J2 / ((J2 - 1) * J1 * numdensity)
-    scaling = (1 / ((2 * (Dim - 1)) * pi * dz)) / (J1 * numdensity)
+    # scaling = (1 / ((2 * (Dim - 1)) * pi * dz)) / (J1 * numdensity)
+    scaling = (3 / ((Dim + 1) * pi)) / (J1 * numdensity)
 
-    dp = scaling .* bins ./ (distances .^(Dim - 1)) .- T(1)
+    # dp = scaling .* bins ./ (distances .^(Dim - 1)) .- T(1)
+    dp = scaling .* bins ./ ((distances .+ dz/2) .^ Dim - (distances .- dz/2) .^ Dim) .- T(1)
 
     return DiscretePairCorrelation(distances,dp; number_density = numdensity)
 
