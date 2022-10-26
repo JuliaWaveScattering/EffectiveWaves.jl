@@ -25,7 +25,7 @@ function Specie(p::AbstractParticle{Dim};
             @warn println("zero volume fraction or number density was chosen.")
     end
 
-    Specie{Dim,typeof(p)}(p, volume_fraction, seperation_ratio)
+    Specie{Dim,typeof(p)}(p, volume_fraction, exclusion_distance)
 end
 
 function Specie(medium::P,s::S; kws...) where {Dim,P<:PhysicalMedium{Dim},S<:Shape{Dim}}
