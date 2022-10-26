@@ -72,7 +72,7 @@ PairCorrelation(r::AbstractVector{T},dp::AbstractVector{T}) where T <: AbstractF
 function DiscretePairCorrelation(s1::Specie, s2::Specie)
     T = typeof(outer_radius(s1))
 
-    return DiscretePairCorrelation(T[],T[],zero(T))
+    return DiscretePairCorrelation(T[],T[])
 end
 
 
