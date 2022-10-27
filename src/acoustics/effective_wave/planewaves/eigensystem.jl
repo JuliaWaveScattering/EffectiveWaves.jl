@@ -14,13 +14,14 @@ end
 
 function eigensystem(ω::T, medium::Acoustic{T,2}, micro::ParticulateMicrostructure{2}, ::AbstractPlanarSymmetry;
         basis_order::Int = 2,
-        numberofparticles::Number = Inf,
-        kws...) where {T<:AbstractFloat}
+        # numberofparticles::Number = Inf,
+        kws...
+    ) where {T<:AbstractFloat}
 
     scale_number_density = one(T)
-    if numberofparticles > 1
-        scale_number_density = one(T) - one(T) / numberofparticles
-    end
+    # if numberofparticles > 1
+    #     scale_number_density = one(T) - one(T) / numberofparticles
+    # end
 
     k = ω / medium.c
     sps = micro.species
@@ -73,13 +74,14 @@ end
 function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostructure{3}, ::AbstractPlanarSymmetry;
         basis_order::Int = 2,
         direction_eff::Union{AbstractVector{T},AbstractVector{Complex{T}}} = [0.0,0.0,1.0],
-        numberofparticles::Number = Inf,
-        kws...) where {T<:AbstractFloat}
+        # numberofparticles::Number = Inf,
+        kws...
+    ) where {T<:AbstractFloat}
 
     scale_number_density = one(T)
-    if numberofparticles > 1
-        scale_number_density = one(T) - one(T) / numberofparticles
-    end
+    # if numberofparticles > 1
+    #     scale_number_density = one(T) - one(T) / numberofparticles
+    # end
 
     species = micro.species
 
@@ -144,13 +146,13 @@ end
 
 function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostructure{3}, ::PlanarAzimuthalSymmetry{3};
         basis_order::Int = 2,
-        numberofparticles::Number = Inf,
+        # numberofparticles::Number = Inf,
         kws...) where {T<:AbstractFloat}
 
     scale_number_density = one(T)
-    if numberofparticles > 1
-        scale_number_density = one(T) - one(T) / numberofparticles
-    end
+    # if numberofparticles > 1
+    #     scale_number_density = one(T) - one(T) / numberofparticles
+    # end
 
     species = micro.species
 

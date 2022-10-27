@@ -11,7 +11,7 @@ scattering_field
 function WaveModes(ω::T, source::AbstractSource, material::Material{Dim,S}; kws...) where {T,Dim,S<:Shape{Dim}} # without the parametric types we get a "Unreachable reached" error
 
     # The wavenumbers are calculated without knowledge of the materail symmetry. This is because the plane-wave symmetry leads to all possible wavenumbers and is simple to calculate.
-    k_effs = wavenumbers(ω, source.medium, material.microstructure; numberofparticles = material.numberofparticles, kws... )
+    k_effs = wavenumbers(ω, source.medium, material.microstructure; kws... )
 
     # The wavemodes need to know the material symmetry as the eigenvectors do depend on material shape and symetry.
     wave_effs = [
@@ -79,13 +79,9 @@ function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, 
     return [mode1,mode2]
 end
 
-# eigensystem(ω::T, source::AbstractSource, material::Material; kws...) where T<:AbstractFloat = eigensystem(ω, source.medium, material.microstructure, Symmetry(source,material); numberofparticles = material.numberofparticles, kws...)
-
-
 function solve_boundary_condition(ω::T, wavenumber::Complex{T}, eigvectors::Array, source::AbstractSource, material::Material; kws...) where T
     return solve_boundary_condition(ω, wavenumber, eigvectors, source, material, Symmetry(source,material); kws...)
 end
-
 
 function solve_boundary_condition(ω::T, wavenumber::Complex{T}, eigvectors1::Array, eigvectors2::Array, source::AbstractSource, material::Material; kws...) where T
     return solve_boundary_condition(ω, wavenumber, eigvectors1, eigvectors2, source, material, Symmetry(source,material); kws...)
@@ -100,7 +96,6 @@ convert_eigenvector_basis(medium::PhysicalMedium,sym::AbstractSymmetry,eigvecs::
 
 function eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource, material::Material; kws...) where T<:AbstractFloat
     eigenvectors(ω, k_eff::Complex{T}, source.medium, material.microstructure, Symmetry(source,material);
-        numberofparticles = material.numberofparticles,
         kws...
     )
 end

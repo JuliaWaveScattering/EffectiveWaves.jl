@@ -15,7 +15,7 @@ wavenumber_low_volumefraction(ωs::AbstractVector{<:Number}, medium::PhysicalMed
 Explicit formula for one effective wavenumber based on a low particle volume fraction expansion.
 """
 function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostructure{3};
-        basis_order::Int = 2, verbose::Bool = true, numberofparticles::T = Inf
+        basis_order::Int = 2, verbose::Bool = true #, numberofparticles::T = Inf
     ) where T
 
     species = micro.species
@@ -28,8 +28,8 @@ function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,3}, micro::Part
     k = ω / medium.c
 
     # total particle number density
-    scale_number_density = one(T) - one(T) / numberofparticles
-    bar_numdensity = scale_number_density * sum(number_density.(species))
+    scale_number_density = one(T)
+    bar_numdensity = sum(number_density.(species))
 
     Ts = get_t_matrices(medium, species, ω, basis_order)
 
@@ -59,7 +59,8 @@ function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,3}, micro::Part
 end
 
 function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,2}, micro::ParticulateMicrostructure{2};
-    basis_order::Int = 2, verbose::Bool = true, numberofparticles::T = Inf) where T
+        basis_order::Int = 2, verbose::Bool = true #, numberofparticles::T = Inf
+    ) where T
 
     species = micro.species
     volfrac = volume_fraction(species)
@@ -68,7 +69,7 @@ function wavenumber_low_volumefraction(ω::T, medium::Acoustic{T,2}, micro::Part
     end
 
     # total particle number density
-    scale_number_density = one(T) - one(T) / numberofparticles
+    scale_number_density = one(T)
     bar_numdensity = scale_number_density * sum(number_density.(species))
 
     # Add incident wavenumber

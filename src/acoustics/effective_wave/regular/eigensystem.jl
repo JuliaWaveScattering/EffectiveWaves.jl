@@ -2,10 +2,10 @@
 function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostructure{3}, ::WithoutSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
-        numberofparticles::Number = Inf,
+        # numberofparticles::Number = Inf,
         kws...) where T<:AbstractFloat
 
-    scale_number_density = one(T) - one(T) / numberofparticles
+    scale_number_density = one(T)
 
     k = ω/medium.c
     sps = micro.species
@@ -76,10 +76,10 @@ end
 function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostructure{3}, ::AbstractAzimuthalSymmetry;
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
-        numberofparticles::Number = Inf,
+        # numberofparticles::Number = Inf,
         kws...) where T<:AbstractFloat
 
-    scale_number_density = one(T) - one(T) / numberofparticles
+    scale_number_density = one(T)
 
     k = ω/medium.c
     sps = micro.species

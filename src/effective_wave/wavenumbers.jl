@@ -11,7 +11,6 @@ wavenumbers(ω::Number, medium::PhysicalMedium, species::Species; kws...) = wave
 
 function wavenumbers(ω::Number, source::AbstractSource, material::Material{Dim,S}; kws...) where {Dim,S<:Shape{Dim}}
     return wavenumbers(ω, source.medium, material.microstructure;
-        numberofparticles = material.numberofparticles,
         # symmetry = Symmetry(source,material),
         kws...
     )

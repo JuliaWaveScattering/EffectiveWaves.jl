@@ -41,7 +41,6 @@ end
 struct HoleCorrection <: PairCorrelationType
 end
 
-
 """
     DiscretePairCorrelation
 

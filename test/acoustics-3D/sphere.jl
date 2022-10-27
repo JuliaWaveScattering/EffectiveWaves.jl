@@ -316,15 +316,14 @@ end
     region_shape = Sphere([0.0,0.0,0.0], R)
     material = Material(Sphere(R),species);
 
-    eff_medium = effective_medium(medium, species; numberofparticles = material.numberofparticles)
+    eff_medium = effective_medium(medium, species)
     ks_low = ωs ./ eff_medium.c
 
     keff_arr = [
         wavenumbers(ωs[i], medium, species;
             # num_wavenumbers = 4,
             basis_order = basis_orders[i],
-            tol = 1e-7,
-            numberofparticles = material.numberofparticles
+            tol = 1e-7
         )
     for i in eachindex(ωs)]
 
@@ -455,7 +454,7 @@ end
 
     @test minimum(mean.(errors)) < 1e-4
     @test maximum(mean.(errors)) < 1e-3
-    @test maximum(maximum.(errors)) < 2e-3
+    @test maximum(maximum.(errors)) < 3e-3
 
     mat_coefs_radial = material_scattering_coefficients.(wavemodes_radial);
 

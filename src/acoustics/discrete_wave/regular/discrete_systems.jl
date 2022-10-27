@@ -29,8 +29,8 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
     end
 
     s1 = material.microstructure.species[1]
-    scale_number_density = one(T) - one(T) / material.numberofparticles
-    bar_numdensity(x1,s1) = scale_number_density * numdensity(x1,s1)
+    # scale_number_density = one(T) - one(T) / material.numberofparticles
+    bar_numdensity(x1,s1) = numdensity(x1,s1) # * scale_number_density
 
     R = outer_radius(material.shape)
 
@@ -200,8 +200,8 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
     s1 = material.microstructure.species[1]
     a12 = 2.0 * s1.seperation_ratio * outer_radius(s1);
 
-    scale_number_density = one(T) - one(T) / material.numberofparticles
-    bar_numdensity(x1,s1) = scale_number_density * numdensity(x1,s1)
+    # scale_number_density = one(T) - one(T) / material.numberofparticles
+    bar_numdensity(x1,s1) = numdensity(x1,s1)
 
     R = outer_radius(material.shape)
 
@@ -359,8 +359,8 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
     end
 
     s1 = material.microstructure.species[1]
-    scale_number_density = one(T) - one(T) / material.numberofparticles
-    bar_numdensity(x1,s1) = scale_number_density * numdensity(x1,s1)
+    # scale_number_density = one(T) - one(T) / material.numberofparticles
+    bar_numdensity(x1,s1) = numdensity(x1,s1)
 
     a12 = 2.0 * s1.seperation_ratio * outer_radius(s1)
     R = outer_radius(material.shape)

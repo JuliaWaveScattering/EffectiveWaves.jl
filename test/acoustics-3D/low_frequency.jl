@@ -38,14 +38,13 @@ opts = Dict(
 AP_kps = [
     wavenumbers(ω, medium, species;
         symmetry = PlanarAzimuthalSymmetry(),
-        numberofparticles = material.numberofparticles,
         opts...
     )
 for ω in ωs]
 
 k_effs = [kps[1] for kps in AP_kps]
 
-eff_medium = effective_medium(medium, species; numberofparticles = material.numberofparticles)
+eff_medium = effective_medium(medium, species)
 
 k_lows = ωs ./ eff_medium.c
 
@@ -68,7 +67,8 @@ effective_sphere = Particle(eff_medium, material_low.shape)
 Linc = basis_field_order + basis_order;
 
 # I can not work out theoretically why this scale_number_density should be needed below.
-scale_number_density = 1.0 - 1.0 / material.numberofparticles
+# scale_number_density = 1.0 - 1.0 / material.numberofparticles
+scale_number_density = 1.0
 
 errs =  map(eachindex(ωs)) do i
     source_coefficients =  regular_spherical_coefficients(source)(Linc,zeros(3),ωs[i])
@@ -99,12 +99,12 @@ end
         :tol => tol, :num_wavenumbers => 2,
         :mesh_size => 2.0, :mesh_points => 10,
         :basis_order => basis_order, :basis_field_order => basis_field_order
-        , :numberofparticles => material.numberofparticles
+        # , :numberofparticles => material.numberofparticles
     );
 
     kps = wavenumbers(ωs[1], medium, species; symmetry = PlanarAzimuthalSymmetry(), opts...)
 
-    eff_medium = effective_medium(medium, species; numberofparticles = material.numberofparticles)
+    eff_medium = effective_medium(medium, species)
     k_low = ωs[1] / eff_medium.c
 
     @test abs(kps[1] - k_low) / abs(k_low) < 1e-10
@@ -115,7 +115,8 @@ end
     )
 
     # I can not work out theoretically why this scale_number_density should be needed below. However, numerically it clearer is needed.
-    scale_number_density = 1.0 - 1.0 / material.numberofparticles
+    # scale_number_density = 1.0 - 1.0 / material.numberofparticles
+    scale_number_density = 1.0
     scat_azi = material_scattering_coefficients(wavemode);
 
     r = maximum(outer_radius.(species))

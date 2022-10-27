@@ -16,7 +16,7 @@ function discrete_system_residue(discrete_coefs, ω::T, source::AbstractSource{A
     end
 
     s1 = material.microstructure.species[1]
-    scale_number_density = one(T) - one(T) / material.numberofparticles
+    scale_number_density = one(T)
     bar_numdensity = scale_number_density * number_density(s1)
 
     R = outer_radius(material.shape)

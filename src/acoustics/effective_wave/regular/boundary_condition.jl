@@ -8,7 +8,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     # source_basis_field_order is often chosen so that there is the same number of source coefficients a_n as the number of unknowns α_n
     # Before was: source_basis_field_order = min(basis_field_order,Int(round(sqrt(size(eigvectors)[end])))) - 1
 
-    scale_number_density = one(T) - one(T) / material.numberofparticles
+    scale_number_density = one(T)
 
     k = ω / source.medium.c
 
@@ -101,7 +101,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     k = ω / source.medium.c
 
-    scale_number_density = one(T) - one(T) / material.numberofparticles
+    scale_number_density = one(T)
     species = material.microstructure.species
     S = length(species)
     rs = outer_radius.(species)
@@ -202,7 +202,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     k = ω / source.medium.c
 
-    scale_number_density = one(T) - one(T) / material.numberofparticles
+    scale_number_density = one(T)
     species = material.microstructure.species
     S = length(species)
     rs = outer_radius.(species)
