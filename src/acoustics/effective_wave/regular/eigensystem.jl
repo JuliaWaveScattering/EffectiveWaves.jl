@@ -34,7 +34,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
 
         (m == dm && l == dl && m1 == m2 && l1 == l2 && s1 == s2 ? 1.0 : 0.0) +
         if minl3 <= maxl3
-            as[s1,s2] * scale_number_density * number_density(sps[s2]) * t_diags[s1][len(l)] *
+            scale_number_density * number_density(sps[s2]) * t_diags[s1][len(l)] *
             sum(l3 ->
                 gaunt_coefficient(l,m,dl,dm,l3,m1-m2) *
                 gaunt_coefficient(l1,m1,l2,m2,l3,m1-m2) * Ns[l3+1,s1,s2]
@@ -47,12 +47,12 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
     function MM(keff::Complex{T})::Matrix{Complex{T}}
 
         Ns = [
-            kernelN3D(l3,k*as[s1,s2],keff*as[s1,s2])
+            as[s1,s2] * kernelN3D(l3,k*as[s1,s2],keff*as[s1,s2])
         for l3 = 0:min(2L1,2L), s1 = 1:S, s2 = 1:S]
 
         # For a pair correlation which is not hole correction need to add a finite integral
         if length(micro.paircorrelations[1].r) > 1
-            Ns = Ns + kernelW3D(k, keff, pair_rs, gs, hks, basis_order)
+            Ns = Ns - kernelW3D(k, keff, pair_rs, gs, hks, basis_order)
         end
 
         Ns = Ns ./  (keff^2.0 - k^2.0)
@@ -110,7 +110,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
 
         (m == dm && l == dl && l1 == l2 && s1 == s2 ? 1.0 : 0.0) +
         if minl3 <= maxl3
-            as[s1,s2] * scale_number_density * number_density(sps[s2]) * t_diags[s1][len(l)] *
+            scale_number_density * number_density(sps[s2]) * t_diags[s1][len(l)] *
             sum(l3 ->
                 gaunt_coefficient(l,m,dl,dm,l3,m-dm) *
                 gaunt_coefficient(l1,-dm,l2,-m,l3,m-dm) * Ns[l3+1,s1,s2]
@@ -123,12 +123,12 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
     # The order of the indices below is important
     function MM(keff::Complex{T})::Matrix{Complex{T}}
         Ns = [
-            kernelN3D(l3,k*as[s1,s2],keff*as[s1,s2])
+            as[s1,s2] * kernelN3D(l3,k*as[s1,s2],keff*as[s1,s2])
         for l3 = 0:min(2L1,2L), s1 = 1:S, s2 = 1:S]
 
         # For a pair correlation which is not hole correction need to add a finite integral
         if length(micro.paircorrelations[1].r) > 1
-            Ns = Ns + kernelW3D(k, keff, pair_rs, gs, hks, L)
+            Ns = Ns - kernelW3D(k, keff, pair_rs, gs, hks, L)
         end
 
         Ns = Ns ./ (keff^2.0 - k^2.0)

@@ -53,7 +53,7 @@ function eigensystem(ω::T, medium::Acoustic{T,2}, micro::ParticulateMicrostruct
 
         # For a pair correlation which is not hole correction need to add a finite integral
         if length(micro.paircorrelations[1].r) > 1
-            Ns = Ns + kernelW2D(k, keff, pair_rs, gs, hks, basis_order)
+            Ns = Ns - kernelW2D(k, keff, pair_rs, gs, hks, basis_order)
         end
 
         ind2 = 1
@@ -114,7 +114,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
 
     function M_component(keff::Complex{T},Ns::Array{Complex{T}},l::Int,m::Int,s1::Int,dl::Int,dm::Int,s2::Int)::Complex{T}
         (m == dm && l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
-        4pi * as[s1,s2] * scale_number_density * number_density(species[s2]) * t_diags[s1][baselen(l)] *
+        4pi * scale_number_density * number_density(species[s2]) * t_diags[s1][baselen(l)] *
         sum(
             Complex{T}(im)^(-l1) * Ys[lm_to_n(l1,dm-m)] * Ns[l1+1,s1,s2] *
             gaunt_coefficient(dl,dm,l,m,l1,dm-m)
@@ -122,11 +122,11 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
     end
 
     function MM(keff::Complex{T})::Matrix{Complex{T}}
-        Ns = [kernelN3D(l,k*as[s1,s2],keff*as[s1,s2]) for l = 0:2ho, s1 = 1:S, s2 = 1:S]
+        Ns = [as[s1,s2] * kernelN3D(l,k*as[s1,s2],keff*as[s1,s2]) for l = 0:2ho, s1 = 1:S, s2 = 1:S]
 
         # For a pair correlation which is not hole correction need to add a finite integral
         if length(micro.paircorrelations[1].r) > 1
-            Ns = Ns + kernelW3D(k, keff, pair_rs, gs, hks, ho)
+            Ns = Ns - kernelW3D(k, keff, pair_rs, gs, hks, ho)
         end
 
         ind2 = 1
@@ -178,7 +178,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
 
     function M_component(keff::Complex{T}, Ns::Array{Complex{T}},l,s1,dl,s2)::Complex{T}
         (l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
-        4pi * as[s1,s2] * scale_number_density * number_density(species[s2]) * t_diags[s1][baselen(l)] *
+        4pi * scale_number_density * number_density(species[s2]) * t_diags[s1][baselen(l)] *
         sum(
             Complex{T}(im)^(-l1) * sqrt((2*l1+1)/(4pi) ) * Ns[l1+1,s1,s2] *
             gaunt_coefficient(dl,0,l,0,l1,0)
@@ -188,12 +188,12 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
     function MM(keff::Complex{T})::Matrix{Complex{T}}
 
         Ns = [
-            kernelN3D(l,k*as[s1,s2],keff*as[s1,s2])
+            as[s1,s2] * kernelN3D(l,k*as[s1,s2],keff*as[s1,s2])
         for l = 0:2ho, s1 = 1:S, s2 = 1:S]
 
         # For a pair correlation which is not hole correction need to add a finite integral
         if length(micro.paircorrelations[1].r) > 1
-            Ns = Ns + kernelW3D(k, keff, pair_rs, gs, hks, basis_order)
+            Ns = Ns - kernelW3D(k, keff, pair_rs, gs, hks, basis_order)
         end
 
         ind2 = 1

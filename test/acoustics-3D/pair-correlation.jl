@@ -39,11 +39,6 @@ using LinearAlgebra
     );
     micro = Microstructure(s_py, pairtype);
 
-    # using Plots
-    # plot(micro.paircorrelations[1].r, micro.paircorrelations[1].dp .+ 1.0)
-    # plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].dp .+ 1.0)
-    # plot!(xlims = (0.95,1.3))
-
     ω = 1.2
     basis_order = 1
     basis_field_order = 3
@@ -78,6 +73,9 @@ using LinearAlgebra
     # and then the outward spherical wave coefficients
     scat_coefficients_py = material_scattering_coefficients(wave_py)
     scat_coefficients = material_scattering_coefficients(wave)
+
+
+## Test for a sphere and compare with the integral method    
 
 end
 

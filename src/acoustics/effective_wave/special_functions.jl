@@ -64,8 +64,8 @@ function precalculate_pair_correlations(micro::Microstructure{3}, k::Union{T,Com
 
     hks =  [shankelh1.(l, k .* pair_rs) for l in 0:(2basis_order+1)]
 
+    # calculate average of dp between pair_rs[j] and pair_rs[j+1]
     gs = map(micro.paircorrelations) do p
-        # calculate segments of integrals between r_j and r_j+1
         (circshift(p.dp,-1) + p.dp)[1:end-1] ./ 2
     end
 
