@@ -41,8 +41,8 @@ function eigensystem(ω::T, medium::Acoustic{T,2}, micro::ParticulateMicrostruct
         pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
     end
 
-    function M_component(keff,Ns,j,l,m,n)
-        (n == m ? 1.0 : 0.0)*(j == l ? 1.0 : 0.0) + 2.0pi * scale_number_density * number_density(sps[l]) * t_matrices[l][m+ho+1,m+ho+1] * Ns[n-m + 2ho+1,j,l] / (keff^2.0 - k^2.0)
+    function M_component(keff,Ns,s1,s2,m,n)
+        (n == m ? 1.0 : 0.0)*(s1 == s2 ? 1.0 : 0.0) + 2.0pi * scale_number_density * number_density(sps[s2]) * t_matrices[s1][m+ho+1,m+ho+1] * Ns[n-m + 2ho+1,s1,s2] / (keff^2.0 - k^2.0)
     end
 
     # this matrix is needed to calculate the eigenvectors
