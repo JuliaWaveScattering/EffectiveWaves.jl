@@ -39,7 +39,7 @@
 
     error = [
         begin
-            U1 = outgoing_translation_matrix(medium, basis_order, ω, r2x([r,θ,φ]))
+            U1 = outgoing_translation_matrix(medium, basis_order, basis_order, ω, r2x([r,θ,φ]))
             norm(Uinter(r2x([r,θ,φ])) - U1) / norm(U1)
         end
     for r in rs, θ in θs, φ in φs];

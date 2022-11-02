@@ -59,7 +59,7 @@ function discrete_system_residue(discrete_coefs, ω::T, source::AbstractSource{A
             if pair_corr(x1,s1,x2,s1) ≈ zero(T)
                 return zeros(Complex{T}, len)
             end
-            # U = outgoing_translation_matrix(medium, basis_order, ω, x1 - x2)
+            # U = outgoing_translation_matrix(medium, basis_order, basis_order, ω, x1 - x2)
             U = Uout(x1 - x2)
 
             U = U .* (bar_numdensity * pair_corr(x1,s1,x2,s1) * sin(rθφ[2]) * rθφ[1]^2)

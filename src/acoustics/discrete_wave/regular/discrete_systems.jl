@@ -549,11 +549,11 @@ function outgoing_translation_matrix(ω::T, medium::Acoustic{T,Dim}, material::M
         θs = LinRange(zero(T),T(pi),Nθs[end]);
 
         datax = [
-            outgoing_translation_matrix(medium, basis_order, ω, [x,zero(T),zero(T)])
+            outgoing_translation_matrix(medium, basis_order, basis_order, ω, [x,zero(T),zero(T)])
         for x in xs];
 
         dataθ = [
-            outgoing_translation_matrix(medium, basis_order, ω, rθφ2xyz(SVector(a12,θ,zero(T))))
+            outgoing_translation_matrix(medium, basis_order, basis_order, ω, rθφ2xyz(SVector(a12,θ,zero(T))))
         for θ in θs];
 
         CI1s = CartesianIndices(datax[1]);
@@ -610,7 +610,7 @@ function outgoing_translation_matrix(ω::T, medium::Acoustic{T,Dim}, material::M
     θs = LinRange(zero(T),T(pi),Nθ);
 
     data = [
-            outgoing_translation_matrix(medium, basis_order, ω, rθφ2xyz(SVector(r,θ,φ)))
+            outgoing_translation_matrix(medium, basis_order, basis_order, ω, rθφ2xyz(SVector(r,θ,φ)))
     for r in rs, θ in θs, φ in φs];
 
     # reorganise the data to interpolate each element of outgoing_translation_matrix in terms of x, y, z.
