@@ -26,10 +26,10 @@ using CSV
         Acoustic(3; ρ = 0.0, c = 0.0),
         Sphere(r),
         volume_fraction = φ / γ^3,
-        seperation_ratio = γ  # <---- changes the effective volume fraction
+        separation_ratio = γ  # <---- changes the effective volume fraction
     );
 
-    R = 2*outer_radius(s1) * s1.seperation_ratio
+    R = 2*outer_radius(s1) * s1.separation_ratio
 
     pairtype = PercusYevick(3; rtol=1e-3, maxevals = Int(2e5))
 
@@ -46,14 +46,14 @@ end
 
     particle_medium = Acoustic(3; ρ=0.0, c=0.0);
 
-    seperation_ratio = 1.01
+    separation_ratio = 1.01
 
     s1 = Specie(
-        particle_medium, Sphere(0.8), seperation_ratio = seperation_ratio
+        particle_medium, Sphere(0.8), separation_ratio = separation_ratio
     );
 
     # minimal distance between particle centres
-    a12 = 2.0 * s1.seperation_ratio * outer_radius(s1)
+    a12 = 2.0 * s1.separation_ratio * outer_radius(s1)
     R = 10.0
     polynomial_order = 40
 

@@ -87,7 +87,7 @@ end
     s1 = Specie(
         Acoustic(spatial_dim; ρ=10.2, c=10.1), Sphere(0.001);
         volume_fraction=0.15,
-        seperation_ratio = 1.567
+        separation_ratio = 1.567
     )
     species = [s1];
     basis_field_order = 3

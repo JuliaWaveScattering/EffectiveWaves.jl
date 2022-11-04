@@ -20,12 +20,12 @@
     s1 = Specie(
         particle_medium, Sphere(r);
         number_density = vol_fraction / volume(Sphere(r)),
-        seperation_ratio = separation_ratio
+        separation_ratio = separation_ratio
     );
     species = [s1]
     material = Material(Sphere(R),species);
 
-    a12 = 2.0 * minimum(outer_radius(s) * s.seperation_ratio for s in material.microstructure.species)
+    a12 = 2.0 * minimum(outer_radius(s) * s.separation_ratio for s in material.microstructure.species)
 
     tol = 1e-2
 

@@ -126,7 +126,7 @@ function DiscretePairCorrelation(s1::Specie{Dim}, s2::Specie{Dim}, pairtype::Pai
     end
 
     a = (outer_radius(s1) + outer_radius(s2)) / 2
-    sep_ratio = (s1.seperation_ratio + s2.seperation_ratio) / 2
+    sep_ratio = (s1.separation_ratio + s2.separation_ratio) / 2
     numdensity = number_density(s1) + number_density(s2)
 
 
@@ -134,7 +134,7 @@ function DiscretePairCorrelation(s1::Specie{Dim}, s2::Specie{Dim}, pairtype::Pai
     sm = Specie(
         Acoustic(Dim), radius1;
         number_density = numdensity,
-        seperation_ratio = sep_ratio
+        separation_ratio = sep_ratio
     );
 
     return DiscretePairCorrelation(sm, pairtype; kws...)
@@ -142,7 +142,7 @@ end
 
 function DiscretePairCorrelation(s::Specie{3}, distances::AbstractVector{T}, pairtype::PercusYevick{3}) where T
 
-    R = 2 * outer_radius(s) * s.seperation_ratio
+    R = 2 * outer_radius(s) * s.separation_ratio
     numdensity = number_density(s)
 
     rtol = pairtype.rtol;
@@ -204,7 +204,7 @@ function DiscretePairCorrelation(s::Specie{Dim}, distances::AbstractVector{T}, p
 
     numdensity = number_density(s)
     a = outer_radius(s)
-    R = 2a * s.seperation_ratio
+    R = 2a * s.separation_ratio
 
     vol = pairtype.numberofparticles / numdensity
     l = (vol)^(1/Dim)
@@ -223,7 +223,7 @@ function DiscretePairCorrelation(s::Specie{Dim}, distances::AbstractVector{T}, p
 
     dpcs = map(1:pairtype.iterations) do i
         ps = random_particles(s.particle.medium, s.particle.shape, large_region_shape, large_N;
-            separation_ratio = s.seperation_ratio
+            separation_ratio = s.separation_ratio
         );
 
         # using the cookie cutter method to keep only the particles slightly away from the boundary where particles concentrate.
@@ -248,7 +248,7 @@ function DiscretePairCorrelation(s::Specie{Dim}, distances::AbstractVector{T}, p
 end
 
 function hole_correction_pair_correlation(x1::AbstractVector{T},s1::Specie, x2::AbstractVector{T},s2::Specie) where T <: Number
-    overlapping = norm(x1 - x2) > outer_radius(s1) * s1.seperation_ratio + outer_radius(s2) * s2.seperation_ratio
+    overlapping = norm(x1 - x2) > outer_radius(s1) * s1.separation_ratio + outer_radius(s2) * s2.separation_ratio
 
     return  overlapping ? one(T) : zero(T)
 end

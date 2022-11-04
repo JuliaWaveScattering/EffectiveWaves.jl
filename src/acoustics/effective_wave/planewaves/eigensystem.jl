@@ -34,7 +34,7 @@ function eigensystem(ω::T, medium::Acoustic{T,2}, micro::ParticulateMicrostruct
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     as = [
-        s1.seperation_ratio * outer_radius(s1) + s2.seperation_ratio * outer_radius(s2)
+        s1.separation_ratio * outer_radius(s1) + s2.separation_ratio * outer_radius(s2)
     for s1 in sps, s2 in sps]
 
     if length(micro.paircorrelations[1].r) > 1
@@ -105,7 +105,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
     baselen(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
 
     as = [
-        s1.seperation_ratio * outer_radius(s1) + s2.seperation_ratio * outer_radius(s2)
+        s1.separation_ratio * outer_radius(s1) + s2.separation_ratio * outer_radius(s2)
     for s1 in species, s2 in species]
 
     if length(micro.paircorrelations[1].r) > 1
@@ -126,7 +126,8 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
 
         # For a pair correlation which is not hole correction need to add a finite integral
         if length(micro.paircorrelations[1].r) > 1
-            Ns = Ns - kernelW3D(k, keff, pair_rs, gs, hks, ho)
+            # Ns = Ns - kernelW3D(k, keff, pair_rs, gs, hks, ho)
+            Ns = Ns - kernelW3D(k, keff, micro.paircorrelations, ho)
         end
 
         ind2 = 1
@@ -167,7 +168,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
     baselen(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
 
     as = [
-        s1.seperation_ratio * outer_radius(s1) + s2.seperation_ratio * outer_radius(s2)
+        s1.separation_ratio * outer_radius(s1) + s2.separation_ratio * outer_radius(s2)
     for s1 in species, s2 in species]
 
     # Pre calculations for pair correlation

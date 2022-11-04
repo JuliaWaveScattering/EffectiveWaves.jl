@@ -10,7 +10,7 @@ function discrete_wave_system(ω::T, X::AbstractVector{T}, source::PlaneSource{T
     t_vec = t_matrix(specie, source.medium, ω, basis_order)
 
     k = real(ω / source.medium.c)
-    a12k = specie.seperation_ratio * T(2)*real(k * outer_radius(specie));
+    a12k = specie.separation_ratio * T(2)*real(k * outer_radius(specie));
     M = basis_order;
 
     θin = transmission_angle(source,material)

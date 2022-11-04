@@ -5,20 +5,20 @@ Represents a set of particles which are all the same. The type of particle is gi
 
 We can use `Specie.numberofparticles` to specify the number of particles, otherwise for an infinite `Specie.numberofparticles = Inf`.
 
-The minimum distance between any two particles will equal `outer_radius(Specie) * Specie.seperation_ratio`.
+The minimum distance between any two particles will equal `outer_radius(Specie) * Specie.separation_ratio`.
 """
 struct Specie{Dim,P<:AbstractParticle{Dim}}
     particle::P
     volume_fraction::Float64
-    seperation_ratio::Float64
+    separation_ratio::Float64
 end
 
 # Convenience constructor which does not require explicit types/parameters
 function Specie(p::AbstractParticle{Dim};
         number_density::AbstractFloat = 0.0,
         volume_fraction::AbstractFloat = number_density * volume(p),
-        seperation_ratio::AbstractFloat = 1.005,
-        exclusion_distance::AbstractFloat = seperation_ratio
+        separation_ratio::AbstractFloat = 1.005,
+        exclusion_distance::AbstractFloat = separation_ratio
     ) where Dim
 
     if number_density == 0.0 && volume_fraction == 0.0
@@ -60,7 +60,7 @@ number_density(s::Specie) = s.volume_fraction / volume(s)
 number_density(ss::Species) = sum(number_density.(ss))
 
 outer_radius(s::Specie) = outer_radius(s.particle)
-exclusion_distance(s::Specie) = outer_radius(s) * s.seperation_ratio
+exclusion_distance(s::Specie) = outer_radius(s) * s.separation_ratio
 
 """
     ParticulateMicrostructure

@@ -16,7 +16,7 @@ function asymptotic_monopole_wavenumbers(ω::T, medium::Acoustic{T,2}, micro::Mi
     P = Int(round(num_wavenumbers / 2) + 1)
     k = ω / medium.c
 
-    b = mean(s1.seperation_ratio * outer_radius(s1) + s2.seperation_ratio * outer_radius(s2) for s1 in species, s2 in species)
+    b = mean(s1.separation_ratio * outer_radius(s1) + s2.separation_ratio * outer_radius(s2) for s1 in species, s2 in species)
     num_density = mean(number_density(s) for s in species)
 
     T0 = mean(t_matrix(s.particle, medium, ω, 0) for s in species)[1]
@@ -48,7 +48,7 @@ function asymptotic_monopole_wavenumbers(ω::T, medium::Acoustic{T,3}, micro::Mi
     P = Int(round(num_wavenumbers / 2) + 1)
     k = ω / medium.c
 
-    b = mean(s1.seperation_ratio * outer_radius(s1) + s2.seperation_ratio * outer_radius(s2) for s1 in species, s2 in species)
+    b = mean(s1.separation_ratio * outer_radius(s1) + s2.separation_ratio * outer_radius(s2) for s1 in species, s2 in species)
     num_density = mean(number_density(s) for s in species)
 
     T0 = mean(t_matrix(s.particle, medium, ω, 0) for s in species)[1]

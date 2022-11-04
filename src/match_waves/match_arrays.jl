@@ -7,7 +7,7 @@ function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T,2}}, L::
 
     species = material.microstructure.species
 
-    a12k = T(2)*real(species[1].seperation_ratio * outer_radius(species[1]) * ω / source.medium.c)
+    a12k = T(2)*real(species[1].separation_ratio * outer_radius(species[1]) * ω / source.medium.c)
 
     θin = transmission_angle(source,material)
     cos_in = dot(-conj(material.shape.normal), source.direction)

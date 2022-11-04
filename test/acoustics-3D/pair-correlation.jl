@@ -19,7 +19,7 @@ using LinearAlgebra
         # Sphere(1.5),
         Sphere(0.5),
         volume_fraction = 0.2,
-        seperation_ratio = 1.0
+        separation_ratio = 1.0
     );
 
     # Using Monte-carlo is far heavier
@@ -35,9 +35,11 @@ using LinearAlgebra
         Sphere(0.5),
         volume_fraction = vol_mc,
         # volume_fraction = vol_mc*0.76,  # <--- more accurate, but don't know why
-        seperation_ratio = 1.0
+        separation_ratio = 1.0
     );
     micro = Microstructure(s_py, pairtype);
+
+    # gs = [micro.paircorrelations[1], micro.paircorrelations[1]]
 
     ω = 1.2
     basis_order = 1
@@ -75,7 +77,7 @@ using LinearAlgebra
     scat_coefficients = material_scattering_coefficients(wave)
 
 
-## Test for a sphere and compare with the integral method    
+## Test for a sphere and compare with the integral method
 
 end
 

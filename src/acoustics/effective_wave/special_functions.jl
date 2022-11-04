@@ -12,6 +12,27 @@ function kernelN3D(n::Int,x::Union{T,Complex{T}},y::Union{T,Complex{T}}) where T
     return x * dh * j - y * h * dj
 end
 
+function kernelW3D(k::Union{T,Complex{T}}, keff::Complex{T}, gs::Vector{DP}, basis_order::Int) where {T<:AbstractFloat, DP <: DiscretePairCorrelation}
+
+    S = size(gs,1)
+    r = gs[1].r
+
+    σ = integration_scheme(r)
+
+    js = [
+        sbesselj.(l, keff .* r)
+    for l in 0:(2basis_order)]
+    hs = [
+        shankelh1.(l, k .* r)
+    for l in 0:(2basis_order)]
+
+    Ws = [
+        sum(js[l+1] .* hs[l+1] .* gs[i] .* r.^2 .* σ)
+    for l = 0:2basis_order, i in CartesianIndices(gs)]
+
+    return Ws
+end
+
 function kernelW3D(k::Union{T,Complex{T}}, keff::Complex{T}, pair_rs::AbstractVector{T}, gs::Matrix{V}, hks::AbstractVector{W}, basis_order::Int) where {T<:AbstractFloat, V<:AbstractVector{T}, W<:AbstractVector}
 
     S = size(gs,1)

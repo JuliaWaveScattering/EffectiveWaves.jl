@@ -17,7 +17,7 @@ s = Specie(
     Acoustic(3; ρ = 0.01, c = 0.01),
     Sphere(r),
     volume_fraction = 0.3,
-    seperation_ratio = 1.01
+    separation_ratio = 1.01
 );
 
 # output
