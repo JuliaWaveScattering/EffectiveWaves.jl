@@ -14,8 +14,8 @@ Together with [MultipleScattering.jl](https://github.com/JuliaWaveScattering/Mul
 
 ## Documentation
 
-- [**STABLE**][docs-stable-url] &mdash; **documentation of the most recently tagged version.**
-- [**DEVEL**][docs-dev-url] &mdash; *documentation of the in-development version.*
+- [**Stable**][docs-stable-url] &mdash; **documentation of the most recently tagged version.**
+- [**Develpment**][docs-dev-url] &mdash; *documentation of the in-development version.*
 
 ## More examples
 For more examples and details go to [docs/src/examples/](docs/src/examples/).
