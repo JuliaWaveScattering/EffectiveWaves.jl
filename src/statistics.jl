@@ -80,10 +80,10 @@ end
 
 Generates a DiscretePairCorrelation for the specie `s` by using the Percus-Yevick approximation. This distribution assumes particles are distributed accoriding to a random uniform distribution, and that particles can not overlap.
 """
-function DiscretePairCorrelation(s::Specie{Dim}, pairtype::PairCorrelationType;
+function DiscretePairCorrelation(s::Specie{Dim}, pairtype::PT;
         distances::AbstractVector{T} = Float64[],
         maximum_distance::T = 12exclusion_distance(s)
-    ) where {Dim,  T<:AbstractFloat}
+    ) where {Dim,  T<:AbstractFloat, PT <: PairCorrelationType}
 
     r1 = exclusion_distance(s)
 
@@ -92,8 +92,15 @@ function DiscretePairCorrelation(s::Specie{Dim}, pairtype::PairCorrelationType;
 
     automatic_dist = if isempty(distances)
         dr = pairtype.meshsize * r1
+
+        # For MonteCarlo calculations the mesh points are at the centre of the bins.
+        d1 = if PT <: MonteCarloPairCorrelation
+            R+dr/2
+        else R
+        end
+
         # the distances should be in the centre of the mesh element.
-        distances = (R+dr/2):dr:maximum_distance
+        distances = d1:dr:maximum_distance
         if length(distances) > pairtype.maxlength
             distances = distances[1:pairtype.maxlength]
         end
