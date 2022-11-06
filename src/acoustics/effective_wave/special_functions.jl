@@ -24,7 +24,7 @@ function kernelW3D(k::Union{T,Complex{T}}, keff::Complex{T}, ps::AbstractMatrix{
 
     Ws = [
         sum(js[l+1] .* hs[l+1] .* ps[i].dp .* r.^2 .* σ)
-    for l = 0:2basis_order, i in CartesianIndices(gs)]
+    for l = 0:2basis_order, i in CartesianIndices(ps)]
 
     return Ws
 end
