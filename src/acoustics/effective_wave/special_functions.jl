@@ -12,7 +12,7 @@ function kernelN3D(n::Int,x::Union{T,Complex{T}},y::Union{T,Complex{T}}) where T
     return x * dh * j - y * h * dj
 end
 
-function kernelW3D(k::Union{T,Complex{T}}, keff::Complex{T}, gs::AbstractMatrix{DP}, basis_order::Int) where {T<:AbstractFloat, DP <: DiscretePairCorrelation}
+function kernelW3D(k::Union{T,Complex{T}}, keff::Complex{T}, ps::AbstractMatrix{DP}, basis_order::Int) where {T<:AbstractFloat, DP <: DiscretePairCorrelation}
 
     S = size(gs,1)
     r = gs[1].r
@@ -23,7 +23,7 @@ function kernelW3D(k::Union{T,Complex{T}}, keff::Complex{T}, gs::AbstractMatrix{
     hs = [shankelh1.(l, k .* r) for l in 0:(2basis_order)]
 
     Ws = [
-        sum(js[l+1] .* hs[l+1] .* gs[i].dp .* r.^2 .* σ)
+        sum(js[l+1] .* hs[l+1] .* ps[i].dp .* r.^2 .* σ)
     for l = 0:2basis_order, i in CartesianIndices(gs)]
 
     return Ws

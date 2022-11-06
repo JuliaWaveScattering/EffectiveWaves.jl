@@ -58,13 +58,13 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{Dim}, micro::Microstruct
         function constraint(vec::Vector{T})
             local cons = zero(T)
             if vec[1] > max_Rek
-                cons = cons -one(T) + exp(T(10.0) * (vec[1] - max_Rek))
+                cons = cons - one(T) + exp(T(10.0) * (vec[1] - max_Rek))
             end
             if vec[1] < min_Rek
-                cons = cons -one(T) + exp(T(10.0) * (min_Rek - vec[1]))
+                cons = cons - one(T) + exp(T(10.0) * (min_Rek - vec[1]))
             end
             if vec[2] > max_Imk
-                cons = cons -one(T) + exp(T(10.0) * (vec[2] - max_Imk))
+                cons = cons - one(T) + exp(T(10.0) * (vec[2] - max_Imk))
             end
 
             return cons

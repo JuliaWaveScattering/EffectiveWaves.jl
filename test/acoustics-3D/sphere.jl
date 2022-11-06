@@ -276,14 +276,17 @@ end
 
 ## Set parameters
     particle_medium = Acoustic(3; ρ=10.0, c=10.0);
+    particle_medium = Acoustic(3; ρ=Inf, c=Inf)
     medium = Acoustic(3; ρ=1.0, c=1.0);
 
     R = 5.0
+    # R = 20.0
     r = 1.0
 
     separation_ratio = 1.02
 
     kas = [0.01,0.2]
+    # kas = [0.4]
     ks = kas ./ r
 
     vol_fraction = 0.12
@@ -320,7 +323,7 @@ end
     ks_low = ωs ./ eff_medium.c
 
     keff_arr = [
-        wavenumbers(ωs[i], medium, species;
+        wavenumbers(ωs[i], medium, Microstructure(species);
             # num_wavenumbers = 4,
             basis_order = basis_orders[i],
             tol = 1e-7
@@ -383,7 +386,7 @@ end
     for i in eachindex(ωs)];
 
     @test errors[1] < 1e-4
-    @test errors[2] < 3e-3
+    @test errors[2] < 4e-3
 
 ## Radially symmetric scattering from a sphere
 
@@ -434,7 +437,9 @@ end
         )
     for i in eachindex(ωs)];
 
-    xs = [ radial_to_cartesian_coordinates([r,0.0,0.0]) for r in rs];
+    xs = [
+        radial_to_cartesian_coordinates([r,0.0,0.0])
+    for r in rs];
 
     eff_scats_azi = [s.(xs) for s in scat_fields_azi];
     eff_scats_radial = [s.(xs) for s in scat_fields_radial];
@@ -454,7 +459,7 @@ end
 
     @test minimum(mean.(errors)) < 1e-4
     @test maximum(mean.(errors)) < 1e-3
-    @test maximum(maximum.(errors)) < 3e-3
+    @test maximum(maximum.(errors)) < 4e-3
 
     mat_coefs_radial = material_scattering_coefficients.(wavemodes_radial);
 
@@ -466,8 +471,16 @@ end
     errors = norm.(mat_coefs_disc_radial - mat_coefs_radial) ./ norm.(mat_coefs_radial)
 
     @test errors[1] < 1e-5
-    @test errors[2] < 2e-3
+    @test errors[2] < 3e-3
 
+    Ys = spherical_harmonics(0, 0.0, 0.0);
+    u∞ = map(eachindex(ωs)) do i
+        sum((1/ks[i]) .* Ys[1] .* mat_coefs_radial[i][1] .* exp.(-(pi*im/2)))
+    end
+
+    ud∞ = map(eachindex(ωs)) do i
+        sum((1/ks[i]) .* Ys[1] .* mat_coefs_disc_radial[i][1] .* exp.(-(pi*im/2)))
+    end
 # Test the reduced radial discrete method
 
     pair_corr_inf(z) = hole_correction_pair_correlation([0.0,0.0,0.0],s1, [0.0,0.0,z],s1)

@@ -23,22 +23,22 @@ Returns all the possible effective wavenumbers with positive imaginary part. Thi
 """
 function wavenumbers(ω::T, medium::PhysicalMedium, micro::Microstructure;
         num_wavenumbers::Int = 2, tol::T = 1e-5,
-        max_Imk::T = T(2) + T(20) * imag(wavenumber_low_volumefraction(ω, medium, micro; verbose = false)),
+        # max_Imk::T = maximum(imag.(asymptotic_monopole_wavenumbers(ω, medium, micro; num_wavenumbers = num_wavenumbers + 3))),
         basis_order::Int = 3 * Int(round(maximum(outer_radius.(micro.species)) * ω / abs(medium.c) )) + 1,
         # max_Rek::T = T(2) + T(20) * abs(real(wavenumber_low_volumefraction(ω, medium, species; verbose = false))),
         kws...) where T<:Number
 
     # For very low attenuation, need to search close to assymptotic root with a path method.
+    # NOTE: oneof the key ingredients of these search methods are the estimates from the asymptotic results for monopole scatterers. We use these as initial guess and to determine the distance between roots.
     k_effs::Vector{Complex{T}} = wavenumbers_path(ω, medium, micro;
         num_wavenumbers = num_wavenumbers,
-        max_Imk = max_Imk, tol = tol,
+        tol = tol,
         basis_order = basis_order, kws...
     )
 
     # Take only the num_wavenumbers wavenumbers with the smallest imaginary part.
     k_effs = k_effs[1:num_wavenumbers]
 
-    # NOTE: these search methods would significantly improve if we used the asymptotic result for multiple wavenumbers and monopole scatterers. This would give a reasonable length scale for the mesh, and good estimates on where to start searching.
     if num_wavenumbers > 2
         # box_k = box_keff(ω, medium, species; tol = tol)
         # max_imag = max(3.0 * maximum(imag.(k_effs)), max_Imk)
@@ -46,7 +46,7 @@ function wavenumbers(ω::T, medium::PhysicalMedium, micro::Microstructure;
         # max_real = max(2.0 * maximum(real.(k_effs)), max_Rek)
 
         max_imag = maximum(imag.(k_effs))
-        max_real = maximum(real.(k_effs))
+        max_real = maximum(abs.(real.(k_effs)))
         box_k = [[-max_real,max_real], [0.0,max_imag]]
 
         k_effs2 = wavenumbers_bisection(ω, medium, micro;
@@ -55,7 +55,7 @@ function wavenumbers(ω::T, medium::PhysicalMedium, micro::Microstructure;
             basis_order = basis_order,
             kws...)
         k_effs = [k_effs; k_effs2]
-        k_effs = reduce_kvecs(k_effs, tol)
+        k_effs = reduce_kvecs(k_effs, sqrt(tol))
         k_effs = sort(k_effs, by = imag)
     end
 
