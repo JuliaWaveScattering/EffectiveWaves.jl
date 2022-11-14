@@ -75,6 +75,28 @@ function kernelW2D(k::Union{T,Complex{T}}, keff::Complex{T}, pair_rs::AbstractVe
     return Ws
 end
 
+function kernelW2D(k::Union{T,Complex{T}}, keff::Complex{T}, ps::AbstractMatrix{DP}, basis_order::Int) where {T<:AbstractFloat, DP <: DiscretePairCorrelation}
+
+    S = size(ps,1)
+    r = ps[1].r
+
+    σ = integration_scheme(r)
+
+    js = [
+        besselj.(m, keff .* r)
+    for m in -2basis_order:(2basis_order)]
+
+    hs = [
+        hankelh1.(m, k .* r)
+    for m in -2basis_order:(2basis_order)]
+
+    Ws = [
+        sum(js[l] .* hs[l] .* ps[i].dp .* r .* σ)
+    for l in eachindex(js), i in CartesianIndices(ps)]
+
+    return Ws
+end
+
 function precalculate_pair_correlations(micro::Microstructure{3}, k::Union{T,Complex{T}} where T, basis_order::Int)
 
     pair_rs = micro.paircorrelations[1].r
