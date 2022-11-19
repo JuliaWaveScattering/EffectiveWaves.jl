@@ -44,7 +44,7 @@ using EffectiveWaves, Test, LinearAlgebra
 
     plate_low = Plate(normal,width - 2r,[0.0,0.0,width/2])
     halfspace = Halfspace(normal)
-    halfspace_low = Halfspace(normal,halfspace.origin-r)
+    halfspace_low = Halfspace(normal,halfspace.origin .- r)
 
     # define a plane wave source travelling at a 45 degree angle in relation to the material
     # source = PlaneSource(medium, [cos(pi/4.0),0.0,sin(pi/4.0)])
