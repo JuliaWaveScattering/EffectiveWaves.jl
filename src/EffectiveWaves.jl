@@ -58,7 +58,7 @@ import Optim: simplexer
 # Heavy package
 # using ApproxFun: ApproxFun.(..), Fun, Segment, Domain, Chebyshev, DefiniteIntegral, LowRankFun, Interval
 
-using Interpolations: interpolate, BSpline, Cubic, Line, OnGrid, scale
+using Interpolations: interpolate, BSpline, Cubic, Line, OnGrid, scale, Linear, Gridded
 using HCubature: hcubature, hquadrature
 using ClassicalOrthogonalPolynomials: Legendre
 

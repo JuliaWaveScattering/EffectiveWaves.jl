@@ -12,7 +12,12 @@ using LinearAlgebra
     pairtype = PercusYevick(3; rtol = 1e-3, meshsize = 0.05, maxlength = 50)
 
     pairtype_mc = MonteCarloPairCorrelation(3; rtol = 1e-3, maxlength = 50, iterations = 1)
-    # pairtype_mc = MonteCarloPairCorrelation(3; rtol = 1e-3, maxlength = 250, meshsize = 0.1,iterations = 600)
+
+    # pmcs = [
+    #     MonteCarloPairCorrelation(3; rtol = 1e-3, maxlength = 50, meshsize = 0.1, iterations = 20, numberofparticles = 60000),
+    #     MonteCarloPairCorrelation(3; rtol = 1e-3, maxlength = 120, meshsize = 0.02,iterations = 200),
+    #     MonteCarloPairCorrelation(3; rtol = 1e-3, maxlength = 60, iterations = 2000, numberofparticles = 2000)
+    # ]
 
     s = Specie(
         Acoustic(3; ρ = 10.0, c = 10.0),
@@ -22,7 +27,6 @@ using LinearAlgebra
         separation_ratio = 1.0
     );
 
-    # Using Monte-carlo is far heavier
     micro_mc = Microstructure(s, pairtype_mc);
 
     # Note that the volume fraction achieved with the MonteCarlo approach is not exactly the same as the one requested

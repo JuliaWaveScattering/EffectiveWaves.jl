@@ -13,7 +13,7 @@ end
 
 documentation
 """
-function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::AbstractAzimuthalSymmetry{Dim};
+function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material::Material{Dim,Sphere{T,3}}, ::AbstractAzimuthalSymmetry{3};
         basis_order::Int = 1,
         basis_field_order::Int = 2,
         legendre_order::Int = basis_field_order + 1,
@@ -21,7 +21,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
         rtol::T = 1e-2,
         maxevals::Int = Int(2e4),
         numdensity = (x1, s1) -> number_density(s1),
-        pair_corr = hole_correction_pair_correlation
+        pair_corr = nothing
     ) where {T,Dim}
 
     if length(material.microstructure.species) > 1
@@ -29,6 +29,8 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
     end
 
     s1 = material.microstructure.species[1]
+    a12 = 2.0 * s1.separation_ratio * outer_radius(s1);
+
     # scale_number_density = one(T) - one(T) / material.numberofparticles
     bar_numdensity(x1,s1) = numdensity(x1,s1) # * scale_number_density
 
@@ -49,6 +51,33 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
 
     r1s = LinRange(0,R-outer_radius(s1), mesh_points)
     θ1s = LinRange(0,π, mesh_points)
+
+    # The user can give a more general pair_correlation of the form pair_corr(x1,s1,x2,s2), if this is not specified, then we use the discrete pair_correlation given in the material, otherwise hole_correction
+    if pair_corr == nothing
+        pair_rs = material.microstructure.paircorrelations[1].r
+        if pair_rs |> length > 1
+            dr_corr = abs(pair_rs[2] - pair_rs[1])
+            if dr_corr > abs(r1s[2] - r1s[1])
+                @warn "The mesh for the discrete pair paircorrelations: $(pair_rs) \n is coarser than the mesh used for the discrete system: $(r1s). The values for the pair correlation will be interpolated."
+            end
+            nodes = (pair_rs,)
+            pair_dp = interpolate(nodes, material.microstructure.paircorrelations[1].dp .+ T(1), Gridded(Linear()))
+
+            pair_inf(r) = if r < pair_rs[1]
+                T(0.0)
+            elseif r > pair_rs[end]
+                T(1.0)
+            else pair_dp(r)
+            end
+        else
+            pair_inf = r -> T(1)
+        end
+        pair_corr = (x1,s1,x2,s2) -> pair_inf(norm(x1 - x2))
+
+
+    elseif material.microstructure.paircorrelations[1].r |> length > 1
+        @error "A pair correlation was passed as an optional argument pair_corr and a discrete pair correlation was also present in $material. It is unclear which should be used."
+    end
 
     ls, ms = spherical_harmonics_indices(basis_order)
     azi_inds(m::Int) = lm_to_spherical_harmonic_index.(abs(m):basis_field_order,-m)
@@ -102,9 +131,10 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
 
         fun = function (rθφ::SVector{3,T})
             x2 = rθφ2xyz(rθφ)
-            if pair_corr(x1,s1,x2,s1) ≈ zero(T)
+            if norm(x1 - x2) < a12 || pair_corr(x1,s1,x2,s1) ≈ zero(T)
                 return Kzero
             end
+
             basis2 = field_basis(rθφ)
 
             U = Uout(x1 - x2)
@@ -180,7 +210,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, materia
         basis_field_order = basis_field_order
     )
 end
-
+# import EffectiveWaves: discrete_system
 function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::RadialSymmetry{3};
         basis_order::Int = 1,
         basis_field_order::Int = Int(round(T(2) * real(ω / source.medium.c) * outer_radius(material.shape))) + 1,
@@ -189,8 +219,8 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
         mesh_points::Int = 3 * (legendre_order + 1),
         rtol::T = 1e-2, ptol::T = 1e-2,
         maxevals::Int = Int(2e4),
-        numdensity = (x1, s1) -> number_density(s1),
-        pair_corr = hole_correction_pair_correlation
+        numdensity = (x1, s1) -> number_density(s1)
+        , pair_corr = nothing
     ) where T
 
     if length(material.microstructure.species) > 1
@@ -222,6 +252,32 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
     rθφ2xyz = radial_to_cartesian_coordinates
 
     r1s = LinRange(0,R-outer_radius(s1), mesh_points)
+
+    # The user can give a more general pair_correlation of the form pair_corr(x1,s1,x2,s2), if this is not specified, then we use the discrete pair_correlation given in the material, otherwise hole_correction
+    if pair_corr == nothing
+        pair_rs = material.microstructure.paircorrelations[1].r
+        if  pair_rs |> length > 1
+            dr_corr = abs(pair_rs[2] - pair_rs[1])
+            if dr_corr > abs(r1s[2] - r1s[1])
+                @warn "The mesh for the discrete pair paircorrelations: $(material.microstructure.paircorrelations[1].r) \n is coarser than the mesh used for the discrete system: $(r1s). The values for the pair correlation will be interpolated."
+            end
+            nodes = (pair_rs,)
+            pair_dp = interpolate(nodes, material.microstructure.paircorrelations[1].dp .+ T(1), Gridded(Linear()))
+
+            pair_inf(r) = if r < pair_rs[1]
+                T(0.0)
+            elseif r > pair_rs[end]
+                T(1.0)
+            else pair_dp(r)
+            end
+        else
+            pair_inf = r -> T(1)
+        end
+        pair_corr = (x1,s1,x2,s2) -> pair_inf(norm(x1 - x2))
+
+    elseif pair_rs |> length > 1
+        @error "A pair correlation was passed as an optional argument pair_corr and a discrete pair correlation was also present in $material. It is unclear which should be used."
+    end
 
     len = basis_order + 1
     len_p = legendre_order * len
@@ -256,7 +312,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
             if r1 + rθφ[1] < a12
                 return Kzero
             end
-            if pair_corr(x1,s1,x2,s1) < ptol || norm(x1 - x2) < a12
+            if norm(x1 - x2) < a12 || pair_corr(x1,s1,x2,s1) < ptol
                 return Kzero
             end
             basis2 = field_basis(rθφ)
@@ -359,8 +415,6 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
     end
 
     s1 = material.microstructure.species[1]
-    # scale_number_density = one(T) - one(T) / material.numberofparticles
-    bar_numdensity(x1,s1) = numdensity(x1,s1)
 
     a12 = 2.0 * s1.separation_ratio * outer_radius(s1)
     R = outer_radius(material.shape)
@@ -411,7 +465,7 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
 
     function C_kernal(l2::Int,j2::Int)
 
-        term2 = σs[j2] * rs[j2]^2 * bar_numdensity([T(0),T(0),rs[j2]],s1)
+        term2 = σs[j2] * rs[j2]^2 * numdensity([T(0),T(0),rs[j2]],s1)
         a12 = 2*outer_radius(s1)*s1.separation_ratio
 
         data = term2 .* [
