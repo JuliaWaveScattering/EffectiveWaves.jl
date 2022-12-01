@@ -29,7 +29,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
     end
 
     s1 = material.microstructure.species[1]
-    a12 = 2.0 * s1.separation_ratio * outer_radius(s1);
+    a12 = material.microstructure.paircorrelations[1].minimal_distance
 
     # scale_number_density = one(T) - one(T) / material.numberofparticles
     bar_numdensity(x1,s1) = numdensity(x1,s1) # * scale_number_density
@@ -228,7 +228,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
     end
 
     s1 = material.microstructure.species[1]
-    a12 = 2.0 * s1.separation_ratio * outer_radius(s1);
+    a12 = material.microstructure.paircorrelations[1].minimal_distance
 
     # scale_number_density = one(T) - one(T) / material.numberofparticles
     bar_numdensity(x1,s1) = numdensity(x1,s1)
@@ -415,23 +415,36 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
     end
 
     s1 = material.microstructure.species[1]
+    a12 = material.microstructure.paircorrelations[1].minimal_distance
 
-    a12 = 2.0 * s1.separation_ratio * outer_radius(s1)
     R = outer_radius(material.shape)
     k = ω / source.medium.c
 
     function calculate_gls_fun(;
-            pair_corr::Function = hole_correction_pair_correlation,
-            pair_corr_distance::Function = z ->  pair_corr(
-                [0.0,0.0,0.0],material.microstructure.species[1], [0.0,0.0,z],material.microstructure.species[1]
-            ),
+            h12::T = if material.microstructure.paircorrelations[1].r |> length > 1
+                    material.microstructure.paircorrelations[1].r[end]
+                else
+                    @warn "the maximum correlation distance has been automatically selected as the minimal distance between particle centres."
+                    a12
+            end,
+            pair_corr_distance::Union{Function,AbstractArray} = begin
+                pair_rs = material.microstructure.paircorrelations[1].r
+
+                pair_rs = [[0.0,a12]; pair_rs; [h12 + eps(T),2R]]
+                deduplicate_knots!(pair_rs)
+                nodes = (pair_rs,)
+
+                ps = T(1) .+ material.microstructure.paircorrelations[1].dp
+                ps = [[T(0),T(0)]; ps; [T(1), T(1)]]
+
+                interpolate(nodes, ps, Gridded(Linear()))
+            end,
             sigma_approximation = false,
             gls_pair_radial::Function = gls_pair_radial_fun(
                 pair_corr_distance, a12;
                 polynomial_order = polynomial_order,
                 sigma_approximation = sigma_approximation
-            ),
-            h12 = R
+            )
         )
         gls_pair_radial, h12
     end
@@ -466,14 +479,14 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
     function C_kernal(l2::Int,j2::Int)
 
         term2 = σs[j2] * rs[j2]^2 * numdensity([T(0),T(0),rs[j2]],s1)
-        a12 = 2*outer_radius(s1)*s1.separation_ratio
+        a12 = material.microstructure.paircorrelations[1].minimal_distance
 
         data = term2 .* [
         begin
             t_diags[1][lm_to_n(l,0)] *
             if r1 + rs[j2] < a12
                 zero(Complex{T})
-            elseif abs(r1 - rs[j2]) > h12
+            elseif abs(r1 - rs[j2]) >= h12
                 chi(l,l2,r1,rs[j2]) * 4pi * T(-1)^l * T(2l2 + 1)
             else
                 gls = gls_function(r1,rs[j2])
@@ -575,7 +588,7 @@ function outgoing_translation_matrix(ω::T, medium::Acoustic{T,Dim}, material::M
 
     L = basisorder_to_basislength(typeof(medium), basis_order);
     R = outer_radius(material.shape) - minimum(outer_radius.(material.microstructure.species))
-    a12 = T(2) * minimum(outer_radius(s) * s.separation_ratio for s in material.microstructure.species)
+    a12 = minimum(dp.minimal_distance for dp in material.microstructure.paircorrelations)
 
     rθφ2xyz = radial_to_cartesian_coordinates
 

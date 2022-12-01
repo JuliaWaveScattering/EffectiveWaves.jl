@@ -84,7 +84,7 @@ function DiscretePlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, 
             wave_effs = WaveModes(ω, source, material; tol=tol, mesh_points=2, kws...)
         end
         # estimate a large coarse non-dimensional mesh based on the lowest attenuating effective wave
-        a12 = T(2) * specie.separation_ratio * outer_radius(specie)
+        a12 = material.microstructure.paircorrelations[1].minimal_distance
         x = x_mesh(wave_effs[1]; tol = tol,  a12 = a12, max_size=max_size)
     end
 

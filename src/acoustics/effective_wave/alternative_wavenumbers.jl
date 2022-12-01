@@ -5,7 +5,6 @@ wavenumber_challis(ωs::AbstractArray,medium::Acoustic{T,2}, species::Species{2}
 function wavenumber_challis(ω::Number, medium::Acoustic{T,2}, species::Species{2};
     radius_multiplier = 1.005, verbose = false, basis_order=2) where T<:AbstractFloat
   # tol=0.004; radius_multiplier = 1.005
-  # a12 = radius_multiplier(a1+a2)
 
   volume_fraction = sum(sp.volume_fraction for sp in species)
   if volume_fraction >= 0.4
@@ -39,7 +38,6 @@ function wavenumber_far_field_low_volumefraction(ω::Complex{T}, medium::Acousti
         tol=0.0002, #radius_multiplier = 1.005,
         verbose = false) where T<:AbstractFloat
   # tol=0.004; radius_multiplier = 1.005
-  # a12 = radius_multiplier(a1+a2)
 
   volume_fraction = sum(sp.volume_fraction for sp in species)
   if volume_fraction >= 0.4

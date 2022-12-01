@@ -34,8 +34,8 @@ function eigensystem(ω::T, medium::Acoustic{T,2}, micro::ParticulateMicrostruct
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     as = [
-        s1.separation_ratio * outer_radius(s1) + s2.separation_ratio * outer_radius(s2)
-    for s1 in sps, s2 in sps]
+        micro.paircorrelations[i,j].minimal_distance
+    for i in eachindex(sps), j in eachindex(sps)]
 
     if length(micro.paircorrelations[1].r) > 1
         pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
@@ -106,8 +106,8 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
     baselen(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
 
     as = [
-        s1.separation_ratio * outer_radius(s1) + s2.separation_ratio * outer_radius(s2)
-    for s1 in species, s2 in species]
+        micro.paircorrelations[i,j].minimal_distance
+    for i in eachindex(species), j in eachindex(species)]
 
     if length(micro.paircorrelations[1].r) > 1
         pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
@@ -170,8 +170,8 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
     baselen(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
 
     as = [
-        s1.separation_ratio * outer_radius(s1) + s2.separation_ratio * outer_radius(s2)
-    for s1 in species, s2 in species]
+        micro.paircorrelations[i,j].minimal_distance
+    for i in eachindex(species), j in eachindex(species)]
 
     # Pre calculations for pair correlation
     # Am going to assume the discrete pair correlation is sampled on the same mesh for every specie. Otherwise the code will be too inefficient.

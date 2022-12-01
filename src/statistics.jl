@@ -51,17 +51,23 @@ struct DiscretePairCorrelation <: PairCorrelation
     r::Vector{Float64}
     "variation of the pair correlation from 1 (uncorrelated case)"
     dp::Vector{Float64}
+    "Minimal distance between particle centre's"
+    minimal_distance::Float64
     "the average number of particles divided by the volume containing the centre of the particles"
     number_density::Float64
 
-    function DiscretePairCorrelation(r::AbstractVector, dp::AbstractVector; number_density::AbstractFloat = 0.0, tol::AbstractFloat = 1e-3)
+    function DiscretePairCorrelation(r::AbstractVector, dp::AbstractVector;
+            number_density::AbstractFloat = 0.0,
+            minimal_distance::AbstractFloat = r[1],
+            tol::AbstractFloat = 1e-3
+        )
         if !isempty(dp) && size(dp) != size(r)
             @error "the size of vector of distances `r` (currently $(size(r))) should be the same as the size of the pair-correlation variation `dp` (currently $(size(dp)))."
         end
         if !isempty(dp) && abs(dp[end]) > tol
             @warn "For the pair-correlation to be accurate, we expect it to be long enough (in terms of the distance `r`) such that the particle positions become uncorrelatd. They become uncorrelated when `dp[end]` tends to zero."
         end
-        new(r,dp,number_density)
+        new(r,dp,minimal_distance,number_density)
     end
 end
 
@@ -71,7 +77,7 @@ PairCorrelation(r::AbstractVector{T},dp::AbstractVector{T}) where T <: AbstractF
 function DiscretePairCorrelation(s1::Specie, s2::Specie)
     T = typeof(outer_radius(s1))
 
-    return DiscretePairCorrelation(T[],T[])
+    return DiscretePairCorrelation(T[],T[]; minimal_distance = s1.separation_ratio * outer_radius(s1) + s2.separation_ratio * outer_radius(s2))
 end
 
 
@@ -385,7 +391,7 @@ Return a function ``gls_fun``. For any radial distances ``r_1`` and ``r_2`` we h
 
 The function `gls_fun` is calculated from the function `pair_corr_distance`, where `pair_corr_distance(sqrt(r1^2 + r2^2 - 2r1 * r2 * cos(θ12)))` gives the pair correlation.
 """
-function gls_pair_radial_fun(pair_corr_distance::Function, a12::T;
+function gls_pair_radial_fun(pair_corr_distance::Union{Function,AbstractArray}, a12::T;
             polynomial_order::Int = 15,
             mesh_size::Int = 10*polynomial_order + 4,
             sigma_approximation = true

@@ -17,7 +17,7 @@ end
 function Specie(p::AbstractParticle{Dim};
         number_density::AbstractFloat = 0.0,
         volume_fraction::AbstractFloat = number_density * volume(p),
-        separation_ratio::AbstractFloat = 1.005,
+        separation_ratio::AbstractFloat = 1.0,
         exclusion_distance::AbstractFloat = separation_ratio
     ) where Dim
 
