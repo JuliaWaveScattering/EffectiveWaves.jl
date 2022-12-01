@@ -254,9 +254,9 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
     r1s = LinRange(0,R-outer_radius(s1), mesh_points)
 
     # The user can give a more general pair_correlation of the form pair_corr(x1,s1,x2,s2), if this is not specified, then we use the discrete pair_correlation given in the material, otherwise hole_correction
+    pair_rs = material.microstructure.paircorrelations[1].r
     if pair_corr == nothing
-        pair_rs = material.microstructure.paircorrelations[1].r
-        if  pair_rs |> length > 1
+        if pair_rs |> length > 1
             dr_corr = abs(pair_rs[2] - pair_rs[1])
             if dr_corr > abs(r1s[2] - r1s[1])
                 @warn "The mesh for the discrete pair paircorrelations: $(material.microstructure.paircorrelations[1].r) \n is coarser than the mesh used for the discrete system: $(r1s). The values for the pair correlation will be interpolated."
