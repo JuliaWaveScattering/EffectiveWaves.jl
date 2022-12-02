@@ -29,7 +29,7 @@
 
     tol = 1e-2
 
-    Uinter = outgoing_translation_matrix(ω, medium, material;  basis_order = basis_order, tol = tol)
+    Uinter = outgoing_translation_matrix(ω, material;  basis_order = basis_order, tol = tol)
 
     rs = LinRange(a12,2R-a12,13);
     φs = LinRange(-pi,pi,13);

@@ -110,13 +110,13 @@ end
     k_eff = k_effs[1]
 
     halfspace = Halfspace([0.0,0.0,-1.0])
-    micro = Microstructure(species)
+    micro = Microstructure(medium,species)
     material = Material(halfspace,species)
 
     eigs = eigenvectors(ω, k_eff, micro, PlanarSymmetry{3}(); basis_order = basis_order)
     azi_eigs = eigenvectors(ω, k_eff, micro, PlanarAzimuthalSymmetry{3}(); basis_order = basis_order)
 
-    eigs2 = convert_eigenvector_basis(medium, PlanarAzimuthalSymmetry{3}(),azi_eigs)
+    eigs2 = convert_eigenvector_basis(medium,PlanarAzimuthalSymmetry{3}(),azi_eigs)
 
     @test abs(abs(dot(eigs2,eigs2)) - norm(eigs) * norm(eigs2)) < 1e-15
 

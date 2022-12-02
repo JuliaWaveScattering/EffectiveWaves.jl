@@ -16,15 +16,13 @@ function discrete_system_residue(discrete_coefs, ω::T, source::AbstractSource{A
     end
 
     s1 = material.microstructure.species[1]
-    scale_number_density = one(T)
-    bar_numdensity = scale_number_density * number_density(s1)
 
     R = outer_radius(material.shape)
 
     gs = regular_spherical_coefficients(source)(basis_order,origin(material.shape),ω);
     v = regular_basis_function(source.medium,  ω)
 
-    Uout = outgoing_translation_matrix(ω, source.medium, material;
+    Uout = outgoing_translation_matrix(ω, material;
         basis_order = basis_order, tol = rtol
     )
 
@@ -62,7 +60,7 @@ function discrete_system_residue(discrete_coefs, ω::T, source::AbstractSource{A
             # U = outgoing_translation_matrix(medium, basis_order, basis_order, ω, x1 - x2)
             U = Uout(x1 - x2)
 
-            U = U .* (bar_numdensity * pair_corr(x1,s1,x2,s1) * sin(rθφ[2]) * rθφ[1]^2)
+            U = U .* (number_density(s1) * pair_corr(x1,s1,x2,s1) * sin(rθφ[2]) * rθφ[1]^2)
             return [
                     t_diags[1][n] * sum(U[nd,n] * discrete_coefs(x2)[nd] for nd in 1:len)
             for n in 1:len]

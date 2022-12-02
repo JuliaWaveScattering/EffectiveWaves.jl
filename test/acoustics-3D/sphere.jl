@@ -74,7 +74,7 @@ using LinearAlgebra, Statistics, Test
     # dp = DiscretePairCorrelation(rs, dps)
 
     # Define the microstructure and then the material
-    micro = Microstructure(s1);
+    micro = Microstructure(medium,s1);
     material = Material(Sphere(R),micro);
 
     discrete_field_radials = [
@@ -314,7 +314,7 @@ end
     # species = [s1,s1]
 
     a12 = 2.0 * outer_radius(s1) * s1.separation_ratio
-    micro = Microstructure(s1);
+    micro = Microstructure(medium,s1);
 
 ## define sources and material
 
@@ -328,7 +328,7 @@ end
     ks_low = ωs ./ eff_medium.c
 
     keff_arr = [
-        wavenumbers(ωs[i], medium, micro;
+        wavenumbers(ωs[i], micro;
             # num_wavenumbers = 4,
             basis_order = basis_orders[i],
             tol = 1e-7
@@ -596,7 +596,7 @@ end
 
 #     a12 = 2.0 * outer_radius(s1) * s1.separation_ratio
     pairtype = PercusYevick(3; rtol = 1e-2, meshsize = 0.1, maxlength = 25)
-    micro = Microstructure(s1,pairtype);
+    micro = Microstructure(medium,s1,pairtype);
 
 ## define sources and material
 
@@ -614,7 +614,7 @@ end
     );
 
     keff_arr = [
-        wavenumbers(ωs[i], medium, micro;
+        wavenumbers(ωs[i], micro;
             # num_wavenumbers = 6,
             basis_order = basis_orders[i],
             tol = 1e-7
@@ -664,7 +664,7 @@ end
 
 ## Hole correction solution
 
-    micro_hc = Microstructure(s1);
+    micro_hc = Microstructure(medium,s1);
     material_hc = Material(Sphere(R),micro_hc);
 
     discrete_fields = ST[
