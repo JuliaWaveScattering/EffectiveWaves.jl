@@ -7,6 +7,8 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigenvectors::Array{
         @warn "The effective wavenumber: $k_eff has more than one eigenvector. For plane-waves this case has not been fully implemented"
     end
 
+    if psource.medium != material.microstructure.medium @error mismatched_medium end
+
     scale_number_density = one(T)
 
     direction_eff = transmission_direction(k_eff, (ω / psource.medium.c) * psource.direction, material.shape.normal)
@@ -36,6 +38,8 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
         basis_order::Int = 2,
         kws...
     ) where T
+
+    if psource.medium != material.microstructure.medium @error mismatched_medium end
 
     if size(eigvectors)[end] > 1
         @warn "The effective wavenumber: $k_eff has more than one eigenvector. For plane-waves this case has not been fully implemented"
@@ -80,6 +84,8 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors1::Array{C
         basis_order::Int = 2,
         kws...
     ) where T
+
+    if psource.medium != material.microstructure.medium @error mismatched_medium end
 
     if size(eigvectors1)[end] > 1 || size(eigvectors2)[end] > 1
         @warn "The effective wavenumber: $k_eff has more than one eigenvector. For plane-waves this case has not been fully implemented"

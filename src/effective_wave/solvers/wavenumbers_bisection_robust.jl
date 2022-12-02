@@ -1,5 +1,5 @@
 # NOTE: PlanarAzimuthalSymmetry() does not included all possible wavenumbers
-function wavenumbers_bisection_robust(ω::T, medium::PhysicalMedium{Dim}, micro::Microstructure{Dim};
+function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
         symmetry::AbstractSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(),
         tol::T = 1e-5,
         num_wavenumbers = 3,
@@ -13,10 +13,12 @@ function wavenumbers_bisection_robust(ω::T, medium::PhysicalMedium{Dim}, micro:
         ),
         kws...) where {T,Dim}
 
-    # exact low-frequency effective wavenumber is known exactly
-    ko = real(ω / effective_medium(medium, micro).c)
+    medium = micro.medium
 
-    disp = dispersion_complex(ω, medium, micro, symmetry; kws...)
+    # exact low-frequency effective wavenumber is known exactly
+    ko = real(ω / effective_medium(micro).c)
+
+    disp = dispersion_complex(ω, micro, symmetry; kws...)
     # disp = dispersion_complex(ω, medium, micro, symmetry; basis_order = basis_order)
 
     freal(x, y)::T = real(disp(x + y*im))

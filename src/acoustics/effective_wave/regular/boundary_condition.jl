@@ -8,7 +8,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     # source_basis_field_order is often chosen so that there is the same number of source coefficients a_n as the number of unknowns α_n
     # Before was: source_basis_field_order = min(basis_field_order,Int(round(sqrt(size(eigvectors)[end])))) - 1
 
-    scale_number_density = one(T)
+    if source.medium != material.microstructure.medium @error mismatched_medium end
 
     k = ω / source.medium.c
 
@@ -30,7 +30,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     # the kernel use to wieight the species and the field's basis order.
     Ns = [
-        (R - rs[j]) * kernelN3D(l1,k*(R - rs[j]), k_eff*(R - rs[j])) * scale_number_density * number_density(species[j])
+        (R - rs[j]) * kernelN3D(l1,k*(R - rs[j]), k_eff*(R - rs[j])) * number_density(species[j])
     for l1 = 0:L1, j in eachindex(species)] ./ (k^T(2) - k_eff^T(2))
 
     l1s = [l1 for l = 0:L for m = -l:l for l1 = 0:L1 for m1 = -l1:l1];
@@ -101,7 +101,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     k = ω / source.medium.c
 
-    scale_number_density = one(T)
+    if source.medium != material.microstructure.medium @error mismatched_medium end
     species = material.microstructure.species
     S = length(species)
     rs = outer_radius.(species)
@@ -121,7 +121,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     # the kernel use to wieight the species and the field's basis order.
     Ns = [
-        (R - rs[j]) * kernelN3D(l1, k*(R - rs[j]), k_eff*(R - rs[j])) * scale_number_density * number_density(species[j])
+        (R - rs[j]) * kernelN3D(l1, k*(R - rs[j]), k_eff*(R - rs[j])) * number_density(species[j])
     for l1 = 0:L1, j in eachindex(species)] ./ (k^T(2) - k_eff^T(2))
 
     l1s = [l1 for l = 0:L for m = -l:l for l1 = abs(m):L1];
@@ -201,8 +201,8 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     ) where T
 
     k = ω / source.medium.c
+    if source.medium != material.microstructure.medium @error mismatched_medium end
 
-    scale_number_density = one(T)
     species = material.microstructure.species
     S = length(species)
     rs = outer_radius.(species)
@@ -212,7 +212,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     # the kernel use to weight the species and the field's basis order.
     F = sum(
         T(2 *(i[1] - 1) + 1) * (-one(T))^(i[1]-1) * eigvectors[i] * (R - rs[i[2]]) *
-        kernelN3D(i[1] - 1, k*(R - rs[i[2]]), k_eff*(R - rs[i[2]])) * scale_number_density * number_density(species[i[2]])
+        kernelN3D(i[1] - 1, k*(R - rs[i[2]]), k_eff*(R - rs[i[2]])) * number_density(species[i[2]])
     for i in CartesianIndices(eigvectors)) / (k^T(2) - k_eff^T(2))
 
     # We expect there to only one component of a regular spherical wave expansion

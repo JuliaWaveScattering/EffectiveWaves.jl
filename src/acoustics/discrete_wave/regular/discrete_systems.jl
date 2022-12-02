@@ -24,6 +24,8 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
         pair_corr = nothing
     ) where {T,Dim}
 
+    if source.medium != material.microstructure.medium @error mismatched_medium end
+
     if length(material.microstructure.species) > 1
         @warn "discrete_system has only been implemented for 1 species for now. Will use only first specie."
     end
@@ -40,7 +42,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
 
     v = regular_basis_function(source.medium,  ω)
 
-    Uout = outgoing_translation_matrix(ω, source.medium, material;
+    Uout = outgoing_translation_matrix(ω, material;
         basis_order = basis_order, tol = rtol
     )
 
@@ -223,6 +225,8 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
         , pair_corr = nothing
     ) where T
 
+    if source.medium != material.microstructure.medium @error mismatched_medium end
+
     if length(material.microstructure.species) > 1
         @warn "discrete_system has only been implemented for 1 species for now. Will use only first specie."
     end
@@ -239,7 +243,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
 
     v = regular_basis_function(source.medium,  ω)
 
-    Uout = outgoing_translation_matrix(ω, source.medium, material;
+    Uout = outgoing_translation_matrix(ω, material;
         basis_order = basis_order, tol = rtol
     )
 
@@ -409,6 +413,7 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
     ) where T
 
     # basis_field_order = 14
+    if source.medium != material.microstructure.medium @error mismatched_medium end
 
     if length(material.microstructure.species) > 1
         @warn "discrete_system has only been implemented for 1 species for now. Will use only first specie."
@@ -576,15 +581,16 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
     )
 end
 
-
 """
     outgoing_translation_matrix(ω, ::Acoustic, material::Material{Dim,Sphere{T,Dim}};
         basis_order = 2, tol = 1e-3)
 
     return a function U where U(X) for X ∈ material.shape gives the the outgoing translation matrix
 """
-function outgoing_translation_matrix(ω::T, medium::Acoustic{T,Dim}, material::Material{Dim,Sphere{T,Dim}};
+function outgoing_translation_matrix(ω::T, material::Material{Dim,Sphere{T,Dim}};
         basis_order::Int = 2, tol::T = 1e-3) where {T,Dim}
+
+    medium = material.microstructure.medium
 
     L = basisorder_to_basislength(typeof(medium), basis_order);
     R = outer_radius(material.shape) - minimum(outer_radius.(material.microstructure.species))

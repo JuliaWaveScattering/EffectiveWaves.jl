@@ -24,7 +24,7 @@ using LinearAlgebra
     basis_order = 1
     ω = 0.6
 
-    k_effs = wavenumbers(ω, medium, micro; num_wavenumbers=2, basis_order=basis_order)
+    k_effs = wavenumbers(ω, micro; num_wavenumbers=2, basis_order=basis_order)
 
     # currently have no benchmark for 2D with any pair-correlation
     @test true

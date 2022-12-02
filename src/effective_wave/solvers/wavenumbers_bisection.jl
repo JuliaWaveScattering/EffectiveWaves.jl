@@ -1,5 +1,5 @@
 # NOTE: PlanarAzimuthalSymmetry() does not included all possible wavenumbers
-function wavenumbers_bisection(ω::T, medium::PhysicalMedium{Dim}, micro::Microstructure{Dim};
+function wavenumbers_bisection(ω::T, micro::Microstructure{Dim};
         symmetry::AbstractSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(),
         tol::T = 1e-5,
         num_wavenumbers = 3,
@@ -12,9 +12,11 @@ function wavenumbers_bisection(ω::T, medium::PhysicalMedium{Dim}, micro::Micros
         ),
         kws...) where {T,Dim}
 
+    medium = micro.medium
+
     ko = real(ω / medium.c)
 
-    disp = dispersion_complex(ω, medium, micro, symmetry; kws...)
+    disp = dispersion_complex(ω, micro, symmetry; kws...)
     # disp = dispersion_complex(ω, medium, micro, symmetry; basis_order = basis_order)
 
     function f(x, y)
@@ -46,7 +48,7 @@ function wavenumbers_bisection(ω::T, medium::PhysicalMedium{Dim}, micro::Micros
     sols = sols[1:min(length(sols),10*num_wavenumbers)]
 
     # Add some guess from asymptotics
-    kφ = wavenumber_low_volumefraction(ω, medium, micro)
+    kφ = wavenumber_low_volumefraction(ω, micro)
 
     k_real = max(abs(real(kφ)), real(ko), sqrt(eps(T)))
     k_imag = [imag(kφ), sqrt(eps(T))]

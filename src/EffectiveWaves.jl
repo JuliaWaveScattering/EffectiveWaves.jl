@@ -64,6 +64,8 @@ using ClassicalOrthogonalPolynomials: Legendre
 
 using MDBM
 
+const mismatched_medium = "Only implemented for the source and microstructure having the same medium"
+
 include("abstract_types.jl")
 include("material_types.jl")
 include("statistics.jl")

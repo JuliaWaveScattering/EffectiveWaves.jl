@@ -1,5 +1,5 @@
 # NOTE: PlanarAzimuthalSymmetry() does not include all possible wavenumbers
-function wavenumbers_path(ω::T, medium::PhysicalMedium{Dim}, micro::Microstructure{Dim};
+function wavenumbers_path(ω::T, micro::Microstructure{Dim};
         symmetry::AbstractSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(),
         tol::T = 1e-5,
         mesh_points::Int = 3,
@@ -12,6 +12,8 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{Dim}, micro::Microstruct
         # numberofparticles::T = Inf,
         kws...) where {T,Dim}
 
+    medium = micro.medium
+
     # check parameters
         mesh_points = iseven(mesh_points) ? mesh_points + 1 : mesh_points
 
@@ -23,7 +25,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{Dim}, micro::Microstruct
         # kscale = abs(k0)
         kscale = one(T)
 
-        kφ = wavenumber_low_volumefraction(ω, medium, micro;
+        kφ = wavenumber_low_volumefraction(ω, micro;
             verbose = false
         )
 
@@ -46,7 +48,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{Dim}, micro::Microstruct
         low_tol = min(1e-4, sqrt(tol))
 
     # Generate some asymptotic wavenumbers
-        k_asyms = asymptotic_monopole_wavenumbers(ω, medium, micro;
+        k_asyms = asymptotic_monopole_wavenumbers(ω, micro;
             num_wavenumbers = num_wavenumbers + 2)
         k_asyms = k_asyms ./ kscale
 
@@ -73,7 +75,7 @@ function wavenumbers_path(ω::T, medium::PhysicalMedium{Dim}, micro::Microstruct
         k_vecs = k_vecs[inds]
 
     # The dispersion equation is given by: `dispersion([k1,k2]) = 0` where k_eff = k1 + im*k2.
-        dispersion_dim = dispersion_equation(ω, medium, micro, symmetry;
+        dispersion_dim = dispersion_equation(ω, micro, symmetry;
             tol = low_tol,
             kws...)
 

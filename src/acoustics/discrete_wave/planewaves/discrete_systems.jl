@@ -6,6 +6,8 @@ function discrete_wave_system(ω::T, X::AbstractVector{T}, source::PlaneSource{T
         kws...
     ) where T<:AbstractFloat
 
+    if source.medium != material.microstructure.medium @error mismatched_medium end
+
     specie = material.microstructure.species[1]
     t_vec = t_matrix(specie, source.medium, ω, basis_order)
 

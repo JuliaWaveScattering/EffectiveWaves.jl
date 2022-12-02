@@ -12,11 +12,13 @@ function convert_eigenvector_basis(medium::Acoustic{T,3},sym::PlanarAzimuthalSym
     return reshape(v,basisorder_to_basislength(Acoustic{T,3},basis_order),S,P)
 end
 
-function eigensystem(ω::T, medium::Acoustic{T,2}, micro::ParticulateMicrostructure{2}, ::AbstractPlanarSymmetry;
+function eigensystem(ω::T, micro::ParticulateMicrostructure{2}, ::AbstractPlanarSymmetry;
         basis_order::Int = 2,
         # numberofparticles::Number = Inf,
         kws...
     ) where {T<:AbstractFloat}
+
+    medium = micro.medium
 
     scale_number_density = one(T)
     # if numberofparticles > 1
@@ -72,12 +74,14 @@ function eigensystem(ω::T, medium::Acoustic{T,2}, micro::ParticulateMicrostruct
     return MM
 end
 
-function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostructure{3}, ::AbstractPlanarSymmetry;
+function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::AbstractPlanarSymmetry;
         basis_order::Int = 2,
         direction_eff::Union{AbstractVector{T},AbstractVector{Complex{T}}} = [0.0,0.0,1.0],
         # numberofparticles::Number = Inf,
         kws...
     ) where {T<:AbstractFloat}
+
+    medium = micro.medium
 
     scale_number_density = one(T)
     # if numberofparticles > 1
@@ -147,16 +151,12 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
     return MM
 end
 
-function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostructure{3}, ::PlanarAzimuthalSymmetry{3};
+function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::PlanarAzimuthalSymmetry{3};
         basis_order::Int = 2,
         # numberofparticles::Number = Inf,
         kws...) where {T<:AbstractFloat}
 
-    scale_number_density = one(T)
-    # if numberofparticles > 1
-    #     scale_number_density = one(T) - one(T) / numberofparticles
-    # end
-
+    medium = micro.medium    
     species = micro.species
 
     k = ω/medium.c

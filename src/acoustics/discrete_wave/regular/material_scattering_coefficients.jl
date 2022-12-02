@@ -8,6 +8,8 @@ function material_scattering_coefficients(scat_field::ScatteringCoefficientsFiel
     lm2n = lm_to_spherical_harmonic_index
     rθφ2xyz = radial_to_cartesian_coordinates
 
+    if scat_field.medium != scat_field.material.microstructure.medium @error mismatched_medium end
+
     v = regular_basis_function(scat_field.medium, scat_field.ω)
 
     particle_radius = maximum(outer_radius.(scat_field.material.microstructure.species))
@@ -40,6 +42,8 @@ function material_scattering_coefficients(scat_field::ScatteringCoefficientsFiel
         rtol::AbstractFloat = 1e-4,
         maxevals::Int = Int(1e5),
     ) where T
+
+    if scat_field.medium != scat_field.material.microstructure.medium @error mismatched_medium end
 
     k = scat_field.ω / scat_field.medium.c
     R = outer_radius(scat_field.material.shape)

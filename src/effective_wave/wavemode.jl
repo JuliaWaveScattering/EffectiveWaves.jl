@@ -11,7 +11,7 @@ scattering_field
 function WaveModes(ω::T, source::AbstractSource, material::Material{Dim,S}; kws...) where {T,Dim,S<:Shape{Dim}} # without the parametric types we get a "Unreachable reached" error
 
     # The wavenumbers are calculated without knowledge of the materail symmetry. This is because the plane-wave symmetry leads to all possible wavenumbers and is simple to calculate.
-    k_effs = wavenumbers(ω, source.medium, material.microstructure; kws... )
+    k_effs = wavenumbers(ω, material.microstructure; kws... )
 
     # The wavemodes need to know the material symmetry as the eigenvectors do depend on material shape and symetry.
     wave_effs = [
@@ -54,6 +54,8 @@ end
 
 function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, material::Material{Dim,Plate{T,Dim}}; kws...) where {T,Dim}
 
+    if psource.medium != material.microstructure.medium @error mismatched_medium end
+
     # First we calculate the outward pointing normal
     n = material.shape.normal;
     n = - n .* sign(real(dot(n,psource.direction)));
@@ -95,7 +97,7 @@ The eigenvectors from high symmetric scenarios are smaller then the more general
 convert_eigenvector_basis(medium::PhysicalMedium,sym::AbstractSymmetry,eigvecs::Array) = eigvecs
 
 function eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource, material::Material; kws...) where T<:AbstractFloat
-    eigenvectors(ω, k_eff::Complex{T}, source.medium, material.microstructure, Symmetry(source,material);
+    eigenvectors(ω, k_eff::Complex{T}, material.microstructure, Symmetry(source,material);
         kws...
     )
 end
@@ -113,11 +115,11 @@ end
 #
 # end
 
-function eigenvectors(ω::T, k_eff::Complex{T}, medium::PhysicalMedium, micro::Microstructure, symmetry::AbstractSymmetry;
+function eigenvectors(ω::T, k_eff::Complex{T}, micro::Microstructure, symmetry::AbstractSymmetry;
         tol::T = 1e-4, kws...
     ) where T<:AbstractFloat
 
-    MM = eigensystem(ω, medium, micro, symmetry; kws...)
+    MM = eigensystem(ω, micro, symmetry; kws...)
 
     # calculate eigenvectors
     MM_svd = svd(MM(k_eff))

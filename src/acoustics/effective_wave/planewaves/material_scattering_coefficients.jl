@@ -8,6 +8,9 @@ The reflection coefficient in 2D for acoustics for just one [`EffectivePlaneWave
 function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
         x::T = zero(T), kws...) where T<:AbstractFloat
 
+
+    if psource.medium != material.microstructure.medium @error mismatched_medium end
+
     k = ω / psource.medium.c
     θ_eff = transmission_angle(wave_eff,material)
     θin = transmission_angle(psource,material)
@@ -31,6 +34,9 @@ function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psou
 end
 
 function reflection_coefficient(wavemode::EffectivePlaneWaveMode{T,Dim}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{3,Halfspace{T,3}}) where {T<:AbstractFloat,Dim}
+
+
+    if psource.medium != material.microstructure.medium @error mismatched_medium end
 
     # Unpacking parameters
     k = wavemode.ω / psource.medium.c
@@ -69,6 +75,8 @@ function reflection_coefficient(wavemode::EffectivePlaneWaveMode{T,Dim}, psource
 end
 
 function reflection_transmission_coefficients(wavemodes::Vector{E}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{3,Plate{T,3}}) where {T<:AbstractFloat,Dim, E<:EffectivePlaneWaveMode{T,Dim}}
+
+    if psource.medium != material.microstructure.medium @error mismatched_medium end
 
     # Unpacking parameters
     ω = wavemodes[1].ω

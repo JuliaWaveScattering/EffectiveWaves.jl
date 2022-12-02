@@ -27,6 +27,8 @@ function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, mat
         kws...
     ) where T<:Number
 
+    if source.medium != material.microstructure.medium @error mismatched_medium end
+
     θin = transmission_angle(source,material)
     k = real(ω / source.medium.c)
 

@@ -14,7 +14,7 @@ s2 = Specie(
     volume_fraction=0.1
 );
 species = [s1,s2]
-micro = Microstructure(species)
+micro = Microstructure(medium,species)
 # species = [s1]
 
 ω = 0.9
@@ -24,11 +24,11 @@ basis_order = 2
 
 ### Test the equivalence between dispersion equations
 
-    R_det = dispersion_equation(ω, medium, micro, RadialSymmetry{spatial_dim}(); basis_order = basis_order)
-    AP_det = dispersion_equation(ω, medium, micro, PlanarAzimuthalSymmetry{spatial_dim}(); basis_order = basis_order)
-    P_det = dispersion_equation(ω, medium, micro, PlanarSymmetry{spatial_dim}(); basis_order = basis_order)
-    AR_det = dispersion_equation(ω, medium, micro, AzimuthalSymmetry{spatial_dim}(); basis_order = basis_order)
-    Reg_det = dispersion_equation(ω, medium, micro, WithoutSymmetry{spatial_dim}(); basis_order = basis_order)
+    R_det = dispersion_equation(ω, micro, RadialSymmetry{spatial_dim}(); basis_order = basis_order)
+    AP_det = dispersion_equation(ω, micro, PlanarAzimuthalSymmetry{spatial_dim}(); basis_order = basis_order)
+    P_det = dispersion_equation(ω, micro, PlanarSymmetry{spatial_dim}(); basis_order = basis_order)
+    AR_det = dispersion_equation(ω, micro, AzimuthalSymmetry{spatial_dim}(); basis_order = basis_order)
+    Reg_det = dispersion_equation(ω, micro, WithoutSymmetry{spatial_dim}(); basis_order = basis_order)
 
     # Lighter to calculate wavenumbers (also known as the eigenvalues) when assume more symmmetries
 
@@ -37,11 +37,11 @@ basis_order = 2
     #     num_wavenumbers = 2, tol = tol,  basis_order = basis_order,
     #     symmetry = RadialSymmetry{3}())
 
-    AP_kps = wavenumbers(ω, medium, micro;
+    AP_kps = wavenumbers(ω, micro;
         num_wavenumbers = 2, tol = tol,  basis_order = basis_order,
         symmetry = PlanarAzimuthalSymmetry())
 
-    P_kps = wavenumbers(ω, medium, micro;
+    P_kps = wavenumbers(ω, micro;
         num_wavenumbers = 2, tol = tol, basis_order = basis_order,
         symmetry = PlanarSymmetry{3}())
 
@@ -61,7 +61,7 @@ basis_order = 2
     @test maximum(AR_det.(AP_kps)) < tol^2
     @test maximum(Reg_det.(AP_kps)) < tol^3
 
-    P_disp = dispersion_complex(ω, medium, micro,  PlanarSymmetry{spatial_dim}(); tol = tol, basis_order = basis_order)
+    P_disp = dispersion_complex(ω, micro,  PlanarSymmetry{spatial_dim}(); tol = tol, basis_order = basis_order)
 
     # However, there do exist effective wavenumbers for plane-waves which have eigen-vectors that do not satisfy azimuthal symmetry. This is why maximum(AP_det.(P_kps)) != 0.0
     @test maximum(P_det.(P_kps)) < tol
@@ -73,7 +73,7 @@ basis_order = 2
     basis_order = 2
     basis_field_order = 2*basis_order
 
-    Reg_MM = eigensystem(ω, medium, micro, WithoutSymmetry{spatial_dim}();
+    Reg_MM = eigensystem(ω, micro, WithoutSymmetry{spatial_dim}();
             basis_order = basis_order,
             basis_field_order = basis_field_order
     )
@@ -106,7 +106,7 @@ basis_order = 2
     RvM = reshape(RvM,(:,(basis_order+1)^2,S,size(RvM)[end]))
     Pvs = reshape(sum([RvM[i] * Ys[i[1]] / 1.0im^ls[i[1]] for i in CartesianIndices(RvM)], dims=1),(:,size(RvM)[end]))
 
-    P_MM = eigensystem(ω, medium, micro, PlanarSymmetry{spatial_dim}();
+    P_MM = eigensystem(ω, micro, PlanarSymmetry{spatial_dim}();
             direction_eff = direction_eff,
             basis_order = basis_order
     )
@@ -133,7 +133,7 @@ end
         volume_fraction=0.1
     );
     species = [s1,s2]
-    micro = Microstructure(species)
+    micro = Microstructure(medium,species)
     # species = [s1]
 
     ω = 0.9
@@ -142,7 +142,7 @@ end
     basis_order = 2
     basis_field_order = 2*basis_order
 
-    kps = wavenumbers(ω, medium, micro;
+    kps = wavenumbers(ω, micro;
         num_wavenumbers = 2, tol = tol,  basis_order = basis_order,
         symmetry = PlanarAzimuthalSymmetry())
     k_eff = kps[1]
@@ -154,7 +154,7 @@ end
     source = plane_source(medium; direction = [sin(θ),1e-7,cos(θ)])
     Symmetry(source) == PlanarSymmetry{3}()
 
-    material = Material(Sphere(4.0),species);
+    material = Material(Sphere(4.0),micro);
 
     nn1_indexs = [
             [l,m,l1,m1]

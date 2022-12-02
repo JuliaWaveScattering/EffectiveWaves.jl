@@ -1,11 +1,11 @@
 # The eigensystem when no symmetry is present
-function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostructure{3}, ::WithoutSymmetry{3};
+function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::WithoutSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         # numberofparticles::Number = Inf,
         kws...) where T<:AbstractFloat
 
-    scale_number_density = one(T)
+    medium = micro.medium
 
     k = ω/medium.c
     sps = micro.species
@@ -34,7 +34,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
 
         (m == dm && l == dl && m1 == m2 && l1 == l2 && s1 == s2 ? 1.0 : 0.0) +
         if minl3 <= maxl3
-            scale_number_density * number_density(sps[s2]) * t_diags[s1][len(l)] *
+            number_density(sps[s2]) * t_diags[s1][len(l)] *
             sum(l3 ->
                 gaunt_coefficient(l,m,dl,dm,l3,m1-m2) *
                 gaunt_coefficient(l1,m1,l2,m2,l3,m1-m2) * Ns[l3+1,s1,s2]
@@ -73,13 +73,13 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
     return MM
 end
 
-function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostructure{3}, ::AbstractAzimuthalSymmetry;
+function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::AbstractAzimuthalSymmetry;
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         # numberofparticles::Number = Inf,
         kws...) where T<:AbstractFloat
 
-    scale_number_density = one(T)
+    medium = micro.medium
 
     k = ω/medium.c
     sps = micro.species
@@ -97,7 +97,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
 
     as = [
         micro.paircorrelations[i,j].minimal_distance
-    for i in eachindex(sps), j in eachindex(sps)]        
+    for i in eachindex(sps), j in eachindex(sps)]
 
     if length(micro.paircorrelations[1].r) > 1
         pair_rs, hks, gs = precalculate_pair_correlations(micro, k, L)
@@ -110,7 +110,7 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
 
         (m == dm && l == dl && l1 == l2 && s1 == s2 ? 1.0 : 0.0) +
         if minl3 <= maxl3
-            scale_number_density * number_density(sps[s2]) * t_diags[s1][len(l)] *
+            number_density(sps[s2]) * t_diags[s1][len(l)] *
             sum(l3 ->
                 gaunt_coefficient(l,m,dl,dm,l3,m-dm) *
                 gaunt_coefficient(l1,-dm,l2,-m,l3,m-dm) * Ns[l3+1,s1,s2]
@@ -148,11 +148,11 @@ function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostruct
     return MM
 end
 
-function eigensystem(ω::T, medium::Acoustic{T,3}, micro::ParticulateMicrostructure{3}, ::RadialSymmetry{3};
+function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::RadialSymmetry{3};
         basis_order::Int = 2,
         kws...) where {T<:AbstractFloat}
 
-        MM = eigensystem(ω, medium, micro.species, PlanarAzimuthalSymmetry{3}(); basis_order = basis_order, kws...)
+        MM = eigensystem(ω, micro, PlanarAzimuthalSymmetry{3}(); basis_order = basis_order, kws...)
 
         factors = [Complex{T}(im)^(-l) * sqrt(T(2l + 1)) for l = 0:basis_order, s = 1:length(micro.species)][:]
 

@@ -3,6 +3,8 @@ function reflection_coefficient(ω::T, dwave::DiscretePlaneWaveMode{T},
      # medium::Acoustic{T,2}, specie::Specie{2}; θin::T = 0.0,
      scheme::Symbol = :trapezoidal) where T <: AbstractFloat
 
+    if source.medium != material.microstructure.medium @error mismatched_medium end
+
     k = ω / source.medium.c
     M = dwave.basis_order
     σ = k .* integration_scheme(dwave.x; scheme=scheme) # multiple by k to be the same as the non-dimensional version

@@ -67,10 +67,11 @@ exclusion_distance(s::Specie) = outer_radius(s) * s.separation_ratio
 
 Represents a microstructure filled with multiply species of particles. ParticulateMicrostructure.paircorrelations specifies the pair correlation between each of the species. That is, how the particles are distributed on average.
 """
-struct ParticulateMicrostructure{Dim,PC<:PairCorrelation} <: Microstructure{Dim}
-    species::Species{Dim}
+struct ParticulateMicrostructure{Dim,PC<:PairCorrelation,Sps<:Species{Dim},P<:PhysicalMedium{Dim}} <: Microstructure{Dim}
+    medium::P
+    species::Sps
     paircorrelations::Matrix{PC}
-    function ParticulateMicrostructure{Dim}(sps::Species{Dim}, ps::AbstractMatrix{PC}) where {Dim, PC <: PairCorrelation}
+    function ParticulateMicrostructure(medium::P, sps::Sps, ps::AbstractMatrix{PC}) where {Dim, PC <: PairCorrelation, P<:PhysicalMedium{Dim}, Sps <: Species{Dim}}
         #
         if size(ps,1) != length(sps) || size(ps,2) != length(sps)
             @error "the number of rows, and number of columns, of the matrix $paircorrelations needs to be equal to the length of $sps"
@@ -85,20 +86,19 @@ struct ParticulateMicrostructure{Dim,PC<:PairCorrelation} <: Microstructure{Dim}
             @warn "The minimal allowed distance between particles defined by the Species is different to that defined by the DiscretePairCorrelation. In this case, the default will be one given by the DiscretePairCorrelation."
         end
 
-        new{Dim,PC}(sps,ps)
+        new{Dim,PC,Sps,P}(medium,sps,ps)
     end
 end
 
-function Microstructure(sps::Species{Dim}, ps::AbstractMatrix{PC}) where {Dim, PC <: PairCorrelation}
-    ParticulateMicrostructure{Dim}(sps, ps)
+function Microstructure(medium::PhysicalMedium, sps::Species{Dim}, ps::AbstractMatrix{PC}) where {Dim, PC <: PairCorrelation}
+    ParticulateMicrostructure(medium, sps, ps)
 end
 
-Microstructure(s::Specie, ps::PairCorrelation) = Microstructure([s], [ps][:,:])
+Microstructure(medium::PhysicalMedium, s::Specie, ps::PairCorrelation) = Microstructure(medium, [s], [ps][:,:])
 
+Microstructure(medium::PhysicalMedium, s::Specie, pc::PairCorrelationType, kws...) = Microstructure(medium, [s], pc, kws...)
 
-Microstructure(s::Specie, pc::PairCorrelationType, kws...) = Microstructure([s], pc, kws...)
-
-function Microstructure(sps::Species{Dim}, pc::PairCorrelationType, kws...) where Dim
+function Microstructure(medium::P, sps::Species{Dim}, pc::PairCorrelationType, kws...) where {Dim,P}
 
     ps = Array{DiscretePairCorrelation}(undef, length(sps), length(sps))
 
@@ -110,24 +110,23 @@ function Microstructure(sps::Species{Dim}, pc::PairCorrelationType, kws...) wher
         end
     end
 
-    return ParticulateMicrostructure{Dim}(sps,ps)
+    return ParticulateMicrostructure(medium,sps,ps)
 end
 
-Microstructure(s::Specie) = Microstructure([s])
+Microstructure(medium::PhysicalMedium, s::Specie) = Microstructure(medium,[s])
 
 """
     Microstructure(sps::Vector{Specie})
 
 When no pair-correlation is specified for the species, the microstructure will use the default that assumes that particles can not overlap, but, otherwise, their positions are uncorrelated. This is often called \"Hole Correction\"
 """
-function Microstructure(sps::Species{Dim}) where Dim
+function Microstructure(medium::PhysicalMedium, sps::Species{Dim}) where Dim
     ps = [
         DiscretePairCorrelation(s1,s2)
     for s1 in sps, s2 in sps]
 
-    return ParticulateMicrostructure{Dim}(sps,ps)
+    return ParticulateMicrostructure(medium,sps,ps)
 end
-
 
 import MultipleScattering.get_t_matrices
 import MultipleScattering.t_matrix
@@ -141,19 +140,20 @@ t_matrix(s::Specie, medium::PhysicalMedium, ω::AbstractFloat, order::Integer) =
 
 Creates a material filled with [`Specie`](@ref)'s inside `region`.
 """
-struct Material{Dim,S<:Shape}
+struct Material{S<:Shape,M<:Microstructure}
     shape::S
-    microstructure::Microstructure{Dim}
+    microstructure::M
     numberofparticles::Float64
     # Enforce that the Dims and Types are all the same
-    function Material{Dim,S}(shape::S,micro::M,num::Number = Inf) where {Dim,S<:Shape{Dim},M<:Microstructure{Dim}}
-        new{Dim,S}(shape,micro,num)
+    function Material{S,M}(shape::S,micro::M,num::Number = Inf) where {S<:Shape,M<:Microstructure}
+        new{S,M}(shape,micro,num)
     end
 end
 
-Material(s::Shape,sps::Species) = Material(s, Microstructure(sps))
+Material(medium::PhysicalMedium,s::Shape,sps::Species) = Material(s, Microstructure(medium,sps))
+Material(medium::PhysicalMedium, shape::Shape, specie::Specie) = Material(shape,Microstructure(medium,[specie]))
 
-function Material(shape::S,micro::PM) where {Dim,S<:Shape{Dim},PM<:ParticulateMicrostructure{Dim}}
+function Material(shape::S, micro::PM) where {S<:Shape,PM<:ParticulateMicrostructure}
 
     rmax = maximum(outer_radius.(micro.species))
 
@@ -164,12 +164,9 @@ function Material(shape::S,micro::PM) where {Dim,S<:Shape{Dim},PM<:ParticulateMi
         number_density(s) * Vn
     for s in micro.species)
 
-    Material{Dim,S}(shape,micro,numberofparticles)
+    Material{S,PM}(shape,micro,numberofparticles)
 end
 
-function Material(shape::S,specie::Sp) where {Dim,S<:Shape{Dim},Sp<:Specie{Dim}}
-    Material(shape,[specie])
-end
 
 import MultipleScattering.PhysicalMedium
 import MultipleScattering.Symmetry
