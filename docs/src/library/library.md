@@ -82,3 +82,11 @@ Modules = [EffectiveWaves]
 Order   = [:constant, :type, :function]
 Pages   = ["src/statistics.jl"]
 ```
+
+## All types
+
+```@autodocs
+Modules = [EffectiveWaves]
+Order   = [:constant, :type, :function]
+Pages   = ["src/abstract_types.jl", "src/material_types.jl", "src/wave_types.jl"]
+```

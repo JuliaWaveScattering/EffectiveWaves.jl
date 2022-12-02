@@ -76,8 +76,10 @@ struct ParticulateMicrostructure{Dim,PC<:PairCorrelation} <: Microstructure{Dim}
             @error "the number of rows, and number of columns, of the matrix $paircorrelations needs to be equal to the length of $sps"
         end
 
-        as = [s1.separation_ratio * outer_radius(s1) + s2.separation_ratio * outer_radius(s2) for s1 in species, s2 in species]
-        as_pc = [pc.minimal_distance) for pc in paircorrelations]
+        as = [
+            s1.separation_ratio * outer_radius(s1) + s2.separation_ratio * outer_radius(s2)
+        for s1 in species, s2 in species]
+        as_pc = [pc.minimal_distance for pc in paircorrelations]
 
         if !(as ≈ as_pc)
             @warn "The minimal allowed distance between particles defined by the Species is different to that defined by the DiscretePairCorrelation. In this case, the default will be one given by the DiscretePairCorrelation."
