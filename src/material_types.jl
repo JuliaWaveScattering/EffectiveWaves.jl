@@ -79,7 +79,7 @@ struct ParticulateMicrostructure{Dim,PC<:PairCorrelation} <: Microstructure{Dim}
         as = [
             s1.separation_ratio * outer_radius(s1) + s2.separation_ratio * outer_radius(s2)
         for s1 in sps, s2 in sps]
-        as_pc = [pc.minimal_distance for pc in paircorrelations]
+        as_pc = [p.minimal_distance for p in ps]
 
         if !(as ≈ as_pc)
             @warn "The minimal allowed distance between particles defined by the Species is different to that defined by the DiscretePairCorrelation. In this case, the default will be one given by the DiscretePairCorrelation."
