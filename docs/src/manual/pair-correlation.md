@@ -4,7 +4,7 @@ In the previous example there was no mention on how the particles are distribute
 
 Choosing the particle distribution only affects the effective wavenumbers and wavemodes, see references [1,2]
 
-We note that the definition of the pair-correlation $g$, for a finite number of multi-species particles, is
+We note that the definition of the pair-correlation $g$, for a finite number of multi-species particles, is [1]
 
 $g(\mathbf r_1, \lambda_1; \mathbf r_2, \lambda_2) = \frac{p(\mathbf r_1, \lambda_1; \mathbf r_2, \lambda_2)}{p(\mathbf r_1, \lambda_1)p(\mathbf r_2, \lambda_2)}\frac{J -1}{J}$  
 
@@ -43,14 +43,11 @@ micro = Microstructure(s, dpc);
 
 # output
 ```
-Note that when specifying a pair-correlation, the minimal distance between particles will be taken to be `dpc.r[1]`. This is stored in `dpc.minimal_distance`. Previously when defining the `Specie` we specified `separation_ratio = 1.01`, which means the minimal distance between particles is   
-
+Note that when specifying a pair-correlation, the minimal distance between particles will be taken to be `dpc.r[1]`. This is stored in `dpc.minimal_distance`. Previously when defining the `Specie` we specified `separation_ratio = 1.01`, which means the minimal distance between particles centres' is `2 * separation_ratio * r`, this is used when no pair-correlation is specified, otherwise the value given in `dpc.minimal_distance` will be used. In the future, we will phase out the use of `separation_ratio` in the Specie.  
 
 ## Percus-Yevick
 
-Let us consider a material filled with only one type of particle
-
-
+Let us consider a material filled with only one type of particle and use the Percus-Yevick approximation to calculate the pair-correlation for 2D hard spheres. That is, sphere which do not attract of repel each other. For details see [Notes on Percus-Yevick](../theory/P-Y.pdf) [2].
 
 ```jldoctest pair; output = false, filter = r".*"s
 
