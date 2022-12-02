@@ -21,6 +21,7 @@ makedocs(
         ],
         "Library" => "library/library.md"
         ,
+        "Theory" => "maths/README.md",
         "Examples" => [
             "examples/vary_two_species/README.md",
             "examples/equivalent-symmetries/README.md",

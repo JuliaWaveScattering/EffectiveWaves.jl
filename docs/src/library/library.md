@@ -74,3 +74,11 @@ transmission_angle(::Vector,::Vector)
 transmission_angle(::SVector{2,CT} where CT <: Union{T,Complex{T}}, ::SVector{2,T}) where {T<:AbstractFloat}
 transmission_angle(::SVector{3,CT} where CT <: Union{T,Complex{T}}, ::SVector{3,T}) where {T<:AbstractFloat}
 ```
+
+## Statistics
+
+```@autodocs
+Modules = [EffectiveWaves]
+Order   = [:constant, :type, :function]
+Pages   = ["src/statistics.jl"]
+```

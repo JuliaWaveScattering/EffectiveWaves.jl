@@ -4,10 +4,17 @@ In the previous example there was no mention on how the particles are distribute
 
 Choosing the particle distribution only affects the effective wavenumbers and wavemodes, see references [1,2]
 
-## Percus-Yevick
+We note that the definition of the pair-correlation $g$, for a finite number of multi-species particles, is
 
-Let us consider a material filled with only one type of particle
+$g(\mathbf r_1, \lambda_1; \mathbf r_2, \lambda_2) = \frac{p(\mathbf r_1, \lambda_1; \mathbf r_2, \lambda_2)}{p(\mathbf r_1, \lambda_1)p(\mathbf r_2, \lambda_2)}\frac{J -1}{J}$  
 
+where $\mathbf r_j$ is the vector position of the centre of particle-$j$, $\lambda_j$ represents the size or other distinguishing properties of the type of particle, $p$ is the probability density function, and $J$ is the total number of particles. Note that when the particles become uncorrelated in the limit $|\mathbf r_1 - \mathbf r_2| \to \infty$ we have that
+
+$\lim_{|\mathbf r_1 - \mathbf r_2| \to \infty} g(\mathbf r_1, \lambda_1; \mathbf r_2, \lambda_2) = 1$  
+
+## Bespoke pair-correlation
+
+Here is an example of choosing your own pair-correlation for a material filled with only one type of particle
 ```jldoctest pair; setup = :(using EffectiveWaves), output = false, filter = r".*"s
 medium = Acoustic(3; ρ=1.2, c=1.0)
 
@@ -27,13 +34,35 @@ Next we create a microstructure that has only this species, and has a specific p
 
 ```jldoctest pair; output = false, filter = r".*"s
 
+r = 2.0:0.1:10.0
+my_pair_correlation = 1.0 .+ 0.2 .* sin.(r) ./ r.^3
+
+dpc = DiscretePairCorrelation(r, my_pair_correlation)
+
+micro = Microstructure(s, dpc);
+
+# output
+```
+Note that when specifying a pair-correlation, the minimal distance between particles will be taken to be `dpc.r[1]`. This is stored in `dpc.minimal_distance`. Previously when defining the `Specie` we specified `separation_ratio = 1.01`, which means the minimal distance between particles is   
+
+
+## Percus-Yevick
+
+Let us consider a material filled with only one type of particle
+
+
+
+```jldoctest pair; output = false, filter = r".*"s
+
 pair_type = PercusYevick(3; rtol = 1e-2, maxlength = 200)
 
 micro = Microstructure(s, pair_type);
 
 # output
 ```
-and we can plot the result (needs the packages Plots and Image)
+When calling the above, the pair correlation is calculated and stored in `micro.paircorrelations` which is a matrix of the type [`DiscretePairCorrelation`](@ref). This type assume that the pair-correlation is only a function of the distance between particles, and the types of particles, like their size.
+
+We can plot the result of the Percus-Yevick approximation with the package Plots:
 ```julia
 using Plots
 
@@ -48,6 +77,7 @@ which we can compare with Figure 8.3.1 from [1] below.
 ![../TKD-PY-30.jpg](../assets/TKD-PY-30.jpg)
 
 Note that for $x < 1$ the two particles of radius 0.5 would overlap, so the pair correlation should be zero. Also note that `dp` is the variation from uncorrelated, which is why we add 1.0 to get the pair correlation.
+
 
 ## Calculate an effective wavenumber
 

@@ -99,9 +99,9 @@ species = [s1,s2]
 1.0
 ```
 As we are dealing with finite frequency, we can specify `basis_order` the number of multi-poles to consider. In 3D `basis_order` is maximum degree of the spherical harmonics. This parameter should be increased when increasing the frequency.
-```jldoctest 2
+```jldoctest 2; output = false, filter = r".*"s
 basis_order = 2
-k1 = wavenumber_low_volumefraction(ω, medium, species; basis_order = basis_order)
+k1 = wavenumber_low_volumefraction(ω, medium, species; basis_order = basis_order);
 
 # output
 
