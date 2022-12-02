@@ -78,7 +78,7 @@ struct ParticulateMicrostructure{Dim,PC<:PairCorrelation} <: Microstructure{Dim}
 
         as = [
             s1.separation_ratio * outer_radius(s1) + s2.separation_ratio * outer_radius(s2)
-        for s1 in species, s2 in species]
+        for s1 in sps, s2 in sps]
         as_pc = [pc.minimal_distance for pc in paircorrelations]
 
         if !(as ≈ as_pc)
