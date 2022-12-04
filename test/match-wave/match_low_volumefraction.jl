@@ -19,7 +19,7 @@ using EffectiveWaves, Test
     basis_order = 2
 
     normal = [-1.0,0.0] # an outward normal to the surface
-    material = Material(Halfspace(normal),[specie])
+    material = Material(medium,Halfspace(normal),[specie])
     source = PlaneSource(medium, [cos(θin),sin(θin)])
 
     ωs = [0.2,1.2]

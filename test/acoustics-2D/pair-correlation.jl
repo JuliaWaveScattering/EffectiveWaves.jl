@@ -16,11 +16,11 @@ using LinearAlgebra
 
     dp = DiscretePairCorrelation(rs, g_data .- 1.0)
 
+    medium = Acoustic(2; ρ=1.0, c=1.0)
     s1 = Specie(Acoustic(2; ρ=10.0, c=12.0),Circle(r); volume_fraction = 0.15)
 
-    micro = Microstructure(s1,dp)
+    micro = Microstructure(medium,s1,dp)
 
-    medium = Acoustic(2; ρ=1.0, c=1.0)
     basis_order = 1
     ω = 0.6
 
@@ -28,5 +28,4 @@ using LinearAlgebra
 
     # currently have no benchmark for 2D with any pair-correlation
     @test true
-
 end

@@ -22,14 +22,14 @@ using EffectiveWaves, Test
     basis_order = 2
 
     normal = [-1.0,0.0] # an outward normal to the surface
-    materials = [Material(Halfspace(normal),s) for s in species]
+    materials = [Material(medium,Halfspace(normal),s) for s in species]
     source = PlaneSource(medium, [cos(θin),sin(θin)])
 
     material = materials[1]
 
     # import StaticArrays: SVector
     #
-    # function unreachable_test(ω::T, source::AbstractSource, material::Material{Dim,S}; kws...) where {T,Dim,S<:Shape{Dim}}
+    # function unreachable_test(ω::T, source::AbstractSource, material::Material{S}; kws...) where {T,Dim,S<:Shape{Dim}}
     #
     #     k_effs = rand(2) + rand(2) .* im
     #     wave_effs = map(k_effs) do k_eff

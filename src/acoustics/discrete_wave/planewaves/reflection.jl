@@ -1,5 +1,5 @@
 function reflection_coefficient(ω::T, dwave::DiscretePlaneWaveMode{T},
-    source::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
+    source::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{Halfspace{T,2}};
      # medium::Acoustic{T,2}, specie::Specie{2}; θin::T = 0.0,
      scheme::Symbol = :trapezoidal) where T <: AbstractFloat
 

@@ -1,4 +1,4 @@
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigenvectors::Array{Complex{T}}, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}}, ::AbstractPlanarSymmetry{2};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigenvectors::Array{Complex{T}}, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{Halfspace{T,2}}, ::AbstractPlanarSymmetry{2};
         basis_order::Int = 2,
         kws...
     ) where T
@@ -34,7 +34,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigenvectors::Array{
 
 end
 
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{3,Halfspace{T,3}}, ::AbstractPlanarSymmetry{3};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{Halfspace{T,3}}, ::AbstractPlanarSymmetry{3};
         basis_order::Int = 2,
         kws...
     ) where T
@@ -80,7 +80,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
 end
 
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors1::Array{Complex{T}}, eigvectors2::Array{Complex{T}}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{3,Plate{T,3}}, ::AbstractPlanarSymmetry{3};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors1::Array{Complex{T}}, eigvectors2::Array{Complex{T}}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{Plate{T,3}}, ::AbstractPlanarSymmetry{3};
         basis_order::Int = 2,
         kws...
     ) where T

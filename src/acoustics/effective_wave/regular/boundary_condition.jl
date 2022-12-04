@@ -1,4 +1,4 @@
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::WithoutSymmetry{3};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{Sphere{T,3}}, ::WithoutSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 4,
         # source_basis_field_order::Int = basis_field_order,
@@ -90,7 +90,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
 end
 
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::AbstractAzimuthalSymmetry{3};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{Sphere{T,3}}, ::AbstractAzimuthalSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 4,
         # source_basis_field_order::Int = basis_field_order,
@@ -195,7 +195,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
 end
 
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::RadialSymmetry{3};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{Sphere{T,3}}, ::RadialSymmetry{3};
         basis_order::Int = 2,
         kws...
     ) where T

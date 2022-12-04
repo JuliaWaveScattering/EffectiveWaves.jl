@@ -23,7 +23,7 @@
     end
 
     normal = [-1.0,0.0] # an outward normal to the surface
-    materials = [Material(Halfspace(normal),s) for s in species]
+    materials = [Material(medium,Halfspace(normal),s) for s in species]
     source = PlaneSource(medium, [cos(θin),sin(θin)])
 
     wave_eff_lows = [

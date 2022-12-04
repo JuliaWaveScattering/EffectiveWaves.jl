@@ -11,7 +11,7 @@ eigenvector_length(::AzimuthalSymmetry{3}; basis_order::Int, basis_field_order::
 eigenvector_length(::RadialSymmetry{3}; basis_order::Int, basis_field_order::Int) =  basis_order + 1
 
 """
-    EffectivePlaneWaveMode{T<:AbstractFloat,Dim} <: AbstractWaveMode{T,Dim}
+    EffectivePlaneWaveMode{T<:AbstractFloat,Dim} <: AbstractWaveMode
 
 Is a struct that represents a mode of the average scattering coefficients for plane wave symmetry. That is, when using an incident plane wave and a plate or halfspace for the material geometry.
 
@@ -31,7 +31,7 @@ where ``n`` is multi-index for 3 dimensions and ``s`` ranges from 1 to the numbe
 
 In 2D, inconvieniently, an extra factor of ``e^{i k \\mathbf v \\cdot \\mathbf x}`` needs to be multiplied on the right of the above equation where `θ` is calculated from [`transmission_angle`](@ref).
 """
-struct EffectivePlaneWaveMode{T<:AbstractFloat,Dim} <: AbstractWaveMode{T,Dim} #add: P<:PhysicalMedium{Dim}
+struct EffectivePlaneWaveMode{T<:AbstractFloat,Dim} <: AbstractWaveMode #add: P<:PhysicalMedium{Dim}
     ω::T
     wavenumber::Complex{T}
     basis_order::Int
@@ -59,7 +59,7 @@ end
 
 
 """
-    EffectiveRegularWaveMode{T,Dim,P<:PhysicalMedium,S<:AbstractSymmetry} <: AbstractRegularWaveMode{T,Dim}
+    EffectiveRegularWaveMode{T,P<:PhysicalMedium,S<:AbstractSymmetry} <: AbstractRegularWaveMode
 
 Is a struct that represents a mode of the average scattering coefficients ``F`` in the form
 
@@ -80,20 +80,19 @@ To translate the mathematics to Julia code we use
   * ``n_1 = `` `EffectiveRegularWaveMode.basis_field_order`
 
 """
-struct EffectiveRegularWaveMode{T<:AbstractFloat,Dim,P<:PhysicalMedium{Dim},S<:AbstractSymmetry{Dim}} <: AbstractRegularWaveMode{T,Dim}
+struct  EffectiveRegularWaveMode{T<:AbstractFloat,P<:PhysicalMedium,S<:AbstractSymmetry} <: AbstractRegularWaveMode
     ω::T
     wavenumber::Complex{T}
     medium::P
-    material::Material{Dim}
+    material::Material
     eigenvectors::Array{Complex{T}} # the effective eigenvectors, each column is one eigenvector
     basis_order::Int
     basis_field_order::Int
-    function EffectiveRegularWaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource, material::Material{Dim}, eigenvectors::Array{Complex{T}};
+    function EffectiveRegularWaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource{P}, material::Material, eigenvectors::Array{Complex{T}};
         basis_order::Int = 2, basis_field_order::Int = 4, kws...
-    ) where {T,Dim}
+    ) where {T,P}
 
         S = Symmetry(source,material)
-        P = typeof(source.medium)
 
         if size(eigenvectors,1) != eigenvector_length(S; basis_order = basis_order, basis_field_order = basis_field_order)
             throw(DimensionMismatch("size(eigenvectors,1) does not match the dimensions for a regular eigenvector with symmetry: $S."))
@@ -101,7 +100,7 @@ struct EffectiveRegularWaveMode{T<:AbstractFloat,Dim,P<:PhysicalMedium{Dim},S<:A
             throw(DimensionMismatch("size(eigenvectors,2) does not match the number of difference species length(material.microstructure.species) = $(length(material.microstructure.species)    )."))
         end
 
-        return new{T,Dim,P,typeof(S)}(ω, wavenumber, source.medium, material, eigenvectors, basis_order, basis_field_order)
+        return new{T,P,typeof(S)}(ω, wavenumber, source.medium, material, eigenvectors, basis_order, basis_field_order)
     end
 end
 
@@ -115,17 +114,17 @@ struct ScatteringCoefficientsField{Sh<:Shape, P<:PhysicalMedium, S<:AbstractSymm
 end
 
 """
-    ScatteringCoefficientsField(ω::T, medium::P, material::Material{Dim}, coefficient_field::Function; symmetry::AbstractSymmetry{Dim} = WithoutSymmetry{Dim})
+    ScatteringCoefficientsField(ω::T, medium::P, material::Material, coefficient_field::Function; symmetry::AbstractSymmetry{Dim} = WithoutSymmetry{Dim})
 
 A type to hold the results of methods which produce a function of the scattering field
 """
-function ScatteringCoefficientsField(ω::Real, medium::P, material::Material{Dim}, coefficient_field::Function;
+function ScatteringCoefficientsField(ω::Real, medium::P, material::Material, coefficient_field::Function;
         symmetry::AbstractSymmetry{Dim} = WithoutSymmetry{Dim}(),
         basis_order::Int = basislength_to_basisorder(P,length(coefficient_field(origin(material.shape)))),
         basis_field_order::Int = 0
-    ) where {Dim,P<:PhysicalMedium}
+    ) where {Dim,P<:PhysicalMedium{Dim}}
     return ScatteringCoefficientsField{typeof(material.shape),P,typeof(symmetry)}(ω,medium,material,coefficient_field,basis_order,basis_field_order)
 end
 
-Symmetry(wave::EffectiveRegularWaveMode{T,Dim,P,S}) where {T,Dim,P,S} = S()
+Symmetry(wave::EffectiveRegularWaveMode{T,P,S}) where {T,P,S} = S()
 Symmetry(wave::ScatteringCoefficientsField{Sh,P,S}) where {Sh,P,S} = S()

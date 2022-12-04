@@ -3,7 +3,7 @@ import EffectiveWaves: AbstractAzimuthalSymmetry
 
 using HCubature, Interpolations, Statistics
 
-function discrete_system_residue(discrete_coefs, ω::T, source::AbstractSource{Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::AbstractAzimuthalSymmetry{Dim};
+function discrete_system_residue(discrete_coefs, ω::T, source::AbstractSource{Acoustic{T,Dim}}, material::Material{Sphere{T,Dim}}, ::AbstractAzimuthalSymmetry{Dim};
         basis_order::Int = 1,
         mesh_points::Int = 11,
         rtol::T = 1e-2,

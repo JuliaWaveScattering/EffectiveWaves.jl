@@ -136,9 +136,9 @@ get_t_matrices(medium::PhysicalMedium, species::Vector{S}, ω::AbstractFloat, Nh
 t_matrix(s::Specie, medium::PhysicalMedium, ω::AbstractFloat, order::Integer) = t_matrix(s.particle, medium, ω, order)
 
 """
-    Material(region::Shape, species::Species [, numberofparticles = Inf])
+    Material(region::Shape, micro::Microstructure, [, numberofparticles = Inf])
 
-Creates a material filled with [`Specie`](@ref)'s inside `region`.
+Creates a material filled with a [`Microstructure`](@ref)'s inside a [`Shape`](@ref).
 """
 struct Material{S<:Shape,M<:Microstructure}
     shape::S
@@ -151,7 +151,7 @@ struct Material{S<:Shape,M<:Microstructure}
 end
 
 Material(medium::PhysicalMedium,s::Shape,sps::Species) = Material(s, Microstructure(medium,sps))
-Material(medium::PhysicalMedium, shape::Shape, specie::Specie) = Material(shape,Microstructure(medium,[specie]))
+Material(medium::PhysicalMedium, shape::Shape, specie::Specie) = Material(shape, Microstructure(medium,[specie]))
 
 function Material(shape::S, micro::PM) where {S<:Shape,PM<:ParticulateMicrostructure}
 
@@ -181,9 +181,9 @@ Symmetry(m::Material) = Symmetry(m.shape)
 #
 # Returns the shared symmetries between the `source` and `materail`.
 # """
-# setupsymmetry(source::AbstractSource, material::Material{Dim}) where Dim = WithoutSymmetry{Dim}()
+# setupsymmetry(source::AbstractSource, material::Material{S}) where Dim = WithoutSymmetry{Dim}()
 
-# function setupsymmetry(source::PlaneSource{T,3,1}, material::Material{3,Sphere{T,3}};
+# function setupsymmetry(source::PlaneSource{T,3,1}, material::Material{Sphere{T,3}};
 #         basis_order::Int = 4, ω::T = 0.9) where T
 #
 #     ls, ms = spherical_harmonics_indices(basis_order)
@@ -198,7 +198,7 @@ Symmetry(m::Material) = Symmetry(m.shape)
 #     end
 # end
 #
-# function setupsymmetry(psource::PlaneSource{T,Dim}, material::Material{Dim,S}) where {T<:AbstractFloat, Dim, S<:Union{Halfspace{T,Dim},Plate{T,Dim}}}
+# function setupsymmetry(psource::PlaneSource{T,Dim}, material::Material{S}) where {T<:AbstractFloat, Dim, S<:Union{Halfspace{T,Dim},Plate{T,Dim}}}
 #
 #     hv = material.shape.normal
 #     kv = psource.direction

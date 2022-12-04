@@ -23,7 +23,7 @@
         separation_ratio = separation_ratio
     );
     species = [s1]
-    material = Material(Sphere(R),species);
+    material = Material(medium,Sphere(R),species);
 
     a12 = 2.0 * minimum(outer_radius(s) * s.separation_ratio for s in material.microstructure.species)
 

@@ -43,7 +43,7 @@
     @test norm(k_effs[1] - k_eff_lows[1])/norm(k_effs[1]) < 1e-7
 
     normal = [-1.0,0.0] # an outward normal to the surface
-    material = Material(Halfspace(normal),species)
+    material = Material(medium,Halfspace(normal),species)
 
     # define a plane wave source travelling at a 45 degree angle in relation to the material
     source = PlaneSource(medium, -normal)

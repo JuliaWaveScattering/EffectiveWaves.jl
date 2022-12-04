@@ -3,7 +3,7 @@
 
 import MultipleScattering: outgoing_translation_matrix
 
-function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, material::Material{Dim,Sphere{T,Dim}}, ::WithoutSymmetry{Dim}; kws...) where {T,Dim}
+function discrete_system(ω::T, source::AbstractSource{Acoustic{T,Dim}}, material::Material{Sphere{T,Dim}}, ::WithoutSymmetry{Dim}; kws...) where {T,Dim}
 
     return discrete_system(ω, source, material, AzimuthalSymmetry{Dim}(); kws...)
 end
@@ -13,7 +13,7 @@ end
 
 documentation
 """
-function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material::Material{Dim,Sphere{T,3}}, ::AbstractAzimuthalSymmetry{3};
+function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material::Material{Sphere{T,3}}, ::AbstractAzimuthalSymmetry{3};
         basis_order::Int = 1,
         basis_field_order::Int = 2,
         legendre_order::Int = basis_field_order + 1,
@@ -22,7 +22,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
         maxevals::Int = Int(2e4),
         numdensity = (x1, s1) -> number_density(s1),
         pair_corr = nothing
-    ) where {T,Dim}
+    ) where {T}
 
     if source.medium != material.microstructure.medium @error mismatched_medium end
 
@@ -213,7 +213,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
     )
 end
 # import EffectiveWaves: discrete_system
-function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::RadialSymmetry{3};
+function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material::Material{Sphere{T,3}}, ::RadialSymmetry{3};
         basis_order::Int = 1,
         basis_field_order::Int = Int(round(T(2) * real(ω / source.medium.c) * outer_radius(material.shape))) + 1,
         legendre_order::Int = 2basis_field_order + 1,
@@ -399,7 +399,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
     )
 end
 
-function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, material::Material{3,Sphere{T,3}}, ::RadialSymmetry{3};
+function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, material::Material{Sphere{T,3}}, ::RadialSymmetry{3};
         basis_order::Int = 1,
         basis_field_order::Int = Int(round(T(2) * real(ω / source.medium.c) * outer_radius(material.shape))) + 1,
         # basis_field_order = Int(round(T(2) * real(ω / source.medium.c) * outer_radius(material.shape))) + 1,
@@ -582,12 +582,12 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
 end
 
 """
-    outgoing_translation_matrix(ω, ::Acoustic, material::Material{Dim,Sphere{T,Dim}};
+    outgoing_translation_matrix(ω, ::Acoustic, material::Material{Sphere{T,Dim}};
         basis_order = 2, tol = 1e-3)
 
     return a function U where U(X) for X ∈ material.shape gives the the outgoing translation matrix
 """
-function outgoing_translation_matrix(ω::T, material::Material{Dim,Sphere{T,Dim}};
+function outgoing_translation_matrix(ω::T, material::Material{Sphere{T,Dim}};
         basis_order::Int = 2, tol::T = 1e-3) where {T,Dim}
 
     medium = material.microstructure.medium

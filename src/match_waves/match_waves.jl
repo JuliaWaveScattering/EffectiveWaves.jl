@@ -18,7 +18,7 @@ function match_error(m_wave::MatchPlaneWaveMode{T}, shape::Shape; apply_norm::Fu
     return apply_norm(m_wave.discrete_wave.amplitudes[j0:end,:,:][:] - avg_eff.amplitudes[:])/len
 end
 
-function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
+function MatchPlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{Halfspace{T,2}};
         tol::T = T(1e-5),
         max_size::Int = 200,
         wave_effs::Vector{EffectivePlaneWaveMode{T,2}} = EffectivePlaneWaveMode{T,2}[],

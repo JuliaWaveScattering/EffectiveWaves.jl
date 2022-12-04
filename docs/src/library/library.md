@@ -62,7 +62,7 @@ WaveModes
 
 ```@docs
 reflection_coefficient
-reflection_coefficient(::T, ::EffectivePlaneWaveMode{T}, ::PlaneSource{T,2,1,Acoustic{T,2}}, ::Material{2,Halfspace{T,2}}) where T<:AbstractFloat
+reflection_coefficient(::T, ::EffectivePlaneWaveMode{T}, ::PlaneSource{T,2,1,Acoustic{T,2}}, ::Material{Halfspace{T,2}}) where T<:AbstractFloat
 reflection_coefficient_low_volumefraction
 ```
 

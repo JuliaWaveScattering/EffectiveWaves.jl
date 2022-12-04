@@ -1,5 +1,5 @@
 "note that this uses the non-dimensional X = k*depth"
-function discrete_wave_system(ω::T, X::AbstractVector{T}, source::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
+function discrete_wave_system(ω::T, X::AbstractVector{T}, source::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{Halfspace{T,2}};
         tol::T = 1e-6,
         scheme::Symbol = :trapezoidal,
         basis_order::Int = 2,

@@ -43,7 +43,7 @@ function transmission_direction(k_eff::Complex{T}, incident_wavevector::Abstract
     return (wnp + α .* surface_normal) ./ k_eff
 end
 
-function transmission_direction(k_eff::Complex{T},  psource::PlaneSource{T,Dim}, material::Material{Dim}; tol::T = sqrt(eps(T))) where {T,Dim}
+function transmission_direction(k_eff::Complex{T},  psource::PlaneSource{T}, material::Material; tol::T = sqrt(eps(T))) where T
     transmission_direction(k_eff, psource.direction, material.shape.normal; tol = tol)
 end
 

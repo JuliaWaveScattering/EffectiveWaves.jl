@@ -1,6 +1,6 @@
 kernelM(l::Int,x, y) = x * diffsbesselj(l,x) * sbesselj(l,y) - y * sbesselj(l,x) * diffsbesselj(l,y)
 
-function scattering_field(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},WithoutSymmetry{3}}) where T
+function scattering_field(wavemode::EffectiveRegularWaveMode{T,Acoustic{T,3},WithoutSymmetry{3}}) where T
     L = wavemode.basis_order
     L1 = wavemode.basis_field_order
 
@@ -46,7 +46,7 @@ function scattering_field(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},W
 
 end
 
-function scattering_field(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},Sym}) where {T, Sym<:AbstractAzimuthalSymmetry{3}}
+function scattering_field(wavemode::EffectiveRegularWaveMode{T,Acoustic{T,3},Sym}) where {T, Sym<:AbstractAzimuthalSymmetry{3}}
     L = wavemode.basis_order
     L1 = wavemode.basis_field_order
 
@@ -81,13 +81,13 @@ function scattering_field(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},S
 end
 
 """
-    scattering_field(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},RadialSymmetry{3}})
+    scattering_field(wavemode::EffectiveRegularWaveMode{T,Acoustic{T,3},RadialSymmetry{3}})
 
 In general ``F_{nn'} = \\delta_{m',-m} \\delta_{\\ell,\\ell'}(-1)^m F_{(\\ell,0),(\\ell,0)}``, so the scattering field is given by
 
 ``\\langle f_n \\rangle (x) = \\sum_{n'} F_{nn'} \\mathrm v_{n'}(k_* x) =  F_{(\\ell,0),(\\ell,0)} (-1)^m \\mathrm v_{(\\ell,-m)}(k_* x)``
 """
-function scattering_field(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},RadialSymmetry{3}}) where T
+function scattering_field(wavemode::EffectiveRegularWaveMode{T,Acoustic{T,3},RadialSymmetry{3}}) where T
     L = wavemode.basis_order
     len = basisorder_to_basislength(Acoustic{T,3},L)
 
@@ -110,7 +110,7 @@ end
 
 
 
-function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},WithoutSymmetry{3}}) where T
+function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,Acoustic{T,3},WithoutSymmetry{3}}) where T
 
     # Unpacking parameters
     k = wavemode.ω / wavemode.medium.c
@@ -153,7 +153,7 @@ function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3
     return gaunt * vec
 end
 
-function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},Sym}) where {T,Sym<:AbstractAzimuthalSymmetry{3}}
+function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,Acoustic{T,3},Sym}) where {T,Sym<:AbstractAzimuthalSymmetry{3}}
 
     # Unpacking parameters
     k = wavemode.ω / wavemode.medium.c
@@ -195,7 +195,7 @@ function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3
     return gaunt * vec
 end
 
-function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,3,Acoustic{T,3},RadialSymmetry{3}}) where T
+function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,Acoustic{T,3},RadialSymmetry{3}}) where T
 
     # Unpacking parameters
     k = wavemode.ω / wavemode.medium.c

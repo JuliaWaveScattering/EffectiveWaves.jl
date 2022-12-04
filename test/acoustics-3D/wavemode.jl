@@ -28,7 +28,7 @@ basis_order = 1
 θ = 0.0
 psource = PlaneSource(medium, [sin(θ),0.0,cos(θ)]);
 source = plane_source(medium; direction = [sin(θ),0.0,cos(θ)])
-material = Material(Sphere(4.0),species);
+material = Material(medium,Sphere(4.0),species);
 
 # x = rand(3)
 # field(source,x,ω) - field(psource,x,ω)

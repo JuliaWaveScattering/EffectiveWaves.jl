@@ -8,7 +8,7 @@ scattering_field
 
 
 "Calculates the effective wavenumbers and return Vector{EffectivePlaneWaveMode}."
-function WaveModes(ω::T, source::AbstractSource, material::Material{Dim,S}; kws...) where {T,Dim,S<:Shape{Dim}} # without the parametric types we get a "Unreachable reached" error
+function WaveModes(ω::T, source::AbstractSource, material::Material{S}; kws...) where {T,S<:Shape} # without the parametric types we get a "Unreachable reached" error
 
     # The wavenumbers are calculated without knowledge of the materail symmetry. This is because the plane-wave symmetry leads to all possible wavenumbers and is simple to calculate.
     k_effs = wavenumbers(ω, material.microstructure; kws... )
@@ -26,7 +26,7 @@ end
 
 Returns a concrete subtype of AbstractWaveMode depending on the SetupSymmetry. The returned type should have all the necessary fields to calculate scattered waves (currently not true for EffectivePlanarWaves).
 """
-function WaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource, material::Material{Dim}; kws...) where {T,Dim}
+function WaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource, material::Material; kws...) where T
 
     eigvectors = eigenvectors(ω, wavenumber, source, material; kws...)
 
@@ -38,7 +38,7 @@ function WaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource, materia
     return EffectiveRegularWaveMode(ω, wavenumber, source, material, eigvectors; kws...)
 end
 
-function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, material::Material{Dim,Halfspace{T,Dim}};
+function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, material::Material{Halfspace{T,Dim}};
     tol::T = 1e-6, kws...) where {T,Dim}
 
     direction = transmission_direction(wavenumber, (ω / psource.medium.c) * psource.direction, material.shape.normal)
@@ -52,7 +52,7 @@ function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, 
     return EffectivePlaneWaveMode(ω, wavenumber, direction, eigvectors)
 end
 
-function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, material::Material{Dim,Plate{T,Dim}}; kws...) where {T,Dim}
+function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, material::Material{Plate{T,Dim}}; kws...) where {T,Dim}
 
     if psource.medium != material.microstructure.medium @error mismatched_medium end
 
@@ -103,7 +103,7 @@ function eigenvectors(ω::T, k_eff::Complex{T}, source::AbstractSource, material
 end
 
 # For plane waves, it is simpler to write all cases in the format for the most general case. For example, for PlanarAzimuthalSymmetry the eignvectors are much smaller. So we will turn these into the more general eigvector case by padding it with zeros.
-# function eigenvectors(ω::T, k_eff::Complex{T}, source::PlaneSource{T}, material::Material{Dim,S}; kws...) where {T<:AbstractFloat,Dim,S<:Union{Plate,Halfspace}}
+# function eigenvectors(ω::T, k_eff::Complex{T}, source::PlaneSource{T}, material::Material{S}; kws...) where {T<:AbstractFloat,Dim,S<:Union{Plate,Halfspace}}
 #
 #     eigvecs = eigenvectors(ω, k_eff, source.medium, material.microstructure.species, Symmetry(source,material); kws...)
 #
@@ -138,7 +138,7 @@ function eigenvectors(ω::T, k_eff::Complex{T}, micro::Microstructure, symmetry:
     eigvectors = reshape(eigvectors,(:,S,size(eigvectors,2)))
 
     # pads with zeros if necessary to match the more general case with less symmetry
-    eigvectors = convert_eigenvector_basis(medium,symmetry,eigvectors)
+    eigvectors = convert_eigenvector_basis(micro.medium,symmetry,eigvectors)
 
     return eigvectors
 end

@@ -18,7 +18,7 @@ function wavenumbers_path(ω::T, micro::Microstructure{Dim};
         mesh_points = iseven(mesh_points) ? mesh_points + 1 : mesh_points
 
     # find at least one root to use as a scale for dk_x and dk_y
-        eff_medium = effective_medium(medium, micro)
+        eff_medium = effective_medium(micro)
         k0 = ω / eff_medium.c
         if isnan(k0) k0 = ω + T(0)*im end
         # abs(k0) can be used to non-dimensionlise k_vec

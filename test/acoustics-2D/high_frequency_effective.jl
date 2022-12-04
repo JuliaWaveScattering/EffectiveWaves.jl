@@ -27,7 +27,7 @@ using LinearAlgebra
 
         # let's now assume the particles are fill a halfspace. Then we can calculate a reflection coefficent from this halfspace
         normal = [-1.0,0.0] # an outward normal to the surface
-        material = Material(Halfspace(normal),species)
+        material = Material(medium,Halfspace(normal),species)
 
         # define a plane wave source travelling directly towards the material
         source = PlaneSource(medium; direction = -normal)

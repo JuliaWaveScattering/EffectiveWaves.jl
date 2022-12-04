@@ -22,7 +22,7 @@ using EffectiveWaves, Test
     eff_medium = effective_medium(medium, species)
     k_eff_lows = ωs./eff_medium.c
 
-    k_eff_φs = wavenumber_low_volumefraction(ωs, medium, species, basis_order=1)
+    k_eff_φs = wavenumber_low_volumefraction(ωs, medium, species; basis_order=1)
 
     k_effs_arr = [
         wavenumbers(ω, medium, species; tol=tol, num_wavenumbers=1, basis_order=1)

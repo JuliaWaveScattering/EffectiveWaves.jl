@@ -24,7 +24,7 @@ basis_order = 1
 θ = 0.0
 psource = PlaneSource(medium, [sin(θ),0.0,cos(θ)]);
 source = plane_source(medium; direction = [sin(θ),0.0,cos(θ)])
-material = Material(Sphere(4.0),species);
+material = Material(medium,Sphere(4.0),species);
 
 basis_field_order = 6
 
@@ -61,7 +61,7 @@ for i in eachindex(k_effs)]
 scat_azis = material_scattering_coefficients.(A_waves);
 
 r = maximum(outer_radius.(species))
-material_low = Material(Sphere(outer_radius(material.shape) - r),species);
+material_low = Material(medium,Sphere(outer_radius(material.shape) - r),species);
 effective_sphere = Particle(eff_medium, material_low.shape)
 
 Linc = basis_field_order + basis_order;
@@ -93,7 +93,7 @@ end
     basis_field_order = 3
 
     R = 0.01
-    material = Material(Sphere(R),species);
+    material = Material(medium,Sphere(R),species);
 
     opts = Dict(
         :tol => tol, :num_wavenumbers => 2,
@@ -120,7 +120,7 @@ end
     scat_azi = material_scattering_coefficients(wavemode);
 
     r = maximum(outer_radius.(species))
-    material_lows = [Material(Sphere(R + r1),species) for r1 in (-3.0*r):r/20.0:(r)];
+    material_lows = [Material(medium,Sphere(R + r1),species) for r1 in (-3.0*r):r/20.0:(r)];
 
     effective_spheres = map(material_lows) do m
         Particle(eff_medium, m.shape)
@@ -150,7 +150,7 @@ end
     # The scattering coefficients depend on the radius of the material
     scat_azis = material_scattering_coefficients.(wavemodes);
 
-    material_low = Material(Sphere(R - r),species);
+    material_low = Material(medium,Sphere(R - r),species);
     effective_sphere = Particle(eff_medium, material_low.shape);
 
     Tmat = MultipleScattering.t_matrix(effective_sphere, medium, ωs[1], Linc) ./ scale_number_density

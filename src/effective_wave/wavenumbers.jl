@@ -9,7 +9,7 @@ wavenumbers(ω::Number, medium::PhysicalMedium, specie::Specie; kws...) = wavenu
 
 wavenumbers(ω::Number, medium::PhysicalMedium, species::Species; kws...) = wavenumbers(ω, Microstructure(medium,species); kws...)
 
-function wavenumbers(ω::Number, material::Material{Dim,S}; kws...) where {Dim,S<:Shape{Dim}}
+function wavenumbers(ω::Number, material::Material; kws...)
     return wavenumbers(ω, material.microstructure;
         # symmetry = Symmetry(source,material),
         kws...

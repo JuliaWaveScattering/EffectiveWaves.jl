@@ -66,7 +66,7 @@ using EffectiveWaves, Test, LinearAlgebra
 
     @test abs(k_eff - ks) < 1e-7
 
-    material = Material(halfspace,species)
+    material = Material(medium,halfspace,species)
 
     # Calculate the wavemode for the first wavenumber
     # the WaveMode function calculates the types of waves and solves the needed boundary conditions
@@ -76,7 +76,7 @@ using EffectiveWaves, Test, LinearAlgebra
     # the material shape for the low frqeuency homoegneous method is r smaller than the effective waves method. So a phase correction is needed.
     @test abs(Reff*exp(im*k*r) - Ramp) < 1e-8
 
-    material = Material(plate,species)
+    material = Material(medium,plate,species)
     wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
     RTeff = reflection_transmission_coefficients(wavemodes, source, material);
 
@@ -111,7 +111,7 @@ end
 
     halfspace = Halfspace([0.0,0.0,-1.0])
     micro = Microstructure(medium,species)
-    material = Material(halfspace,species)
+    material = Material(medium,halfspace,species)
 
     eigs = eigenvectors(ω, k_eff, micro, PlanarSymmetry{3}(); basis_order = basis_order)
     azi_eigs = eigenvectors(ω, k_eff, micro, PlanarAzimuthalSymmetry{3}(); basis_order = basis_order)
@@ -186,12 +186,12 @@ end
     k_effs = wavenumbers(ω, medium, species; tol = 1e-6, num_wavenumbers = 2, basis_order = basis_order)
     k_eff = k_effs[1]
 
-    material = Material(halfspace,species)
+    material = Material(medium,halfspace,species)
     wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = basis_order);
 
     Reff = reflection_coefficient(wavemodes, source, material)
 
-    material = Material(plate,species)
+    material = Material(medium,plate,species)
     wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = basis_order);
     RTeff = reflection_transmission_coefficients(wavemodes, source, material);
 
@@ -238,7 +238,7 @@ end
     kp_arr = [wavenumbers(ω, medium, species; tol = 1e-6, num_wavenumbers = 2, basis_order = basis_order) for ω in ωs]
     k_effs = [kps[1] for kps in kp_arr]
 
-    material = Material(halfspace,species)
+    material = Material(medium,halfspace,species)
     wavemodes = [WaveMode(ωs[i], k_effs[i], source, material; tol = 1e-6, basis_order = basis_order) for i in eachindex(ωs)];
 
     w1 = WaveMode(ωs[end], k_effs[end], source, material; tol = 1e-6, basis_order = basis_order)

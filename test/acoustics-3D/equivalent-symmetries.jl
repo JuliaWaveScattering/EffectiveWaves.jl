@@ -268,6 +268,7 @@ end
 # # Calculate low frequency scattering
 #
 # material_low = Material(
+#     medium,
 #     Sphere(outer_radius(material.shape) - r),
 #     species
 # );

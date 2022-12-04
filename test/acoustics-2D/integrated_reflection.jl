@@ -23,7 +23,7 @@ using EffectiveWaves, Test
     x = 0.0:0.001:max_x
 
     normal = [-1.0,0.0] # an outward normal to the surface
-    material = Material(Halfspace(normal),[specie])
+    material = Material(medium,Halfspace(normal),[specie])
     source = PlaneSource(medium, [cos(θin),sin(θin)])
 
     wave0 = WaveMode(ω, k_eff0, source, material; basis_order = ho)

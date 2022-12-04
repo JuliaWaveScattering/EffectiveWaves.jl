@@ -76,7 +76,7 @@ psource = PlaneSource(medium, [sin(θ),0.0,cos(θ)]);
 
 # choose the size and position of the spherical domain of the material
 R = 20.0
-material = Material(Sphere(spatial_dim, R),species);
+material = Material(medium,Sphere(spatial_dim, R),species);
 
 # the larger the material region, the larger this basis_field_order needs to be
 basis_field_order = 7

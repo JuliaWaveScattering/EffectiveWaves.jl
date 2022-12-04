@@ -68,7 +68,7 @@ end
 
 
 "Numerically solve the integral equation governing ensemble average waves. Optionally can use wave_eff to approximate the wave away from the boundary."
-function DiscretePlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
+function DiscretePlaneWaveMode(ω::T, source::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{Halfspace{T,2}};
         x::AbstractVector{T} = [zero(T)],
         tol::T = T(1e-4),
         wave_effs::Vector{EffectivePlaneWaveMode{T,2}} = EffectivePlaneWaveMode{T,2}[],

@@ -2,7 +2,7 @@
 Returns (LT, ER, (im*k^2*inv_w).*invV*conj(w_vec)), which connect the effective and average wave through α = LT*A + (im*k^2*inv_w).*invV*conj(w_vec).
 The matching region is X[L:end].
 "
-function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T,2}}, L::Int, X::AbstractVector{T}, source::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}};
+function match_arrays(ω::T, wave_effs::Vector{EffectivePlaneWaveMode{T,2}}, L::Int, X::AbstractVector{T}, source::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{Halfspace{T,2}};
         scheme::Symbol = :trapezoidal) where T<:Number
 
     species = material.microstructure.species

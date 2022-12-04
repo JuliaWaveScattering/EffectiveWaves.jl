@@ -61,7 +61,7 @@ using LinearAlgebra
 
     # choose the size and position of the spherical domain of the material
     R = 10.0
-    material = Material(Sphere(R),micro);
+    material = Material(medium,Sphere(R),micro);
 
     @test Symmetry(material,psource) == AzimuthalSymmetry{3}()
 
@@ -71,7 +71,7 @@ using LinearAlgebra
         basis_field_order = basis_field_order
     )
 
-    wave = WaveMode(ω, kps_py[1], psource, Material(Sphere(R),[s_py]);
+    wave = WaveMode(ω, kps_py[1], psource, Material(medium,Sphere(R),[s_py]);
         basis_order = basis_order,
         basis_field_order = basis_field_order
     )

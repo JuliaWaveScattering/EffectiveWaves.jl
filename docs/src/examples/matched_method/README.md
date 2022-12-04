@@ -19,7 +19,7 @@ using EffectiveWaves
     specie = Specie(Particle(particle_medium, ms.Circle(0.8)); volume_fraction = 0.25)
 
     # a halfspace with outward normal [-1.0,0.0] and filled with specie
-    material = Material(Halfspace([-1.0,0.0]), specie)
+    material = Material(medium,Halfspace([-1.0,0.0]), specie)
 
     ω = 1.0
     θin = 0.3 # angle made between incident wave direction and the material boundary

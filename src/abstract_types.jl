@@ -21,6 +21,6 @@ Every [`Material`](@ref) has a shape and has a microstructure. Currently [`Parti
 """
 abstract type Microstructure{Dim} end
 
-abstract type AbstractWaveMode{T,Dim} end
+abstract type AbstractWaveMode end
 
-abstract type AbstractRegularWaveMode{T,Dim} <: AbstractWaveMode{T,Dim} end
+abstract type AbstractRegularWaveMode <: AbstractWaveMode end

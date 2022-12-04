@@ -16,7 +16,7 @@ Explicit formula for one effective wavenumber based on a low particle volume fra
 """
 function wavenumber_low_volumefraction(ω::T, micro::ParticulateMicrostructure{3};
         basis_order::Int = 2, verbose::Bool = true #, numberofparticles::T = Inf
-    ) where T
+    ) where T<:AbstractFloat
 
     medium = micro.medium
     species = micro.species
@@ -62,7 +62,7 @@ end
 
 function wavenumber_low_volumefraction(ω::T, micro::ParticulateMicrostructure{2};
         basis_order::Int = 2, verbose::Bool = true #, numberofparticles::T = Inf
-    ) where T
+    ) where T<:AbstractFloat
 
     medium = micro.medium
     species = micro.species
@@ -86,11 +86,11 @@ function wavenumber_low_volumefraction(ω::T, micro::ParticulateMicrostructure{2
     return (imag(sqrt(kT2)) > zero(T)) ? sqrt(kT2) : -sqrt(kT2)
 end
 
-reflection_coefficient_low_volumefraction(ωs::AbstractVector{T},psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}}; kws... ) where T<:Number =
+reflection_coefficient_low_volumefraction(ωs::AbstractVector{T},psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{Halfspace{T,2}}; kws... ) where T<:Number =
     [reflection_coefficient_low_volumefraction(ω, psource, material; kws... ) for ω in ωs]
 
 "An explicit formula for the refleciton coefficient based on a low particle volume fraction."
-function reflection_coefficient_low_volumefraction(ω::T, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{2,Halfspace{T,2}}; kws...) where T<:Number
+function reflection_coefficient_low_volumefraction(ω::T, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{Halfspace{T,2}}; kws...) where T<:Number
 
     if psource.medium != material.microstructure.medium @error mismatched_medium end
 

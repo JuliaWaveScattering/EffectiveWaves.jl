@@ -60,7 +60,7 @@ eff_medium = effective_medium(medium, species)
 normal = [-1.0,0.0] # an outward normal to the surface
 
 # Define the material region
-material = Material(Halfspace(normal),species)
+material = Material(medium,Halfspace(normal),species)
 
 # define a plane wave source travelling at a 45 degree angle in relation to the material
 source = PlaneSource(medium, [cos(pi/4.0),sin(pi/4.0)])
@@ -177,7 +177,7 @@ abs(k_eff - ω / eff_medium.c) < 1e-10
 halfspace = Halfspace(normal)
 plate = Plate(normal,width,origin)
 
-material = Material(halfspace,species)
+material = Material(medium,halfspace,species)
 
 # Calculate the wavemode for the first wavenumber
 # the WaveMode function calculates the types of waves and solves the needed boundary conditions
@@ -185,7 +185,7 @@ wavemode = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
 
 Reff = reflection_coefficient(wavemode, source, material)
 
-material = Material(plate,species)
+material = Material(medium,plate,species)
 wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
 RTeff = reflection_transmission_coefficients(wavemodes, source, material);
 
