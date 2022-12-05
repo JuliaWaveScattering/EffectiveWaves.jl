@@ -18,7 +18,7 @@ using LinearAlgebra
     #     MonteCarloPairCorrelation(3; rtol = 1e-3, maxlength = 120, meshsize = 0.02,iterations = 200),
     #     MonteCarloPairCorrelation(3; rtol = 1e-3, maxlength = 60, iterations = 2000, numberofparticles = 2000)
     # ]
-
+    medium = Acoustic(3; ρ=1.0, c=1.0)
     s = Specie(
         Acoustic(3; ρ = 10.0, c = 10.0),
         # Sphere(1.5),
@@ -27,7 +27,7 @@ using LinearAlgebra
         separation_ratio = 1.0
     );
 
-    micro_mc = Microstructure(s, pairtype_mc);
+    micro_mc = Microstructure(medium, s, pairtype_mc);
 
     # Note that the volume fraction achieved with the MonteCarlo approach is not exactly the same as the one requested
     vol_mc = micro_mc.paircorrelations[1].number_density * volume(s)
@@ -41,16 +41,16 @@ using LinearAlgebra
         # volume_fraction = vol_mc*0.76,  # <--- more accurate, but don't know why
         separation_ratio = 1.0
     );
-    micro = Microstructure(s_py, pairtype);
+    micro = Microstructure(medium, s_py, pairtype);
 
     # gs = [micro.paircorrelations[1], micro.paircorrelations[1]]
 
     ω = 1.2
     basis_order = 1
     basis_field_order = 3
-    medium = Acoustic(3; ρ=1.0, c=1.0)
 
-    kps_py = wavenumbers(ω, medium, micro;
+
+    kps_py = wavenumbers(ω, micro;
         basis_order = basis_order, num_wavenumbers = 4
     )
     kps = wavenumbers(ω, medium, s_py;
@@ -61,7 +61,7 @@ using LinearAlgebra
 
     # choose the size and position of the spherical domain of the material
     R = 10.0
-    material = Material(medium,Sphere(R),micro);
+    material = Material(Sphere(R),micro);
 
     @test Symmetry(material,psource) == AzimuthalSymmetry{3}()
 
@@ -70,7 +70,6 @@ using LinearAlgebra
         basis_order = basis_order,
         basis_field_order = basis_field_order
     )
-
     wave = WaveMode(ω, kps_py[1], psource, Material(medium,Sphere(R),[s_py]);
         basis_order = basis_order,
         basis_field_order = basis_field_order
