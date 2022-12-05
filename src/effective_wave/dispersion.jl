@@ -1,4 +1,4 @@
-# eigensystem(ω::AbstractFloat, medium::PhysicalMedium, species::Species, sym::AbstractSymmetry; kws...) = eigensystem(ω, medium, Microstructure(species), sym; kws...)
+# eigensystem(ω::AbstractFloat, medium::PhysicalMedium, species::Species, sym::AbstractSymmetry; kws...) = eigensystem(ω, Microstructure(medium,species), sym; kws...)
 
 dispersion_equation(ω::AbstractFloat, source::AbstractSource, material::Material; kws...) = dispersion_equation(ω, material.microstructure, Symmetry(source,material); kws...)
 

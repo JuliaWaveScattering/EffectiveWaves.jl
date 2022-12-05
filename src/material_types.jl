@@ -116,7 +116,7 @@ end
 Microstructure(medium::PhysicalMedium, s::Specie) = Microstructure(medium,[s])
 
 """
-    Microstructure(sps::Vector{Specie})
+    Microstructure(medium::PhysicalMedium, sps::Vector{Specie})
 
 When no pair-correlation is specified for the species, the microstructure will use the default that assumes that particles can not overlap, but, otherwise, their positions are uncorrelated. This is often called \"Hole Correction\"
 """

@@ -2,7 +2,7 @@
 
 Below are paper and notes that explain the theory behind this package.
 
-## [Waves in multi-species](WavesInMultiSpecies..pdf)
+## [Waves in multi-species](WavesInMultiSpecies.pdf)
 
 A summary on the equations to calculate effective wavenumbers in 2D and 3D acoustics in medium filled with many different types of randomly placed particles. These notes assume only whole-correction for the pair-correlation.
 
