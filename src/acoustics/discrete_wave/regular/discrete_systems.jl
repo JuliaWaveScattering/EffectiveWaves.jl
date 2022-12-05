@@ -84,7 +84,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
     ls, ms = spherical_harmonics_indices(basis_order)
     azi_inds(m::Int) = lm_to_spherical_harmonic_index.(abs(m):basis_field_order,-m)
 
-    len = basisorder_to_basislength(Acoustic{T,Dim}, basis_order)
+    len = basisorder_to_basislength(Acoustic{T,3}, basis_order)
     len_p = sum(legendre_order for nd in 1:len for i in azi_inds(ms[nd]))
 
     function incident_coefficients(r1s::AbstractVector{T},θ1s::AbstractVector{T})
@@ -207,7 +207,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
     end
 
     return ScatteringCoefficientsField(ω, source.medium, material, scattered_field;
-        symmetry = AzimuthalSymmetry{Dim}(),
+        symmetry = AzimuthalSymmetry{3}(),
         basis_order = basis_order,
         basis_field_order = basis_field_order
     )
