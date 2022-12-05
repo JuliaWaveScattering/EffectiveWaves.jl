@@ -162,7 +162,8 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::RadialSymmetr
 end
 
 # The eigensystem when translation symmetry is present
-function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::AbstractTranslationSymmetry{3};
+# WE HAVE TO ADD TRANLATION SYMMETRY DOWN HERE
+function eigensystem(ω::T, micro::ParticulateMicrostructure{3};
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         # numberofparticles::Number = Inf,
