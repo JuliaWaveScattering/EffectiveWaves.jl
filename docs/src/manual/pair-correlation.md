@@ -24,7 +24,7 @@ s = Specie(
     Acoustic(3; ρ = 0.01, c = 0.01),
     Sphere(r),
     volume_fraction = 0.3,
-    separation_ratio = 1.01
+    separation_ratio = 1.0
 );
 
 # output
@@ -34,12 +34,12 @@ Next we create a microstructure that has only this species, and has a specific p
 
 ```jldoctest pair; output = false, filter = r".*"s
 
-r = 2.0:0.1:10.0
+r = 1.0:0.1:10.0
 my_pair_correlation = 1.0 .+ 0.2 .* sin.(r) ./ r.^3
 
 dpc = DiscretePairCorrelation(r, my_pair_correlation)
 
-micro = Microstructure(s, dpc);
+micro = Microstructure(medium, s, dpc);
 
 # output
 ```
@@ -53,7 +53,7 @@ Let us consider a material filled with only one type of particle and use the Per
 
 pair_type = PercusYevick(3; rtol = 1e-2, maxlength = 200)
 
-micro = Microstructure(s, pair_type);
+micro = Microstructure(medium,s, pair_type);
 
 # output
 ```
@@ -84,18 +84,18 @@ First we calculate the wavenumbers with the simplest pair correlation (hole corr
 
 ```jldoctest pair; output = false, filter = r".*"s
 
-micro = Microstructure(s);
+micro = Microstructure(medium,s);
 
 ω = 0.4
 
-kps = wavenumbers(ω, medium, micro;
+kps = wavenumbers(ω, micro;
     basis_order = 1, num_wavenumbers = 4
 )
 
 pair_type = PercusYevick(3; meshsize = 0.1, maxlength = 50)
-micro = Microstructure(s, pair_type);
+micro = Microstructure(medium, s, pair_type);
 
-kps2 = wavenumbers(ω, medium, micro;
+kps2 = wavenumbers(ω, micro;
     basis_order = 1, num_wavenumbers = 4
 )
 
@@ -148,7 +148,7 @@ abs.(RTeff)
 We can compare the result of not using Percus-Yevick below.
 ```jldoctest pair; output = false, filter = r".*"s
 k_eff = kps[1]
-micro = Microstructure(s);
+micro = Microstructure(medium,s);
 material = Material(plate, micro)
 wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
 
