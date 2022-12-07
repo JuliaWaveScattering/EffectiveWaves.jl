@@ -1,5 +1,5 @@
 # The eigensystem when no symmetry is present
-function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::WithoutSymmetry{3};
+function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, ::WithoutSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         # numberofparticles::Number = Inf,
@@ -73,7 +73,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::WithoutSymmet
     return MM
 end
 
-function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::AbstractAzimuthalSymmetry;
+function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, ::AbstractAzimuthalSymmetry;
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         # numberofparticles::Number = Inf,
@@ -148,7 +148,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::AbstractAzimu
     return MM
 end
 
-function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::RadialSymmetry{3};
+function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, ::RadialSymmetry{3};
         basis_order::Int = 2,
         kws...) where {T<:AbstractFloat}
 
@@ -163,13 +163,18 @@ end
 
 # The eigensystem when translation symmetry is present
 # WE HAVE TO ADD TRANLATION SYMMETRY DOWN HERE
-function eigensystem(ω::T, micro::ParticulateMicrostructure{3};
+function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, sym::TranslationSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         # numberofparticles::Number = Inf,
         kws...) where T<:AbstractFloat
 
     medium = micro.medium
+    direction = SVector((sym.direction ./ norm(sym.direction))...)
+
+    if dot(direction, [0.0,0.0,1.0]) < 1
+        @error "Translation in 3D only implemented in z direction so far. Performing the calculation for z translation symmetry instead."
+    end
 
     k = ω/medium.c
     sps = micro.species
@@ -192,26 +197,25 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3};
         pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
     end
 
-    function M_component(keff,Ns,l,m,dl,dm,m1,m2,s2)::Complex{T}
+    Ys = spherical_harmonics(2L, pi/2, 0.0)
+    lm_to_n = lm_to_spherical_harmonic_index
+
+    function M_component(keff,Ns,l,m,dl,dm,m1,m2,s1,s2)::Complex{T}
         minl1 = abs(l - dl)
         maxl1 = l + dl
 
         (m == dm && l == dl && m1 == m2 && s1 == s2 ? 1.0 : 0.0) +
-        if minl1 <= maxl1
-            number_density(sps[s2]) * t_diags[s1][len(l)] *
-            sum(l1 ->
-                if abs(m2 - m1) <= l1
-                    1im^(l1 + m1 - m2) *
-                    gaunt_coefficient(dl,dm,l,m,l1,m1-m2) *
-                    spherical_harmonics(l1, pi/2, 0.0)[(l1^2 + l1 + 1) + (m2 - m1)] *
-                    Ns[l1+1,s1,s2]
-                else
-                    zero(Complex{T})
-                end
-            , minl1:maxl1)
-        else
-            zero(Complex{T})
-        end
+        number_density(sps[s2]) * t_diags[s1][len(l)] *
+        sum(l1 ->
+            if abs(m1 - m2) <= l1
+                Complex{T}(1im)^(m1 - m2 - l1) * (-1)^l1 *
+                gaunt_coefficient(dl,dm,l,m,l1,m1-m2) *
+                Ys[lm_to_n(l1,m2-m1)] *
+                4pi * Ns[l1+1,s1,s2]
+            else
+                zero(Complex{T})
+            end
+        , minl1:maxl1)
     end
 
     function MM(keff::Complex{T})::Matrix{Complex{T}}
@@ -229,10 +233,10 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3};
 
         # The order of the indices below is important
         ind2 = 1
-        for s2 = 1:S for dl = 0:L for dm = -dl:dl for m1 = -L1:L1
+        for s2 = 1:S for dl = 0:L for dm = -dl:dl for m2 = -L1:L1
             ind1 = 1
-            for s1 = 1:S for l = 0:L for m = -l:l for m2 = -L1:L1
-                MM_mat[ind1, ind2] = M_component(keff,Ns,l,m,dl,dm,m1,m2,s2)
+            for s1 = 1:S for l = 0:L for m = -l:l for m1 = -L1:L1
+                MM_mat[ind1, ind2] = M_component(keff,Ns,l,m,dl,dm,m1,m2,s1,s2)
                 ind1 += 1
             end end end end
             ind2 += 1

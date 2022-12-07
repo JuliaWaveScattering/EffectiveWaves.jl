@@ -67,7 +67,7 @@ exclusion_distance(s::Specie) = outer_radius(s) * s.separation_ratio
 
 Represents a microstructure filled with multiply species of particles. ParticulateMicrostructure.paircorrelations specifies the pair correlation between each of the species. That is, how the particles are distributed on average.
 """
-struct ParticulateMicrostructure{Dim,PC<:PairCorrelation,Sps<:Species{Dim},P<:PhysicalMedium{Dim}} <: Microstructure{Dim}
+struct ParticulateMicrostructure{Dim,P<:PhysicalMedium{Dim},Sps<:Species{Dim},PC<:PairCorrelation} <: Microstructure{Dim}
     medium::P
     species::Sps
     paircorrelations::Matrix{PC}
@@ -86,7 +86,7 @@ struct ParticulateMicrostructure{Dim,PC<:PairCorrelation,Sps<:Species{Dim},P<:Ph
             @warn "The minimal allowed distance between particles defined by the Species is different to that defined by the DiscretePairCorrelation. In this case, the default will be one given by the DiscretePairCorrelation."
         end
 
-        new{Dim,PC,Sps,P}(medium,sps,ps)
+        new{Dim,P,Sps,PC}(medium,sps,ps)
     end
 end
 

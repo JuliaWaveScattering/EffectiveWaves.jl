@@ -25,6 +25,7 @@ basis_order = 2
 ### Test the equivalence between dispersion equations
 
     R_det = dispersion_equation(ω, micro, RadialSymmetry{spatial_dim}(); basis_order = basis_order)
+    T_det = dispersion_equation(ω, micro, TranslationSymmetry{spatial_dim}([0.0,0.0,1.0]); basis_order = basis_order)
     AP_det = dispersion_equation(ω, micro, PlanarAzimuthalSymmetry{spatial_dim}(); basis_order = basis_order)
     P_det = dispersion_equation(ω, micro, PlanarSymmetry{spatial_dim}(); basis_order = basis_order)
     AR_det = dispersion_equation(ω, micro, AzimuthalSymmetry{spatial_dim}(); basis_order = basis_order)
@@ -57,6 +58,7 @@ basis_order = 2
     @test maximum(AP_det.(AP_kps)) < tol
     # @test maximum(AP_det.(R_kps)) < tol
     @test maximum(R_det.(AP_kps)) < tol
+    @test maximum(T_det.(AP_kps)) < tol^2
     @test maximum(P_det.(AP_kps)) < tol
     @test maximum(AR_det.(AP_kps)) < tol^2
     @test maximum(Reg_det.(AP_kps)) < tol^3
