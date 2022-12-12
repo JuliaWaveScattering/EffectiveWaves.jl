@@ -208,7 +208,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, s
         number_density(sps[s2]) * t_diags[s1][len(l)] *
         sum(l1 ->
             if abs(m1 - m2) <= l1
-                Complex{T}(1im)^(m2 - m1 - l1) * (-1)^l1 *
+                Complex{T}(1im)^(m2 - m1 + l1) *
                 gaunt_coefficient(dl,dm,l,m,l1,m1-m2) *
                 Ys[lm_to_n(l1,m2-m1)] *
                 4pi * Ns[l1+1,s1,s2]
