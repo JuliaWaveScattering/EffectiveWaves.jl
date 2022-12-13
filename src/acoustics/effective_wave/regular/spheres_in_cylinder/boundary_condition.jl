@@ -47,11 +47,12 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     vecs = reshape(vecs, size(eigvectors)[[1,3]])
 
     # Reflection and transmission coefficients
-    γ = (ρ0 * c0) / (ρ * c)
+    γ = (ρ0 * c0) / (ρ * c);
+    EW = EffectiveWaves;
 
     Tran = [
-        (γ*diffhankelh1(m, k*R)*besselj(m, k*R) - γ*hankelh1(m, k*R)*diffbesselj(m, k*R)) \
-        (γ*diffhankelh1(m, k*R)*besselj(m, k0*R) - hankelh1(m, k*R)*diffbesselj(m, k0*R))
+        (γ*EW.diffhankelh1(m, k*R)*EW.besselj(m, k*R) - γ*EW.hankelh1(m, k*R)*EW.diffbesselj(m, k*R)) \
+        (γ*EW.diffhankelh1(m, k*R)*EW.besselj(m, k0*R) - EW.hankelh1(m, k*R)*EW.diffbesselj(m, k0*R))
         for m = -Minc:Minc];
 
     Refl = [
