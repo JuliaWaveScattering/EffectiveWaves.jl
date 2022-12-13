@@ -1,16 +1,20 @@
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{Sphere{T,3}}, ::WithoutSymmetry{3};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{Circle{T,2}}, ::TranslationSymmetry{3,T};
         basis_order::Int = 2,
-        basis_field_order::Int = 4,
+        basis_field_order::Int = 2*basis_order,
         # source_basis_field_order::Int = basis_field_order,
-        source_basis_field_order::Int = Int(round(sqrt(size(eigvectors)[end]))) - 1,
+        source_basis_field_order::Int = size(eigvectors)[3],
         kws...
     ) where T
     # source_basis_field_order is often chosen so that there is the same number of source coefficients a_n as the number of unknowns α_n
     # Before was: source_basis_field_order = min(basis_field_order,Int(round(sqrt(size(eigvectors)[end])))) - 1
 
-    if source.medium != material.microstructure.medium @error mismatched_medium end
+    ρ = source.medium.ρ
+    c = source.medium.c
+    ρ0 = material.microstructure.medium.ρ
+    c0 = material.microstructure.medium.c
 
-    k = ω / source.medium.c
+    k = ω / c
+    k0 = ω / c0
 
     species = material.microstructure.species
     S = length(species)
@@ -23,9 +27,9 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     # Set the maximmum order the basis functions
     L = basis_order
-    L1 = basis_field_order
+    M = basis_field_order
     # L1 = Int(sqrt(size(eigvectors,1) / (L+1)^2) - 1)
-    Linc = source_basis_field_order
+    Minc = source_basis_field_order
     L2 = 2L + L1
 
     # the kernel use to wieight the species and the field's basis order.
@@ -42,6 +46,20 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     # sum over species
     vecs = sum(vecs, dims=2)
     vecs = reshape(vecs, size(eigvectors)[[1,3]])
+
+    # Reflection and transmission coefficients
+    γ = (ρ0 * c0) / (ρ * c)
+    EW = EffectiveWaves
+
+    Tran = [
+        (γ*EW.diffhankelh1(m, k*R)*EW.besselj(m, k*R) - γ*EW.hankelh1(m, k*R)*EW.diffbesselj(m, k*R)) \
+        (γ*EW.diffhankelh1(m, k*R)*EW.besselj(m, k0*R) - EW.hankelh1(m, k*R)*EW.diffbesselj(m, k0*R))
+        for m = -Minc:Minc];
+
+    Refl = [
+        (EW.hankelh1(m, k*R)*EW.diffhankelh1(m, k0*R) - γ*EW.diffhankelh1(m, k*R))*EW.hankelh1(m, k0*R) \
+        (γ*EW.diffhankelh1(m, k*R)*EW.besselj(m, k0*R) - γ*EW.hankelh1(m, k*R)*EW.diffbesselj(m, k0*R))
+        for m = -Minc:Minc];
 
     # The extinction_matrix
     function gaunt2(dl,dm,l1,m1,l,m,l2,m2)::Complex{T}
