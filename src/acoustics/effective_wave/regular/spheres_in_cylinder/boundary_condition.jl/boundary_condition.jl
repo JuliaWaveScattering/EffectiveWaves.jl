@@ -2,7 +2,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         # source_basis_field_order::Int = basis_field_order,
-        source_basis_field_order::Int = size(eigvectors)[3],
+        source_basis_field_order::Int = Int((size(eigvectors)[3] - 1) / 2),
         kws...
     ) where T
     # source_basis_field_order is often chosen so that there is the same number of source coefficients a_n as the number of unknowns α_n
@@ -30,17 +30,16 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     M = basis_field_order
     # L1 = Int(sqrt(size(eigvectors,1) / (L+1)^2) - 1)
     Minc = source_basis_field_order
-    L2 = 2L + L1
 
     # the kernel use to wieight the species and the field's basis order.
     Ns = [
-        (R - rs[j]) * kernelN3D(l1,k*(R - rs[j]), k_eff*(R - rs[j])) * number_density(species[j])
-    for l1 = 0:L1, j in eachindex(species)] ./ (k^T(2) - k_eff^T(2))
+        (R - rs[j]) * kernelN2D(m, k0*(R - rs[j]), k_eff*(R - rs[j])) * number_density(species[j])
+    for m = -M:M, j in eachindex(species)] ./ (k_eff^T(2) - k0^T(2))
 
-    l1s = [l1 for l = 0:L for m = -l:l for l1 = 0:L1 for m1 = -l1:l1];
+    ms = [m for dl = 0:L for dm = -dl:dl for m = -M:M];
 
     vecs = [
-        eigvectors[i] * Ns[l1s[i[1]]+1,i[2]]
+        eigvectors[i] * Ns[ms[i[1]]+M+1, i[2]]
     for i in CartesianIndices(eigvectors)];
 
     # sum over species
@@ -49,11 +48,10 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     # Reflection and transmission coefficients
     γ = (ρ0 * c0) / (ρ * c)
-    EW = EffectiveWaves
 
     Tran = [
-        (γ*EW.diffhankelh1(m, k*R)*EW.besselj(m, k*R) - γ*EW.hankelh1(m, k*R)*EW.diffbesselj(m, k*R)) \
-        (γ*EW.diffhankelh1(m, k*R)*EW.besselj(m, k0*R) - EW.hankelh1(m, k*R)*EW.diffbesselj(m, k0*R))
+        (γ*diffhankelh1(m, k*R)*besselj(m, k*R) - γ*hankelh1(m, k*R)*diffbesselj(m, k*R)) \
+        (γ*diffhankelh1(m, k*R)*besselj(m, k0*R) - hankelh1(m, k*R)*diffbesselj(m, k0*R))
         for m = -Minc:Minc];
 
     Refl = [
