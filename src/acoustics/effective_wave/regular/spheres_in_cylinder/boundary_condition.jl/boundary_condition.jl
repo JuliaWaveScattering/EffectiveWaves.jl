@@ -1,4 +1,4 @@
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{Sphere{T,3}}, ::WithoutSymmetry{3};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{Circle{T,2}}, ::TranslationSymmetry{3,T};
         basis_order::Int = 2,
         basis_field_order::Int = 4,
         # source_basis_field_order::Int = basis_field_order,
@@ -8,9 +8,8 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     # source_basis_field_order is often chosen so that there is the same number of source coefficients a_n as the number of unknowns α_n
     # Before was: source_basis_field_order = min(basis_field_order,Int(round(sqrt(size(eigvectors)[end])))) - 1
 
-    if source.medium != material.microstructure.medium @error mismatched_medium end
-
     k = ω / source.medium.c
+    k0 = ω / material.microstructure.medium.c
 
     species = material.microstructure.species
     S = length(species)
@@ -23,20 +22,19 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     # Set the maximmum order the basis functions
     L = basis_order
-    L1 = basis_field_order
+    M = basis_field_order
     # L1 = Int(sqrt(size(eigvectors,1) / (L+1)^2) - 1)
     Linc = source_basis_field_order
-    L2 = 2L + L1
 
     # the kernel use to wieight the species and the field's basis order.
     Ns = [
-        (R - rs[j]) * kernelN3D(l1,k*(R - rs[j]), k_eff*(R - rs[j])) * number_density(species[j])
-    for l1 = 0:L1, j in eachindex(species)] ./ (k^T(2) - k_eff^T(2))
+        (R - rs[j]) * kernelN2D(m, k0*(R - rs[j]), k_eff*(R - rs[j])) * number_density(species[j])
+    for m = -M:M, j in eachindex(species)] ./ (k_eff^T(2) - k0^T(2))
 
-    l1s = [l1 for l = 0:L for m = -l:l for l1 = 0:L1 for m1 = -l1:l1];
+    ms = [m for dl = 0:L for dm = -dl:dl for m = -M:M];
 
     vecs = [
-        eigvectors[i] * Ns[l1s[i[1]]+1,i[2]]
+        eigvectors[i] * Ns[ms[i[1]]+M+1, i[2]]
     for i in CartesianIndices(eigvectors)];
 
     # sum over species
