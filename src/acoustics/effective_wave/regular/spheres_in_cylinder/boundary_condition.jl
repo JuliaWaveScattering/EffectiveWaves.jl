@@ -26,16 +26,17 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     L = basis_order
     M = basis_field_order
     Minc = source_basis_field_order
+    M1 = L + Minc
 
-    # the kernel use to wieight the species and the field's basis order.
+    # the kernel used to weight the species and the field's basis order.
     Ns = [
         (R - rs[j]) * kernelN2D(m, k0*(R - rs[j]), k_eff*(R - rs[j])) * number_density(species[j])
-    for m = -2M:2M, j in eachindex(species)] ./ (k_eff^T(2) - k0^T(2))
+    for m = -M1:M1, j in eachindex(species)] ./ (k_eff^T(2) - k0^T(2))
 
-    ms = [m for dl = 0:L for dm = -dl:dl for m = -2M:2M];
+    ms = [m for dl = 0:L for dm = -dl:dl for m = -M1:M1];
 
     vecs = [
-        eigvectors[i] * Ns[ms[i[1]]+2M+1, i[2]]
+        eigvectors[i] * Ns[ms[i[1]]+M1+1, i[2]]
     for i in CartesianIndices(eigvectors)];
 
     # sum over species
@@ -54,6 +55,20 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
         (hankelh1(m, k*R)*diffhankelh1(m, k0*R) - γ*diffhankelh1(m, k*R))*hankelh1(m, k0*R) \
         (γ*diffhankelh1(m, k*R)*besselj(m, k0*R) - γ*hankelh1(m, k*R)*diffbesselj(m, k0*R))
         for m = -Minc:Minc];
+
+    # Precomputation of spherical harmonic functions
+    Ys = spherical_harmonics(L, pi/2, 0.0)
+    lm_to_n = lm_to_spherical_harmonic_index
+
+    # Contributions from reflections on the wall
+    wall_reflections = [sum(l ->
+        sum(m ->
+            (-1.0)^s * Complex{T}(1im)^(m - l) * Ys[lm_to_n(l, m)] .*
+            vecs[(m - s + M1)*(L + 1)^2 + lm_to_n(l,m), p]
+        ,-l:l), 0:L) for s = -Minc:Minc, p = 1:(2Minc + 1)];
+
+    # Incident wave coefficients
+    source_coefficients = Tran .* regular_spherical_coefficients(source)(Minc,zeros(2),ω)
 
     # The extinction_matrix
     function gaunt2(dl,dm,l1,m1,l,m,l2,m2)::Complex{T}
@@ -80,7 +95,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     len = (L1+1)^2 * (L+1)^2
     extinction_matrix = reshape(extinction_matrix, (:,len))
 
-    source_coefficients = regular_spherical_coefficients(source)(Linc,zeros(3),ω)
+
 
     forcing = [
         - sum(

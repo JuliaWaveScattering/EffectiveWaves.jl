@@ -181,8 +181,8 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, s
 
     S = length(sps)
     L = basis_order
-    L1 = basis_field_order
-    len = (2L1+1) * (L+1)^2 * S
+    M = basis_field_order
+    len = (2M+1) * (L+1)^2 * S
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     t_matrices = get_t_matrices(medium, sps, ω, L)
@@ -233,9 +233,9 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, s
 
         # The order of the indices below is important
         ind2 = 1
-        for s2 = 1:S for dl = 0:L for dm = -dl:dl for m2 = -L1:L1
+        for s2 = 1:S for dl = 0:L for dm = -dl:dl for m2 = -M:M
             ind1 = 1
-            for s1 = 1:S for l = 0:L for m = -l:l for m1 = -L1:L1
+            for s1 = 1:S for l = 0:L for m = -l:l for m1 = -M:M
                 MM_mat[ind1, ind2] = M_component(keff,Ns,l,m,dl,dm,m1,m2,s1,s2)
                 ind1 += 1
             end end end end
