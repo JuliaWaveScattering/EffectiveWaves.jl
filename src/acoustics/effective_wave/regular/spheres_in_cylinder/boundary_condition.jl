@@ -1,4 +1,4 @@
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{Circle{T,2}}, ::TranslationSymmetry{3,T};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,2}}, material::Material{Circle{T,2}}, ::TranslationSymmetry{3,T};
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         source_basis_field_order::Int = Int((size(eigvectors)[3] - 1) / 2),
@@ -26,7 +26,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     L = basis_order
     M = basis_field_order
     Minc = source_basis_field_order
-    M1 = L + Minc
+    M1 = max(L + Minc,2L)
 
     # the kernel used to weight the species and the field's basis order.
     Ns = [
@@ -60,54 +60,55 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     Ys = spherical_harmonics(L, pi/2, 0.0)
     lm_to_n = lm_to_spherical_harmonic_index
 
-    # Contributions from reflections on the wall
-    wall_reflections = [sum(l ->
-        sum(m ->
-            (-1.0)^s * Complex{T}(1im)^(m - l) * Ys[lm_to_n(l, m)] .*
-            vecs[(m - s + M1)*(L + 1)^2 + lm_to_n(l,m), p]
-        ,-l:l), 0:L) for s = -Minc:Minc, p = 1:(2Minc + 1)];
+    # Contributions from wall multiplescattering
+    wall_reflections = [Refl[s + Minc + 1] *
+        sum(l ->
+            sum(m ->
+                (-1.0)^s * Complex{T}(1im)^(m - l) * Ys[lm_to_n(l, m)] .*
+                vecs[(m - s + M1)*(L + 1)^2 + lm_to_n(l,m), p]
+            ,-l:l)
+        , 0:L) for s = -Minc:Minc, p = 1:(2Minc + 1)];
+
+    indices = [[l,m,l1,m1] for l = 0:L for m = -l:l for l1 = 0:L for m1 = -l1:l1];
+    wall_contribution = [sum(dl ->
+            sum(dm ->
+                Complex{T}(1im)^(-dm-dl) * Ys[lm_to_n(dl,dm)] *
+                gaunt_coefficient(dl,dm,i[1],i[2],i[3],i[4]) *
+                wall_reflections[dm + Minc + 1,p]
+            , -dl:dl)
+        , 0:L) for i in indices, p in 1:(2Minc + 1)];
+
+    # Contributions from direct particle-particle multiplescattering
+    particle_contribution = [(4pi/k0) *
+        Complex{T}(1im)^(i[3] - i[4]) * Ys[lm_to_n(i[3],i[4])] *
+        sum(l2 ->
+            sum(m2 ->
+                Complex{T}(1im)^(m2 - l2) * Ys[lm_to_n(l2,m2)] *
+                sum(dl ->
+                    sum(dm ->
+                        gaunt_coefficient(dl,dm,i[1],i[2],l2,m2) *
+                        vecs[(i[4] - m2 + M1)*(L + 1)^2 + lm_to_n(dl,dm), p]
+                    , -dl:dl)
+                , 0:L)
+            , -l2:l2)
+        , 0:L) for i in indices, p in 1:(2Minc + 1)];
 
     # Incident wave coefficients
     source_coefficients = Tran .* regular_spherical_coefficients(source)(Minc,zeros(2),ω)
 
-    # The extinction_matrix
-    function gaunt2(dl,dm,l1,m1,l,m,l2,m2)::Complex{T}
-        minl3 = max(abs(dl-l),abs(l2-l1),abs(dm-m))
-        maxl3 = min(abs(dl+l),abs(l2+l1))
-        return if minl3 <= maxl3
-            - sum(l3 ->
-                gaunt_coefficient(dl,dm,l,m,l3,dm-m) *
-                gaunt_coefficient(l2,m2,l1,m1,l3,dm-m)
-            , minl3:maxl3)
-        else
-            zero(Complex{T})
-        end
-    end
+    forcing = [sum(dl ->
+            sum(dm ->
+                Complex{T}(1im)^(-dm-dl) * Ys[lm_to_n(dl,dm)] *
+                gaunt_coefficient(dl,dm,i[1],i[2],i[3],i[4]) *
+                source_coefficients[dm + Minc + 1]
+            , -dl:dl)
+        , 0:L) for i in indices]
 
-    # in this form: extinction_matrix[(n,n2),(dn,n1)] ==  gaunt2(dl,dm,l1,m1,l,m,l2,m2)
-    extinction_matrix = [
-            gaunt2(dl,dm,l1,m1,l,m,l2,m2)
-        for dl = 0:L for dm = -dl:dl
-        for l1 = 0:L1 for m1 = -l1:l1
-    for l = 0:L for m = -l:l
-    for l2 = 0:L2 for m2 = -l2:l2]
+    matrix = particle_contribution + wall_contribution
 
-    len = (L1+1)^2 * (L+1)^2
-    extinction_matrix = reshape(extinction_matrix, (:,len))
+    α = matrix \ forcing
 
-
-
-    forcing = [
-        - sum(
-            [gaunt_coefficient(dl,dm,l,m,l2,m2) for dl = 0:Linc for dm = -dl:dl] .*
-            source_coefficients
-        )
-    for l = 0:L for m = -l:l
-    for l2 = 0:L2 for m2 = -l2:l2]
-
-    α = (extinction_matrix * vecs) \ forcing
-
-    err = norm(forcing - extinction_matrix * vecs * α) / norm(forcing)
+    err = norm(forcing - matrix * α) / norm(forcing)
 
     if err > sqrt(eps(T))
         @warn "Extinction equation (like a boundary condition) was solved with an error: $err for the effective wavenumber: $k_eff"
