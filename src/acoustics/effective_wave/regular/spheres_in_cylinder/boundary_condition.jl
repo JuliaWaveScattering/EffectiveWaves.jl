@@ -1,6 +1,6 @@
 function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,2}}, material::Material{Circle{T,2}}, ::TranslationSymmetry{3,T};
         basis_order::Int = 2,
-        basis_field_order::Int = basis_order + 2,
+        basis_field_order::Int = 2*basis_order,
         source_basis_field_order::Int = Int((size(eigvectors)[3] - 1) / 2),
         kws...
     ) where T
@@ -29,16 +29,16 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     # the kernel used to weight the species and the field's basis order.
     Ns = [
-        (R - rs[j]) * kernelN2D(m, k0*(R - rs[j]), k_eff*(R - rs[j])) * number_density(species[j])
+        kernelN2D(m, k0*(R - rs[j]), k_eff*(R - rs[j])) * number_density(species[j])
     for m = -M:M, j in eachindex(species)] ./ (k_eff^T(2) - k0^T(2))
 
-    dldmms = [[dl,dm,m] for dl = 0:L for dm = -dl:dl for m = -M:M];
+    dn_m = [[dl,dm,m] for dl = 0:L for dm = -dl:dl for m = -M:M];
     lm_to_n = lm_to_spherical_harmonic_index
 
     vecs = [
         eigvectors[(lm_to_n(i[1],i[2]) - 1) * (2M + 1) + i[3] + M + 1, j, p] *
-        Ns[(i[3] + M + 1)]
-    for i in dldmms, j in eachindex(species), p = 1:(2Minc + 1)];
+        Ns[i[3] + M + 1]
+    for i in dn_m, j in eachindex(species), p = 1:(2Minc + 1)];
 
     # sum over species
     vecs = sum(vecs, dims=2)
@@ -54,7 +54,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     Refl = [
         (hankelh1(m, k*R)*diffhankelh1(m, k0*R) - γ*diffhankelh1(m, k*R))*hankelh1(m, k0*R) \
-        (γ*diffhankelh1(m, k*R)*besselj(m, k0*R) - γ*hankelh1(m, k*R)*diffbesselj(m, k0*R))
+        (γ*diffhankelh1(m, k*R)*besselj(m, k0*R) - hankelh1(m, k*R)*diffbesselj(m, k0*R))
         for m = -Minc:Minc];
 
     # Precomputation of spherical harmonic functions
@@ -64,50 +64,50 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     wall_reflections = [Refl[s + Minc + 1] *
         sum(l ->
             sum(m ->
-                (-1.0)^s * Complex{T}(1im)^(m - l) * Ys[lm_to_n(l, m)] .*
-                vecs[(lm_to_n(l,m) - 1) * (2M + 1) + m - s + M + 1, p]
+                Complex{T}(1im)^(l + m) * Ys[lm_to_n(l, m)] .*
+                vecs[(lm_to_n(l,m)-1) * (2M+1) + (m-s) + M + 1, p]
             ,-l:l)
         , 0:L) for s = -Minc:Minc, p = 1:(2Minc + 1)];
 
-    indices = [[l,m,l1,m1] for l = 0:L for m = -l:l for l1 = 0:L for m1 = -l1:l1];
+    n_n1 = [[l,m,l1,m1] for l = 0:L for m = -l:l for l1 = 0:L for m1 = -l1:l1];
     wall_contribution = [
         sum(dl ->
             sum(dm ->
-                Complex{T}(1im)^(-dm-dl) * Ys[lm_to_n(dl,dm)] *
+                Complex{T}(1im)^(dl + dm) * Ys[lm_to_n(dl,dm)] *
                 gaunt_coefficient(dl,dm,i[1],i[2],i[3],i[4]) *
                 wall_reflections[dm + Minc + 1,p]
             , -dl:dl)
-        , 0:L) for i in indices, p in 1:(2Minc + 1)];
+        , 0:L) for i in n_n1, p in 1:(2Minc + 1)];
 
     # Contributions from direct particle-particle multiplescattering
-    particle_contribution = [(4pi/k0) *
-        Complex{T}(1im)^(i[3] - i[4]) * Ys[lm_to_n(i[3],i[4])] *
+    particle_contribution = [
+        Complex{T}(1im)^(-i[3] - i[4]) * Ys[lm_to_n(i[3],i[4])] *
         sum(l2 ->
             sum(m2 ->
-                Complex{T}(1im)^(m2 - l2) * Ys[lm_to_n(l2,m2)] *
+                Complex{T}(1im)^(l2 + m2) * Ys[lm_to_n(l2,m2)] *
                 sum(dl ->
                     sum(dm ->
                         gaunt_coefficient(dl,dm,i[1],i[2],l2,m2) *
-                        vecs[(i[4] - m2 + M)*(L + 1)^2 + lm_to_n(dl,dm), p]
+                        vecs[(lm_to_n(dl,dm)-1) * (2M+1) + (i[4]-m2) + M + 1, p]
                     , -dl:dl)
                 , 0:L)
             , -l2:l2)
-        , 0:L) for i in indices, p in 1:(2Minc + 1)];
+        , 0:L) for i in n_n1, p in 1:(2Minc + 1)];
 
     # Incident wave coefficients
     source_coefficients = Tran .* regular_spherical_coefficients(source)(Minc,zeros(2),ω)
 
-    forcing = [
+    forcing = [Complex{T}(-1) *
         sum(dl ->
             sum(dm ->
-                Complex{T}(1im)^(-dm-dl) * Ys[lm_to_n(dl,dm)] *
+                Complex{T}(1im)^(dl + dm) * Ys[lm_to_n(dl,dm)] *
                 gaunt_coefficient(dl,dm,i[1],i[2],i[3],i[4]) *
                 source_coefficients[dm + Minc + 1]
             , -dl:dl)
         , 0:L)
         for i in indices]
 
-    matrix = particle_contribution + wall_contribution
+    matrix = (2pi^2/k0) * (particle_contribution + wall_contribution)
 
     α = matrix \ forcing
 
