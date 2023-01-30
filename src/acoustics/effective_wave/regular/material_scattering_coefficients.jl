@@ -215,3 +215,33 @@ function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,A
 
     return [Fscat0]
 end
+
+# Compute the coefficient F0 of the averaged scattered field in the case of the 2D radial symmetry case
+function averaged_radial_coefficient(wavemodes::Array{EffectivePlaneWaveMode{T,2}},material::Material{Sphere{T, 2},PM}) where {T,PM<:ParticulateMicrostructure}
+
+    # Unpacking parameters
+    k = wavemodes[1].ω / material.microstructure.medium.c
+    R = material.shape.radius
+    basis_order = wavemodes[1].basis_order
+
+    # Compute the averaged coefficient of the material
+    # only the one of zeroth order 'F0' is non zero
+
+    # It requires to compute an integral of bessel functions Ipn for which we have a formula
+    I(k_eff,n) = R/(k^2-k_eff^2)*(k*besselj(n+1,k*R)*besselj(n,k_eff*R)-k_eff*besselj(n,k*R)*besselj(n+1,k_eff*R)) # n ∈ [-basis_order:basis_order]
+
+    # and an integral of the eigenvectors over the species
+    F0 = 2pi*
+    sum(
+        sum(
+            I(w.wavenumber,i[1]-1-basis_order) *
+            w.eigenvectors[i] *
+            number_density(material.microstructure.species[i[2]])
+            for i in CartesianIndices(w.eigenvectors)
+            )
+        for w in wavemodes
+        )
+
+
+    return F0 # (x,y)-> F0*hankelh1(0,k*sqrt(x^2+y^2))
+end

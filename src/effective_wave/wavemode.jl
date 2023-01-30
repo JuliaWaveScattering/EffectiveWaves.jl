@@ -10,7 +10,7 @@ scattering_field
 "Calculates the effective wavenumbers and return Vector{EffectivePlaneWaveMode}."
 function WaveModes(ω::T, source::AbstractSource, material::Material{S}; kws...) where {T,S<:Shape} # without the parametric types we get a "Unreachable reached" error
 
-    # The wavenumbers are calculated without knowledge of the materail symmetry. This is because the plane-wave symmetry leads to all possible wavenumbers and is simple to calculate.
+    # The wavenumbers are calculated without knowledge of the material symmetry. This is because the plane-wave symmetry leads to all possible wavenumbers and is simple to calculate.
     k_effs = wavenumbers(ω, material.microstructure; kws... )
 
     # The wavemodes need to know the material symmetry as the eigenvectors do depend on material shape and symetry.
@@ -79,6 +79,24 @@ function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, 
     mode2 = EffectivePlaneWaveMode(ω, - wavenumber, direction2, eigvectors2)
 
     return [mode1,mode2]
+end
+
+# This function is similar to the one for planar symmetry
+# except the field direction is not needed
+# Check if this can be extended to dim = 3
+function WaveMode(ω::T, wavenumber::Complex{T}, source::RegularSource{P,RadialSymmetry{2}}, material::Material{Sphere{T,2}};
+    tol::T = 1e-6, kws...) where {T,P}
+
+    eigvectors = eigenvectors(ω, wavenumber, source, material; kws...)
+
+    α = solve_boundary_condition(ω, wavenumber, eigvectors, source, material; kws...)
+
+    # in this case, α is a scalar
+    eigvectors .*= α
+
+    direction = zeros(Complex{T},2)
+
+    return EffectivePlaneWaveMode(ω, wavenumber, SVector(direction...), eigvectors)
 end
 
 function solve_boundary_condition(ω::T, wavenumber::Complex{T}, eigvectors::Array, source::AbstractSource, material::Material; kws...) where T
