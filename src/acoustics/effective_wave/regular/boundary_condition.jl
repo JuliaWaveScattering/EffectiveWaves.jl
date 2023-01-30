@@ -224,3 +224,34 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     return α
 end
+
+# Solve the boundary condition of the 2D radial symmetry case
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,2}}, material::Material{Sphere{T,2}}, ::RadialSymmetry{2};
+    basis_order::Int = 2,
+    kws...
+) where T
+
+k = ω / source.medium.c
+
+scale_number_density = one(T) - one(T) / material.numberofparticles
+species = material.microstructure.species
+S = length(species)
+rs = outer_radius.(species)
+
+R = outer_radius(material.shape)
+
+# the kernel use to weight the species and the field's basis order.
+F = 2pi*
+sum(
+    kernelN2D(i[1]-1-basis_order, k*(R - rs[i[2]]), k_eff*(R - rs[i[2]])) *
+    eigvectors[i] *
+    scale_number_density * number_density(species[i[2]])
+for i in CartesianIndices(eigvectors)) / (k^T(2) - k_eff^T(2))
+
+# We expect there to only one component of a regular cylindrical wave expansion
+# regular_spherical_coefficients(source)(n,ρ0,ω) computes g_n in g_nV_n(kρ-kρ0)
+source_coefficients = regular_spherical_coefficients(source)(0,zeros(2),ω)
+
+α = source_coefficients / F
+return α
+end
