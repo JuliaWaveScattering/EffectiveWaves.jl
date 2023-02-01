@@ -8,8 +8,8 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     # Setting parameters
     ρ = source.medium.ρ
-    c = source.medium.c
     ρ0 = material.microstructure.medium.ρ
+    c = source.medium.c
     c0 = material.microstructure.medium.c
     k = ω / c
     k0 = ω / c0
@@ -58,24 +58,33 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
         for m = -Minc:Minc];
 
     # Precomputation of spherical harmonic functions
-    Ys = spherical_harmonics(L, pi/2, 0.0)
+    Ys = spherical_harmonics(L + M, pi/2, 0.0)
 
     # Contributions from wall multiplescattering
     wall_reflections = [Refl[s + Minc + 1] *
         sum(l ->
             sum(m ->
-                Complex{T}(1im)^(l + m) * Ys[lm_to_n(l, m)] .*
-                vecs[(lm_to_n(l,m)-1) * (2M+1) + (m-s) + M + 1, p]
+                if abs(m - s) <= M
+                    Complex{T}(1im)^(l + m) * Ys[lm_to_n(l, m)] .*
+                    vecs[(lm_to_n(l,m)-1)*(2M+1) + (m-s) + M + 1, p]
+                else
+                    Complex{T}(0.0)
+                end
             ,-l:l)
         , 0:L) for s = -Minc:Minc, p = 1:(2Minc + 1)];
 
     n_n1 = [[l,m,l1,m1] for l = 0:L for m = -l:l for l1 = 0:L for m1 = -l1:l1];
+    
     wall_contribution = [
         sum(dl ->
             sum(dm ->
-                Complex{T}(1im)^(dl + dm) * Ys[lm_to_n(dl,dm)] *
-                gaunt_coefficient(dl,dm,i[1],i[2],i[3],i[4]) *
-                wall_reflections[dm + Minc + 1,p]
+                if abs(dm) <= Minc
+                    Complex{T}(1im)^(dl + dm) * Ys[lm_to_n(dl,dm)] *
+                    gaunt_coefficient(dl,dm,i[1],i[2],i[3],i[4]) *
+                    wall_reflections[dm + Minc + 1,p]
+                else
+                    Complex{T}(0.0)
+                end
             , -dl:dl)
         , 0:L) for i in n_n1, p in 1:(2Minc + 1)];
 
@@ -84,20 +93,24 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
         Complex{T}(1im)^(-i[3] - i[4]) * Ys[lm_to_n(i[3],i[4])] *
         sum(l2 ->
             sum(m2 ->
-                Complex{T}(1im)^(l2 + m2) * Ys[lm_to_n(l2,m2)] *
-                sum(dl ->
-                    sum(dm ->
-                        gaunt_coefficient(dl,dm,i[1],i[2],l2,m2) *
-                        vecs[(lm_to_n(dl,dm)-1) * (2M+1) + (i[4]-m2) + M + 1, p]
-                    , -dl:dl)
-                , 0:L)
+                if abs(i[4]-m2) <= M
+                    Complex{T}(1im)^(l2 + m2) * Ys[lm_to_n(l2,m2)] *
+                    sum(dl ->
+                        sum(dm ->
+                            gaunt_coefficient(dl,dm,i[1],i[2],l2,m2) *
+                            vecs[(lm_to_n(dl,dm)-1)*(2M+1) + (i[4]-m2) + M + 1, p]
+                        , -dl:dl)
+                    , 0:L)
+                else
+                    Complex{T}(0.0)
+                end
             , -l2:l2)
         , 0:L) for i in n_n1, p in 1:(2Minc + 1)];
 
     # Incident wave coefficients
     source_coefficients = Tran .* regular_spherical_coefficients(source)(Minc,zeros(2),ω)
 
-    forcing = [Complex{T}(-1) *
+    forcing = [Complex{T}(-1.0) *
         sum(dl ->
             sum(dm ->
                 Complex{T}(1im)^(dl + dm) * Ys[lm_to_n(dl,dm)] *
@@ -105,7 +118,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
                 source_coefficients[dm + Minc + 1]
             , -dl:dl)
         , 0:L)
-        for i in indices]
+        for i in n_n1]
 
     matrix = (2pi^2/k0) * (particle_contribution + wall_contribution)
 
