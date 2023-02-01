@@ -81,24 +81,6 @@ function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, 
     return [mode1,mode2]
 end
 
-# This function is similar to the one for planar symmetry
-# except the field direction is not needed
-# Check if this can be extended to dim = 3
-function WaveMode(ω::T, wavenumber::Complex{T}, source::RegularSource{P,RadialSymmetry{2}}, material::Material{Sphere{T,2}};
-    tol::T = 1e-6, kws...) where {T,P}
-
-    eigvectors = eigenvectors(ω, wavenumber, source, material; kws...)
-
-    α = solve_boundary_condition(ω, wavenumber, eigvectors, source, material; kws...)
-
-    # in this case, α is a scalar
-    eigvectors .*= α
-
-    direction = zeros(Complex{T},2)
-
-    return EffectivePlaneWaveMode(ω, wavenumber, SVector(direction...), eigvectors)
-end
-
 function solve_boundary_condition(ω::T, wavenumber::Complex{T}, eigvectors::Array, source::AbstractSource, material::Material; kws...) where T
     return solve_boundary_condition(ω, wavenumber, eigvectors, source, material, Symmetry(source,material); kws...)
 end

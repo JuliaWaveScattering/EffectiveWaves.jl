@@ -232,8 +232,6 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 ) where T
 
 k = ω / source.medium.c
-
-scale_number_density = one(T) - one(T) / material.numberofparticles
 species = material.microstructure.species
 S = length(species)
 rs = outer_radius.(species)
@@ -245,7 +243,7 @@ F = 2pi*
 sum(
     kernelN2D(i[1]-1-basis_order, k*(R - rs[i[2]]), k_eff*(R - rs[i[2]])) *
     eigvectors[i] *
-    scale_number_density * number_density(species[i[2]])
+    number_density(species[i[2]])
 for i in CartesianIndices(eigvectors)) / (k^T(2) - k_eff^T(2))
 
 # We expect there to only one component of a regular cylindrical wave expansion
