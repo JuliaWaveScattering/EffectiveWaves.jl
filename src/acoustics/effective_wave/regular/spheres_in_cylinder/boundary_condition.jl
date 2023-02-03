@@ -63,15 +63,15 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
         for m = -Minc:Minc];
 
     # Precomputation of spherical harmonic functions
-    Ys = spherical_harmonics(L + M, pi/2, 0.0)
+    Ys = spherical_harmonics(L + M1, pi/2, 0.0)
 
     # Contributions from wall multiplescattering
     wall_reflections = [Refl[s + Minc + 1] *
         sum(l ->
             sum(m ->
-                if abs(m - s) <= M
+                if abs(m - s) <= M1
                     Complex{T}(1im)^(l + m) * Ys[lm_to_n(l, m)] .*
-                    vecs[(lm_to_n(l,m)-1)*(2M+1) + (m-s) + M + 1, p]
+                    vecs[(lm_to_n(l,m)-1)*(2M1+1) + (m-s) + M1 + 1, p]
                 else
                     Complex{T}(0.0)
                 end
@@ -98,12 +98,12 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
         Complex{T}(1im)^(-i[3] - i[4]) * Ys[lm_to_n(i[3],i[4])] *
         sum(l2 ->
             sum(m2 ->
-                if abs(i[4]-m2) <= M
+                if abs(i[4]-m2) <= M1
                     Complex{T}(1im)^(l2 + m2) * Ys[lm_to_n(l2,m2)] *
                     sum(dl ->
                         sum(dm ->
                             gaunt_coefficient(dl,dm,i[1],i[2],l2,m2) *
-                            vecs[(lm_to_n(dl,dm)-1)*(2M+1) + (i[4]-m2) + M + 1, p]
+                            vecs[(lm_to_n(dl,dm)-1)*(2M+1) + (i[4]-m2) + M1 + 1, p]
                         , -dl:dl)
                     , 0:L)
                 else
