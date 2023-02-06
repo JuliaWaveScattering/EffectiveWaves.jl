@@ -117,7 +117,7 @@ f1(0.3)+f2(0.3)
 f1(1.3)+f2(1.3)
 f4(1.3)
 
-dd_fun = Fun((x,X) -> (abs(X-x) < 1.0) ? S_fun(0,X-x) :0.0+0.0im, d^2,10)
+dd_fun = Fun((x,X) -> (abs(X-x) < 1.0) ? S_fun(0,X-x) : 0.0+0.0im, d^2,10)
 
 dd_fun = Fun((x,X) -> S_fun(X), d^2,10)
 
