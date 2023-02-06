@@ -153,6 +153,10 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     # Computing normalization factors
     α = square_matrix \ reduced_forcing
 
+    if rank(square_matrix) < 2Minc + 1
+        @warn "Degeneracy encountered. The normalization factors computed in boundary conditions may not be reliable."
+    end
+
     # Checking error in the solution of the system
     err = norm(reduced_forcing - square_matrix * α) / norm(reduced_forcing)
 
