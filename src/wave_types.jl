@@ -9,7 +9,7 @@ eigenvector_length(::WithoutSymmetry{3}; basis_order::Int, basis_field_order::In
 eigenvector_length(::AzimuthalSymmetry{3}; basis_order::Int, basis_field_order::Int) =  Int(1 - basis_order*(2 + basis_order)*(basis_order - 3*basis_field_order - 2)/3 + basis_field_order)
 
 eigenvector_length(::RadialSymmetry{3}; basis_order::Int, basis_field_order::Int) =  basis_order + 1
-
+eigenvector_length(::RadialSymmetry{2}; basis_order::Int, basis_field_order::Int) = 2*basis_order + 1 # (2*basis_order + 1)*(2*basis_field_order + 1)
 """
     EffectivePlaneWaveMode{T<:AbstractFloat,Dim} <: AbstractWaveMode
 
@@ -89,7 +89,7 @@ struct  EffectiveRegularWaveMode{T<:AbstractFloat,P<:PhysicalMedium,S<:AbstractS
     basis_order::Int
     basis_field_order::Int
     function EffectiveRegularWaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource{P}, material::Material, eigenvectors::Array{Complex{T}};
-        basis_order::Int = 2, basis_field_order::Int = 4, kws...
+        basis_order::Int = 2, basis_field_order::Int = 0, kws...
     ) where {T,P}
 
         S = Symmetry(source,material)
