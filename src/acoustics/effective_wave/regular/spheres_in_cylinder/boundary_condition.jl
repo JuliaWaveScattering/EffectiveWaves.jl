@@ -69,10 +69,14 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     wall_reflections = [Refl[s + Minc + 1] *
         sum(l ->
             sum(m ->
-                Complex{T}(1im)^(l + m) * Ys[lm_to_n(l, m)] .*
-                vecs[(lm_to_n(l,m)-1)*(2M1+1) + (m-s) + M1 + 1, p]
+                if abs(m - s) <= M1 
+                    Complex{T}(1im)^(l + m) * Ys[lm_to_n(l, m)] .*
+                    vecs[(lm_to_n(l,m)-1)*(2M1+1) + (m-s) + M1 + 1, p]
+                else
+                    Complex{T}(0)
+                end
             ,-l:l)
-        , 0:(M1-Minc)) for s = -Minc:Minc, p = 1:(2Minc + 1)];
+        , 0:L) for s = -Minc:Minc, p = 1:(2Minc + 1)];
 
     n_n1 = [[l,m,l1,m1] for l = 0:L for m = -l:l for l1 = 0:L for m1 = -l1:l1];
 
