@@ -1,6 +1,7 @@
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,2}}, material::Material{Circle{T,2}}, ::TranslationSymmetry{3,T};
+# Solve the boundary condition of the spheres in cylinder case with 2 media
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,2}}, material::Material{Sphere{T,2}}, ::TranslationSymmetry{3,T};
         basis_order::Int = 2,
-        basis_field_order = 2 * basis_order,
+        basis_field_order::Int = 2*basis_order,
         source_basis_field_order::Int = Int((size(eigvectors)[3] - 1) / 2),
         kws...
     ) where T
@@ -115,40 +116,45 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
                 gaunt_coefficient(dl,dm,i[1],i[2],i[3],i[4]) *
                 source_coefficients[dm + Minc + 1]
             , -dl:dl)
-        , 0:L)
-        for i in n_n1]
+        , 0:L) for i in n_n1];
 
     # Full matrix to be inverted
     matrix = (2pi^2/k0) * (particle_contribution + wall_contribution)
 
     # Reduction of matrix and forcing term
-    square_matrix = [
-        sum(l ->
-            sum(m ->
-                sum(dl ->
-                    sum(dm ->
-                        matrix[(lm_to_n(l,m)-1)*(L+1)^2 + lm_to_n(dl,dm), p] *
-                        sum(ddl ->
-                            gaunt_coefficient(ddl,ddm,l,m,dl,dm)
-                        , abs(ddm):Minc)
-                    , -dl:dl)
-                , 0:L)
-            , -l:l)
-        , 0:L) for ddm in -Minc:Minc, p in 1:(2Minc + 1)]
+    square_matrix = zeros(Complex{T}, 2Minc+1, 2Minc+1)
+    for q in 1:(2Minc+1)
+        for p in 1:(2Minc+1)
+            square_matrix[q, p] = sum(l ->
+                sum(m ->
+                    sum(dl ->
+                        sum(dm ->
+                            matrix[(lm_to_n(l,m)-1)*(L+1)^2 + lm_to_n(dl,dm), p] * 
+                            sum(ddl ->
+                                gaunt_coefficient(ddl,q-Minc-1,l,m,dl,dm)
+                            , abs(q-Minc-1):Minc)
+                        , -dl:dl)
+                    , 0:L)
+                , -l:l)
+            , 0:L)
+        end
+    end
 
-    reduced_forcing = [
-        sum(l ->
+    reduced_forcing = zeros(Complex{T}, 2Minc+1)
+    for q in 1:(2Minc+1)
+        reduced_forcing[q] = sum(l ->
             sum(m ->
                 sum(dl ->
                     sum(dm ->
                         forcing[(lm_to_n(l,m)-1)*(L+1)^2 + lm_to_n(dl,dm)] *
                         sum(ddl ->
-                            gaunt_coefficient(ddl,ddm,l,m,dl,dm)
-                        , abs(ddm):Minc)
+                            gaunt_coefficient(ddl,q-Minc-1,l,m,dl,dm)
+                        , abs(q-Minc-1):Minc)
                     , -dl:dl)
                 , 0:L)
             , -l:l)
-        , 0:L) for ddm in -Minc:Minc]
+        , 0:L)
+    end
 
     # Computing normalization factors
     α = square_matrix \ reduced_forcing
