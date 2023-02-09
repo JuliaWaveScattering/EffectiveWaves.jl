@@ -85,18 +85,17 @@ To translate the mathematics to Julia code we use
 struct  EffectiveRegularWaveMode{T<:AbstractFloat,P<:PhysicalMedium,S<:AbstractSymmetry} <: AbstractRegularWaveMode
     ω::T
     wavenumber::Complex{T}
-    medium::P
+    source::AbstractSource
     material::Material
     eigenvectors::Array{Complex{T}} # the effective eigenvectors, each column is one eigenvector
     basis_order::Int
     basis_field_order::Int
     function EffectiveRegularWaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource{P}, material::Material, eigenvectors::Array{Complex{T}};
         basis_order::Int = 2, basis_field_order::Int = 0, kws...
-    ) where {T,P}
+    ) where {T, P}
     
         medium_material = material.microstructure.medium
         medium_source = source.medium
-
         
         if typeof(medium_material) != typeof(medium_source)
             if (typeof(material.shape) <: Sphere{T, 2} where T) && (typeof(source.medium) <: Acoustic{T, 2} where T)
@@ -114,7 +113,7 @@ struct  EffectiveRegularWaveMode{T<:AbstractFloat,P<:PhysicalMedium,S<:AbstractS
             throw(DimensionMismatch("size(eigenvectors,2) does not match the number of difference species length(material.microstructure.species) = $(length(material.microstructure.species)    )."))
         end
 
-        return new{T,P,typeof(S)}(ω, wavenumber, source.medium, material, eigenvectors, basis_order, basis_field_order)
+        return new{T,P,typeof(S)}(ω, wavenumber, source, material, eigenvectors, basis_order, basis_field_order)
     end
 end
 

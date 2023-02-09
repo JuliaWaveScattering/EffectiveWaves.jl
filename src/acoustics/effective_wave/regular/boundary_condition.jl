@@ -1,6 +1,6 @@
 function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{Sphere{T,3}}, ::WithoutSymmetry{3};
         basis_order::Int = 2,
-        basis_field_order::Int = 4,
+        basis_field_order::Int = 2*basis_order,
         # source_basis_field_order::Int = basis_field_order,
         source_basis_field_order::Int = Int(round(sqrt(size(eigvectors)[end]))) - 1,
         kws...
