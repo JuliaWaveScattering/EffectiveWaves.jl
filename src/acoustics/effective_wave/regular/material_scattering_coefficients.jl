@@ -287,7 +287,7 @@ function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,A
 
     Fscat = int_contribution + ext_contribution
 
-    return [Fscat]
+    return Fscat
 end
 
 # Compute the coefficient F0 of the averaged scattered field in the case of the 2D radial symmetry case
