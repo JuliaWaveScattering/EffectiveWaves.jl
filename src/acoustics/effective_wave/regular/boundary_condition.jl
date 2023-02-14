@@ -298,7 +298,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     lm_to_n = lm_to_spherical_harmonic_index
 
     vecs = [
-        eigvectors[(lm_to_n(i[1],i[2]) - 1) * (2M1 + 1) + i[3] + M1 + 1, j, p] *
+        eigvectors[(lm_to_n(i[1],i[2]) - 1) * (2M + 1) + i[3] + M + 1, j, p] *
         Ns[i[3] + M1 + 1]
     for i in dn_m, j in eachindex(species), p = 1:(2Minc + 1)];
 
@@ -310,14 +310,14 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     γ = (ρ0 * c0) / (ρ * c);
 
     Tran = [
-        (γ*diffhankelh1(m, k*R)*besselj(m, k*R) - γ*hankelh1(m, k*R)*diffbesselj(m, k*R)) \
-        (γ*diffhankelh1(m, k*R)*besselj(m, k0*R) - hankelh1(m, k*R)*diffbesselj(m, k0*R))
-        for m = -Minc:Minc];
+        (γ*diffhankelh1(s, k*R)*besselj(s, k*R) - γ*hankelh1(s, k*R)*diffbesselj(s, k*R)) \
+        (γ*diffhankelh1(s, k*R)*besselj(s, k0*R) - hankelh1(s, k*R)*diffbesselj(s, k0*R))
+        for s = -Minc:Minc];
 
     Refl = [
-        (hankelh1(m, k*R)*diffhankelh1(m, k0*R) - γ*diffhankelh1(m, k*R))*hankelh1(m, k0*R) \
-        (γ*diffhankelh1(m, k*R)*besselj(m, k0*R) - hankelh1(m, k*R)*diffbesselj(m, k0*R))
-        for m = -Minc:Minc];
+        (hankelh1(s, k*R)*diffhankelh1(s, k0*R) - γ*diffhankelh1(s, k*R))*hankelh1(s, k0*R) \
+        (γ*diffhankelh1(s, k*R)*besselj(s, k0*R) - hankelh1(s, k*R)*diffbesselj(s, k0*R))
+        for s = -Minc:Minc];
 
     # Precomputation of spherical harmonic functions
     Ys = spherical_harmonics(L + M1, pi/2, 0.0)
@@ -326,12 +326,8 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     wall_reflections = [Refl[s + Minc + 1] *
         sum(l ->
             sum(m ->
-                if abs(m - s) <= M1 
-                    Complex{T}(1im)^(l + m) * Ys[lm_to_n(l, m)] .*
-                    vecs[(lm_to_n(l,m)-1)*(2M1+1) + (m-s) + M1 + 1, p]
-                else
-                    Complex{T}(0)
-                end
+                Complex{T}(1im)^(l + m) * Ys[lm_to_n(l, m)] .*
+                vecs[(lm_to_n(l,m) - 1)*(2M1 + 1) + (m - s) + M1 + 1, p]
             ,-l:l)
         , 0:L) for s = -Minc:Minc, p = 1:(2Minc + 1)];
 
@@ -355,7 +351,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
                 sum(dl ->
                     sum(dm ->
                         gaunt_coefficient(dl,dm,i[1],i[2],l2,m2) *
-                        vecs[(lm_to_n(dl,dm)-1)*(2M+1) + (i[4]-m2) + M1 + 1, p]
+                        vecs[(lm_to_n(dl,dm) - 1)*(2M1 + 1) + (i[4] - m2) + M1 + 1, p]
                     , -dl:dl)
                 , 0:L)
             , -l2:l2)
@@ -379,15 +375,15 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
     # Reduction of matrix and forcing term
     square_matrix = zeros(Complex{T}, 2Minc+1, 2Minc+1)
-    for q in 1:(2Minc+1)
-        for p in 1:(2Minc+1)
+    for q in 1:(2Minc + 1)
+        for p in 1:(2Minc + 1)
             square_matrix[q, p] = sum(l ->
                 sum(m ->
                     sum(dl ->
                         sum(dm ->
-                            matrix[(lm_to_n(l,m)-1)*(L+1)^2 + lm_to_n(dl,dm), p] * 
+                            matrix[(lm_to_n(l,m) - 1)*(L+1)^2 + lm_to_n(dl,dm), p] * 
                             sum(ddl ->
-                                gaunt_coefficient(ddl,q-Minc-1,l,m,dl,dm)
+                                gaunt_coefficient(ddl,q - Minc - 1,l,m,dl,dm)
                             , abs(q-Minc-1):Minc)
                         , -dl:dl)
                     , 0:L)
@@ -396,16 +392,16 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
         end
     end
 
-    reduced_forcing = zeros(Complex{T}, 2Minc+1)
-    for q in 1:(2Minc+1)
+    reduced_forcing = zeros(Complex{T}, 2Minc + 1)
+    for q in 1:(2Minc + 1)
         reduced_forcing[q] = sum(l ->
             sum(m ->
                 sum(dl ->
                     sum(dm ->
-                        forcing[(lm_to_n(l,m)-1)*(L+1)^2 + lm_to_n(dl,dm)] *
+                        forcing[(lm_to_n(l,m) - 1)*(L+1)^2 + lm_to_n(dl,dm)] *
                         sum(ddl ->
-                            gaunt_coefficient(ddl,q-Minc-1,l,m,dl,dm)
-                        , abs(q-Minc-1):Minc)
+                            gaunt_coefficient(ddl,q - Minc - 1,l,m,dl,dm)
+                        , abs(q - Minc - 1):Minc)
                     , -dl:dl)
                 , 0:L)
             , -l:l)

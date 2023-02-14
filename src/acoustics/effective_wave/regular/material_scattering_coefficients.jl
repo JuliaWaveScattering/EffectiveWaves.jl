@@ -218,20 +218,22 @@ end
 
 # Compute the coefficients Fs of the averaged scattered field in the case of spheres in a cylinder with two mwdia
 function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,Acoustic{T,2},TranslationSymmetry{3,T}};
-        only_internal_waves::Bool = false,
+        only_particle_contribution::Bool = false,
         kws...
     ) where T
 
     # Unpacking parameters
     ρ = wavemode.source.medium.ρ
     ρ0 = wavemode.material.microstructure.medium.ρ
-    k = wavemode.ω / wavemode.source.medium.c
-    k0 = wavemode.ω / wavemode.material.microstructure.medium.c
+    c = wavemode.source.medium.c
+    c0 = wavemode.material.microstructure.medium.c
+    k = wavemode.ω / c
+    k0 = wavemode.ω / c0
     k_eff = wavemode.wavenumber
     R = outer_radius(wavemode.material.shape)
 
     species = wavemode.material.microstructure.species
-    S = length(species)
+    Sp = length(species)
     rs = outer_radius.(species)
 
     eigenvectors = wavemode.eigenvectors
@@ -249,43 +251,43 @@ function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,A
     lm_to_n = lm_to_spherical_harmonic_index
 
     # Computing transmission and reflection coefficients
-    γ = (ρ0 * k) / (ρ * k0);
+    γ = (ρ0 * c0) / (ρ * c);
 
     Tran = [
-        (diffhankelh1(m, k0*R)*besselj(m, k0*R) - hankelh1(m, k0*R)*diffbesselj(m, k0*R)) \
-        (γ*diffhankelh1(m, k*R)*besselj(m, k0*R) - hankelh1(m, k*R)*diffbesselj(m, k0*R))
-        for m = -Minc:Minc];
+        (diffhankelh1(s, k0*R)*besselj(s, k0*R) - hankelh1(s, k0*R)*diffbesselj(s, k0*R)) \
+        (γ*diffhankelh1(s, k*R)*besselj(s, k0*R) - hankelh1(s, k*R)*diffbesselj(s, k0*R))
+        for s = -Minc:Minc];
 
     Refl = [
-        (besselj(m, k*R)*diffbesselj(m, k0*R) - γ*diffbesselj(m, k*R))*besselj(m, k0*R) \
-        (γ*diffhankelh1(m, k*R)*besselj(m, k0*R) - hankelh1(m, k*R)*diffbesselj(m, k0*R))
-        for m = -Minc:Minc];
+        (besselj(s, k*R)*diffbesselj(s, k0*R) - γ*diffbesselj(s, k*R))*besselj(s, k0*R) \
+        (γ*diffhankelh1(s, k*R)*besselj(s, k0*R) - hankelh1(s, k*R)*diffbesselj(s, k0*R))
+        for s = -Minc:Minc];
 
     # Computing internal field contributions
-    int_contribution = zeros(Complex{T}, 2Minc + 1)
+    particle_contribution = zeros(Complex{T}, 2Minc + 1)
     for s in -Minc:Minc
-        int_contribution[s + Minc + 1] = Complex{T}(2*pi^2/(k0 * (k_eff^2 - k0^2))) *
+        particle_contribution[s + Minc + 1] = Complex{T}(2*pi^2/(k0 * (k_eff^2 - k0^2))) *
         sum(l ->
             sum(m ->
                 Complex{T}(1im)^(m - l) * Ys[lm_to_n(l, m)] *
                 sum(i ->
                     number_density(species[i]) * kernelN2D(s - m, k0*(R - rs[i]), k_eff*(R - rs[i])) *
                     sum(p ->
-                        eigenvectors[(lm_to_n(l, m)-1)*(2Minc+1) + (s - m) + M1 + 1, i, p]
+                        eigenvectors[(lm_to_n(l, m) - 1)*(2M1 + 1) + (s - m) + M1 + 1, i, p]
                     , 1:P)
-                , 1:S)
+                , 1:Sp)
             , -l:l)
         , 0:L)
     end
 
     # Incident wave contributions
-    if only_internal_waves
-        ext_contribution = zeros(Complex{T}, 2Minc + 1)
+    if only_particle_contribution
+        wall_contribution = zeros(Complex{T}, 2Minc + 1)
     else
-        ext_contribution = Refl .* regular_spherical_coefficients(wavemode.source)(Minc,zeros(2),wavemode.ω)
+        wall_contribution = regular_spherical_coefficients(wavemode.source)(Minc,zeros(2),wavemode.ω)
     end
 
-    Fscat = int_contribution + ext_contribution
+    Fscat = (Tran .* particle_contribution) + (Refl .* wall_contribution)
 
     return Fscat
 end
