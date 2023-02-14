@@ -28,7 +28,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, :
         pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
     end
 
-    function M_component(keff,Ns,l,m,l2,m2,s1,dl,dm,l1,m1,s2)::Complex{T}
+    function M_component(Ns,l,m,l2,m2,s1,dl,dm,l1,m1,s2)::Complex{T}
         minl3 = max(abs(m1-m2),abs(dl-l),abs(l1-l2))
         maxl3 = min(abs(dl+l),abs(l1+l2))
 
@@ -62,7 +62,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, :
         for s2 = 1:S for dl = 0:L for dm = -dl:dl for l1 = 0:L1 for m1 = -l1:l1
             ind1 = 1
             for s1 = 1:S for l = 0:L for m = -l:l for l2 = 0:L1 for m2 = -l2:l2
-                MM_mat[ind1, ind2] = M_component(keff,Ns,l,m,l2,m2,s1,dl,dm,l1,m1,s2)
+                MM_mat[ind1, ind2] = M_component(Ns,l,m,l2,m2,s1,dl,dm,l1,m1,s2)
                 ind1 += 1
             end end end end end
             ind2 += 1
@@ -104,7 +104,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, :
     end
 
     # the index for the T-matrix below needs to be changed when seperating correctly the 2D and 3D case.
-    function M_component(keff,Ns,l,m,l2,s1,dl,dm,l1,s2)::Complex{T}
+    function M_component(Ns,l,m,l2,s1,dl,dm,l1,s2)::Complex{T}
         minl3 = max(abs(m-dm),abs(dl-l),abs(l1-l2))
         maxl3 = min(dl+l,l1+l2)
 
@@ -137,7 +137,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, :
         for s2 = 1:S for dl = 0:L for dm = -dl:dl for l1 = abs(dm):L1
             ind1 = 1
             for s1 = 1:S for l = 0:L for m = -l:l for l2 = abs(m):L1
-                MM_mat[ind1, ind2] = M_component(keff,Ns,l,m,l2,s1,dl,dm,l1,s2)
+                MM_mat[ind1, ind2] = M_component(Ns,l,m,l2,s1,dl,dm,l1,s2)
                 ind1 += 1
             end end end end
             ind2 += 1
