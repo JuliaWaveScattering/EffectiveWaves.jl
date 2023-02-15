@@ -163,10 +163,9 @@ end
 
 # The eigensystem when translation symmetry is present
 # WE HAVE TO ADD TRANLATION SYMMETRY DOWN HERE
-function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, sym::TranslationSymmetry{3};
-        basis_order::Int = 2,
-        basis_field_order::Int = 2*basis_order,
-        # numberofparticles::Number = Inf,
+function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, sym::TranslationSymmetry{3,T};
+        basis_order::Int = 3,
+        basis_field_order::Int = 6,
         kws...) where T<:AbstractFloat
 
     medium = micro.medium
@@ -200,7 +199,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, s
     Ys = spherical_harmonics(2L, pi/2, 0.0)
     lm_to_n = lm_to_spherical_harmonic_index
 
-    function M_component(Ns,l,m,dl,dm,m1,m2,s1,s2)::Complex{T}
+    function M_component(Ns,l,m,m2,s1,dl,dm,m1,s2)::Complex{T}
         minl1 = abs(l - dl)
         maxl1 = l + dl
 
@@ -208,9 +207,9 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, s
         number_density(sps[s2]) * t_diags[s1][len(l)] *
         sum(l1 ->
             if abs(m1 - m2) <= l1
-                Complex{T}(1im)^(m1 - l1 - m2) *
-                gaunt_coefficient(dl,dm,l,m,l1,m1-m2) *
-                Ys[lm_to_n(l1,m2-m1)] *
+                Complex{T}(1im)^(m1 - m2 - l1) *
+                gaunt_coefficient(dl,dm,l,m,l1,m1 - m2) *
+                Ys[lm_to_n(l1,m2 - m1)] *
                 4pi * Ns[l1 + 1,s1,s2]
             else
                 zero(Complex{T})
@@ -229,14 +228,14 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, s
             Ns = Ns - kernelW3D(k, keff, pair_rs, gs, hks, basis_order)
         end
 
-        Ns = Ns ./  (keff^2.0 - k^2.0)
+        Ns = Ns ./ (keff^2.0 - k^2.0)
 
         # The order of the indices below is important
         ind2 = 1
-        for s2 = 1:S for dl = 0:L for dm = -dl:dl for m2 = -M:M
+        for s2 = 1:S for dl = 0:L for dm = -dl:dl for m1 = -M:M
             ind1 = 1
-            for s1 = 1:S for l = 0:L for m = -l:l for m1 = -M:M
-                MM_mat[ind1, ind2] = M_component(Ns,l,m,dl,dm,m1,m2,s1,s2)
+            for s1 = 1:S for l = 0:L for m = -l:l for m2 = -M:M
+                MM_mat[ind1, ind2] = M_component(Ns,l,m,m2,s1,dl,dm,m1,s2)
                 ind1 += 1
             end end end end
             ind2 += 1

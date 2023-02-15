@@ -38,18 +38,21 @@ function WaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource, materia
     return EffectiveRegularWaveMode(ω, wavenumber, source, material, eigvectors; kws...)
 end
 
-function WaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource, material::Material, sym::TranslationSymmetry{3,T}; kws...) where T
+function WaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource, material::Material, sym::TranslationSymmetry{3,T};
+    basis_order::Int = 3,
+    basis_field_order::Int = 6,
+    kws...) where T
 
     micro = material.microstructure
 
-    eigvectors = eigenvectors(ω, wavenumber, micro, sym; kws...)
+    eigvectors = eigenvectors(ω, wavenumber, micro, sym; basis_order = basis_order, basis_field_order = basis_field_order, kws...)
 
-    α = solve_boundary_condition(ω, wavenumber, eigvectors, source, material, sym; kws...)
+    α = solve_boundary_condition(ω, wavenumber, eigvectors, source, material, sym; basis_order = basis_order, basis_field_order = basis_field_order, kws...)
 
     # After this normalisation, sum(eigvectors, dims = 3) will satisfy the boundary conditions
     eigvectors = [eigvectors[i] * α[i[3]] for i in CartesianIndices(eigvectors)]
 
-    return EffectiveRegularWaveMode(ω, wavenumber, source, material, eigvectors; kws...)
+    return EffectiveRegularWaveMode(ω, wavenumber, source, material, eigvectors; basis_order = basis_order, basis_field_order = basis_field_order, kws...)
 end
 
 function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, material::Material{Halfspace{T,Dim}};

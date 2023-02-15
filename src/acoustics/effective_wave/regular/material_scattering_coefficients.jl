@@ -266,7 +266,7 @@ function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,A
     # Computing internal field contributions
     particle_contribution = zeros(Complex{T}, 2Minc + 1)
     for s in -Minc:Minc
-        particle_contribution[s + Minc + 1] = Complex{T}(2*pi^2/(k0 * (k_eff^2 - k0^2))) *
+        particle_contribution[s + Minc + 1] = 
         sum(l ->
             sum(m ->
                 Complex{T}(1im)^(m - l) * Ys[lm_to_n(l, m)] *
@@ -279,6 +279,7 @@ function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,A
             , -l:l)
         , 0:L)
     end
+    particle_contribution *= Complex{T}(2*pi^2/(k0 * (k0^2 - k_eff^2)))
 
     # Incident wave contributions
     if only_particle_contribution

@@ -256,8 +256,8 @@ end
 
 # Solve the boundary condition of the spheres in cylinder case with 2 media
 function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,2}}, material::Material{Sphere{T,2}}, ::TranslationSymmetry{3,T};
-        basis_order::Int = 2,
-        basis_field_order::Int = 2*basis_order,
+        basis_order::Int = 3,
+        basis_field_order::Int = 6,
         source_basis_field_order::Int = Int((size(eigvectors)[3] - 1) / 2),
         kws...
     ) where T
@@ -326,8 +326,12 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     wall_reflections = [Refl[s + Minc + 1] *
         sum(l ->
             sum(m ->
-                Complex{T}(1im)^(l + m) * Ys[lm_to_n(l, m)] .*
-                vecs[(lm_to_n(l,m) - 1)*(2M1 + 1) + (m - s) + M1 + 1, p]
+                if abs(m - s) < l
+                    Complex{T}(1im)^(l + m) * Ys[lm_to_n(l, m)] .*
+                    vecs[(lm_to_n(l,m) - 1)*(2M1 + 1) + (m - s) + M1 + 1, p]
+                else
+                    Complex{T}(0.0)
+                end
             ,-l:l)
         , 0:L) for s = -Minc:Minc, p = 1:(2Minc + 1)];
 

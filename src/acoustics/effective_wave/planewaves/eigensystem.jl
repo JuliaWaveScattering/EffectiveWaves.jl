@@ -20,11 +20,6 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{2}, ::AbstractPlana
 
     medium = micro.medium
 
-    scale_number_density = one(T)
-    # if numberofparticles > 1
-    #     scale_number_density = one(T) - one(T) / numberofparticles
-    # end
-
     k = ω / medium.c
     sps = micro.species
     S = length(sps)
@@ -43,7 +38,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{2}, ::AbstractPlana
         pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
     end
 
-    function M_component(keff,Ns,s1,s2,m,n)
+    function M_component(Ns,s1,s2,m,n)
         (n == m ? 1.0 : 0.0)*(s1 == s2 ? 1.0 : 0.0) + 2.0pi * number_density(sps[s2]) * t_matrices[s1][m+ho+1,m+ho+1] * Ns[n-m + 2ho+1,s1,s2]
     end
 
@@ -63,7 +58,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{2}, ::AbstractPlana
         for l = 1:S for n = -ho:ho
             ind1 = 1
             for s = 1:S for m = -ho:ho
-                MM_mat[ind1,ind2] = M_component(keff,Ns,s,l,m,n)
+                MM_mat[ind1,ind2] = M_component(Ns,s,l,m,n)
                 ind1 += 1
         end end
             ind2 += 1
@@ -117,7 +112,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::AbstractPlana
         pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
     end
 
-    function M_component(keff::Complex{T},Ns::Array{Complex{T}},l::Int,m::Int,s1::Int,dl::Int,dm::Int,s2::Int)::Complex{T}
+    function M_component(Ns::Array{Complex{T}},l::Int,m::Int,s1::Int,dl::Int,dm::Int,s2::Int)::Complex{T}
         (m == dm && l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
         4pi * scale_number_density * number_density(species[s2]) * t_diags[s1][baselen(l)] *
         sum(
@@ -140,7 +135,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::AbstractPlana
         for s2 = 1:S, dl = 0:ho for dm = -dl:dl
             ind1 = 1
             for s1 = 1:S, l = 0:ho for m = -l:l
-                MM_mat[ind1, ind2] = M_component(keff,Ns,l,m,s1,dl,dm,s2)
+                MM_mat[ind1, ind2] = M_component(Ns,l,m,s1,dl,dm,s2)
                 ind1 += 1
             end end
             ind2 += 1
@@ -179,7 +174,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::PlanarAzimuth
         pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
     end
 
-    function M_component(keff::Complex{T}, Ns::Array{Complex{T}},l,s1,dl,s2)::Complex{T}
+    function M_component(Ns::Array{Complex{T}},l,s1,dl,s2)::Complex{T}
         (l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
         sqrt(4pi) * number_density(species[s2]) * t_diags[s1][baselen(l)] *
         sum(
@@ -205,7 +200,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::PlanarAzimuth
         for s2 = 1:S, dl = 0:ho
             ind1 = 1
             for s1 = 1:S, l = 0:ho
-                MM_mat[ind1, ind2] = M_component(keff,Ns,l,s1,dl,s2)
+                MM_mat[ind1, ind2] = M_component(Ns,l,s1,dl,s2)
                 ind1 += 1
             end
             ind2 += 1
