@@ -200,21 +200,21 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, s
     lm_to_n = lm_to_spherical_harmonic_index
 
     function M_component(Ns,l,m,m2,s1,dl,dm,m1,s2)::Complex{T}
-        minl1 = abs(l - dl)
+        minl1 = max(abs(l - dl), abs(m1 - m2))
         maxl1 = l + dl
-
+           
         (m == dm && l == dl && m1 == m2 && s1 == s2 ? 1.0 : 0.0) +
-        number_density(sps[s2]) * t_diags[s1][len(l)] *
-        sum(l1 ->
-            if abs(m1 - m2) <= l1
+        if maxl1 < minl1
+            zero(Complex{T})
+        else
+            number_density(sps[s2]) * t_diags[s1][len(l)] *
+            sum(l1 ->
                 Complex{T}(1im)^(m1 - m2 - l1) *
                 gaunt_coefficient(dl,dm,l,m,l1,m1 - m2) *
                 Ys[lm_to_n(l1,m2 - m1)] *
                 4pi * Ns[l1 + 1,s1,s2]
-            else
-                zero(Complex{T})
-            end
-        , minl1:maxl1)
+            , minl1:maxl1)
+        end
     end
 
     function MM(keff::Complex{T})::Matrix{Complex{T}}
