@@ -348,18 +348,22 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     
     # Contributions from direct particle-particle multiplescattering
     particle_contribution = [
-        Complex{T}(1im)^(-i[3] - i[4]) * Ys[lm_to_n(i[3],i[4])] *
-        sum(l2 ->
-            sum(m2 ->
-                Complex{T}(1im)^(l2 + m2) * Ys[lm_to_n(l2,m2)] *
-                sum(dl ->
-                    sum(dm ->
-                        gaunt_coefficient(dl,dm,i[1],i[2],l2,m2) *
-                        vecs[(lm_to_n(dl,dm) - 1)*(2M1 + 1) + (i[4] - m2) + M1 + 1, p]
-                    , -dl:dl)
-                , 0:L)
-            , -l2:l2)
-        , 0:L) for i in n_n1, p in 1:(2Minc + 1)];
+        if abs(i[4]) < i[3]
+            zero(Complex{T})
+        else
+            Complex{T}(1im)^(-i[3] - i[4]) * Ys[lm_to_n(i[3],i[4])] *
+            sum(l2 ->
+                sum(m2 ->
+                    Complex{T}(1im)^(l2 + m2) * Ys[lm_to_n(l2,m2)] *
+                    sum(dl ->
+                        sum(dm ->
+                            gaunt_coefficient(dl,dm,i[1],i[2],l2,m2) *
+                            vecs[(lm_to_n(dl,dm) - 1)*(2M1 + 1) + (i[4] - m2) + M1 + 1, p]
+                        , -dl:dl)
+                    , 0:L)
+                , -l2:l2)
+            , 0:L)
+        end for i in n_n1, p in 1:(2Minc + 1)];
 
     # Incident wave coefficients
     source_coefficients = Tran .* regular_spherical_coefficients(source)(Minc,zeros(2),ω)
@@ -377,6 +381,9 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     # Full matrix to be inverted
     matrix = (2pi^2/k0) * (particle_contribution + wall_contribution)
 
+    # Computing normalization factors
+    #α1 = matrix \ forcing
+
     # Reduction of matrix and forcing term
     square_matrix = zeros(Complex{T}, 2Minc+1, 2Minc+1)
     for q in 1:(2Minc + 1)
@@ -388,7 +395,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
                             matrix[(lm_to_n(l,m) - 1)*(L+1)^2 + lm_to_n(dl,dm), p] * 
                             sum(ddl ->
                                 gaunt_coefficient(ddl,q - Minc - 1,l,m,dl,dm)
-                            , abs(q-Minc-1):Minc)
+                            , abs(q-Minc-1):max(l + dl,abs(q-Minc-1)))
                         , -dl:dl)
                     , 0:L)
                 , -l:l)
@@ -405,7 +412,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
                         forcing[(lm_to_n(l,m) - 1)*(L+1)^2 + lm_to_n(dl,dm)] *
                         sum(ddl ->
                             gaunt_coefficient(ddl,q - Minc - 1,l,m,dl,dm)
-                        , abs(q - Minc - 1):Minc)
+                        , abs(q-Minc-1):max(l + dl,abs(q-Minc-1)))
                     , -dl:dl)
                 , 0:L)
             , -l:l)
@@ -420,7 +427,8 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     end
 
     # Checking error in the solution of the system
-    err = norm(reduced_forcing - square_matrix * α) / norm(reduced_forcing)
+    err = norm(forcing - matrix * α) / norm(forcing)
+    #err = norm(α - α1) / norm(α1)
 
     if err > sqrt(eps(T))
         @warn "Extinction equation (like a boundary condition) was solved with an error: $err for the effective wavenumber: $k_eff"

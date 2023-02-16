@@ -199,7 +199,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, s
     Ys = spherical_harmonics(2L, pi/2, 0.0)
     lm_to_n = lm_to_spherical_harmonic_index
 
-    function M_component(Ns,l,m,m2,s1,dl,dm,m1,s2)::Complex{T}
+    function M_component(Ns,l,m,m1,s1,dl,dm,m2,s2)::Complex{T}
         minl1 = max(abs(l - dl), abs(m1 - m2))
         maxl1 = l + dl
            
@@ -232,10 +232,10 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, s
 
         # The order of the indices below is important
         ind2 = 1
-        for s2 = 1:S for dl = 0:L for dm = -dl:dl for m1 = -M:M
+        for s2 = 1:S for dl = 0:L for dm = -dl:dl for m2 = -M:M
             ind1 = 1
-            for s1 = 1:S for l = 0:L for m = -l:l for m2 = -M:M
-                MM_mat[ind1, ind2] = M_component(Ns,l,m,m2,s1,dl,dm,m1,s2)
+            for s1 = 1:S for l = 0:L for m = -l:l for m1 = -M:M
+                MM_mat[ind1, ind2] = M_component(Ns,l,m,m1,s1,dl,dm,m2,s2)
                 ind1 += 1
             end end end end
             ind2 += 1
