@@ -272,7 +272,6 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     k0 = ω / c0
     
     species = material.microstructure.species
-    S = length(species)
     rs = outer_radius.(species)
 
     # dim 1 is the (n,n1) indices, dim 2 is the species, dim 3 are the different eigenvectors
@@ -348,9 +347,9 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     
     # Contributions from direct particle-particle multiplescattering
     particle_contribution = [
-        if abs(i[4]) < i[3]
-            zero(Complex{T})
-        else
+#        if abs(i[4]) < i[3]
+#            zero(Complex{T})
+#        else
             Complex{T}(1im)^(-i[3] - i[4]) * Ys[lm_to_n(i[3],i[4])] *
             sum(l2 ->
                 sum(m2 ->
@@ -363,7 +362,8 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
                     , 0:L)
                 , -l2:l2)
             , 0:L)
-        end for i in n_n1, p in 1:(2Minc + 1)];
+#        end 
+    for i in n_n1, p in 1:(2Minc + 1)];
 
     # Incident wave coefficients
     source_coefficients = Tran .* regular_spherical_coefficients(source)(Minc,zeros(2),ω)
@@ -379,56 +379,57 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
         , 0:L) for i in n_n1];
 
     # Full matrix to be inverted
-    matrix = (2pi^2/k0) * (particle_contribution + wall_contribution)
+    matrix = (2pi^2 / k0) * (particle_contribution + wall_contribution)
 
     # Computing normalization factors
-    #α1 = matrix \ forcing
+    α = matrix \ forcing
 
     # Reduction of matrix and forcing term
-    square_matrix = zeros(Complex{T}, 2Minc+1, 2Minc+1)
-    for q in 1:(2Minc + 1)
-        for p in 1:(2Minc + 1)
-            square_matrix[q, p] = sum(l ->
-                sum(m ->
-                    sum(dl ->
-                        sum(dm ->
-                            matrix[(lm_to_n(l,m) - 1)*(L+1)^2 + lm_to_n(dl,dm), p] * 
-                            sum(ddl ->
-                                gaunt_coefficient(ddl,q - Minc - 1,l,m,dl,dm)
-                            , abs(q-Minc-1):max(l + dl,abs(q-Minc-1)))
-                        , -dl:dl)
-                    , 0:L)
-                , -l:l)
-            , 0:L)
-        end
-    end
+#    square_matrix = zeros(Complex{T}, 2Minc+1, 2Minc+1)
+#    for q in 1:(2Minc + 1)
+#        for p in 1:(2Minc + 1)
+#            square_matrix[q, p] = sum(l ->
+#                sum(m ->
+#                    sum(dl ->
+#                        sum(dm ->
+#                            matrix[(lm_to_n(l,m) - 1)*(L+1)^2 + lm_to_n(dl,dm), p] * 
+#                            sum(ddl ->
+#                                gaunt_coefficient(ddl,q - Minc - 1,l,m,dl,dm)
+#                            , abs(q-Minc-1):max(l + dl,abs(q-Minc-1)))
+#                        , -dl:dl)
+#                    , 0:L)
+#                , -l:l)
+#            , 0:L)
+#        end
+#    end
 
-    reduced_forcing = zeros(Complex{T}, 2Minc + 1)
-    for q in 1:(2Minc + 1)
-        reduced_forcing[q] = sum(l ->
-            sum(m ->
-                sum(dl ->
-                    sum(dm ->
-                        forcing[(lm_to_n(l,m) - 1)*(L+1)^2 + lm_to_n(dl,dm)] *
-                        sum(ddl ->
-                            gaunt_coefficient(ddl,q - Minc - 1,l,m,dl,dm)
-                        , abs(q-Minc-1):max(l + dl,abs(q-Minc-1)))
-                    , -dl:dl)
-                , 0:L)
-            , -l:l)
-        , 0:L)
-    end
+#    reduced_forcing = zeros(Complex{T}, 2Minc + 1)
+#    for q in 1:(2Minc + 1)
+#        reduced_forcing[q] = sum(l ->
+#            sum(m ->
+#                sum(dl ->
+#                    sum(dm ->
+#                        forcing[(lm_to_n(l,m) - 1)*(L+1)^2 + lm_to_n(dl,dm)] *
+#                        sum(ddl ->
+#                            gaunt_coefficient(ddl,q - Minc - 1,l,m,dl,dm)
+#                        , abs(q-Minc-1):max(l + dl,abs(q-Minc-1)))
+#                    , -dl:dl)
+#                , 0:L)
+#            , -l:l)
+#        , 0:L)
+#    end
 
     # Computing normalization factors
-    α = square_matrix \ reduced_forcing
+#    α = square_matrix \ reduced_forcing
 
-    if rank(square_matrix) < 2Minc + 1
+    if rank(matrix) < 2Minc + 1
         @warn "Degeneracy encountered. The normalization factors computed in boundary conditions may not be reliable."
     end
 
     # Checking error in the solution of the system
+#    err = norm(reduced_forcing - square_matrix * α) / norm(reduced_forcing)
     err = norm(forcing - matrix * α) / norm(forcing)
-    #err = norm(α - α1) / norm(α1)
+#    err = norm(α - α1) / norm(α1)
 
     if err > sqrt(eps(T))
         @warn "Extinction equation (like a boundary condition) was solved with an error: $err for the effective wavenumber: $k_eff"
