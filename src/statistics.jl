@@ -355,7 +355,7 @@ function smooth_pair_corr_distance(pair_corr_distance::Function, a12::T; smoothi
     data = pair_corr_distance.(zs)
 
     P = Legendre()
-    ls = 0:polynomial_order
+    ls = 0:polynomial_order |> collect
 
     Pmat = P[2zs ./ max_distance .- T(1.0), ls .+ 1];
 
@@ -398,7 +398,7 @@ function gls_pair_radial_fun(pair_corr_distance::Union{Function,AbstractArray}, 
         ) where T
 
     P = Legendre()
-    ls = 0:polynomial_order
+    ls = 0:polynomial_order |> collect
 
     if sigma_approximation
         sigmas = [one(T); sin.(pi .* ls[2:end] ./ (polynomial_order+1)) ./ (pi .* ls[2:end] ./ (polynomial_order+1))]
@@ -442,7 +442,7 @@ function pair_radial_fun(pair_corr_distance::Function, a12::T; polynomial_order:
     P = Legendre()
 
     return function (r1,r2,u)
-        Pus = P[u, 1:(polynomial_order + 1)] .* (2 .* (0:polynomial_order) .+ 1) ./ (4pi)
+        Pus = P[u, 1:(polynomial_order + 1) |> collect] .* (2 .* (0:polynomial_order) .+ 1) ./ (4pi)
 
         return sum(Pus .* gls_fun(r1,r2))
     end
