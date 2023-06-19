@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Pair correlation · EffectiveWaves.jl</title><link href="https://fonts.googleapis.com/css?family=Lato|Roboto+Mono" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.0/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit">EffectiveWaves.jl</span></div><form class="docs-search" action="../../search/"><input class="docs-search-query" id="documenter-search-query" name="q" type="text" placeholder="Search docs"/></form><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">Manual</span><ul><li><a class="tocitem" href="../introduction/">Quick introduction</a></li><li><a class="tocitem" href="../background/">Theoretical background</a></li><li><a class="tocitem" href="../wavenumbers/">Effective wavenumbers</a></li><li><a class="tocitem" href="../reflection/">Reflection and transmission</a></li><li><a class="tocitem" href="../sphere/">Scattering from a sphere</a></li><li class="is-active"><a class="tocitem" href>Pair correlation</a><ul class="internal"><li><a class="tocitem" href="#Bespoke-pair-correlation"><span>Bespoke pair-correlation</span></a></li><li><a class="tocitem" href="#Percus-Yevick"><span>Percus-Yevick</span></a></li><li><a class="tocitem" href="#Calculate-an-effective-wavenumber"><span>Calculate an effective wavenumber</span></a></li><li><a class="tocitem" href="#Calculate-reflection"><span>Calculate reflection</span></a></li><li><a class="tocitem" href="#References"><span>References</span></a></li></ul></li></ul></li><li><a class="tocitem" href="../../library/library/">Library</a></li><li><a class="tocitem" href="../../theory/README/">Theory</a></li><li><span class="tocitem">Examples</span><ul><li><a class="tocitem" href="../../examples/vary_two_species/README/">Vary volume fraction of the two species</a></li><li><a class="tocitem" href="../../examples/equivalent-symmetries/README/">Equivalent symmetries</a></li><li><a class="tocitem" href="../../examples/matched_method/README/">A numerical matching method</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Manual</a></li><li class="is-active"><a href>Pair correlation</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Pair correlation</a></li></ul></nav><div class="docs-right"><a class="docs-edit-link" href="https://github.com/JuliaWaveScattering/EffectiveWaves.jl/blob/master/docs/src/manual/pair-correlation.md" title="Edit on GitHub"><span class="docs-icon fab"></span><span class="docs-label is-hidden-touch">Edit on GitHub</span></a><a class="docs-settings-button fas fa-cog" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-sidebar-button fa fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a></div></header><article class="content" id="documenter-page"><h1 id="Pair-correlation"><a class="docs-heading-anchor" href="#Pair-correlation">Pair correlation</a><a id="Pair-correlation-1"></a><a class="docs-heading-anchor-permalink" href="#Pair-correlation" title="Permalink"></a></h1><p>In the previous example there was no mention on how the particles are distributed. This can be specified by choosing a pair correlation, and when no pair correlation is specified, the default is to assume that particles are uncorrelated, except they can not overlap.</p><p>Choosing the particle distribution only affects the effective wavenumbers and wavemodes, see references [1,2]</p><p>We note that the definition of the pair-correlation <span>$g$</span>, for a finite number of multi-species particles, is [1]</p><p class="math-container">\[g(\mathbf r_1, \lambda_1; \mathbf r_2, \lambda_2) = \frac{p(\mathbf r_1, \lambda_1; \mathbf r_2, \lambda_2)}{p(\mathbf r_1, \lambda_1)p(\mathbf r_2, \lambda_2)}\frac{J -1}{J}\]</p><p>where <span>$\mathbf r_j$</span> is the vector position of the centre of particle-<span>$j$</span>, <span>$\lambda_j$</span> represents the size or other distinguishing properties of the type of particle, <span>$p$</span> is the probability density function, and <span>$J$</span> is the total number of particles. Note that when the particles become uncorrelated in the limit <span>$|\mathbf r_1 - \mathbf r_2| \to \infty$</span> we have that</p><p class="math-container">\[\lim_{|\mathbf r_1 - \mathbf r_2| \to \infty} g(\mathbf r_1, \lambda_1; \mathbf r_2, \lambda_2) = 1\]</p><h2 id="Bespoke-pair-correlation"><a class="docs-heading-anchor" href="#Bespoke-pair-correlation">Bespoke pair-correlation</a><a id="Bespoke-pair-correlation-1"></a><a class="docs-heading-anchor-permalink" href="#Bespoke-pair-correlation" title="Permalink"></a></h2><p>Here is an example of choosing your own pair-correlation for a material filled with only one type of particle</p><pre><code class="language-julia">medium = Acoustic(3; ρ=1.2, c=1.0)
+
+# Choose the species
+r = 0.5
+s = Specie(
+    Acoustic(3; ρ = 0.01, c = 0.01),
+    Sphere(r),
+    volume_fraction = 0.3,
+    separation_ratio = 1.0
+);</code></pre><p>Next we create a microstructure that has only this species, and has a specific pair-correlation</p><pre><code class="language-julia">
+r = 1.0:0.1:10.0
+my_pair_correlation = 1.0 .+ 0.2 .* sin.(r) ./ r.^3
+
+dpc = DiscretePairCorrelation(r, my_pair_correlation)
+
+micro = Microstructure(medium, s, dpc);
+
+# output</code></pre><p>Note that when specifying a pair-correlation, the minimal distance between particles will be taken to be <code>dpc.r[1]</code>. This is stored in <code>dpc.minimal_distance</code>. Previously when defining the <code>Specie</code> we specified <code>separation_ratio = 1.01</code>, which means the minimal distance between particles centres&#39; is <code>2 * separation_ratio * r</code>, this is used when no pair-correlation is specified, otherwise the value given in <code>dpc.minimal_distance</code> will be used. In the future, we will phase out the use of <code>separation_ratio</code> in the Specie.  </p><h2 id="Percus-Yevick"><a class="docs-heading-anchor" href="#Percus-Yevick">Percus-Yevick</a><a id="Percus-Yevick-1"></a><a class="docs-heading-anchor-permalink" href="#Percus-Yevick" title="Permalink"></a></h2><p>Let us consider a material filled with only one type of particle and use the Percus-Yevick approximation to calculate the pair-correlation for 2D hard spheres. That is, sphere which do not attract of repel each other. For details see <a href="../../theory/P-Y.pdf">Notes on Percus-Yevick</a> [2].</p><pre><code class="language-julia">
+pair_type = PercusYevick(3; rtol = 1e-2, maxlength = 200)
+
+micro = Microstructure(medium,s, pair_type);
+
+# output</code></pre><p>When calling the above, the pair correlation is calculated and stored in <code>micro.paircorrelations</code> which is a matrix of the type <a href="../../library/library/#EffectiveWaves.DiscretePairCorrelation"><code>DiscretePairCorrelation</code></a>. This type assume that the pair-correlation is only a function of the distance between particles, and the types of particles, like their size.</p><p>We can plot the result of the Percus-Yevick approximation with the package Plots:</p><pre><code class="language-julia">using Plots
+
+plot(micro.paircorrelations[1].r, 1.0 .+ micro.paircorrelations[1].dp,
+    xlab = &quot;distance&quot;, ylab = &quot;P-Y&quot;
+)</code></pre><p><img src="../../assets/PY-30-pair.png" alt="../PY-30-pair.png"/></p><p>which we can compare with Figure 8.3.1 from [1] below.</p><p><img src="../../assets/TKD-PY-30.jpg" alt="../TKD-PY-30.jpg"/></p><p>Note that for <span>$x &lt; 1$</span> the two particles of radius 0.5 would overlap, so the pair correlation should be zero. Also note that <code>dp</code> is the variation from uncorrelated, which is why we add 1.0 to get the pair correlation.</p><h2 id="Calculate-an-effective-wavenumber"><a class="docs-heading-anchor" href="#Calculate-an-effective-wavenumber">Calculate an effective wavenumber</a><a id="Calculate-an-effective-wavenumber-1"></a><a class="docs-heading-anchor-permalink" href="#Calculate-an-effective-wavenumber" title="Permalink"></a></h2><p>The more points sampled within the pair correlation the longer it will take to calculate the effective wavenumber.</p><p>First we calculate the wavenumbers with the simplest pair correlation (hole correction), and then compare the results with Percus-Yevick.</p><pre><code class="language-julia">
+micro = Microstructure(medium,s);
+
+ω = 0.4
+
+kps = wavenumbers(ω, micro;
+    basis_order = 1, num_wavenumbers = 4
+)
+
+pair_type = PercusYevick(3; meshsize = 0.1, maxlength = 50)
+micro = Microstructure(medium, s, pair_type);
+
+kps2 = wavenumbers(ω, micro;
+    basis_order = 1, num_wavenumbers = 4
+)</code></pre><p>we can then compare how the wavenumbers change with Percus-Yevick with a scatter plot</p><pre><code class="language-julia">using Plots
+
+scatter(kps, lab = &quot;Hole correction&quot;)
+scatter!(kps2, lab = &quot;Percus-Yevick&quot;)
+</code></pre><p><img src="../../assets/kps-PY-30-pair.png" alt="../kps-PY-30-pair.png"/></p><p>We can see that in this case, the effective wavenumbers with (<code>kps2</code>) and without (<code>kps</code>) Percus Yevick are quite different.</p><h2 id="Calculate-reflection"><a class="docs-heading-anchor" href="#Calculate-reflection">Calculate reflection</a><a id="Calculate-reflection-1"></a><a class="docs-heading-anchor-permalink" href="#Calculate-reflection" title="Permalink"></a></h2><p>To calculate the average reflection, or scattering, from a material is the same as before, except we just need to replace <code>Species</code> with <code>Microstructure</code>. For example to calculate reflection from a plate:</p><pre><code class="language-julia">
+k_eff = kps2[1]
+
+normal = [0.0,0.0,-1.0] # an outward normal to both surfaces of the
+width = 150.0 # plate width
+origin = [0.0,0.0,width/2] # the centre of the plate
+
+plate = Plate(normal,width,origin)
+
+# note below we use micro instead of species
+material = Material(plate, micro)
+
+source = PlaneSource(medium, [0.0,0.0,-1.0])
+
+# Calculate the wavemode for the first wavenumber
+# the WaveMode function calculates the types of waves and solves the needed boundary conditions
+wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
+
+RTeff = reflection_transmission_coefficients(wavemodes, source, material)
+
+abs.(RTeff)</code></pre><p>We can compare the result of not using Percus-Yevick below.</p><pre><code class="language-julia">k_eff = kps[1]
+micro = Microstructure(medium,s);
+material = Material(plate, micro)
+wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
+
+RTeff = reflection_transmission_coefficients(wavemodes, source, material)
+
+abs.(RTeff)</code></pre><h2 id="References"><a class="docs-heading-anchor" href="#References">References</a><a id="References-1"></a><a class="docs-heading-anchor-permalink" href="#References" title="Permalink"></a></h2><p>[1] Kong, Jin Au, Leung Tsang, Kung-Hau Ding, and Chi On Ao. Scattering of electromagnetic waves: numerical simulations. John Wiley &amp; Sons, 2004.</p><p><a href="https://github.com/JuliaWaveScattering/EffectiveWaves.jl/blob/master/docs/src/theory/P-Y.pdf">[2]</a> Gerhard Kristensson. &quot;The Percus-Yevick approximation&quot;. <a href="https://github.com/JuliaWaveScattering/EffectiveWaves.jl]">github.com/JuliaWaveScattering/EffectiveWaves.jl</a> (2022).</p><p><a href="https://iopscience.iop.org/article/10.1088/1367-2630/abdfee/pdf">[3]</a> Gower, Artur L., and Gerhard Kristensson. &quot;Effective waves for random three-dimensional particulate materials.&quot; New Journal of Physics 23.6 (2021): 063083.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../sphere/">« Scattering from a sphere</a><a class="docs-footer-nextpage" href="../../library/library/">Library »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> on <span class="colophon-date" title="Monday 19 June 2023 15:38">Monday 19 June 2023</span>. Using Julia version 1.5.4.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
