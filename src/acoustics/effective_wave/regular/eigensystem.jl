@@ -28,7 +28,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, :
         pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
     end
 
-    function M_component(keff,Ns,l,m,l2,m2,s1,dl,dm,l1,m1,s2)::Complex{T}
+    function M_component(Ns,l,m,l2,m2,s1,dl,dm,l1,m1,s2)::Complex{T}
         minl3 = max(abs(m1-m2),abs(dl-l),abs(l1-l2))
         maxl3 = min(abs(dl+l),abs(l1+l2))
 
@@ -62,7 +62,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, :
         for s2 = 1:S for dl = 0:L for dm = -dl:dl for l1 = 0:L1 for m1 = -l1:l1
             ind1 = 1
             for s1 = 1:S for l = 0:L for m = -l:l for l2 = 0:L1 for m2 = -l2:l2
-                MM_mat[ind1, ind2] = M_component(keff,Ns,l,m,l2,m2,s1,dl,dm,l1,m1,s2)
+                MM_mat[ind1, ind2] = M_component(Ns,l,m,l2,m2,s1,dl,dm,l1,m1,s2)
                 ind1 += 1
             end end end end end
             ind2 += 1
@@ -104,7 +104,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, :
     end
 
     # the index for the T-matrix below needs to be changed when seperating correctly the 2D and 3D case.
-    function M_component(keff,Ns,l,m,l2,s1,dl,dm,l1,s2)::Complex{T}
+    function M_component(Ns,l,m,l2,s1,dl,dm,l1,s2)::Complex{T}
         minl3 = max(abs(m-dm),abs(dl-l),abs(l1-l2))
         maxl3 = min(dl+l,l1+l2)
 
@@ -137,7 +137,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, :
         for s2 = 1:S for dl = 0:L for dm = -dl:dl for l1 = abs(dm):L1
             ind1 = 1
             for s1 = 1:S for l = 0:L for m = -l:l for l2 = abs(m):L1
-                MM_mat[ind1, ind2] = M_component(keff,Ns,l,m,l2,s1,dl,dm,l1,s2)
+                MM_mat[ind1, ind2] = M_component(Ns,l,m,l2,s1,dl,dm,l1,s2)
                 ind1 += 1
             end end end end
             ind2 += 1
@@ -163,10 +163,9 @@ end
 
 # The eigensystem when translation symmetry is present
 # WE HAVE TO ADD TRANLATION SYMMETRY DOWN HERE
-function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, sym::TranslationSymmetry{3};
-        basis_order::Int = 2,
-        basis_field_order::Int = 2*basis_order,
-        # numberofparticles::Number = Inf,
+function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, sym::TranslationSymmetry{3,T};
+        basis_order::Int = 3,
+        basis_field_order::Int = 6,
         kws...) where T<:AbstractFloat
 
     medium = micro.medium
@@ -182,7 +181,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, s
     S = length(sps)
     L = basis_order
     M = basis_field_order
-    len = (2M+1) * (L+1)^2 * S
+    len = (2M + 1) * (L + 1)^2 * S
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     t_matrices = get_t_matrices(medium, sps, ω, L)
@@ -200,22 +199,22 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, s
     Ys = spherical_harmonics(2L, pi/2, 0.0)
     lm_to_n = lm_to_spherical_harmonic_index
 
-    function M_component(keff,Ns,l,m,dl,dm,m1,m2,s1,s2)::Complex{T}
-        minl1 = abs(l - dl)
+    function M_component(Ns,l,m,m1,s1,dl,dm,m2,s2)::Complex{T}
+        minl1 = max(abs(l - dl), abs(m1 - m2))
         maxl1 = l + dl
-
+           
         (m == dm && l == dl && m1 == m2 && s1 == s2 ? 1.0 : 0.0) +
-        number_density(sps[s2]) * t_diags[s1][len(l)] *
-        sum(l1 ->
-            if abs(m1 - m2) <= l1
-                Complex{T}(1im)^(m1 - l1 - m2) *
-                gaunt_coefficient(dl,dm,l,m,l1,m1-m2) *
-                Ys[lm_to_n(l1,m2-m1)] *
-                4pi * Ns[l1+1,s1,s2]
-            else
-                zero(Complex{T})
-            end
-        , minl1:maxl1)
+        if maxl1 < minl1
+            zero(Complex{T})
+        else
+            number_density(sps[s2]) * t_diags[s1][len(l)] *
+            sum(l1 ->
+                Complex{T}(1im)^(m1 - m2 - l1) *
+                gaunt_coefficient(dl,dm,l,m,l1,m1 - m2) *
+                Ys[lm_to_n(l1,m2 - m1)] *
+                4pi * Ns[l1 + 1,s1,s2]
+            , minl1:maxl1)
+        end
     end
 
     function MM(keff::Complex{T})::Matrix{Complex{T}}
@@ -229,14 +228,14 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, s
             Ns = Ns - kernelW3D(k, keff, pair_rs, gs, hks, basis_order)
         end
 
-        Ns = Ns ./  (keff^2.0 - k^2.0)
+        Ns = Ns ./ (keff^2.0 - k^2.0)
 
         # The order of the indices below is important
         ind2 = 1
         for s2 = 1:S for dl = 0:L for dm = -dl:dl for m2 = -M:M
             ind1 = 1
             for s1 = 1:S for l = 0:L for m = -l:l for m1 = -M:M
-                MM_mat[ind1, ind2] = M_component(keff,Ns,l,m,dl,dm,m1,m2,s1,s2)
+                MM_mat[ind1, ind2] = M_component(Ns,l,m,m1,s1,dl,dm,m2,s2)
                 ind1 += 1
             end end end end
             ind2 += 1
@@ -244,5 +243,85 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, s
         return MM_mat
     end
 
+    return MM
+end
+
+# 2D general eigensystem There are some problems to be fixed
+# function eigensystem(ω::T, micro::ParticulateMicrostructure{2,Acoustic{T,2}}, ::WithoutSymmetry{2};
+#     basis_order::Int = 2,
+#     basis_field_order::Int = 2*basis_order,
+#     numberofparticles::Number = Inf,
+#     kws...) where T<:AbstractFloat
+
+#     scale_number_density = one(T) - one(T) / numberofparticles
+
+#     k = ω/micro.medium.c
+#     sps = micro.species
+
+#     S = length(sps)
+#     ho = basis_order
+#     L1 = basis_field_order
+#     len = (2L1+1)^2 * (2ho+1)^2 * S
+#     MM_mat = Matrix{Complex{T}}(undef,len,len)
+
+#     t_matrices = get_t_matrices(micro.medium, sps, ω, ho)
+#     t_diags = diag.(t_matrices)
+#     len(order::Int) = basisorder_to_basislength(Acoustic{T,2},order)
+
+#     as = [
+#         s1.seperation_ratio * outer_radius(s1) + s2.seperation_ratio * outer_radius(s2)
+#     for s1 in sps, s2 in sps]
+
+#     if length(micro.paircorrelations[1].r) > 1
+#         pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
+#     end
+
+#     # 1 -> row and 2 -> column
+#     # s ∈ Species, m ∈ [-basis_order,basis_order], n ∈ [-basis_field_order,basis_field_order]
+#     function M_component(keff,Ns,s1,s2,m1,m2,n1,n2)
+#         (m1 == m2 ? 1.0 : 0.0)*(n1 == n2 ? 1.0 : 0.0)*(s1 == s2 ? 1.0 : 0.0) +
+#         2.0pi * scale_number_density * t_matrices[s1][m1+ho+1,m1+ho+1] *
+#         (m2-m1 == n1-n2 ? 1.0 : 0.0) *
+#         number_density(sps[s2]) * Ns[m2-m1 + 2ho+1,s1,s2] /
+#         (keff^2.0 - k^2.0)
+#     end
+
+#     function MM(keff::Complex{T})::Matrix{Complex{T}}
+
+#         Ns = [
+#             kernelN2D(m,k*as[s1,s2],keff*as[s1,s2])
+#         for m = (-2ho):2ho, s1 = 1:S, s2 = 1:S]
+
+#         # For a pair correlation which is not hole correction need to add a finite integral
+#         if length(micro.paircorrelations[1].r) > 1
+#             Ns = Ns + kernelW3D(k, keff, pair_rs, gs, hks, basis_order)
+#         end
+
+#         Ns = Ns ./  (keff^2.0 - k^2.0)
+
+#         # The order of the indices below is important
+#         ind2 = 1
+#         for s2 = 1:S for m2 = -ho:ho for n2 = -L1:L1
+#             ind1 = 1
+#             for s1 = 1:S for m1 = -ho:ho for n1 = -L1:L1
+#                 MM_mat[ind1, ind2] = M_component(keff,Ns,s1,s2,m1,m2,n1,n2)
+#                 ind1 += 1
+#             end end end
+#             ind2 += 1
+#         end end end
+#         return MM_mat
+#     end
+
+#     return MM
+# end
+
+
+### 2D eigensystems
+# The Planar Symmetry and Radial symmetry eigensystems are EXACTLY the same
+# Except numberofparticles cannot be infinite in the 2D radial symmetry case
+function eigensystem(ω::T, micro::ParticulateMicrostructure{2,Acoustic{T,2}}, ::RadialSymmetry{2};
+kws...) where {T<:AbstractFloat}
+
+    MM = eigensystem(ω, micro, PlanarSymmetry{2}(); kws...)
     return MM
 end

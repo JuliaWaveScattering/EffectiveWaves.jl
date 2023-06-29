@@ -227,3 +227,112 @@ end
 ```
 ![real-sphere-scatter.gif](../assets/real-sphere-scatter.gif)
 ![real-sphere-low-scat-scatter.gif](../assets/real-sphere-low-scat-scatter.gif)
+
+# A sphere with radial symmetry
+
+The simplest possible scenario with a finite number of particles is radial symmetry. That is, to excite a sphere filled with uniformly distributed particles with a radially symmetric incident field.
+
+At first it may appear that the scenario of radial symmetry is a very specific case and perhaps not that useful. However, the paper ? shows that the same effective wavenumbers appear for both the radial symmetry case and all other cases including  plane wave incidence on a plate.
+
+Below we show two different methods: using just one effective wavenumber and another which solves a 1D integral equation which includes all effective wavenumbers
+
+## Effective wave with radial symmetry
+Let us first choose the material parameters again
+```julia
+Using EffectiveWaves
+
+ω = 0.1
+medium = Acoustic(3; ρ=1.0, c=1.0);
+
+# Choose the particle properties
+particle_medium = Acoustic(3; ρ=8.0, c=8.0);
+
+r = 1.0;
+s1 = Specie(
+    particle_medium, Sphere(r);
+    volume_fraction = 0.1
+)
+
+
+k = ω  / medium.c;
+ka = k * r;
+# here we use the Percus-Yevick approximation for the inter particle pair-correlation
+py_pair = PercusYevick(3; meshsize = 0.12, maxlength = 30, rtol = 1e-4)
+microstructure = Microstructure(medium, [s1], py_pair)
+
+# Choose the material properties
+R = 5.0
+
+material = Material(Sphere(R),microstructure);
+Symmetry(material,source) == RadialSymmetry{3}()
+
+# Choose a radially symmetric source
+source = regular_spherical_source(medium, [1.0+0.0im];
+   position = [0.0,0.0,0.0],
+   symmetry = RadialSymmetry{3}()
+);
+
+# Calculate the effective wavenumbers and wavemode
+basis_order = Int(round(2.0 * ka)) .+ 1
+
+keffs = wavenumbers(ω, microstructure;
+    basis_order = basis_order,
+    symmetry = PlanarAzimuthalSymmetry()
+)
+
+wave = WaveMode(ω, keffs[1], source, material;
+    basis_order = basis_order
+)
+
+# Calculate the scattering coefficients from the whole material
+scattering_coefficients = material_scattering_coefficients(wave);
+# Due to radial symmetry scattering_coefficients has only one component
+
+
+# Calculate the far-field patterns
+Ys = spherical_harmonics(0, 0.0, 0.0);
+u∞ = sum((1/k) .* Ys[1] .* scattering_coefficients[1] .* exp.(-(pi*im/2)))
+```
+
+## Integral method with radial symmetry
+Below shows how to use the same parameters defined above to solve a 1D integral equation.
+
+```julia
+# The integral methods requires a number to determine how fine the mesh should be
+basis_field_order = Int(round(0.5 * k .* R)) .+ 1
+basis_field_order = max(2,basis_field_order)
+
+# This depends on the pair-correlation chosen. It depends how many Fourier series to use to represent the pair-correlation
+polynomial_order = 10;
+
+# This solves the integral equation and may take a few minutes
+discretewave = discrete_system_radial(ω, source, material, Symmetry(source,material);
+    basis_order = basis_order,
+    basis_field_order = basis_field_order,
+    polynomial_order = polynomial_order
+);
+scattering_coefficients2 = material_scattering_coefficients(discretewave)
+
+u∞2 = (1/k) * Ys[1] * scattering_coefficients2[1] * exp(-(pi*im/2))
+abs(u∞ - u∞2) / abs(u∞) < 1e-3
+```
+
+## Full Integral method with radial symmetry
+Below is a method which takes the integral equation and does not use radial symmetry to simplify it. This removes the Gibb's phenomena which comes with using a Fourier series to approximate the pair-correlation, but requires more mesh points to reach the same level of precision.
+
+```julia
+
+rtol = 1e-2; maxevals = Int(1e5);
+
+dwave = discrete_system(ω, source, material;
+    basis_order = basis_order,
+    basis_field_order = basis_field_order,
+    rtol = rtol, maxevals = maxevals,
+);
+
+scattering_coefficients_discrete = material_scattering_coefficients(dwave)
+u∞_discrete = (1/k) * Ys[1] * scattering_coefficients_discrete[1] * exp(-(pi*im/2))
+
+abs(u∞ - u∞_discrete) / abs(u∞) < 1e-3
+abs(u∞2 - u∞_discrete) / abs(u∞) < 3e-4
+```

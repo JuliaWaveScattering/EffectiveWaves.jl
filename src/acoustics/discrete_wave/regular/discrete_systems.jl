@@ -107,12 +107,15 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
         return vcat(coefs...)
     end
 
+
     function field_basis(rθφ::AbstractVector{T})
         Ys = spherical_harmonics(basis_field_order, rθφ[2], rθφ[3]);
         P = Legendre{T}()
 
+        orders = 1:legendre_order |> collect
+
         # [P_0(cos(θ)), …, P_(legendre_order-1)(cos(θ))]
-        Prs = P[2 * rθφ[1] / (R - outer_radius(s1)) - one(T), 1:legendre_order]
+        Prs = P[2 * rθφ[1] / (R - outer_radius(s1)) - one(T), orders]
 
         return [Pr * Yθ for Pr in Prs, Yθ in Ys]
     end
@@ -302,7 +305,8 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
         Ys = conj.(spherical_harmonics(basis_order, rθφ[2], rθφ[3]));
         P = Legendre{T}()
 
-        Prs = P[2 * rθφ[1] / (R - outer_radius(s1)) - one(T), 1:legendre_order]
+        orders = 1:legendre_order |> collect
+        Prs = P[2 * rθφ[1] / (R - outer_radius(s1)) - one(T), orders]
 
         return [Pr * Yθ for Pr in Prs, Yθ in Ys]
     end
@@ -542,7 +546,7 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
 
     r1_max = maximum(rs);
     rbars = T(2.0) .* rs ./ r1_max .- T(1.0);
-    Pmat = P[rbars, 1:(legendre_order + 1)];
+    Pmat = P[rbars, 1:(legendre_order + 1) |> collect];
 
     # Pmat * pls_arr ~ tranpose(Fs)
     pls_arr = transpose(Pmat \ transpose(Fs))
@@ -557,7 +561,7 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
     function scattered_field(xs::AbstractVector{T})
         r,θ,φ = cartesian_to_radial_coordinates(xs)
 
-        Ps = P[2r / r1_max - T(1), 1:(legendre_order + 1)]
+        Ps = P[2r / r1_max - T(1), 1:(legendre_order + 1) |> collect]
         Fls = pls_arr * Ps
 
         # Fls_arr = [

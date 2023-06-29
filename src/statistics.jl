@@ -91,7 +91,6 @@ Generates a DiscretePairCorrelation for the specie `s` by using the Percus-Yevic
 """
 function DiscretePairCorrelation(s::Specie{Dim}, pairtype::PT;
         distances::AbstractVector{T} = Float64[],
-        maximum_distance::T = 12exclusion_distance(s)
     ) where {Dim,  T<:AbstractFloat, PT <: PairCorrelationType}
 
     r1 = exclusion_distance(s)
@@ -108,11 +107,10 @@ function DiscretePairCorrelation(s::Specie{Dim}, pairtype::PT;
         else R
         end
 
+        maximum_distance = d1 .+ dr .* pairtype.maxlength
+        
         # the distances should be in the centre of the mesh element.
         distances = d1:dr:maximum_distance
-        if length(distances) > pairtype.maxlength
-            distances = distances[1:pairtype.maxlength]
-        end
 
         true
     else false
@@ -164,7 +162,7 @@ function DiscretePairCorrelation(s::Specie{3}, distances::AbstractVector{T}, pai
     rtol = pairtype.rtol;
     maxevals = pairtype.maxevals;
 
-    # Note that f if the volume fraction of the species including the exclusion volume around each particle
+    # Note that f is the volume fraction of the species including the exclusion volume around each particle
     f = numdensity * π * R^3 / 6
     α = - (1 + 2f)^2 / (1 - f)^4
     β = 6f * (1 + f/2)^2 / (1 - f)^4
@@ -186,12 +184,12 @@ function DiscretePairCorrelation(s::Specie{3}, distances::AbstractVector{T}, pai
 
     ker = ker_fun(R)
 
-    maxker = ker.(distances) |> maximum
+    maxker = abs.(ker.(distances ./ R)) |> maximum
 
-    d = 5 * R
-    max_xs = LinRange(d, 30 * d, 200)
+    d = distances[end] / R
+    max_xs = LinRange(d, 20 * d, 200)
 
-    imax = findfirst(ker.(max_xs) ./ maxker .< rtol)
+    imax = findfirst(abs.(ker.(max_xs) ./ maxker) .< rtol^2)
     max_x = isnothing(imax) ? max_xs[end] : max_xs[imax]
 
     (I,E) = hquadrature(ker, eps(T), max_x;
@@ -358,7 +356,7 @@ function smooth_pair_corr_distance(pair_corr_distance::Function, a12::T; smoothi
     data = pair_corr_distance.(zs)
 
     P = Legendre()
-    ls = 0:polynomial_order
+    ls = 0:polynomial_order |> collect
 
     Pmat = P[2zs ./ max_distance .- T(1.0), ls .+ 1];
 
@@ -401,7 +399,7 @@ function gls_pair_radial_fun(pair_corr_distance::Union{Function,AbstractArray}, 
         ) where T
 
     P = Legendre()
-    ls = 0:polynomial_order
+    ls = 0:polynomial_order |> collect
 
     if sigma_approximation
         sigmas = [one(T); sin.(pi .* ls[2:end] ./ (polynomial_order+1)) ./ (pi .* ls[2:end] ./ (polynomial_order+1))]
@@ -445,7 +443,7 @@ function pair_radial_fun(pair_corr_distance::Function, a12::T; polynomial_order:
     P = Legendre()
 
     return function (r1,r2,u)
-        Pus = P[u, 1:(polynomial_order + 1)] .* (2 .* (0:polynomial_order) .+ 1) ./ (4pi)
+        Pus = P[u, 1:(polynomial_order + 1) |> collect] .* (2 .* (0:polynomial_order) .+ 1) ./ (4pi)
 
         return sum(Pus .* gls_fun(r1,r2))
     end

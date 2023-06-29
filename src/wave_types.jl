@@ -4,12 +4,14 @@ eigenvector_length(::PlanarSymmetry{2}; basis_order::Int) =  Int((1 + 2*basis_or
 
 eigenvector_length(::WithoutSymmetry{2}; basis_order::Int, basis_field_order::Int) =  Int( (1 + 2*basis_order) * (1 + 2*basis_field_order))
 
+eigenvector_length(::TranslationSymmetry{3,T}; basis_order::Int, basis_field_order::Int) where T = Int( (1 + basis_order)^2 * (2*basis_field_order + 1))
+
 eigenvector_length(::WithoutSymmetry{3}; basis_order::Int, basis_field_order::Int) =  Int( (1 + basis_order)^2 * (1 + basis_field_order)^2)
 
 eigenvector_length(::AzimuthalSymmetry{3}; basis_order::Int, basis_field_order::Int) =  Int(1 - basis_order*(2 + basis_order)*(basis_order - 3*basis_field_order - 2)/3 + basis_field_order)
 
 eigenvector_length(::RadialSymmetry{3}; basis_order::Int, basis_field_order::Int) =  basis_order + 1
-
+eigenvector_length(::RadialSymmetry{2}; basis_order::Int, basis_field_order::Int) = 2*basis_order + 1 # (2*basis_order + 1)*(2*basis_field_order + 1)
 """
     EffectivePlaneWaveMode{T<:AbstractFloat,Dim} <: AbstractWaveMode
 
@@ -83,16 +85,27 @@ To translate the mathematics to Julia code we use
 struct  EffectiveRegularWaveMode{T<:AbstractFloat,P<:PhysicalMedium,S<:AbstractSymmetry} <: AbstractRegularWaveMode
     ω::T
     wavenumber::Complex{T}
-    medium::P
+    source::AbstractSource
     material::Material
     eigenvectors::Array{Complex{T}} # the effective eigenvectors, each column is one eigenvector
     basis_order::Int
     basis_field_order::Int
     function EffectiveRegularWaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource{P}, material::Material, eigenvectors::Array{Complex{T}};
-        basis_order::Int = 2, basis_field_order::Int = 4, kws...
-    ) where {T,P}
-
-        S = Symmetry(source,material)
+        basis_order::Int = 2, basis_field_order::Int = 0, kws...
+    ) where {T, P}
+    
+        medium_material = material.microstructure.medium
+        medium_source = source.medium
+        
+        if typeof(medium_material) != typeof(medium_source)
+            if (typeof(material.shape) <: Sphere{T, 2} where T) && (typeof(source.medium) <: Acoustic{T, 2} where T)
+                S = TranslationSymmetry{3, Float64}([0.0, 0.0, 1.0])
+            else
+                throw(DimensionMismatch("dimensions of acoustic medium of material $medium_material and source $medium_source do not match."))
+            end
+        else
+            S = Symmetry(source,material)
+        end
 
         if size(eigenvectors,1) != eigenvector_length(S; basis_order = basis_order, basis_field_order = basis_field_order)
             throw(DimensionMismatch("size(eigenvectors,1) does not match the dimensions for a regular eigenvector with symmetry: $S."))
@@ -100,7 +113,7 @@ struct  EffectiveRegularWaveMode{T<:AbstractFloat,P<:PhysicalMedium,S<:AbstractS
             throw(DimensionMismatch("size(eigenvectors,2) does not match the number of difference species length(material.microstructure.species) = $(length(material.microstructure.species)    )."))
         end
 
-        return new{T,P,typeof(S)}(ω, wavenumber, source.medium, material, eigenvectors, basis_order, basis_field_order)
+        return new{T,P,typeof(S)}(ω, wavenumber, source, material, eigenvectors, basis_order, basis_field_order)
     end
 end
 

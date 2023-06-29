@@ -10,7 +10,7 @@ scattering_field
 "Calculates the effective wavenumbers and return Vector{EffectivePlaneWaveMode}."
 function WaveModes(ω::T, source::AbstractSource, material::Material{S}; kws...) where {T,S<:Shape} # without the parametric types we get a "Unreachable reached" error
 
-    # The wavenumbers are calculated without knowledge of the materail symmetry. This is because the plane-wave symmetry leads to all possible wavenumbers and is simple to calculate.
+    # The wavenumbers are calculated without knowledge of the material symmetry. This is because the plane-wave symmetry leads to all possible wavenumbers and is simple to calculate.
     k_effs = wavenumbers(ω, material.microstructure; kws... )
 
     # The wavemodes need to know the material symmetry as the eigenvectors do depend on material shape and symetry.
@@ -36,6 +36,22 @@ function WaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource, materia
     eigvectors = [eigvectors[i] * α[i[3]] for i in CartesianIndices(eigvectors)]
 
     return EffectiveRegularWaveMode(ω, wavenumber, source, material, eigvectors; kws...)
+end
+
+function WaveMode(ω::T, wavenumber::Complex{T}, source::AbstractSource, material::Material, sym::TranslationSymmetry{3,T};
+    basis_order::Int = 3,
+    kws...) where T
+
+    micro = material.microstructure
+
+    eigvectors = eigenvectors(ω, wavenumber, micro, sym; basis_order = basis_order, basis_field_order = 2*basis_order, kws...)
+
+    α = solve_boundary_condition(ω, wavenumber, eigvectors, source, material, sym; basis_order = basis_order, basis_field_order = 2*basis_order, kws...)
+
+    # After this normalisation, sum(eigvectors, dims = 3) will satisfy the boundary conditions
+    eigvectors = [eigvectors[i] * α[i[3]] for i in CartesianIndices(eigvectors)]
+
+    return EffectiveRegularWaveMode(ω, wavenumber, source, material, eigvectors; basis_order = basis_order, basis_field_order = 2*basis_order, kws...)
 end
 
 function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, material::Material{Halfspace{T,Dim}};

@@ -17,7 +17,7 @@ function scattering_field(wavemode::EffectiveRegularWaveMode{T,Acoustic{T,3},Wit
 
     indices_same_n = collect(groupby(nn1 -> nn1_to_n[nn1] , 1:length(nn1_to_n)))
 
-    v = regular_basis_function(wavemode.wavenumber, wavemode.medium)
+    v = regular_basis_function(wavemode.wavenumber, wavemode.source.medium)
 
     function scat_field(x::AbstractVector{T})
         vs =  v(L1, x)
@@ -63,7 +63,7 @@ function scattering_field(wavemode::EffectiveRegularWaveMode{T,Acoustic{T,3},Sym
 
     indices_same_n = collect(groupby(nl1 -> nl1_to_n[nl1] , 1:length(nl1_to_n)))
 
-    v = regular_basis_function(wavemode.wavenumber, wavemode.medium)
+    v = regular_basis_function(wavemode.wavenumber, wavemode.source.medium)
 
     function scat_field(x::AbstractVector{T})
         vs =  v(L1, x)
@@ -94,7 +94,7 @@ function scattering_field(wavemode::EffectiveRegularWaveMode{T,Acoustic{T,3},Rad
     ls, ms = spherical_harmonics_indices(L)
     inds = lm_to_spherical_harmonic_index.(ls,-ms)
 
-    v = regular_basis_function(wavemode.wavenumber, wavemode.medium)
+    v = regular_basis_function(wavemode.wavenumber, wavemode.source.medium)
 
     function scat_field(x::AbstractVector{T})
         vs =  v(L, x)
@@ -113,7 +113,7 @@ end
 function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,Acoustic{T,3},WithoutSymmetry{3}}) where T
 
     # Unpacking parameters
-    k = wavemode.ω / wavemode.medium.c
+    k = wavemode.ω / wavemode.source.medium.c
 
     species = wavemode.material.microstructure.species
     S = length(species)
@@ -156,7 +156,7 @@ end
 function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,Acoustic{T,3},Sym}) where {T,Sym<:AbstractAzimuthalSymmetry{3}}
 
     # Unpacking parameters
-    k = wavemode.ω / wavemode.medium.c
+    k = wavemode.ω / wavemode.source.medium.c
 
     species = wavemode.material.microstructure.species
     S = length(species)
@@ -198,7 +198,7 @@ end
 function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,Acoustic{T,3},RadialSymmetry{3}}) where T
 
     # Unpacking parameters
-    k = wavemode.ω / wavemode.medium.c
+    k = wavemode.ω / wavemode.source.medium.c
     k_eff = wavemode.wavenumber
     R = outer_radius(wavemode.material.shape)
 
@@ -212,6 +212,109 @@ function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,A
         sqrt(T(4pi)) * wavemode.eigenvectors[i] * (2*(i[1]-1) + 1) * T(-1)^(i[1]-1) *
         (R - rs[i[2]]) * kernelM(i[1]-1, k*(R - rs[i[2]]), k_eff*(R - rs[i[2]])) * number_density(species[i[2]])
     for i in CartesianIndices(wavemode.eigenvectors)) / (k_eff^T(2) - k^T(2))
+
+    return [Fscat0]
+end
+
+# Compute the coefficients Fs of the averaged scattered field in the case of spheres in a cylinder with two mwdia
+function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,Acoustic{T,2},TranslationSymmetry{3,T}};
+        only_particle_contribution::Bool = false,
+        kws...
+    ) where T
+
+    # Unpacking parameters
+    ρ = wavemode.source.medium.ρ
+    ρ0 = wavemode.material.microstructure.medium.ρ
+    c = wavemode.source.medium.c
+    c0 = wavemode.material.microstructure.medium.c
+    k = wavemode.ω / c
+    k0 = wavemode.ω / c0
+    k_eff = wavemode.wavenumber
+    R = outer_radius(wavemode.material.shape)
+
+    species = wavemode.material.microstructure.species
+    Sp = length(species)
+    rs = outer_radius.(species)
+
+    eigenvectors = wavemode.eigenvectors
+    P = size(eigenvectors)[3]
+
+    L = wavemode.basis_order
+    M1 = wavemode.basis_field_order
+    Minc = M1 - L
+    if Minc <= 0
+        @warn "Not enough terms in field expansion, please get a higher value for basis_field_order = $basis_field_order."
+    end
+
+    # Precompliling spherical harmonics
+    Ys = spherical_harmonics(L, pi/2, 0.0)
+    lm_to_n = lm_to_spherical_harmonic_index
+
+    # Computing transmission and reflection coefficients
+    γ = (ρ0 * c0) / (ρ * c);
+
+    Tran = [
+        (diffhankelh1(s, k0*R)*besselj(s, k0*R) - hankelh1(s, k0*R)*diffbesselj(s, k0*R)) \
+        (γ*diffhankelh1(s, k*R)*besselj(s, k0*R) - hankelh1(s, k*R)*diffbesselj(s, k0*R))
+        for s = -Minc:Minc];
+
+    Refl = [
+        (besselj(s, k*R)*diffbesselj(s, k0*R) - γ*diffbesselj(s, k*R))*besselj(s, k0*R) \
+        (γ*diffhankelh1(s, k*R)*besselj(s, k0*R) - hankelh1(s, k*R)*diffbesselj(s, k0*R))
+        for s = -Minc:Minc];
+
+    # Computing internal field contributions
+    particle_contribution = zeros(Complex{T}, 2Minc + 1)
+    for s in -Minc:Minc
+        particle_contribution[s + Minc + 1] = 
+        sum(l ->
+            sum(m ->
+                Complex{T}(1im)^(m - l) * Ys[lm_to_n(l, m)] *
+                sum(i ->
+                    number_density(species[i]) * kernelN2D(s - m, k0*(R - rs[i]), k_eff*(R - rs[i])) *
+                    sum(p ->
+                        eigenvectors[(lm_to_n(l, m) - 1)*(2M1 + 1) + (s - m) + M1 + 1, i, p]
+                    , 1:P)
+                , 1:Sp)
+            , -l:l)
+        , 0:L)
+    end
+    particle_contribution *= Complex{T}(2*pi^2/(k0 * (k0^2 - k_eff^2)))
+
+    # Incident wave contributions
+    if only_particle_contribution
+        wall_contribution = zeros(Complex{T}, 2Minc + 1)
+    else
+        wall_contribution = regular_spherical_coefficients(wavemode.source)(Minc,zeros(2),wavemode.ω)
+    end
+
+    Fscat = (Tran .* particle_contribution) + (Refl .* wall_contribution)
+
+    return Fscat
+end
+
+# Compute the coefficient F0 of the averaged scattered field in the case of the 2D radial symmetry case
+function material_scattering_coefficients(wavemode::EffectiveRegularWaveMode{T,Acoustic{T,2},RadialSymmetry{2}}) where T
+
+    # Unpacking parameters
+    k = wavemode.ω / wavemode.source.medium.c
+    k_eff = wavemode.wavenumber
+    R = outer_radius(wavemode.material.shape)
+
+    species = wavemode.material.microstructure.species
+    rs = outer_radius.(species)
+
+    N = wavemode.basis_order
+
+    # Formula for the integral of [J_n(kr) * J_n(k_eff r) rdr] over the interval (0,R).
+    I(n,R) = R/(k^T(2)-k_eff^T(2))*(k*besselj(n+1,k*R)*besselj(n,k_eff*R)-k_eff*besselj(n,k*R)*besselj(n+1,k_eff*R))
+
+    # and an integral of the eigenvectors over the species
+    Fscat0 = T(2pi)*sum(
+        I(i[1]-1-N,R-rs[i[2]]) *
+        wavemode.eigenvectors[i] *
+        number_density(species[i[2]])
+    for i in CartesianIndices(wavemode.eigenvectors))
 
     return [Fscat0]
 end

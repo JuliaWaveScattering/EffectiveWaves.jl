@@ -595,7 +595,7 @@ end
     );
 
 #     a12 = 2.0 * outer_radius(s1) * s1.separation_ratio
-    pairtype = PercusYevick(3; rtol = 1e-2, meshsize = 0.1, maxlength = 25)
+    pairtype = PercusYevick(3; rtol = 1e-3, meshsize = 0.1, maxlength = 25)
     micro = Microstructure(medium,s1,pairtype);
 
 ## define sources and material

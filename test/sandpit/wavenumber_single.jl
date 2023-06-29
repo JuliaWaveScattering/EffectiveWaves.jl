@@ -41,7 +41,7 @@ function wavenumber(ω::T, medium::Medium{T}, species::Species; tol = 1e-8,
 
     as = radius_multiplier*[(s1.r + s2.r) for s1 in species, s2 in species]
     function M(keff,j,l,m,n)
-        (n==m ? 1.0:0.0)*(j==l ? 1.0:0.0) + 2.0pi*species[l].num_density*Z_l_n[l,n]*
+        (n==m ? 1.0 : 0.0)*(j==l ? 1.0 : 0.0) + 2.0pi*species[l].num_density*Z_l_n[l,n]*
             kernelN2D(n-m,k*as[j,l],keff*as[j,l])/(k^2.0-keff^2.0)
     end
 
