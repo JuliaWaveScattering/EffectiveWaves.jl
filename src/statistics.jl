@@ -21,6 +21,8 @@ struct MonteCarloPairCorrelation{Dim} <: PairCorrelationType
     maxlength::Int
     "The size of each element of the mesh relative to the particle radius"
     meshsize::Float64
+    "Avoid sampling particles that are boundary_distance * particle radius close to the boundary. This is because particles are more concentrated near the boundary. "
+    boundary_distance::Float64
     "Number of partilces configurations to take into account"
     iterations::Int
     "Maximum number of points for the pair correlation"
@@ -32,10 +34,11 @@ end
 function MonteCarloPairCorrelation(Dim;
         iterations::Int = 1, meshsize::AbstractFloat = 0.2,
         numberofparticles::Number = 1e4,
+        boundary_distance::AbstractFloat = 2.0,
         maxlength::Int = 50,
         rtol::AbstractFloat = 1e-3
     )
-    MonteCarloPairCorrelation{Dim}(maxlength, meshsize, iterations, Int(round(numberofparticles)),rtol)
+    MonteCarloPairCorrelation{Dim}(maxlength, meshsize, boundary_distance, iterations, Int(round(numberofparticles)), rtol)
 end
 
 struct HoleCorrection <: PairCorrelationType
@@ -217,7 +220,7 @@ function DiscretePairCorrelation(s::Specie{Dim}, distances::AbstractVector{T}, p
 
     numdensity = number_density(s)
     a = outer_radius(s)
-    R = 2a * s.separation_ratio
+    R = a * s.separation_ratio * pairtype.boundary_distance
 
     vol = pairtype.numberofparticles / numdensity
     l = (vol)^(1/Dim)
