@@ -1,5 +1,4 @@
-"""
-    Specie
+""" Specie
 
 Represents a set of particles which are all the same. The type of particle is given by `Specie.particle` and the volume fraction this specie occupies is given by `Specie.volume_fraction`.
 
@@ -94,35 +93,35 @@ function Microstructure(medium::PhysicalMedium, sps::Species{Dim}, ps::AbstractM
     ParticulateMicrostructure(medium, sps, ps)
 end
 
-Microstructure(medium::PhysicalMedium, s::Specie, ps::PairCorrelation) = Microstructure(medium, [s], [ps][:,:])
+Microstructure(medium::PhysicalMedium, s::Specie, ps::PairCorrelation; kws...) = Microstructure(medium, [s], [ps][:, :]; kws...)
 
-Microstructure(medium::PhysicalMedium, s::Specie, pc::PairCorrelationType, kws...) = Microstructure(medium, [s], pc, kws...)
+Microstructure(medium::PhysicalMedium, s::Specie, pc::PairCorrelationType; kws...) = Microstructure(medium, [s], pc; kws...)
 
-function Microstructure(medium::P, sps::Species{Dim}, pc::PairCorrelationType, kws...) where {Dim,P}
+function Microstructure(medium::P, sps::Species{Dim}, pc::PairCorrelationType; kws...) where {Dim,P}
 
     ps = Array{DiscretePairCorrelation}(undef, length(sps), length(sps))
 
     for i in eachindex(sps), j in eachindex(sps)
         ps[i,j] = if i == j
-            DiscretePairCorrelation(sps[i],pc,kws...)
+            DiscretePairCorrelation(sps[i],pc; kws...)
         else
-            DiscretePairCorrelation(sps[i],sps[j],pc,kws...)
+            DiscretePairCorrelation(sps[i],sps[j],pc; kws...)
         end
     end
 
     return ParticulateMicrostructure(medium,sps,ps)
 end
 
-Microstructure(medium::PhysicalMedium, s::Specie) = Microstructure(medium,[s])
+Microstructure(medium::PhysicalMedium, s::Specie; kws...) = Microstructure(medium,[s]; kws...)
 
 """
     Microstructure(medium::PhysicalMedium, sps::Vector{Specie})
 
 When no pair-correlation is specified for the species, the microstructure will use the default that assumes that particles can not overlap, but, otherwise, their positions are uncorrelated. This is often called \"Hole Correction\"
 """
-function Microstructure(medium::PhysicalMedium, sps::Species{Dim}) where Dim
+function Microstructure(medium::PhysicalMedium, sps::Species{Dim}; kws...) where Dim
     ps = [
-        DiscretePairCorrelation(s1,s2)
+        DiscretePairCorrelation(s1, s2; kws...)
     for s1 in sps, s2 in sps]
 
     return ParticulateMicrostructure(medium,sps,ps)
