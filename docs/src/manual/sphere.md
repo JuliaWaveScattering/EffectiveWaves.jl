@@ -239,7 +239,7 @@ Below we show two different methods: using just one effective wavenumber and ano
 ## Effective wave with radial symmetry
 Let us first choose the material parameters again
 ```julia
-Using EffectiveWaves
+using EffectiveWaves
 
 ω = 0.1
 medium = Acoustic(3; ρ=1.0, c=1.0);
