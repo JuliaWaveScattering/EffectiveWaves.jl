@@ -8,12 +8,13 @@ export  EffectivePlaneWaveMode, EffectiveRegularWaveMode, ScatteringCoefficients
 export  DiscretePlaneWaveMode
 export  MatchPlaneWaveMode # a combination of the Discrete and Effective modes
 export  Material, Microstructure, ParticulateMicrostructure
-export  Specie, Species, SetupSymmetry, number_density, volume_fraction, exclusion_distance
+# export  Specie, Species, SetupSymmetry, number_density, volume_fraction, exclusion_distance
+export  SetupSymmetry
 
 ## Pair correlation
-export PairCorrelation, PercusYevick, MonteCarloPairCorrelation, HoleCorrection, DiscretePairCorrelation
-export hole_correction_pair_correlation, gls_pair_radial_fun, pair_radial_fun
-export calculate_pair_correlation, smooth_pair_corr_distance, pair_radial_to_pair_corr
+# export PairCorrelation, PercusYevick, MonteCarloPairCorrelation, HoleCorrection, DiscretePairCorrelation
+# export hole_correction_pair_correlation, gls_pair_radial_fun, pair_radial_fun
+# export calculate_pair_correlation, smooth_pair_corr_distance, pair_radial_to_pair_corr
 
 # for MatchPlaneWaveMode
 export  match_error, x_mesh_match
@@ -27,11 +28,11 @@ export dispersion_equation, dispersion_complex, eigensystem # supplies a matrix 
 
 export scattering_amplitudes_average
 
-export  reflection_coefficient, reflection_coefficients, reflection_transmission_coefficients, planewave_amplitudes
-export  effective_medium
+export reflection_coefficient, reflection_coefficients, reflection_transmission_coefficients, planewave_amplitudes
+export effective_medium
 
 ## Shorthand for some materials
-export  Brick, IronArmco, LeadAnnealed, RubberGum, FusedSilica, GlassPyrex, ClayRock, WaterDistilled, Glycerol, Hexadecane, Acetone, Benzene, Nitrobenzene, OliveOil, SodiumNitrate, AirDry, LimeStone, Clay, Calcite, SilicaQuartz
+export Brick, IronArmco, LeadAnnealed, RubberGum, FusedSilica, GlassPyrex, ClayRock, WaterDistilled, Glycerol, Hexadecane, Acetone, Benzene, Nitrobenzene, OliveOil, SodiumNitrate, AirDry, LimeStone, Clay, Calcite, SilicaQuartz
 
 ## imports
 import Base.isequal, Base.(==), Base.zero
@@ -43,7 +44,11 @@ import IterTools: groupby
 import Accessors: @set
 
 using Reexport
+using ParticleCorrelations
+
 @reexport using MultipleScattering
+@reexport using ParticleCorrelations
+# @reexport using ParticleCorrelations: Specie, Species, volume_fraction, PercusYevick, MonteCarloPairCorrelation, HoleCorrection, DiscretePairCorrelation, hole_correction_pair_correlation, smooth_pair_corr_distance, gls_pair_radial_fun
 
 import MultipleScattering: RegularSource, Acoustic
 
@@ -68,7 +73,7 @@ const mismatched_medium = "Only implemented for the source and microstructure ha
 
 include("abstract_types.jl")
 include("material_types.jl")
-include("statistics.jl")
+# include("statistics.jl")
 include("wave_types.jl")
 include("specialfunctions.jl")
 

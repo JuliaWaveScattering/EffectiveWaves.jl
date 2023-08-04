@@ -71,7 +71,7 @@ using LinearAlgebra, Statistics, Test
 
     # rs = [0.0:0.1:a12; a12:0.01:(2R)]
     # dps = [pair_corr_simple([0.0,0.0,r], s1, [0.0,0.0,0], s1) for r in rs] .- 1.0
-    # dp = DiscretePairCorrelation(rs, dps)
+    # dp = DiscretePairCorrelation(3, rs, dps)
 
     # Define the microstructure and then the material
     micro = Microstructure(medium,s1);

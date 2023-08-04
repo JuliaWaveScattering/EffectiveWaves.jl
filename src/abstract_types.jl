@@ -1,18 +1,18 @@
 ## A the top of the type tree we have:
 
-"""
-    PairCorrelationType
+# """
+#     PairCorrelationType
 
-A type used to specify what type of pair correlation is to be used. This is like a tag, or a option, to specify which pair correlation is wanted.
-"""
-abstract type PairCorrelationType end
+# A type used to specify what type of pair correlation is to be used. This is like a tag, or a option, to specify which pair correlation is wanted.
+# """
+# abstract type PairCorrelationType end
 
-"""
-    PairCorrelation
+# """
+#     PairCorrelation
 
-A type used to store a pair-correlation. This represents the calculated pair-correlation.
-"""
-abstract type PairCorrelation end
+# A type used to store a pair-correlation. This represents the calculated pair-correlation.
+# """
+# abstract type PairCorrelation end
 
 """
     Microstructure{Dim}

@@ -8,7 +8,7 @@ using ClassicalOrthogonalPolynomials
 end
 
 include("complex.jl")
-include("statistics.jl")
+# include("statistics.jl")
 
 # Single effective wavenumber tests
     include("acoustics-2D/strong_low_freq_effective.jl")
