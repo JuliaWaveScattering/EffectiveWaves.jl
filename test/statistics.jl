@@ -34,7 +34,7 @@ using CSV
     pairtype = PercusYevick(3; rtol=1e-3, maxevals = Int(2e5))
 
     # Need to scale the distance by R
-    py = DiscretePairCorrelation(s1, pairtype; distances = R .* distances)
+    py = DiscretePairCorrelation(s1, R .* distances, pairtype)
 
     i = findfirst(distances .> 1.0)
 
