@@ -23,7 +23,7 @@ function kernelW3D(k::Union{T,Complex{T}}, keff::Complex{T}, ps::AbstractMatrix{
     hs = [shankelh1.(l, k .* r) for l in 0:(2basis_order)]
 
     Ws = [
-        sum(js[l+1] .* hs[l+1] .* ps[i].dp .* r.^2 .* σ)
+        sum(js[l+1] .* hs[l+1] .* (ps[i].g .- T(1)) .* r.^2 .* σ)
     for l = 0:2basis_order, i in CartesianIndices(ps)]
 
     return Ws
@@ -91,7 +91,7 @@ function kernelW2D(k::Union{T,Complex{T}}, keff::Complex{T}, ps::AbstractMatrix{
     for m in -2basis_order:(2basis_order)]
 
     Ws = [
-        sum(js[l] .* hs[l] .* ps[i].dp .* r .* σ)
+        sum(js[l] .* hs[l] .* (ps[i].g .- T(1)) .* r .* σ)
     for l in eachindex(js), i in CartesianIndices(ps)]
 
     return Ws
@@ -105,7 +105,7 @@ function precalculate_pair_correlations(micro::Microstructure{3}, k::Union{T,Com
 
     # calculate average of dp between pair_rs[j] and pair_rs[j+1]
     gs = map(micro.paircorrelations) do p
-        (circshift(p.dp,-1) + p.dp)[1:end-1] ./ 2
+        (circshift(p.g,-1) + p.g)[1:end-1] ./ 2
     end
 
     return pair_rs, hks, gs
@@ -119,7 +119,7 @@ function precalculate_pair_correlations(micro::Microstructure{2}, k::Union{T,Com
 
     gs = map(micro.paircorrelations) do p
         # calculate segments of integrals between r_j and r_j+1
-        (circshift(p.dp,-1) + p.dp)[1:end-1] ./ 2
+        (circshift(p.g,-1) + p.g)[1:end-1] ./ 2
     end
 
     return pair_rs, hks, gs
