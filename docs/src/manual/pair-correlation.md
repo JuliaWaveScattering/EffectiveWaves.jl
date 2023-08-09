@@ -63,7 +63,7 @@ We can plot the result of the Percus-Yevick approximation with the package Plots
 ```julia
 using Plots
 
-plot(micro.paircorrelations[1].r, 1.0 .+ micro.paircorrelations[1].dp,
+plot(micro.paircorrelations[1].r, micro.paircorrelations[1].g,
     xlab = "distance", ylab = "P-Y"
 )
 ```
