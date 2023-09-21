@@ -13,11 +13,12 @@ using LinearAlgebra
 
     # input your data here.
     g_data = 1.0 .+ cos.(rs) .* exp.( -(2r .- rs).^4 )
+    
+    Dim = 2
+    dp = DiscretePairCorrelation(Dim, rs, g_data .- 1.0)
 
-    dp = DiscretePairCorrelation(rs, g_data .- 1.0)
-
-    medium = Acoustic(2; ρ=1.0, c=1.0)
-    s1 = Specie(Acoustic(2; ρ=10.0, c=12.0),Circle(r); volume_fraction = 0.15)
+    medium = Acoustic(Dim; ρ=1.0, c=1.0)
+    s1 = Specie(Acoustic(Dim; ρ=10.0, c=12.0),Circle(r); volume_fraction = 0.15)
 
     micro = Microstructure(medium,s1,dp)
 

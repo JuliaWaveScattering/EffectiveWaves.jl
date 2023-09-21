@@ -37,11 +37,13 @@ Next we create a microstructure that has only this species, and has a specific p
 r = 1.0:0.1:10.0
 my_pair_correlation = 1.0 .+ 0.2 .* sin.(r) ./ r.^3
 
-dpc = DiscretePairCorrelation(r, my_pair_correlation)
+Dim = 3
+dpc = DiscretePairCorrelation(Dim, r |> collect, my_pair_correlation)
 
 micro = Microstructure(medium, s, dpc);
 
 # output
+
 ```
 Note that when specifying a pair-correlation, the minimal distance between particles will be taken to be `dpc.r[1]`. This is stored in `dpc.minimal_distance`. Previously when defining the `Specie` we specified `separation_ratio = 1.01`, which means the minimal distance between particles centres' is `2 * separation_ratio * r`, this is used when no pair-correlation is specified, otherwise the value given in `dpc.minimal_distance` will be used. In the future, we will phase out the use of `separation_ratio` in the Specie.  
 
@@ -63,7 +65,7 @@ We can plot the result of the Percus-Yevick approximation with the package Plots
 ```julia
 using Plots
 
-plot(micro.paircorrelations[1].r, 1.0 .+ micro.paircorrelations[1].dp,
+plot(micro.paircorrelations[1].r, micro.paircorrelations[1].g,
     xlab = "distance", ylab = "P-Y"
 )
 ```

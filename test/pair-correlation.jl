@@ -91,18 +91,18 @@ end
 #
 # # for vol = 5%
 # # micro_mc5 = deepcopy(micro_mc)
-# plot(micro.paircorrelations[1].r, micro.paircorrelations[1].dp)
-# plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].dp * 1.42,
+# plot(micro.paircorrelations[1].r, micro.paircorrelations[1].g)
+# plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].g * 1.42,
 # linestyle = :dash)
 #
 # # for vol = 10%
-# plot(micro.paircorrelations[1].r, micro.paircorrelations[1].dp)
-# plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].dp * 1.38)
+# plot(micro.paircorrelations[1].r, micro.paircorrelations[1].g)
+# plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].g * 1.38)
 #
 # # for vol = 15%
-# plot(micro.paircorrelations[1].r, micro.paircorrelations[1].dp)
-# plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].dp * 1.38)
+# plot(micro.paircorrelations[1].r, micro.paircorrelations[1].g)
+# plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].g * 1.38)
 #
 # # for vol = 20%
-# plot(micro.paircorrelations[1].r, micro.paircorrelations[1].dp)
-# plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].dp * 1.38)
+# plot(micro.paircorrelations[1].r, micro.paircorrelations[1].g)
+# plot!(micro_mc.paircorrelations[1].r, micro_mc.paircorrelations[1].g * 1.38)

@@ -63,7 +63,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
                 @warn "The mesh for the discrete pair paircorrelations: $(pair_rs) \n is coarser than the mesh used for the discrete system: $(r1s). The values for the pair correlation will be interpolated."
             end
             nodes = (pair_rs,)
-            pair_dp = interpolate(nodes, material.microstructure.paircorrelations[1].dp .+ T(1), Gridded(Linear()))
+            pair_dp = interpolate(nodes, material.microstructure.paircorrelations[1].g, Gridded(Linear()))
 
             pair_inf(r) = if r < pair_rs[1]
                 T(0.0)
@@ -269,7 +269,7 @@ function discrete_system(ω::T, source::AbstractSource{Acoustic{T,3}}, material:
                 @warn "The mesh for the discrete pair paircorrelations: $(material.microstructure.paircorrelations[1].r) \n is coarser than the mesh used for the discrete system: $(r1s). The values for the pair correlation will be interpolated."
             end
             nodes = (pair_rs,)
-            pair_dp = interpolate(nodes, material.microstructure.paircorrelations[1].dp .+ T(1), Gridded(Linear()))
+            pair_dp = interpolate(nodes, material.microstructure.paircorrelations[1].g, Gridded(Linear()))
 
             pair_inf(r) = if r < pair_rs[1]
                 T(0.0)
@@ -443,7 +443,7 @@ function discrete_system_radial(ω::T, source::AbstractSource{Acoustic{T,3}}, ma
                 deduplicate_knots!(pair_rs)
                 nodes = (pair_rs,)
 
-                ps = T(1) .+ material.microstructure.paircorrelations[1].dp
+                ps = material.microstructure.paircorrelations[1].g
                 ps = [[T(0),T(0)]; ps; [T(1), T(1)]]
 
                 interpolate(nodes, ps, Gridded(Linear()))
