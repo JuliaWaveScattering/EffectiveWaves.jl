@@ -24,7 +24,7 @@ Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 [compat]
 Accessors = "^0.1"
 CSV = "^0.10"
-ClassicalOrthogonalPolynomials = "0.3, 0.4, 0.5"
+ClassicalOrthogonalPolynomials = "0.3, 0.4, 0.5, 0.6, 0.7, 0.8 ,0.9"
 HCubature = "1"
 Interpolations = "0.12, ^0.13"
 IterTools = "1"
