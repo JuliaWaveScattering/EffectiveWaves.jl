@@ -1,7 +1,7 @@
 name = "EffectiveWaves"
 uuid = "37e8709b-1ed2-53db-b26a-3571262b3cb4"
 authors = ["Artur L. Gower <arturgower@gmail.com>"]
-version = "0.3.4"
+version = "0.3.5"
 
 [deps]
 Accessors = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
