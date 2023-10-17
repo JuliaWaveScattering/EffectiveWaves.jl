@@ -1,14 +1,25 @@
 
 # LaTeX generated files
-docs/*.aux
-docs/*.bcf
-docs/*.out
-docs/*.log
-docs/*.run.xml
-docs/*.blg
-docs/*.bbl
-docs/*.fls
-docs/*.fdb_latexmk
-docs/*.synctex.gz
+*.run.xml
+*.aux
+*.bcf
+*.run.xml
+*.blg
+*.bbl
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+
+docs/src/theory/*.run.xml
+docs/src/theory/*.aux
+docs/src/theory/*.bcf
+docs/src/theory/*.out
+docs/src/theory/*.log
+docs/src/theory/*.run.xml
+docs/src/theory/*.blg
+docs/src/theory/*.bbl
+docs/src/theory/*.fls
+docs/src/theory/*.fdb_latexmk
+docs/src/theory/*.synctex.gz
 docs/build/
 docs/site/
