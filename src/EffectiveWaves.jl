@@ -52,6 +52,8 @@ using ParticleCorrelations
 
 import MultipleScattering: RegularSource, Acoustic
 
+Sphere = MultipleScattering.Sphere
+
 using RecipesBase, OffsetArrays, LinearAlgebra
 
 # Heavy package
