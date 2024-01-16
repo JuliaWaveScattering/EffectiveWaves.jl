@@ -79,7 +79,7 @@ include("material_types.jl")
 include("wave_types.jl")
 include("specialfunctions.jl")
 
-include("effective_wave/export.jl")
+include("effective_waves/export.jl")
 include("acoustics/export.jl")
 
 include("match_waves/match_waves.jl")

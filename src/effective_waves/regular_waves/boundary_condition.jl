@@ -1,10 +1,10 @@
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{Sphere{T,3}}, ::WithoutSymmetry{3};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{P}, material::Material{Sphere{T,3}}, ::WithoutSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         # source_basis_field_order::Int = basis_field_order,
         source_basis_field_order::Int = Int(round(sqrt(size(eigvectors)[end]))) - 1,
         kws...
-    ) where T
+    ) where {T, P <: PhysicalMedium{3,1}}
     # source_basis_field_order is often chosen so that there is the same number of source coefficients a_n as the number of unknowns α_n
     # Before was: source_basis_field_order = min(basis_field_order,Int(round(sqrt(size(eigvectors)[end])))) - 1
 
@@ -90,13 +90,13 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
 end
 
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{Sphere{T,3}}, ::AbstractAzimuthalSymmetry{3};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{P}, material::Material{Sphere{T,3}}, ::AbstractAzimuthalSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 4,
         # source_basis_field_order::Int = basis_field_order,
         source_basis_field_order::Int = size(eigvectors)[end] - 1,
         kws...
-    ) where T
+    ) where {T, P <: PhysicalMedium{3,1}}
     # source_basis_field_order is often chosen so that there is the same number of source coefficients a_n as the number of unknowns α_n. Before was: min(basis_field_order, size(eigvectors)[end]) - 1
 
     k = ω / source.medium.c
@@ -195,10 +195,10 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
 end
 
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,3}}, material::Material{Sphere{T,3}}, ::RadialSymmetry{3};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{P}, material::Material{Sphere{T,3}}, ::RadialSymmetry{3};
         basis_order::Int = 2,
         kws...
-    ) where T
+    ) where {T, P <: PhysicalMedium{3,1}}
 
     k = ω / source.medium.c
     if source.medium != material.microstructure.medium @error mismatched_medium end
@@ -226,10 +226,10 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 end
 
 # Solve the boundary condition of the 2D radial symmetry case
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,2}}, material::Material{Sphere{T,2}}, ::RadialSymmetry{2};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{P}, material::Material{Sphere{T,2}}, ::RadialSymmetry{2};
         basis_order::Int = 2,
         kws...
-    ) where T
+    ) where {T, P <: PhysicalMedium{2,1}}
 
     k = ω / source.medium.c
     species = material.microstructure.species
@@ -255,12 +255,12 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 end
 
 # Solve the boundary condition of the spheres in cylinder case with 2 media
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{Acoustic{T,2}}, material::Material{Sphere{T,2}}, ::TranslationSymmetry{3,T};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, source::AbstractSource{P}, material::Material{Sphere{T,2}}, ::TranslationSymmetry{3,T};
         basis_order::Int = 3,
         basis_field_order::Int = 6,
         source_basis_field_order::Int = Int((size(eigvectors)[3] - 1) / 2),
         kws...
-    ) where T
+    ) where {T, P <: PhysicalMedium{2,1}}
     # source_basis_field_order is often chosen so that there is the same number of source coefficients G_m as the number of unknowns α_n
 
     # Setting parameters

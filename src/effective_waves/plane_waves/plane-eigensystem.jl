@@ -1,15 +1,15 @@
 
 # convert the PlanarAzimuthalSymmetry eigenvector to the PlanarSymmetry eigenvector
-function convert_eigenvector_basis(medium::Acoustic{T,3},sym::PlanarAzimuthalSymmetry{3},eigvecs::Array{Complex{T}}) where T
+function convert_eigenvector_basis(medium::P,sym::PlanarAzimuthalSymmetry{3},eigvecs::Array{Complex{T}}) where {T, P <: PhysicalMedium{3,1}}
     basis_order = size(eigvecs,1) - 1
     S = size(eigvecs,2)
-    P = size(eigvecs,3)
+    Plen = size(eigvecs,3)
 
     v = [
         (m == 0) ? eigvecs[l+1,s,p] : zero(Complex{T})
-    for p = 1:P for s = 1:S for l = 0:basis_order for m = -l:l]
+    for p = 1:Plen for s = 1:S for l = 0:basis_order for m = -l:l]
 
-    return reshape(v,basisorder_to_basislength(Acoustic{T,3},basis_order),S,P)
+    return reshape(v,basisorder_to_basislength(P,basis_order),S,Plen)
 end
 
 function eigensystem(ω::T, micro::ParticulateMicrostructure{2}, ::AbstractPlanarSymmetry;
@@ -85,10 +85,10 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::AbstractPlana
 
     species = micro.species
 
-    k = ω/medium.c
+    k = ω / medium.c
     S = length(species)
     ho = basis_order
-    len = basisorder_to_basislength(Acoustic{T,3},ho) * S
+    len = basisorder_to_basislength(PhysicalMedium{3,1},ho) * S
     MM_mat = Matrix{Complex{T}}(undef,len,len)
 
     rθφp = cartesian_to_radial_coordinates(direction_eff)
@@ -102,7 +102,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::AbstractPlana
 
     t_matrices = get_t_matrices(medium, species, ω, ho)
     t_diags = diag.(t_matrices)
-    baselen(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
+    baselen(order::Int) = basisorder_to_basislength(PhysicalMedium{3,1},order)
 
     as = [
         micro.paircorrelations[i,j].minimal_distance
@@ -154,7 +154,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::PlanarAzimuth
     medium = micro.medium    
     species = micro.species
 
-    k = ω/medium.c
+    k = ω / medium.c
     S = length(species)
     ho = basis_order
     len = (ho+1) * S
@@ -162,7 +162,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::PlanarAzimuth
 
     t_matrices = get_t_matrices(medium, species, ω, ho)
     t_diags = diag.(t_matrices)
-    baselen(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
+    baselen(order::Int) = basisorder_to_basislength(PhysicalMedium{3,1},order)
 
     as = [
         micro.paircorrelations[i,j].minimal_distance

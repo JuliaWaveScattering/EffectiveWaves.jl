@@ -1,7 +1,7 @@
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigenvectors::Array{Complex{T}}, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{Halfspace{T,2}}, ::AbstractPlanarSymmetry{2};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigenvectors::Array{Complex{T}}, psource::PlaneSource{T,2,1,P}, material::Material{Halfspace{T,2}}, ::AbstractPlanarSymmetry{2};
         basis_order::Int = 2,
         kws...
-    ) where T
+    ) where {T, P <: PhysicalMedium{2,1}}
 
     if size(eigenvectors)[end] > 1
         @warn "The effective wavenumber: $k_eff has more than one eigenvector. For plane-waves this case has not been fully implemented"
@@ -34,10 +34,10 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigenvectors::Array{
 
 end
 
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{Halfspace{T,3}}, ::AbstractPlanarSymmetry{3};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Complex{T}}, psource::PlaneSource{T,3,1,P}, material::Material{Halfspace{T,3}}, ::AbstractPlanarSymmetry{3};
         basis_order::Int = 2,
         kws...
-    ) where T
+    ) where {T, P <: PhysicalMedium{3,1}}
 
     if psource.medium != material.microstructure.medium @error mismatched_medium end
 
@@ -80,10 +80,10 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
 end
 
-function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors1::Array{Complex{T}}, eigvectors2::Array{Complex{T}}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{Plate{T,3}}, ::AbstractPlanarSymmetry{3};
+function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors1::Array{Complex{T}}, eigvectors2::Array{Complex{T}}, psource::PlaneSource{T,3,1,P}, material::Material{Plate{T,3}}, ::AbstractPlanarSymmetry{3};
         basis_order::Int = 2,
         kws...
-    ) where T
+    ) where {T, P <: PhysicalMedium{3,1}}
 
     if psource.medium != material.microstructure.medium @error mismatched_medium end
 

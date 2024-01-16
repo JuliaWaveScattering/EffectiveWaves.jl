@@ -1,9 +1,9 @@
 # The eigensystem when no symmetry is present
-function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, ::WithoutSymmetry{3};
+function eigensystem(ω::T, micro::ParticulateMicrostructure{3,P}, ::WithoutSymmetry{3};
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         # numberofparticles::Number = Inf,
-        kws...) where T<:AbstractFloat
+        kws...) where {T<:AbstractFloat, P <: PhysicalMedium{3,1}}
 
     medium = micro.medium
 
@@ -18,7 +18,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, :
 
     t_matrices = get_t_matrices(medium, sps, ω, L)
     t_diags = diag.(t_matrices)
-    len(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
+    len(order::Int) = basisorder_to_basislength(PhysicalMedium{3,1},order)
 
     as = [
         micro.paircorrelations[i,j].minimal_distance
@@ -73,11 +73,11 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, :
     return MM
 end
 
-function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, ::AbstractAzimuthalSymmetry;
+function eigensystem(ω::T, micro::ParticulateMicrostructure{3,P}, ::AbstractAzimuthalSymmetry;
         basis_order::Int = 2,
         basis_field_order::Int = 2*basis_order,
         # numberofparticles::Number = Inf,
-        kws...) where T<:AbstractFloat
+        kws...) where {T<:AbstractFloat, P <: PhysicalMedium{3,1}}
 
     medium = micro.medium
 
@@ -93,7 +93,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, :
 
     t_matrices = get_t_matrices(medium, sps, ω, L)
     t_diags = diag.(t_matrices)
-    len(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
+    len(order::Int) = basisorder_to_basislength(PhysicalMedium{3,1},order)
 
     as = [
         micro.paircorrelations[i,j].minimal_distance
@@ -148,9 +148,9 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, :
     return MM
 end
 
-function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, ::RadialSymmetry{3};
+function eigensystem(ω::T, micro::ParticulateMicrostructure{3,P}, ::RadialSymmetry{3};
         basis_order::Int = 2,
-        kws...) where {T<:AbstractFloat}
+        kws...) where {T<:AbstractFloat, P <: PhysicalMedium{3,1}}
 
         MM = eigensystem(ω, micro, PlanarAzimuthalSymmetry{3}(); basis_order = basis_order, kws...)
 
@@ -163,10 +163,10 @@ end
 
 # The eigensystem when translation symmetry is present
 # WE HAVE TO ADD TRANLATION SYMMETRY DOWN HERE
-function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, sym::TranslationSymmetry{3,T};
+function eigensystem(ω::T, micro::ParticulateMicrostructure{3,P}, sym::TranslationSymmetry{3,T};
         basis_order::Int = 3,
         basis_field_order::Int = 6,
-        kws...) where T<:AbstractFloat
+        kws...) where {T<:AbstractFloat, P <: PhysicalMedium{3,1}}
 
     medium = micro.medium
     direction = SVector((sym.direction ./ norm(sym.direction))...)
@@ -186,7 +186,7 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, s
 
     t_matrices = get_t_matrices(medium, sps, ω, L)
     t_diags = diag.(t_matrices)
-    len(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
+    len(order::Int) = basisorder_to_basislength(PhysicalMedium{3,1},order)
 
     as = [
         micro.paircorrelations[i,j].minimal_distance
@@ -247,11 +247,11 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3,Acoustic{T,3}}, s
 end
 
 # 2D general eigensystem There are some problems to be fixed
-# function eigensystem(ω::T, micro::ParticulateMicrostructure{2,Acoustic{T,2}}, ::WithoutSymmetry{2};
+# function eigensystem(ω::T, micro::ParticulateMicrostructure{2,P}, ::WithoutSymmetry{2};
 #     basis_order::Int = 2,
 #     basis_field_order::Int = 2*basis_order,
 #     numberofparticles::Number = Inf,
-#     kws...) where T<:AbstractFloat
+#     kws...) where {T, P <: PhysicalMedium{2,1}}
 
 #     scale_number_density = one(T) - one(T) / numberofparticles
 
@@ -266,7 +266,7 @@ end
 
 #     t_matrices = get_t_matrices(micro.medium, sps, ω, ho)
 #     t_diags = diag.(t_matrices)
-#     len(order::Int) = basisorder_to_basislength(Acoustic{T,2},order)
+#     len(order::Int) = basisorder_to_basislength(PhysicalMedium{2,1},order)
 
 #     as = [
 #         s1.seperation_ratio * outer_radius(s1) + s2.seperation_ratio * outer_radius(s2)
@@ -319,8 +319,8 @@ end
 ### 2D eigensystems
 # The Planar Symmetry and Radial symmetry eigensystems are EXACTLY the same
 # Except numberofparticles cannot be infinite in the 2D radial symmetry case
-function eigensystem(ω::T, micro::ParticulateMicrostructure{2,Acoustic{T,2}}, ::RadialSymmetry{2};
-kws...) where {T<:AbstractFloat}
+function eigensystem(ω::T, micro::ParticulateMicrostructure{2,P}, ::RadialSymmetry{2};
+kws...) where {T<:AbstractFloat, P <: PhysicalMedium{2,1}}
 
     MM = eigensystem(ω, micro, PlanarSymmetry{2}(); kws...)
     return MM

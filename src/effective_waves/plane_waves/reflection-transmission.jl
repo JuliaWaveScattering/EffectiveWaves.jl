@@ -8,7 +8,6 @@ The reflection coefficient in 2D for acoustics for just one [`EffectivePlaneWave
 function reflection_coefficient(ω::T, wave_eff::EffectivePlaneWaveMode{T}, psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{Halfspace{T,2}};
         x::T = zero(T), kws...) where T<:AbstractFloat
 
-
     if psource.medium != material.microstructure.medium @error mismatched_medium end
 
     k = ω / psource.medium.c

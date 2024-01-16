@@ -7,10 +7,23 @@ export gray_square!, gray_square
 
 export reflection_coefficient_low_volumefraction, wavenumber_low_volumefraction, wavenumber_very_low_volumefraction
 
-include("wavemode.jl")
-include("reflection_coefficient.jl")
+# include("effective_wave/planewaves/eigensystem.jl")
+include("plane_waves/plane-eigensystem.jl")
+# include("effective_wave/regular/eigensystem.jl")
+include("plane_waves/boundary-condition.jl")
+include("plane_waves/reflection-transmission.jl")
+include("plane_waves/reflection_coefficient.jl")
+
+include("regular_waves/regular-eigensystem.jl")
+include("regular_waves/boundary_condition.jl")
+include("regular_waves/material_scattering_coefficients.jl")
+
+
 include("dispersion.jl")
+include("wavemode.jl")
+include("asymptotics.jl")
 include("wavenumbers.jl")
+
 include("solvers/wavenumbers_bisection.jl")
 include("solvers/wavenumbers_bisection_robust.jl")
 include("solvers/wavenumber_path.jl")
