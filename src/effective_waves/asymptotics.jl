@@ -20,22 +20,28 @@ function asymptotic_monopole_wavenumbers(ω::T, micro::Microstructure{2};
 
     T0 = mean(t_matrix(s.particle, medium, ω, 0) for s in species)[1]
 
-    c = sqrt(2pi) * num_density * b^2 * T0 * hankelh1(0,k * b) * exp(-im * pi / 4.0)
+    keffs =  if abs(T0) > 100 * eps(T)
 
-    rc = abs(c)
-    θc = angle(c)
+        c = sqrt(2pi) * num_density * b^2 * T0 * hankelh1(0,k * b) * exp(-im * pi / 4.0)
 
-    kps = map(-ceil(θc / (2pi)):P) do p
-        σ = θc + 2pi * p
-        kp = (σ + im * log(abs(σ)^(3/2) / rc)) / b
-    end
+        rc = abs(c)
+        θc = angle(c)
 
-    kns = map(ceil(θc / (2pi) - 3 / 4):P) do p
-        σ = θc - 3pi / 2 - 2pi * p
-        kn = (σ + im * log(abs(σ)^(3/2) / rc)) / b
-    end
+        kps = map(-ceil(θc / (2pi)):P) do p
+            σ = θc + 2pi * p
+            kp = (σ + im * log(abs(σ)^(3/2) / rc)) / b
+        end
 
-   return [kns; kps]
+        kns = map(ceil(θc / (2pi) - 3 / 4):P) do p
+            σ = θc - 3pi / 2 - 2pi * p
+            kn = (σ + im * log(abs(σ)^(3/2) / rc)) / b
+        end
+        [kns; kps]
+    else [zero(Complex{T})]
+    end        
+
+
+   return keffs
 end
 
 function asymptotic_monopole_wavenumbers(ω::T, micro::Microstructure{3};
@@ -53,15 +59,20 @@ function asymptotic_monopole_wavenumbers(ω::T, micro::Microstructure{3};
 
     T0 = mean(t_matrix(s.particle, medium, ω, 0) for s in species)[1]
 
-    c = 2pi * num_density * b^2 * T0 * shankelh1(0,k * b)
+    kps =  if 100 * abs(T0) >  eps(T)
 
-    rc = abs(c)
-    θc = angle(c)
+        c = 2pi * num_density * b^2 * T0 * shankelh1(0,k * b)
 
-    kps = map(-P:P) do p
-        σ = θc + 2pi * p
-        kp = (σ + im * log(σ ^ 2 / rc)) / b
-    end
+        rc = abs(c)
+        θc = angle(c)
+
+        map(-P:P) do p
+            σ = θc + 2pi * p
+            kp = (σ + im * log(σ ^ 2 / rc)) / b
+        end
+    else
+        [zero(Complex{T})]
+    end    
 
    return kps
 end

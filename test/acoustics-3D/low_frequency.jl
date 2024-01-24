@@ -32,7 +32,7 @@ ks = ωs ./ medium.c
 
 opts = Dict(
     :tol => tol, :num_wavenumbers => 2,
-    :mesh_size => 2.0, :mesh_points => 10,
+    :mesh_size => 1.0, :mesh_points => 10,
     :basis_order => basis_order, :basis_field_order => basis_field_order
 );
 AP_kps = [
@@ -96,13 +96,55 @@ end
     material = Material(medium,Sphere(R),species);
 
     opts = Dict(
-        :tol => tol, :num_wavenumbers => 2,
-        :mesh_size => 2.0, :mesh_points => 10,
-        :basis_order => basis_order, :basis_field_order => basis_field_order
+        :tol => tol, :num_wavenumbers => 3,
+        :mesh_size => 1.0, :mesh_points => 10,
+        :basis_order => basis_order, :basis_field_order => basis_field_order, 
+        :symmetry => PlanarAzimuthalSymmetry()
         # , :numberofparticles => material.numberofparticles
     );
 
-    kps = wavenumbers(ωs[1], medium, species; symmetry = PlanarAzimuthalSymmetry(), opts...)
+    kps = wavenumbers(ωs[1], medium, species; opts...)
+
+    # micro = Microstructure(medium, species);
+    # wavenumbers(ω, micro; kws...)
+
+    # kws = opts
+    
+    # k_effs = wavenumbers_path(ω, micro;
+    #     num_wavenumbers = num_wavenumbers,
+    #     tol = tol,
+    #     basis_order = basis_order, kws...
+    # )
+
+    # num_wavenumbers = min(length(k_effs), num_wavenumbers + 3)
+
+    # # Take only the num_wavenumbers wavenumbers with the smallest imaginary part.
+    # k_effs = k_effs[1:num_wavenumbers]
+
+    # max_imag = maximum(imag.(k_effs)) * 1.1
+    # max_real = maximum(abs.(real.(k_effs))) * 1.1
+    # box_k = [[-max_real,max_real], [0.0,max_imag]]
+     
+    # k_effs2 = wavenumbers_bisection(ω, micro;
+    #     # num_wavenumbers=num_wavenumbers,
+    #     tol = tol, box_k = box_k,
+    #     basis_order = basis_order,
+    #     kws...)
+
+
+    # k_effs = [k_effs; k_effs2]
+    # k_effs = reduce_kvecs(k_effs, sqrt(tol))
+    # k_effs = sort(k_effs, by = imag)
+
+    # k_effs = wavenumbers_path(ω, micro; kws...)
+
+    # reduce_kvecs(k_effs, sqrt(tol))
+
+    # num_wavenumbers = min(length(k_effs), num_wavenumbers)
+    # k_effs[1:num_wavenumbers]
+
+    # abs(mean(t_matrix(species[1].particle, medium, ωs[1], 0))[1])
+    # 100 * eps(Float64)
 
     eff_medium = effective_medium(medium, species)
     k_low = ωs[1] / eff_medium.c

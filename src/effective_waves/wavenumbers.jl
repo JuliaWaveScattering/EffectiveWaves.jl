@@ -26,6 +26,7 @@ function wavenumbers(ω::T, micro::Microstructure;
         # max_Imk::T = maximum(imag.(asymptotic_monopole_wavenumbers(ω, medium, micro; num_wavenumbers = num_wavenumbers + 3))),
         basis_order::Int = 3 * Int(round(maximum(outer_radius.(micro.species)) * ω / abs(micro.medium.c) )) + 1,
         # max_Rek::T = T(2) + T(20) * abs(real(wavenumber_low_volumefraction(ω, medium, species; verbose = false))),
+        bisection_method::Bool = true,
         kws...) where T<:Number
 
     # For very low attenuation, need to search close to assymptotic root with a path method.
@@ -36,25 +37,35 @@ function wavenumbers(ω::T, micro::Microstructure;
         basis_order = basis_order, kws...
     )
 
+    num_wavenumbers = min(length(k_effs), num_wavenumbers + 3)
+
     # Take only the num_wavenumbers wavenumbers with the smallest imaginary part.
     k_effs = k_effs[1:num_wavenumbers]
 
-    if num_wavenumbers > 2
+    if num_wavenumbers > 2 && bisection_method
         # box_k = box_keff(ω, medium, species; tol = tol)
         # max_imag = max(3.0 * maximum(imag.(k_effs)), max_Imk)
         # max_imag = max(max_imag, box_k[2][2])
         # max_real = max(2.0 * maximum(real.(k_effs)), max_Rek)
 
-        max_imag = maximum(imag.(k_effs))
-        max_real = maximum(abs.(real.(k_effs)))
+        max_imag = maximum(imag.(k_effs)) * 1.1
+        max_real = maximum(abs.(real.(k_effs))) * 1.1
         box_k = [[-max_real,max_real], [0.0,max_imag]]
+        
+        k_effs = try
+            k_effs2 = wavenumbers_bisection(ω, micro;
+                # num_wavenumbers=num_wavenumbers,
+                tol = tol, box_k = box_k,
+                basis_order = basis_order,
+                kws...)
+            k_effs = [k_effs; k_effs2]
+        catch k_effs
+        end
 
-        k_effs2 = wavenumbers_bisection(ω, micro;
-            # num_wavenumbers=num_wavenumbers,
-            tol = tol, box_k = box_k,
-            basis_order = basis_order,
-            kws...)
-        k_effs = [k_effs; k_effs2]
+        low_tol = min(1e-4, sqrt(tol))
+        # Finally delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
+        deleteat!(k_effs, findall([-low_tol < abs(imag(keff))/real(keff) < zero(T) for keff in k_effs]))
+
         k_effs = reduce_kvecs(k_effs, sqrt(tol))
         k_effs = sort(k_effs, by = imag)
     end

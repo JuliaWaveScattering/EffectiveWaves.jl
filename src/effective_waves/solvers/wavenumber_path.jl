@@ -12,6 +12,8 @@ function wavenumbers_path(ω::T, micro::Microstructure{Dim};
         # numberofparticles::T = Inf,
         kws...) where {T,Dim}
 
+    if mesh_size > 1 @warn "mesh_size should be smaller than 1" end
+
     medium = micro.medium
 
     # check parameters
@@ -20,6 +22,8 @@ function wavenumbers_path(ω::T, micro::Microstructure{Dim};
     # find at least one root to use as a scale for dk_x and dk_y
         eff_medium = effective_medium(micro)
         k0 = ω / eff_medium.c
+        k = ω / medium.c
+
         if isnan(k0) k0 = ω + T(0)*im end
         # abs(k0) can be used to non-dimensionlise k_vec
         # kscale = abs(k0)
@@ -32,7 +36,7 @@ function wavenumbers_path(ω::T, micro::Microstructure{Dim};
         # guess initial mesh for lowest attenuating wavenumbers
         x_step = T(4) * mesh_size * max(abs(real(kφ)), real(k0), sqrt(eps(T)))
         xs = LinRange(-x_step,x_step,2 * mesh_points + 3)
-        xs = [xs; [real(k0), real(kφ)]]
+        xs = [xs; [real(k), real(k0), real(kφ)]]
 
         # ys = [imag(kφ),imag(kφ)^2, sqrt(imag(kφ)), sqrt(eps(T))]
         ys = [imag(kφ), sqrt(eps(T))]
@@ -48,16 +52,23 @@ function wavenumbers_path(ω::T, micro::Microstructure{Dim};
         low_tol = min(1e-4, sqrt(tol))
 
     # Generate some asymptotic wavenumbers
-        k_asyms = asymptotic_monopole_wavenumbers(ω, micro;
-            num_wavenumbers = num_wavenumbers + 2)
-        k_asyms = k_asyms ./ kscale
+    k_asyms = asymptotic_monopole_wavenumbers(ω, micro;
+        num_wavenumbers = num_wavenumbers + 2)
+    k_asyms = k_asyms ./ kscale
 
-    # Use asymptotic results to estimate maximum imaginary and real part.
-        max_Imk = maximum([imag.(k_asyms); imag(kφ)])
-        max_Rek = maximum([real.(k_asyms); real(kφ)])
-        min_Rek = minimum([real.(k_asyms); real(kφ)])
+    max_Imk = if length(k_asyms) > 1    
+        maximum([abs.(imag.(k_asyms)); imag(kφ)])
+    else
+        T(2) + T(20) * imag(kφ)
+    end    
 
-        function constraint(vec::Vector{T})
+    constraint = if length(k_asyms) > 1     
+
+        # Use asymptotic results to estimate maximum imaginary and real part.
+        max_Rek = maximum([abs.(real.(k_asyms)); abs(real(kφ))])
+        min_Rek = minimum([real.(k_asyms); real(kφ); -real(kφ)])
+
+        function (vec::Vector{T})
             local cons = zero(T)
             if vec[1] > max_Rek
                 cons = cons - one(T) + exp(T(10.0) * (vec[1] - max_Rek))
@@ -71,8 +82,13 @@ function wavenumbers_path(ω::T, micro::Microstructure{Dim};
 
             return cons
         end
-        inds = findall(constraint.(k_vecs) .< one(T))
-        k_vecs = k_vecs[inds]
+        
+    else 
+        (vec::Vector{T}) -> zero(T)
+    end        
+
+    inds = findall(constraint.(k_vecs) .< one(T))
+    k_vecs = k_vecs[inds]
 
     # The dispersion equation is given by: `dispersion([k1,k2]) = 0` where k_eff = k1 + im*k2.
         dispersion_dim = dispersion_equation(ω, micro, symmetry;
@@ -103,6 +119,7 @@ function wavenumbers_path(ω::T, micro::Microstructure{Dim};
                [zero(T),-one(T)]
            end
         end
+
         deleteat!(k_vecs, findall(v-> v == [zero(T),-one(T)], k_vecs) )
         k_vecs = reduce_kvecs(k_vecs, T(10)*tol)
 
@@ -116,10 +133,15 @@ function wavenumbers_path(ω::T, micro::Microstructure{Dim};
 
     # The best estimation of the mesh size is from asymptotic results
 
-    dk = k_asyms[end] - k_asyms[end-1]
-
-    dk_x = abs(real(dk)) * mesh_size
-    dk_y = abs(imag(dk)) * mesh_size
+    if length(k_asyms) > 1 
+        dk = k_asyms[end] - k_asyms[end-1]
+        dk_x = abs(real(dk)) * mesh_size
+        dk_y = abs(imag(dk)) * mesh_size
+    else 
+        dk_x = abs(k_vecs[1][1]) * mesh_size
+        dk_y = abs(k_vecs[1][2]) * mesh_size
+    end        
+    
     dk_xs = LinRange(-dk_x, dk_x, mesh_points)
 
     # Find two more roots, one with larger and smaller imaginary parts than the primary root kin
@@ -250,8 +272,9 @@ function wavenumbers_path(ω::T, micro::Microstructure{Dim};
 
                 deleteat!(targets, 1)
                 targets = Vector{T}[targets; new_targets]
-                # group together wavenumbers which are closer than tol
-                k_vecs = reduce_kvecs([new_targets; k_vecs], T(10)*tol)
+
+                # group together wavenumbers which are closer than sqrt(tol)
+                k_vecs = reduce_kvecs([new_targets; k_vecs], sqrt(tol))
                 targets = filter(t -> t[2] <= max_Imk, targets)
         end
 

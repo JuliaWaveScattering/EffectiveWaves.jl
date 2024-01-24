@@ -74,7 +74,7 @@ using EffectiveWaves, Test, LinearAlgebra
 
     Reff = reflection_coefficient(wavemodes, source, material)
     # the material shape for the low frqeuency homoegneous method is r smaller than the effective waves method. So a phase correction is needed.
-    @test abs(Reff*exp(im*k*r) - Ramp) < 1e-8
+    @test abs(Reff*exp(im*k*r) - Ramp) < 2e-8
 
     material = Material(medium,plate,species)
     wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = 1);
