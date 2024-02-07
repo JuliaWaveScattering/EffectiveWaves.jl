@@ -25,7 +25,7 @@
 
 \doublespacing
 % \setlength{\topmargin}{0cm} \addtolength{\textheight}{2cm}
-\evensidemargin=0cm \oddsidemargin=0cm \setlength{\textwidth}{16cm}
+% \evensidemargin=2cm \oddsidemargin=2cm \setlength{\textwidth}{16cm}
 
 \begin{document}
 
@@ -85,22 +85,22 @@ From this we can establish bounds such as $|R|\leq 1$, can you prove this? What 
 \subsection{Multipole method for cylinders}
 
 Here we give the exact theory for scalar multiple wave scattering from a finite number $N$ of circular cylinders. The pressure $u$ outside all the cylinders satisfies the scalar Helmholtz equation
-\be
+\begin{equation} 
 \nabla^2 u + k^2 u = 0,
 % c^2 \nabla^2 u + \omega^2 u = 0,
-\en
+\end{equation}
 and inside the $j$th cylinder the pressure $u_j$ satisfies
-\be
+\begin{equation} 
   \nabla^2 u_j + k^2_o u_j = 0, \quad \text{for} \; j=1,2,\ldots, N,
   % c_j^2 \nabla^2 u_j + \omega^2 u_j = 0, \quad \text{for} \; j=1,2,\ldots, N,
 	% \\
   % c_{N_\cs + 1}^2 \nabla^2 u^{N_\cs +j} + \omega^2 u^{N_\cs +j} = 0 \quad \text{for} \; j= 1, 2,\ldots, N_\cl
-\en
+\end{equation}
 
 where $\nabla^2$ is the two-dimensional Laplacian and
-\be \label{eqns:wavenumbers}
+\begin{equation}  \label{eqns:wavenumbers}
 	k = \omega/c \quad \text{and} \quad k_o = \omega/c_o.
-\en
+\end{equation}
 % where $\omega$ is the angular frequency and we have implicitly specified a time dependence of $\ee^{-\ii \omega t}$.
 
 \begin{figure}[t]
@@ -111,38 +111,38 @@ where $\nabla^2$ is the two-dimensional Laplacian and
 \end{figure}
 
 We use for each cylinder the polar coordinates
-\be
-R_{j} =\| \mathbf x- \mathbf x_{j} \|, \quad \Theta_{j} = \arctan\left ( \frac{y-y_{j}}{x- x_{j}} \right),
+\begin{equation} 
+R_{j} =\| \mathbf x- \mathbf x_{j} \|, \quad \Theta_{j} = \arctan \left( \frac{y-y_{j}}{x- x_{j}} \right),
 \label{eqns:polar_coords}
-\en
+\end{equation} 
 where $\mathbf x_j$ is the centre of the $j$-th cylinder and $\mathbf x = (x,y)$ is an arbitrary point with origin $O$. See Figure~\ref{fig:multispecies} for a schematic of the material properties and coordinate systems.
 Then we can define $u_j$ as the scattered pressure field from the $j$-th cylinder,
-\bga \label{eqn:outwaves}
+\begin{equation}  \label{eqn:outwaves}
 	u_j(R_j,\Theta_j) = \sum_{m=-\infty}^\infty A_j^m Z^m H_m(k R_j) \ee^{\ii m \Theta_j}, \quad \text{for} \;\; R_j > a_j,
-\ega
+\end{equation} 
 where $H_m$ are Hankel functions of the first kind, $A_j^m$ are arbitrary coefficients and $Z^m$ characterises the type of scatterer:
-\be
+\begin{equation} 
 Z^m = \frac{q J_m' (k a) J_m ({k_o} a) - J_m (k a) J_m' ({k_o} a) }{q H_m '(k a) J_m({k_o} a) - H_m(k a) J_m '({k_o} a)} = Z^{-m},
 \label{eqn:Zm}
-\en
+\end{equation} 
 with ${q} = (\rho_o k)/(\rho k_o)$. In the limits ${q} \to 0$ or ${q} \to \infty$, the coefficients for Dirichlet or Neumann boundary conditions are recovered, respectively.
 
 
 The pressure outside all cylinders is the sum of the incident wave $u_\inc$ and all scattered waves,
-\be \label{eq:totwave}
+\begin{equation}  \label{eq:totwave}
 u(x,y) =
 % u_\inc(x,y)  + u_\mathrm{scatt}(x,y)  =
   u_\inc(x,y) +\sum_{j=1}^N u_j(R_j,\Theta_j).
-\en
+\end{equation} 
 and the total field inside the $j$-th cylinder is
-\be \label{eqn:inwaves}
+\begin{equation} \label{eqn:inwaves}
 u_{j}^\In(R_j,\Theta_j) = \sum_{m=-\infty}^\infty B_j^m J_m(k_j R_j) \ee^{\ii m \Theta_j}, \quad \text{for} \;\; R_j < a_j.
-\en
+\end{equation}
 
 The unknown coefficients are determined through the boundary conditions of continuity of pressure and normal   velocity on the cylinder boundaries:
-\be \label{eqn:BC}
+\begin{equation} \label{eqn:BC}
 	u = u^\In_{j} \quad \text{and} \quad \frac{1}{\rho} \frac{\partial u}{\partial R_j} = \frac{1}{\rho_o} \frac{\partial u^\In_{j}}{\partial R_j}, \quad \text{on} \;\; R_j = a\;\; \text{for} \; \; j=1, \ldots, N.
-\en
+\end{equation}
 
 When the cylinders are far apart, the solution for the $A_j^m$ are similar to the solution for one lone cylinder scattering the incident wave $u_\inc$, which is
 \begin{equation}
@@ -167,40 +167,40 @@ For an introduction to ensemble-averaging of multiple scattering see~\cite{foldy
 
 Consider a configuration of $N$ circular cylinders centred at $\mathbf x_1,\mathbf x_2, \ldots, \mathbf x_N$. Each $\mathbf x_j$ is in the region $\reg$, where $\nfrac {} = N/|\reg|$ is the total number density and $|\reg|$ is the area of $\reg$.
 The probability of the cylinders being in a specific configuration is given by the probability density function $\p(\mathbf x_1,\mathbf x_2,\ldots, \mathbf x_N)$, so that
-\be
+\begin{equation}
 \int \p(\mathbf x_1) d \mathbf x_1 = \int \int \p(\mathbf x_1, \mathbf x_2) d \mathbf x_1 d \mathbf x_2 = \ldots = 1.
-\en
+\end{equation}
 And as the cylinders are indistinguishable: $\p(\mathbf x_1, \mathbf x_2) = \p(\mathbf x_2, \mathbf x_1)$.
 
 Furthermore, we have
-\bal
+\begin{align}
   &\p(\mathbf x_1, \ldots, \mathbf x_N) = \p(\mathbf x_j) \p(\mathbf x_{1}, \ldots, \mathbf x_N|\mathbf x_j),
   \label{eqns:conditional_probj}
   \\
   &\p(\mathbf x_1, \ldots, \mathbf x_N|\mathbf x_j) = \p(\mathbf x_\ell |\mathbf x_j) \p( \mathbf x_1, \ldots, \mathbf x_N|\mathbf x_\ell,\mathbf x_j),
   \label{eqns:conditional_probsj}
-\eal
+\end{align}
 where $\p(\mathbf x_{1}, \ldots, \mathbf x_N|\mathbf x_j)$ is the conditional probability of having cylinders centred at $\mathbf x_{1}, \ldots, \mathbf x_N$ (not including $\mathbf x_j$), given that the $j$-th cylinder is fixed at $\mathbf x_j$. Likewise, $\p( \mathbf x_1, \ldots, \mathbf x_N| \mathbf x_{\ell},\mathbf x_{j})$ is the conditional probability of having cylinders centred at $\mathbf x_{1}, \ldots, \mathbf x_N$ (not including $\mathbf x_\ell$ and $\mathbf x_j$) given that there are already two cylinders centred at $\mathbf x_\ell$ and $\mathbf x_j$.
 
 Given some function $F(\mathbf x_{1}, \ldots, \mathbf x_{N})$, we denote its average, or {\it expected value}, by
-\be
+\begin{equation}
 \ensem F  = \int\ldots \int F(\mathbf x_{1}, \ldots, \mathbf x_{N}) \p(\mathbf x_{1}, \ldots, \mathbf x_{N}) d\mathbf x_{1} \ldots d\mathbf x_{N} .
-\en
+\end{equation}
 If we fix the location and properties of the $j$-th cylinder, $\mathbf x_{j}$  and average over all the properties of the other cylinders, we obtain a {\it conditional average} of $F$ given by
-\be
+\begin{equation}
 \ensem{F}_{\mathbf x_{j}} = {\int\ldots} \int F(\mathbf x_{1}, \ldots, \mathbf x_{N}) \p( \mathbf x_{1}, \ldots, \mathbf x_{N}|\mathbf x_{j}) d  \mathbf x_{1} \ldots \mathbf x_N,
-\en
+\end{equation}
 where we do not integrate over $\mathbf x_j$. The average and conditional averages are related by
-\bga
-\ensem{F}  =   \int  \ensem{F}_{\mathbf x_j} \p(\mathbf x_j) \, d \mathbf x_j \quad \text{and} \quad \ensem{F}_{\mathbf x_j} =  \int  \ensem{F}_{ \mathbf x_j \mathbf x_\ell} \p(\mathbf x_\ell)\, d \mathbf x_\ell,
-\label{eqns:conditional_averages}
-\ega
+\begin{align}
+  \ensem{F}  =   \int  \ensem{F}_{\mathbf x_j} \p(\mathbf x_j) \, d \mathbf x_j \quad \text{and} \quad \ensem{F}_{\mathbf x_j} =  \int  \ensem{F}_{ \mathbf x_j \mathbf x_\ell} \p(\mathbf x_\ell)\, d \mathbf x_\ell,
+  \label{eqns:conditional_averages}
+\end{align}
 where $\ensem{ F}_{\mathbf x_\ell\mathbf x_j}$ is the conditional average when fixing both $\mathbf x_j$ and $\mathbf x_\ell$, and $\ensem{ F}_{\mathbf x_\ell\mathbf x_j} = \ensem{ F}_{\mathbf x_j \mathbf x_\ell}$.
 
 We can now calculate the average total pressure (incident plus scattered), measured at some position $\mathbf x$ outside of $\reg$, by averaging~\eqref{eq:totwave} to obtain
-\be
+\begin{equation}
 \ensem{u(x,y)} = u_\inc(x,y) + \sum_{j=1}^N \int \ldots \int u_j(R_j,\Theta_j) \p(\mathbf x_1, \ldots, \mathbf x_N) d \mathbf x_1 \ldots d \mathbf x_N,
-\en
+\end{equation}
 where $\ensem{u_\inc(x,y)} = u_\inc(x,y)$, because the incident field is independent of the scattering configuration.
 % , and $r_1$ and $\theta_1$ depend on $\mathbf x_1$ and $\mathbf x$ through the definitions~\eqref{eqns:polar_coords}.
 We can then rewrite the average outgoing wave $u_j$ by fixing the properties of the $j$-th cylinder $\mathbf x_j$ and using equation~\eqref{eqns:conditional_probj} to reach
@@ -220,10 +220,10 @@ Likewise, for the conditionally averaged scattered field~\eqref{eqn:outwaves} me
 \ega
 
 We will use the simplest approximations possible, which are a random uniform distribution
-\be
+\begin{equation}
 \p(\Lam 1) = \frac{1}{|\reg|},
 \label{eqn:pLam1}
-\en
+\end{equation}
 which combined with~\eqref{eqn:AverageWave} and \eqref{eqn:AverageWaveCond}, and taking the limit $N \to \infty$ with ${\reg}$ turning into a halfspace $x_1>0$, leads to
 \begin{equation}
   \ensem{u(x,y)} = u_\inc(x,y)+   \nfrac {} \sum_{m=-\infty}^\infty \scatZ^m \int_{x_1>0}   \ensem{A_1^m}_{\mathbf x_1}  H_m^{(1)}(k R_1) \ee^{\ii m \Theta_1}  d \mathbf x_1.
@@ -236,22 +236,21 @@ When $x <0$, the above turns into the incident wave plus the average reflected f
 The simplest approach is to assume that, on average, the wave exciting a scatterer is a plane wave.
 That is, for $x_1 > 0$, we assume
 \begin{align}
-  \ensem{A_1^m}_{\mathbf x_1} =  \ii^m \ee^{-\ii m \theta_\eff} \A m_\eff \ee^{\ii \mathbf x \cdot \mathbf k_\eff}, \quad \text{for} \quad x>{0},
+  \ensem{A_1^m}_{\mathbf x_1} =  \ii^m \ee^{-\ii m \theta_\eff} \A{m_\eff} \ee^{\ii \mathbf x \cdot \mathbf k_\eff}, \quad \text{for} \quad x>{0},
   \label{eqn:AnsatzA}
 \end{align}
-where the constant factor $\ii^m \ee^{-\ii m \theta_\eff}$ is just for later convenience, $\A m_\eff$ is an unknown constant (for now), and we define
+where the constant factor $\ii^m \ee^{-\ii m \theta_\eff}$ is just for later convenience, $\A{m_\eff}$ is an unknown constant (for now), and we define
 \begin{equation}
   \mathbf k_\eff =(\alpha_\eff, \beta) := k_\eff(\cos\theta_\eff, \sin\theta_\eff),
 \end{equation}
 and from Snell's law
 \begin{equation}
   k_\eff \sin \theta_\eff = k \sin \theta_\inc,
-  \label{eqn:Snells}
 \end{equation}
   noting that both $\theta_\eff$ and $k_\eff$ are complex numbers.
 
 \begin{align}
-    & \A m_\eff(\s_1)  +  2 \pi \nfrac {} \sum_{n=-\infty}^\infty\int_\regS  \A n_\eff(\s_2)
+    & \A{m_\eff}(\s_1)  +  2 \pi \nfrac {} \sum_{n=-\infty}^\infty\int_\regS  \A{n_\eff}(\s_2)
   \left [ \frac{\mathcal N_{n-m}(ka_{12},k_\eff a_{12})}{k^2 - k_\eff^2} \right]
     d\s_2^n
    = 0,
@@ -259,7 +258,7 @@ and from Snell's law
 \\
   &
    \sum_{n=-\infty}^\infty \ee^{\ii n (\theta_\inc - \theta_\eff)} \int_\regS
-   \A n_\eff(\s_2) d\s_2^n = (\alpha_\eff-\alpha) \frac{\alpha \ii}{2 \nfrac {} },
+   \A{n_\eff}(\s_2) d\s_2^n = (\alpha_\eff-\alpha) \frac{\alpha \ii}{2 \nfrac {} },
  \label{eqn:AmInc}
  \end{align}
  where
@@ -267,7 +266,7 @@ and from Snell's law
   d \s_2^n = Z^n(\s_2) p(\s_2) d\s_2,
 \end{equation}
  % $a_2$ is the radius of the $s_2$ specie,
- we used whole-correction and ignored the boundary layer (which disappears in the low-frequency limit anyway). The above equations are sufficient to completely determine $k_\eff$ and $\A n_\eff$.
+ we used whole-correction and ignored the boundary layer (which disappears in the low-frequency limit anyway). The above equations are sufficient to completely determine $k_\eff$ and $\A{n_\eff}$.
 
 First using $k_\eff = c k /c_\eff $:
 \[
@@ -275,30 +274,30 @@ First using $k_\eff = c k /c_\eff $:
 \]
 because this does not depend on the species, we can move it outside the integral in~\eqref{eqn:AmT}, multiple $Z^m(\s_1) p(\s_1)$ on both sides of the equation  and then integrate in $\s_1$ to reach,
 \begin{align}
-    & \ensem{\A m_\eff}^m  +  \frac{4 \ii \nfrac {}}{k^2} \frac{c_\eff^2}{c_\eff^2- c^2} \sum_{n=-1}^1
+    & \ensem{\A{m_\eff}}^m  +  \frac{4 \ii \nfrac {}}{k^2} \frac{c_\eff^2}{c_\eff^2- c^2} \sum_{n=-1}^1
 \frac{c^{|n-m|}}{c_\eff^{|n-m|}}
-  \ensem{\A n_\eff}^n \ensem{Z^m}
+  \ensem{\A{n_\eff}}^n \ensem{Z^m}
    = 0,
    \label{eqn:EnsemAmT}
 \end{align}
 % \begin{align}
-%     & \ensem{\A m_\eff}^m  +  \frac{\ii  \pi \phi}{2} \frac{c_\eff^2}{c_\eff^2- c^2} \sum_{n=-1}^1
+%     & \ensem{\A{m_\eff}}^m  +  \frac{\ii  \pi \phi}{2} \frac{c_\eff^2}{c_\eff^2- c^2} \sum_{n=-1}^1
 % \frac{2 \ii c^{|n-m|}}{\pi c_\eff^{|n-m|}}
-%   \ensem{\A n_\eff}^n \ensem{Z^m}
+%   \ensem{\A{n_\eff}}^n \ensem{Z^m}
 %    = 0,
 %    \label{eqn:EnsemAmT}
 % \end{align}
 where
 \begin{gather}
-  \ensem{\A m_\eff}^m =  \int_\regS  \A m_\eff(\s_o) d\s_o^m,
+  \ensem{\A{m_\eff}}^m =  \int_\regS  \A{m_\eff}(\s_o) d\s_o^m,
   \quad \ensem{Z^n} =  \int_\regS Z^n(\s_o) p(\s_o) d\s_o, \\
   \ensem{Z^0} = \frac{\ii k^2 \pi}{4} \ensem{a_o\frac{\beta_o-\beta}{\beta_o}}, \quad \ensem{Z^1} = \ensem{Z^{-1}} = \frac{\ii k^2 \pi}{4} \ensem{a^2_o\frac{\rho - \rho_o}{\rho + \rho_o}},
 \end{gather}
 $a_o$ is the radius\footnote{If you find the appearance of the radius $a_o$ strange, have a look at the next section.} of the species $\s_o$, and we define $\ensem{f}^m = \ensem{f Z^m}$.
 
 
-Equation~\eqref{eqn:EnsemAmT} is now in the same form as the single species equation. By evaluating~\eqref{eqn:EnsemAmT} for $m=-1,0,1$, we reach three equations with unknowns $\ensem{{\A {{-1}}}_\eff}^{-1}$,  $\ensem{\A {0}_\eff}^0$, $\ensem{\A {1}_\eff}^1$, and $c_\eff$.
-By forming a matrix equation for the $\ensem{{\A {{m}}}_\eff}^m$, then setting the determinant of this matrix to zero, and solving for $c_\eff$, we reach
+Equation~\eqref{eqn:EnsemAmT} is now in the same form as the single species equation. By evaluating~\eqref{eqn:EnsemAmT} for $m=-1,0,1$, we reach three equations with unknowns $\ensem{{\A {{-1}_\eff}}}^{-1}$,  $\ensem{\A {{0}_\eff}}^0$, $\ensem{\A {{1}_\eff}}^1$, and $c_\eff$.
+By forming a matrix equation for the $\ensem{{\A {m_\eff}}}^m$, then setting the determinant of this matrix to zero, and solving for $c_\eff$, we reach
 \begin{equation}
   c_\eff^2 = \frac{\beta_\eff}{\rho_\eff}, \quad \text{with} \;\;
   \frac{1}{\beta_\eff} = \frac{1-\nfrac {} \pi \ensem{a_o^2}}{\beta} + \nfrac {} \pi \ensem{\frac{a_o^2}{\beta_o}}, \quad
@@ -307,13 +306,13 @@ By forming a matrix equation for the $\ensem{{\A {{m}}}_\eff}^m$, then setting t
 \end{equation}
 Using the above in \eqref{eqn:EnsemAmT}, we can reach
 \begin{equation}
-\ensem{\A {0}_\eff}^0 = 2\frac{\beta-\beta_\eff}{\rho-\rho_\eff}\sqrt{\frac{\rho \rho_\eff}{\beta \beta_\eff}} \ensem{\A {1}_\eff}^1  \quad \text{and} \quad \ensem{{\A {{-1}}}_\eff}^{-1} = \ensem{{\A {{1}}}_\eff}^{1}.
+\ensem{\A {{0}_\eff}}^0 = 2\frac{\beta-\beta_\eff}{\rho-\rho_\eff}\sqrt{\frac{\rho \rho_\eff}{\beta \beta_\eff}} \ensem{\A {{1}_\eff}}^1  \quad \text{and} \quad \ensem{{\A {{-1}}}_\eff}^{-1} = \ensem{\A {{1}_\eff}}^{1}.
 \label{eqn:As}
 \end{equation}
 
-To determine $\ensem{{\A {{1}}}_\eff}$ we use~\eqref{eqn:AmInc}, which leads to
+To determine $\ensem{\A {{1}_\eff}}$ we use~\eqref{eqn:AmInc}, which leads to
 \begin{equation}
-  \ensem{\A {1}_\eff}^1 = (\rho-\rho_\eff) \cos \theta_\inc \frac{\ii a^2 k^2 \pi}{4 \phi}  \frac{ \cos \theta_\inc -\sqrt{\frac{\rho_\eff \beta}{\rho \beta_\eff}} \cos \theta_\eff}{
+  \ensem{\A{{1}_\eff}}^1 = (\rho-\rho_\eff) \cos \theta_\inc \frac{\ii a^2 k^2 \pi}{4 \phi}  \frac{ \cos \theta_\inc -\sqrt{\frac{\rho_\eff \beta}{\rho \beta_\eff}} \cos \theta_\eff}{
   \sqrt{\frac{\beta_\eff \rho \rho_\eff}{\beta}}\left(\frac{\beta}{\beta_\eff} -1 \right) - (\rho-\rho_\eff)\cos(\theta_\inc -\theta_\eff)
   }.
   \label{eqn:A1}
@@ -334,7 +333,7 @@ where $\phi_j = \pi a_j^2 \nfrac j$ is the volume fraction of the $j$-th species
 \begin{equation}
   \frac{1}{\beta_\eff} = \frac{1-\phi}{\beta} + \sum_j  \frac{\phi_j}{\beta_j}, \quad
   \rho_\eff = \rho \frac{1 - \sum_j  \phi_j \frac{\rho-\rho_j}{\rho+\rho_j}}{1 + \sum_j  \phi_j \frac{\rho-\rho_j}{\rho+\rho_j}}.
-  \label{eqns:effective_properties}
+  % \label{eqns:effective_properties}
 \end{equation}
 
 \subsection{Average low-frequency reflection}
@@ -352,7 +351,7 @@ Substituting the above into~\eqref{eqn:AverageReflection} we get
 \begin{align}
   &\ensem{u(x,y)} = u_\inc(x,y) + R_o \ee^{-\ii \alpha x + \ii \beta y}, \quad  \theta_\reflect = \pi - \theta_\eff - \theta_\inc,
 \\
-  & R_o =  \frac{1}{a^2 \pi k \cos \theta_\inc }\frac{2 \ii \phi}{k \cos \theta_\inc +  k_\eff \cos \theta_\eff} \sum_{m=-\infty}^\infty \ee^{\ii m \theta_\reflect} \ensem{\A {m}_\eff}^m.
+  & R_o =  \frac{1}{a^2 \pi k \cos \theta_\inc }\frac{2 \ii \phi}{k \cos \theta_\inc +  k_\eff \cos \theta_\eff} \sum_{m=-\infty}^\infty \ee^{\ii m \theta_\reflect} \ensem{\A{{m}_\eff}}^m.
   \label{eqn:ReflectionEnsemble}
 \end{align}
 Substituting~\eqref{eqn:As} and \eqref{eqn:A1} we reach, after algebraic manipulation, that
