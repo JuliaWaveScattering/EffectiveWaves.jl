@@ -42,7 +42,6 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     if size(eigvectors)[end] > 1
         @warn "The effective wavenumber: $k_eff has more than one eigenvector. For plane-waves this case has not been fully implemented"
     end
-
     if psource.medium == material.microstructure.medium  
 
         # First we calculate the outward pointing normal
@@ -77,8 +76,6 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     else
         
         # Setting parameters
-        ρ = psource.medium.ρ
-        ρ0 = material.microstructure.medium.ρ
         c = psource.medium.c
         c0 = material.microstructure.medium.c
         k = ω / c
@@ -89,7 +86,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
         Fs = eigvectors
         M = size(Fs,3)
 
-        if (c0 - real(c0) != 0)
+        if (c0 != real(c0) || c != real(c))
             @warn "The case of complex wavespeed has not been fully implemented for two medium case, using real part of wavespeeds instead."
         end
 
@@ -102,7 +99,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
 
         # next the components of the wavenumbers in the direction of the inward normal
         kz = k * dot(-conj(n), psource.direction)
-        k0z = kz * ρ0 / ρ
+        k0z = sqrt(k0^2 - (k^2 - kz^2))
 
         # Needs adjustments for complex wavespeeds
         direction0 = real(k) * (psource.direction - dot(-conj(n), psource.direction) * psource.direction)
@@ -117,8 +114,8 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
         ζR = (kz - k0z) / (kz + k0z)
         ζT = 2k0z / (kz + k0z)
         
-        # Needs adjustments for complex wavespeeds
         rθφ = cartesian_to_radial_coordinates(direction0)
+        # spherical_harmonics() needs adjustments for complex wavespeeds
         Ys = spherical_harmonics(basis_order, rθφ[2], rθφ[3])
         lm_to_n = lm_to_spherical_harmonic_index
 
