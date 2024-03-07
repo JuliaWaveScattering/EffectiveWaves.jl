@@ -57,7 +57,7 @@ end
 function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, material::Material{Halfspace{T,Dim}};
     tol::T = 1e-6, kws...) where {T,Dim}
 
-    direction = transmission_direction(wavenumber, (ω / psource.medium.c) * psource.direction, material.shape.normal)
+    direction = transmission_direction(wavenumber, (ω / material.microstructure.medium.c) * psource.direction, material.shape.normal)
     eigvectors = eigenvectors(ω, wavenumber, psource, material; direction_eff = direction, kws...)
 
     α = solve_boundary_condition(ω, wavenumber, eigvectors, psource, material; kws...)

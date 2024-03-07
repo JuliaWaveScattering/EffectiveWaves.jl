@@ -76,6 +76,8 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
     else
         
         # Setting parameters
+        ρ = psource.medium.ρ
+        ρ0 = material.microstructure.medium.ρ
         c = psource.medium.c
         c0 = material.microstructure.medium.c
         k = ω / c
@@ -102,19 +104,19 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
         k0z = sqrt(k0^2 - (k^2 - kz^2))
 
         # Needs adjustments for complex wavespeeds
-        direction0 = real(k) * (psource.direction - dot(-conj(n), psource.direction) * psource.direction)
-        direction0 += real(k0z) * dot(-conj(n), psource.direction) * psource.direction
-        direction0 /= norm(direction0)
+        direction_k0 = real(k) * (psource.direction - dot(-conj(n), psource.direction) * psource.direction)
+        direction_k0 = direction_k0 + real(k0z) * dot(-conj(n), psource.direction) * psource.direction
+        direction_k0 = direction_k0/norm(direction_k0)
 
         direction = transmission_direction(k_eff, k * psource.direction, n)
         
         k_effz = k_eff * dot(-conj(n), direction)
 
-        γ0 = kz/k0z
-        ζR = (kz - k0z) / (kz + k0z)
-        ζT = 2k0z / (kz + k0z)
+        γ0 = (ρ0 * kz) /(ρ * k0z)
+        ζR = (ρ0 * kz - ρ * k0z) / (ρ0 * kz + ρ * k0z)
+        ζT = 2ρ * k0z / (ρ0 * kz + ρ * k0z)
         
-        rθφ = cartesian_to_radial_coordinates(direction0)
+        rθφ = cartesian_to_radial_coordinates(direction_k0)
         # spherical_harmonics() needs adjustments for complex wavespeeds
         Ys = spherical_harmonics(basis_order, rθφ[2], rθφ[3])
         lm_to_n = lm_to_spherical_harmonic_index
@@ -124,12 +126,9 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
         for p = 1:M, dl = 0:basis_order for dm = -dl:dl, j in eachindex(species))
 
         particle_contribution *= (2pi * 1im) * (k_effz + k0z) / (k0 * k0z * (k0^2 - k_eff^2))
-        
-        rθφ_n = cartesian_to_radial_coordinates(-conj(n))
-        Ys_n = spherical_harmonics(basis_order, rθφ_n[2], rθφ_n[3])
 
         wall_contribution = sum(
-            -Fs[lm_to_n(dl,dm),j,p] * nf[j] * 1im^dl * Ys_n[lm_to_n(dl, dm)] * exp(1im * (k_effz + k0z) * (Z0 + rs[j]))
+            -Fs[lm_to_n(dl,dm),j,p] * nf[j] * 1im^dl * Ys[lm_to_n(dl, dm)] * exp(1im * (k_effz + k0z) * (Z0 + rs[j]))
         for p = 1:M, dl = 0:basis_order for dm = -dl:dl, j in eachindex(species))
 
         wall_contribution *= ζR * 2 * pi / (1im * k0 * k0z * (k_effz + k0z))

@@ -35,42 +35,89 @@ end
 function reflection_coefficient(wavemode::EffectivePlaneWaveMode{T,Dim}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{Halfspace{T,3}}) where {T<:AbstractFloat,Dim}
 
 
-    if psource.medium != material.microstructure.medium @error mismatched_medium end
+    if psource.medium == material.microstructure.medium
 
-    # Unpacking parameters
-    k = wavemode.ω / psource.medium.c
+        # Unpacking parameters
+        k = wavemode.ω / psource.medium.c
 
-    species = material.microstructure.species
-    S = length(species)
-    rs = outer_radius.(species)
+        species = material.microstructure.species
+        S = length(species)
+        rs = outer_radius.(species)
 
-    basis_order = wavemode.basis_order
-    ls, ms = spherical_harmonics_indices(basis_order)
+        basis_order = wavemode.basis_order
+        ls, ms = spherical_harmonics_indices(basis_order)
 
-    # make the normal outward pointing
-    plate = material.shape
-    n = plate.normal / norm(plate.normal)
-    if real(dot(n,psource.direction)) > 0
-        n = -n
+        # make the normal outward pointing
+        plate = material.shape
+        n = plate.normal / norm(plate.normal)
+        if real(dot(n,psource.direction)) > 0
+           n = -n
+        end
+
+        rθφ = cartesian_to_radial_coordinates(psource.direction)
+        Yrefs = spherical_harmonics(basis_order, rθφ[2], rθφ[3]);
+
+        Z0 = dot(-n,plate.origin)
+        kcos_in = k * dot(- conj(n), psource.direction)
+
+        kcos_eff = wavemode.wavenumber * dot(- conj(n), wavemode.direction)
+
+        Ramp = - sum(number_density(species[i[2]]) * wavemode.eigenvectors[i] * 2pi * (-1.0)^ms[i[1]] * (1.0im)^(ls[i[1]]-1) *
+            Yrefs[i[1]] * exp(im*(kcos_eff + kcos_in)*(Z0 + rs[i[2]])) / ((kcos_in + kcos_eff) * k * kcos_in)
+        for i in CartesianIndices(wavemode.eigenvectors))
+        Ramp = Ramp * exp(im * kcos_in * Z0)
+
+        return Ramp
+    
+    else
+
+        # Unpacking parameters
+        ρ = psource.medium.ρ
+        ρ0 = material.microstructure.medium.ρ
+        c = psource.medium.c
+        c0 = material.microstructure.medium.c
+        ω = wavemode.ω
+        k = ω / c
+        k0 = ω / c0
+
+        species = material.microstructure.species
+        S = length(species)
+        rs = outer_radius.(species)
+
+        basis_order = wavemode.basis_order
+        ls, ms = spherical_harmonics_indices(basis_order)
+
+        # make the normal outward pointing
+        halfspace = material.shape
+        n = halfspace.normal / norm(halfspace.normal)
+        if real(dot(n,psource.direction)) > 0
+            n = -n
+        end
+
+        Z0 = dot(-n, halfspace.origin)
+
+        kz = k * dot(-conj(n), psource.direction)
+        k0z = sqrt(k0^2 - (k^2 - kz^2))
+        k_effz = wavemode.wavenumber * dot(-conj(n), wavemode.direction)
+
+        ζR = (ρ0 * kz - ρ * k0z) / (ρ0 * kz + ρ * k0z)
+        ζT = 2ρ * k0z / (ρ0 * kz + ρ * k0z)
+
+        direction_k0 = real(k) * (psource.direction - dot(-conj(n), psource.direction) * psource.direction)
+        direction_k0 = direction_k0 + real(k0z) * dot(-conj(n), psource.direction) * psource.direction
+        direction_k0 = direction_k0 / norm(direction_k0)
+
+        rθφ = cartesian_to_radial_coordinates(direction_k0)
+        Yrefs = spherical_harmonics(basis_order, rθφ[2], rθφ[3]);
+
+        B = - sum(number_density(species[i[2]]) * wavemode.eigenvectors[i] * 2pi * (1.0im)^(ls[i[1]]-1) *
+             Yrefs[i[1]] * exp(im * (k_effz + k0z) * (Z0 + rs[i[2]])) / (k0 * k0z * (k_effz + k0z))
+        for i in CartesianIndices(wavemode.eigenvectors))
+
+        Ramp = (ζR * field(psource, zeros(T, 3), ω) + ζT * B) * exp(im * kz * Z0)
+
+        return Ramp
     end
-
-    rθφ = cartesian_to_radial_coordinates(psource.direction)
-    Yrefs = spherical_harmonics(basis_order, rθφ[2], rθφ[3]);
-
-    Z0 = dot(-n,plate.origin)
-    kcos_in = k * dot(- conj(n), psource.direction)
-
-    kcos_eff = wavemode.wavenumber * dot(- conj(n), wavemode.direction)
-
-    Ramp = - sum(number_density(species[i[2]]) * wavemode.eigenvectors[i] * 2pi * (-1.0)^ms[i[1]] * (1.0im)^(ls[i[1]]-1) *
-        Yrefs[i[1]] * exp(im*(kcos_eff + kcos_in)*(Z0 + rs[i[2]])) / ((kcos_in + kcos_eff) * k * kcos_in)
-    for i in CartesianIndices(wavemode.eigenvectors))
-    Ramp = Ramp * exp(im * kcos_in * Z0)
-
-    # direction_ref = psource.direction - 2 * dot(n,psource.direction) * n
-    # reflected_wave = PlaneSource(psource.medium; direction = direction_ref, amplitude = Ramp)
-
-    return Ramp
 end
 
 function reflection_transmission_coefficients(wavemodes::Vector{E}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{Plate{T,3}}) where {T<:AbstractFloat,Dim, E<:EffectivePlaneWaveMode{T,Dim}}
