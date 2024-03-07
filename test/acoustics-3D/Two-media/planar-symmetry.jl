@@ -90,7 +90,7 @@ end
 
     Reffs = [reflection_coefficient(w, source, material) for w in wavemodes]
 
-    @test abs(Reffs[1] - Rlows[1]) / abs(Rlows[1]) < 0.01
-    @test norm(Reffs - Rlows) / norm(Rlows) < 0.1
+    @test abs(Reffs[1] - Rlows[1]) / abs(Rlows[1]) < 0.0001
+    @test norm(Reffs - Rlows) / norm(Rlows) < 0.005
 end
 
