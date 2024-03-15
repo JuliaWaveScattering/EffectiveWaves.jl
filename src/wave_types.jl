@@ -100,8 +100,6 @@ struct  EffectiveRegularWaveMode{T<:AbstractFloat,P<:PhysicalMedium,S<:AbstractS
         if typeof(medium_material) != typeof(medium_source)
             if (typeof(material.shape) <: Sphere{T, 2} where T) && (typeof(source.medium) <: Acoustic{T, 2} where T)
                 S = TranslationSymmetry{3, Float64}([0.0, 0.0, 1.0])
-            else
-                throw(DimensionMismatch("dimensions of acoustic medium of material $medium_material and source $medium_source do not match."))
             end
         else
             S = Symmetry(source,material)
