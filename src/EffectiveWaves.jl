@@ -22,7 +22,7 @@ export  match_error, x_mesh_match
 ## effective waves
 export wavenumbers, wavenumber, asymptotic_monopole_wavenumbers, eigenvectors, convert_eigenvector_basis, eigenvector_length
 export WaveModes, WaveMode, wavemode_wienerhopf
-export solve_boundary_condition, scattering_field, material_scattering_coefficients, material_scattered_waves
+export solve_boundary_condition, scattering_field, material_scattering_coefficients, material_scattered_waves, material_effective_tmatrix
 
 export dispersion_equation, dispersion_complex, eigensystem # supplies a matrix used for the disperision equation and effective eignvectors
 

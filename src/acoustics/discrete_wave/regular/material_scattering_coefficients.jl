@@ -74,3 +74,54 @@ function material_scattering_coefficients(scat_field::ScatteringCoefficientsFiel
     return [v]
 
 end
+
+function material_effective_tmatrix(ω::T, material::Material{Sphere{T,2}};
+    basis_field_order::Int = 2,
+    rtol::AbstractFloat = 1e-4,
+    basis_order::Int = 2basis_field_order
+    ) where T
+
+    # Extracting important parameters
+    medium = material.microstructure.medium
+    k = ω / medium.c
+    R = outer_radius(material.shape)
+    species = material.microstructure.species
+    particle_radius = maximum(outer_radius.(species))
+    Rtildas = R .- outer_radius.(species)
+
+    # Computing effective wavenumber
+    k_eff = wavenumbers(ω, medium, species; basis_order = basis_order, num_wavenumbers = 5)[1]
+
+    # Solving artificial eigensystem
+    F = eigenvectors(ω, k_eff, material.microstructure, PlanarSymmetry{2}(); basis_order = basis_order)
+
+    nbo, n_λ, _ = size(F)
+    basis_order = Int((nbo-1)/2)
+    L = basis_order+basis_field_order
+
+    n_densities = [number_density(sp) for sp in species]
+
+    J = [besselj(n,k*Rtildas[λ])*n_densities[λ] 
+        for n = -L-1:L, λ in 1:n_λ]
+
+    Jstar = [besselj(n,k_eff*Rtildas[λ])*n_densities[λ] 
+        for n = -L-1:L, λ in 1:n_λ]
+
+    H = [hankelh1(n,k*Rtildas[λ])*n_densities[λ] 
+        for n = -L-1:L, λ in 1:n_λ]
+
+    pre_num = k*J[1:1+2*L,:].*Jstar[2:2*(1+L),:] - k_eff*J[2:2*(1+L),:].*Jstar[1:1+2*L,:]
+    pre_denom = k*H[1:1+2*L,:].*Jstar[2:2*(1+L),:] - k_eff*H[2:2*(1+L),:].*Jstar[1:1+2*L,:]
+
+    Matrix_Num = complex(zeros(2*basis_order+1,2*basis_field_order+1))
+    Matrix_Denom = complex(zeros(2*basis_order+1,2*basis_field_order+1))
+    for n = 1:1+2*basis_field_order        
+        Matrix_Num[:,n] = vec(sum(pre_num[n+2*basis_order:-1:n,:].*F,dims=2))
+        Matrix_Denom[:,n] = vec(sum(pre_denom[n+2*basis_order:-1:n,:].*F,dims=2))
+    end
+
+    Tmats = (- vec(sum(Matrix_Num,dims=1)./sum(Matrix_Denom,dims=1)))
+
+    return Tmats
+
+end
