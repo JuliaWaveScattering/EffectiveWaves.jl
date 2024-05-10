@@ -76,9 +76,9 @@ function material_scattering_coefficients(scat_field::ScatteringCoefficientsFiel
 end
 
 function material_effective_tmatrix(ω::T, material::Material{Sphere{T,2}};
-    basis_field_order::Int = 2,
-    rtol::AbstractFloat = 1e-4,
-    basis_order::Int = 2basis_field_order
+    basis_order::Int = 2,
+    basis_order_contraction::Int = basis_order,
+    monopole_approximation::Bool = false
     ) where T
 
     # Extracting important parameters
@@ -86,42 +86,58 @@ function material_effective_tmatrix(ω::T, material::Material{Sphere{T,2}};
     k = ω / medium.c
     R = outer_radius(material.shape)
     species = material.microstructure.species
-    particle_radius = maximum(outer_radius.(species))
     Rtildas = R .- outer_radius.(species)
-
+    
     # Computing effective wavenumber
-    k_eff = wavenumbers(ω, medium, species; basis_order = basis_order, num_wavenumbers = 5)[1]
+    if basis_order_contraction < 2
+        k_eff = wavenumbers(ω, medium, species; basis_order = 2)[1]
+    else
+        k_eff = wavenumbers(ω, medium, species; basis_order = basis_order_contraction)[1]
+    end
 
     # Solving artificial eigensystem
-    F = eigenvectors(ω, k_eff, material.microstructure, PlanarSymmetry{2}(); basis_order = basis_order)
+    F = eigenvectors(ω, k_eff, material.microstructure, PlanarSymmetry{2}(); basis_order = basis_order_contraction)
 
-    nbo, n_λ, _ = size(F)
-    basis_order = Int((nbo-1)/2)
-    L = basis_order+basis_field_order
+    _, n_λ, ps = size(F)
+
+    if ps > 1 @error "More than one eigenvector was found for a planar system! Using first eigenvector dfor calculations." end
+
+    L = basis_order_contraction+basis_order
 
     n_densities = [number_density(sp) for sp in species]
 
-    J = [besselj(n,k*Rtildas[λ])*n_densities[λ] 
+    J = [besselj(n,k*Rtildas[λ]) 
         for n = -L-1:L, λ in 1:n_λ]
 
     Jstar = [besselj(n,k_eff*Rtildas[λ])*n_densities[λ] 
         for n = -L-1:L, λ in 1:n_λ]
 
-    H = [hankelh1(n,k*Rtildas[λ])*n_densities[λ] 
+    H = [hankelh1(n,k*Rtildas[λ])
         for n = -L-1:L, λ in 1:n_λ]
 
     pre_num = k*J[1:1+2*L,:].*Jstar[2:2*(1+L),:] - k_eff*J[2:2*(1+L),:].*Jstar[1:1+2*L,:]
     pre_denom = k*H[1:1+2*L,:].*Jstar[2:2*(1+L),:] - k_eff*H[2:2*(1+L),:].*Jstar[1:1+2*L,:]
 
-    Matrix_Num = complex(zeros(2*basis_order+1,2*basis_field_order+1))
-    Matrix_Denom = complex(zeros(2*basis_order+1,2*basis_field_order+1))
-    for n = 1:1+2*basis_field_order        
-        Matrix_Num[:,n] = vec(sum(pre_num[n+2*basis_order:-1:n,:].*F,dims=2))
-        Matrix_Denom[:,n] = vec(sum(pre_denom[n+2*basis_order:-1:n,:].*F,dims=2))
+    Matrix_Num = complex(zeros(2*basis_order_contraction+1,2*basis_order+1))
+    Matrix_Denom = complex(zeros(2*basis_order_contraction+1,2*basis_order+1))
+    for n = 1:1+2*basis_order        
+        Matrix_Num[:,n] = vec(sum(pre_num[n+2*basis_order_contraction:-1:n,:].*F[:,:,1],dims=2))
+        Matrix_Denom[:,n] = vec(sum(pre_denom[n+2*basis_order_contraction:-1:n,:].*F[:,:,1],dims=2))
     end
 
-    Tmats = (- vec(sum(Matrix_Num,dims=1)./sum(Matrix_Denom,dims=1)))
+    Tmats = - vec(sum(Matrix_Num,dims=1)./sum(Matrix_Denom,dims=1))
 
-    return Tmats
+    if monopole_approximation
+
+        TmatMs = complex(zeros(2basis_order+1))
+        for i in eachindex(TmatMs)
+            TmatMs[i] = -sum(pre_num[i+L-basis_order,:] .* F[basis_order_contraction+1,:,1])/sum(pre_denom[i+L-basis_order,:] .* F[basis_order_contraction+1,:,1])
+        end
+
+        return [Tmats, TmatMs]
+
+    else
+        return Tmats
+    end
 
 end
