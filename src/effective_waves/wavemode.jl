@@ -70,8 +70,6 @@ end
 
 function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, material::Material{Plate{T,Dim}}; kws...) where {T,Dim}
 
-    if psource.medium != material.microstructure.medium @error mismatched_medium end
-
     # First we calculate the outward pointing normal
     n = material.shape.normal;
     n = - n .* sign(real(dot(n,psource.direction)));

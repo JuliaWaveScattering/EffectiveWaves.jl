@@ -149,59 +149,152 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors1::Array{C
         kws...
     ) where {T, P <: PhysicalMedium{3,1}}
 
-    if psource.medium != material.microstructure.medium @error mismatched_medium end
-
-    if size(eigvectors1)[end] > 1 || size(eigvectors2)[end] > 1
+        if size(eigvectors1)[end] > 1 || size(eigvectors2)[end] > 1
         @warn "The effective wavenumber: $k_eff has more than one eigenvector. For plane-waves this case has not been fully implemented"
     end
 
-    scale_number_density = one(T)
+    if psource.medium == material.microstructure.medium
 
-    # First we calculate the outward pointing normal
-    n = material.shape.normal;
-    n = - n .* sign(real(dot(n,psource.direction)));
+        scale_number_density = one(T)
 
-    # calculate the distances from the origin to the two faces of the plate
-    Z0 = dot(-n, material.shape.origin)
-    Z1 = Z0 - material.shape.width / 2
-    Z2 = Z0 + material.shape.width / 2
+        # First we calculate the outward pointing normal
+        n = material.shape.normal;
+        n = - n .* sign(real(dot(n,psource.direction)));
 
-    # next the components of the wavenumbers in the direction of the inward normal
-    k = (ω / psource.medium.c)
-    k1 = k_eff;
-    k2 = -k_eff;
+        # calculate the distances from the origin to the two faces of the plate
+        Z0 = dot(-n, material.shape.origin)
+        Z1 = Z0 - material.shape.width / 2
+        Z2 = Z0 + material.shape.width / 2
 
-    direction1 = transmission_direction(k1, k * psource.direction, n)
-    direction2 = direction1
+        # next the components of the wavenumbers in the direction of the inward normal
+        k = (ω / psource.medium.c)
+        k1 = k_eff;
+        k2 = -k_eff;
 
-    kz = k * dot(-conj(n), psource.direction)
-    k1_effz = k1 * dot(-conj(n), direction1)
-    k2_effz = k2 * dot(-conj(n), direction2)
+        direction1 = transmission_direction(k1, k * psource.direction, n)
+        direction2 = direction1
 
-    rθφ = cartesian_to_radial_coordinates(psource.direction);
+        kz = k * dot(-conj(n), psource.direction)
+        k1_effz = k1 * dot(-conj(n), direction1)
+        k2_effz = k2 * dot(-conj(n), direction2)
 
-    Ys = spherical_harmonics(basis_order, rθφ[2], rθφ[3]);
-    lm_to_n = lm_to_spherical_harmonic_index
+        rθφ = cartesian_to_radial_coordinates(psource.direction);
 
-    I1(F::Array{Complex{T}}, k_effz::Complex{T}) = sum(
-        - F[lm_to_n(dl,dm),j,p] * Ys[lm_to_n(dl,dm)] * im^T(dl+1) * T(2π) * T(-1)^dl *
-        exp(im * (k_effz - kz)*(Z1 + outer_radius(material.microstructure.species[j]))) *
-        scale_number_density * number_density(material.microstructure.species[j]) / (k*kz * (kz - k_effz))
-    for p = 1:size(F,3), dl = 0:basis_order for dm = -dl:dl, j in eachindex(material.microstructure.species))
+        Ys = spherical_harmonics(basis_order, rθφ[2], rθφ[3]);
+        lm_to_n = lm_to_spherical_harmonic_index
 
-    I2(F::Array{Complex{T}}, k_effz::Complex{T}) = sum(
-        - F[lm_to_n(dl,dm),j,p] * Ys[lm_to_n(dl,dm)] * im^T(dl+1) * T(2π) * T(-1)^dm *
-        exp(im * (k_effz + kz)*(Z2 - outer_radius(material.microstructure.species[j]))) *
-        scale_number_density * number_density(material.microstructure.species[j]) / (k*kz * (kz + k_effz))
-    for p = 1:size(F,3), dl = 0:basis_order for dm = -dl:dl, j in eachindex(material.microstructure.species))
+        I1(F::Array{Complex{T}}, k_effz::Complex{T}) = sum(
+            - F[lm_to_n(dl,dm),j,p] * Ys[lm_to_n(dl,dm)] * im^T(dl+1) * T(2π) * T(-1)^dl *
+            exp(im * (k_effz - kz)*(Z1 + outer_radius(material.microstructure.species[j]))) *
+            scale_number_density * number_density(material.microstructure.species[j]) / (k*kz * (kz - k_effz))
+        for p = 1:size(F,3), dl = 0:basis_order for dm = -dl:dl, j in eachindex(material.microstructure.species))
 
-    MIs = [I1(eigvectors1,k1_effz) I1(eigvectors2,k2_effz);
-           I2(eigvectors1,k1_effz) I2(eigvectors2,k2_effz)]
+        I2(F::Array{Complex{T}}, k_effz::Complex{T}) = sum(
+            - F[lm_to_n(dl,dm),j,p] * Ys[lm_to_n(dl,dm)] * im^T(dl+1) * T(2π) * T(-1)^dm *
+            exp(im * (k_effz + kz)*(Z2 - outer_radius(material.microstructure.species[j]))) *
+            scale_number_density * number_density(material.microstructure.species[j]) / (k*kz * (kz + k_effz))
+        for p = 1:size(F,3), dl = 0:basis_order for dm = -dl:dl, j in eachindex(material.microstructure.species))
 
-    forcing = [ - field(psource,zeros(T,3),ω), T(0)]
+        MIs = [I1(eigvectors1,k1_effz) I1(eigvectors2,k2_effz);
+               I2(eigvectors1,k1_effz) I2(eigvectors2,k2_effz)]
 
-    α = MIs \ forcing
+        forcing = [ - field(psource,zeros(T,3),ω), T(0)]
 
-    return α
+        α = MIs \ forcing
+
+        return α
+    
+    else
+
+        # Setting parameters
+        ρ = psource.medium.ρ
+        ρ0 = material.microstructure.medium.ρ
+        c = psource.medium.c
+        c0 = material.microstructure.medium.c
+        k = ω / c
+        k0 = ω / c0
+        species = material.microstructure.species
+        rs = outer_radius.(species)
+        nf = number_density.(species)
+        F_p = eigvectors1
+        F_m = eigvectors2
+        Z = material.shape.width
+        G = field(psource, zeros(T, 3), ω)
+
+        if (c0 != real(c0) || c != real(c))
+            @warn "The case of complex wavespeed has not been fully implemented for two medium case, using real part of wavespeeds instead."
+        end
+
+        # First we calculate the outward pointing normal
+        n = material.shape.normal
+        if norm(dot(n, psource.direction)) != norm(n) * norm(psource.direction)
+            @warn "Only normal incidence has been implemented yet for a two medium plate case. Only normal direction of the plane wave will contribute to reflection and transmission."
+        end
+        n = -n .* sign(real(dot(n, psource.direction)))
+
+        # calculate the distances from the origin to the two faces of the plate
+        Z0 = dot(-n, material.shape.origin)
+        Z1 = Z0 - Z / 2
+        Z2 = Z0 + Z / 2
+
+        # next the components of the wavenumbers in the direction of the inward normal
+        kz = k * dot(-conj(n), psource.direction)
+        k0z = sqrt(k0^2 - (k^2 - kz^2))
+
+        # Needs adjustments for complex wavespeeds
+        direction_k0 = real(k) * (psource.direction - dot(-conj(n), psource.direction) * psource.direction)
+        direction_k0 = direction_k0 + real(k0z) * dot(-conj(n), psource.direction) * psource.direction
+        direction_k0 = direction_k0 / norm(direction_k0)
+
+        direction = transmission_direction(k_eff, k * psource.direction, n)
+
+        k_effz_p = k_eff * dot(-conj(n), direction)
+        k_effz_m = -k_effz_p
+
+        # Needed coefficients
+        Δ = 2 * k * k0 * ρ * ρ0 * cos(k0*Z) - 1im * ((k0 * ρ)^2 + (k * ρ0)^2 * sin(k0 * Z))
+        D_p = k0 * ρ * (k0 * ρ + k * ρ0) / Δ
+        D_m = k0 * ρ * (k0 * ρ - k * ρ0) / Δ
+        D_1 = ((k0 * ρ)^2 - (k * ρ0)^2) / 2Δ
+        D_2 = (k0 * ρ - k * ρ0)^2 / 2Δ
+        γ0 = k * ρ0 / (k0 * ρ)
+
+        rθφ = cartesian_to_radial_coordinates(direction)
+
+        Ys = spherical_harmonics(basis_order, rθφ[2], rθφ[3])
+        lm_to_n = lm_to_spherical_harmonic_index
+
+        Pr(x::Complex{T}, y::Complex{T}, r::Float64) = exp(2im * (x + y) / Z) * sin((x + y) * (Z / 2 - r)) / (x + y)
+
+        Bp(F::Array{Complex{T}}, p_or_m::Int) = (4π / (k0^2)) * sum(
+            1im^(-T(l)) * Ys[lm_to_n(l, m)] * Pr(p_or_m * k_eff, -k0, rs[j]) * F[lm_to_n(l, m), j, p] * nf[j]
+        for p = 1:size(F, 3), l = 0:basis_order for m = -l:l, j in eachindex(species))
+
+        Bm(F::Array{Complex{T}}, p_or_m::Int) = (4π / (k0^2)) * sum(
+            1im^(T(l)) * Ys[lm_to_n(l, m)] * Pr(p_or_m * k_eff, k0, rs[j]) * F[lm_to_n(l, m), j, p] * nf[j]
+        for p = 1:size(F, 3), l = 0:basis_order for m = -l:l, j in eachindex(species))
+
+        Iu(F::Array{Complex{T}}, p_or_m::Int) = 4π * sum(
+            1im^(-T(dl)) * Ys[lm_to_n(dl, dm)] * exp(1im * (k0 + p_or_m * k_eff) * rs[j]) * (k_eff + p_or_m * k0) * F[lm_to_n(dl, dm), j, p] * nf[j]
+        for p = 1:size(F, 3), dl = 0:basis_order for dm = -dl:dl, j in eachindex(species))
+
+        Il(F::Array{Complex{T}}, p_or_m::Int) = 4π * sum(
+            1im^(T(dl)) * Ys[lm_to_n(dl, dm)] * exp(1im * (k0 + p_or_m * k_eff) * (Z - rs[j])) * (k_eff - p_or_m * k0) * F[lm_to_n(dl, dm), j, p] * nf[j]
+        for p = 1:size(F, 3), dl = 0:basis_order for dm = -dl:dl, j in eachindex(species))
+
+        MI11 = D_2 * Bp(F_p, 1) * exp(1im * k0 * Z) + D_1 * Bm(F_p, 1) * exp(-1im * k0 * Z) - Iu(F_p, 1)
+        MI12 = D_2 * Bp(F_m, -1) * exp(1im * k0 * Z) + D_1 * Bm(F_m, -1) * exp(-1im * k0 * Z) - Iu(F_m, -1)
+        MI21 = (D_1 * Bp(F_p, 1) + D_2 * Bm(F_p, 1)) * exp(1im * k0 * Z) + Il(F_p, 1)
+        MI22 = (D_1 * Bp(F_m, -1) + D_2 * Bm(F_m, -1)) * exp(1im * k0 * Z) + Il(F_m, -1)
+
+        MIs = [MI11 MI12; MI21 MI22]
+
+        forcing = G * γ0 * [D_p * exp(-1im * k0 * Z), D_m * exp(1im * k0 * Z)]
+
+        α = MIs \ forcing
+
+        return α
+
+    end    
 
 end

@@ -122,68 +122,144 @@ end
 
 function reflection_transmission_coefficients(wavemodes::Vector{E}, psource::PlaneSource{T,3,1,Acoustic{T,3}}, material::Material{Plate{T,3}}) where {T<:AbstractFloat,Dim, E<:EffectivePlaneWaveMode{T,Dim}}
 
-    if psource.medium != material.microstructure.medium @error mismatched_medium end
+    if psource.medium != material.microstructure.medium
 
-    # Unpacking parameters
-    ω = wavemodes[1].ω
-    k = ω / psource.medium.c
+        # Unpacking parameters
+        ρ = psource.medium.ρ
+        ρ0 = material.microstructure.medium.ρ
+        c = psource.medium.c
+        c0 = material.microstructure.medium.c
+        ω = wavemodes[1].ω
+        k = ω / c
+        k0 = ω / c0
+        k_eff = wavemodes[1].wavenumber
+        Z = material.shape.width
+        G = field(psource, zeros(T, 3), ω)
 
+        species = material.microstructure.species
+        S = length(species)
+        rs = outer_radius.(species)
+        nf = number_density.(species)
 
-    species = material.microstructure.species
-    S = length(species)
-    rs = outer_radius.(species)
+        basis_order = maximum(w.basis_order for w in wavemodes)
+        if basis_order != minimum(w.basis_order for w in wavemodes)
+            @error "expected wavemodes to have the same basis_order"
+        end
 
-    basis_order = maximum(w.basis_order for w in wavemodes)
-    if basis_order != minimum(w.basis_order for w in wavemodes)
-        @error "expected wavemodes to have the same basis_order"
+        ls, ms = spherical_harmonics_indices(basis_order)
+
+        # make the normal outward pointing
+        plate = material.shape
+        n = plate.normal / norm(plate.normal)
+        if real(dot(n,psource.direction)) > 0
+            n = -n
+        end
+
+        rθφ = cartesian_to_radial_coordinates(psource.direction)
+        Ys = spherical_harmonics(basis_order, rθφ[2], rθφ[3])
+        lm_to_n = lm_to_spherical_harmonic_index
+
+        Z0 = dot(-n,plate.origin)
+        Z1 = Z0 - Z / 2
+        Z2 = Z0 + Z / 2
+
+        kz = k * dot(- conj(n), psource.direction)
+        k0z = sqrt(k0^2 - k^2 + kz^2)
+
+        # Needed coefficients
+        Δ = 2 * k * k0 * ρ * ρ0 * cos(k0 * Z) - 1im * ((k0 * ρ)^2 + (k * ρ0)^2 * sin(k0 * Z))
+        D_p = k0 * ρ * (k0 * ρ + k * ρ0) / Δ
+        D_m = k0 * ρ * (k0 * ρ - k * ρ0) / Δ
+        D_0 = 2 * k * k0 * ρ * ρ0 / Δ
+        D_1 = ((k0 * ρ)^2 - (k * ρ0)^2) / 2Δ
+
+        Pr(x::Complex{T}, y::Complex{T}, r::T) = exp(2im * (x + y) / Z) * sin((x + y) * (Z / 2 - r)) / (x + y)
+
+        Bp(Fp::Array{Complex{T}}, Fm::Array{Complex{T}}) = (4π / (k0 * k0z)) * sum(
+            1im^(-T(l)) * Ys[lm_to_n(l, m)] * (Pr(k_eff, -k0, rs[j]) * Fp[lm_to_n(l, m), j, p] +
+                                            Pr(-k_eff, -k0, rs[j]) * Fm[lm_to_n(l, m), j, p]) * nf[j]
+        for p = 1:size(Fp, 3), l = 0:basis_order for m = -l:l, j in eachindex(species))
+
+        Bm(Fp::Array{Complex{T}}, Fm::Array{Complex{T}}) = (4π / (k0 * k0z)) * sum(
+            1im^(T(l)) * Ys[lm_to_n(l, m)] * (Pr(k_eff, k0, rs[j]) * Fp[lm_to_n(l, m), j, p] +
+                                         Pr(-k_eff, k0, rs[j]) * Fm[lm_to_n(l, m), j, p]) * nf[j]
+        for p = 1:size(Fp, 3), l = 0:basis_order for m = -l:l, j in eachindex(species))
+
+        Ramp = D_p * Bm(wavemodes[1].eigenvectors, wavemodes[2].eigenvectors) * exp(-1im * k0 * Z) +
+               D_m * Bp(wavemodes[1].eigenvectors, wavemodes[2].eigenvectors) * exp(1im * k0 * Z) + 
+               2im * D_1 * G * sin(k0 * Z)
+
+        Tamp = (D_m * Bm(wavemodes[1].eigenvectors, wavemodes[2].eigenvectors) +
+                D_p * Bp(wavemodes[1].eigenvectors, wavemodes[2].eigenvectors) +
+                D_0 * G) * exp(-1im * k * Z)
+
+        # direction_ref = psource.direction - 2 * dot(n,psource.direction) * n
+        # reflected_wave = PlaneSource(psource.medium; direction = direction_ref, amplitude = Ramp)
+        # transmitted_wave = PlaneSource(psource.medium; direction = psource.direction, amplitude = Tamp)
+
+        return [Ramp, Tamp]
+    else
+        # Unpacking parameters
+        ω = wavemodes[1].ω
+        k = ω / psource.medium.c
+        k0 = ω / psource.medium.c
+
+        species = material.microstructure.species
+        S = length(species)
+        rs = outer_radius.(species)
+
+        basis_order = maximum(w.basis_order for w in wavemodes)
+        if basis_order != minimum(w.basis_order for w in wavemodes)
+            @error "expected wavemodes to have the same basis_order"
+        end
+
+        ls, ms = spherical_harmonics_indices(basis_order)
+
+        # make the normal outward pointing
+        plate = material.shape
+        n = plate.normal / norm(plate.normal)
+        if real(dot(n, psource.direction)) > 0
+            n = -n
+        end
+
+        rθφ = cartesian_to_radial_coordinates(psource.direction)
+        Ys = spherical_harmonics(basis_order, rθφ[2], rθφ[3])
+
+        Z0 = dot(-n, plate.origin)
+        Z1 = Z0 - plate.width / 2
+        Z2 = Z0 + plate.width / 2
+
+        kz = k * dot(-conj(n), psource.direction)
+
+        RTs = map(wavemodes) do w
+            kpz = w.wavenumber * dot(-conj(n), w.direction)
+
+            Rp = sum(
+                number_density(species[i[2]]) * w.eigenvectors[i] * 2pi * (1.0im)^(ls[i[1]] - 1) * (-1.0)^ms[i[1]] *
+                Ys[i[1]] * (exp(im * (kpz + kz) * (Z2 - rs[i[2]])) - exp(im * (kpz + kz) * (Z1 + rs[i[2]]))) /
+                ((kz + kpz) * k * kz)
+                for i in CartesianIndices(w.eigenvectors))
+
+            Tp = sum(
+                number_density(species[i[2]]) * w.eigenvectors[i] * 2pi * (-1.0)^ls[i[1]] * (1.0im)^(ls[i[1]] + 1) *
+                Ys[i[1]] * (exp(im * (kpz - kz) * (Z2 - rs[i[2]])) - exp(im * (kpz - kz) * (Z1 + rs[i[2]]))) /
+                ((kz - kpz) * k * kz)
+                for i in CartesianIndices(w.eigenvectors))
+
+            [Rp, Tp]
+        end
+
+        Ramp, Tamp = (sum(RTs) + [0.0, 1.0]) .* field(psource, zeros(T, 3), ω)
+
+        Ramp = Ramp * exp(im * kz * Z1)
+        Tamp = Tamp * exp(im * kz * Z2)
+
+        # direction_ref = psource.direction - 2 * dot(n,psource.direction) * n
+        # reflected_wave = PlaneSource(psource.medium; direction = direction_ref, amplitude = Ramp)
+        # transmitted_wave = PlaneSource(psource.medium; direction = psource.direction, amplitude = Tamp)
+
+        return [Ramp, Tamp]
     end
-
-    ls, ms = spherical_harmonics_indices(basis_order)
-
-    # make the normal outward pointing
-    plate = material.shape
-    n = plate.normal / norm(plate.normal)
-    if real(dot(n,psource.direction)) > 0
-        n = -n
-    end
-
-    rθφ = cartesian_to_radial_coordinates(psource.direction)
-    Ys = spherical_harmonics(basis_order, rθφ[2], rθφ[3]);
-
-    Z0 = dot(-n,plate.origin)
-    Z1 = Z0 - plate.width / 2
-    Z2 = Z0 + plate.width / 2
-
-    kz = k * dot(- conj(n), psource.direction)
-
-    RTs = map(wavemodes) do w
-        kpz = w.wavenumber * dot(- conj(n), w.direction)
-
-        Rp = sum(
-            number_density(species[i[2]]) * w.eigenvectors[i] * 2pi * (1.0im)^(ls[i[1]]-1) * (-1.0)^ms[i[1]] *
-            Ys[i[1]] * (exp(im*(kpz + kz)*(Z2 - rs[i[2]])) - exp(im*(kpz + kz)*(Z1 + rs[i[2]]))) /
-            ((kz + kpz) * k * kz)
-        for i in CartesianIndices(w.eigenvectors))
-
-        Tp = sum(
-            number_density(species[i[2]]) * w.eigenvectors[i] * 2pi * (-1.0)^ls[i[1]] * (1.0im)^(ls[i[1]]+1) *
-            Ys[i[1]] * (exp(im*(kpz - kz)*(Z2 - rs[i[2]])) - exp(im*(kpz - kz)*(Z1 + rs[i[2]]))) /
-            ((kz - kpz) * k * kz)
-        for i in CartesianIndices(w.eigenvectors))
-
-        [Rp, Tp]
-    end
-
-    Ramp, Tamp = (sum(RTs) + [0.0,1.0]) .* field(psource,zeros(T,3),ω)
-
-    Ramp = Ramp * exp(im * kz * Z1)
-    Tamp = Tamp * exp(im * kz * Z2)
-
-    # direction_ref = psource.direction - 2 * dot(n,psource.direction) * n
-    # reflected_wave = PlaneSource(psource.medium; direction = direction_ref, amplitude = Ramp)
-    # transmitted_wave = PlaneSource(psource.medium; direction = psource.direction, amplitude = Tamp)
-
-    return [Ramp, Tamp]
 end
 
 # function F0(S,j,l,m,n)
