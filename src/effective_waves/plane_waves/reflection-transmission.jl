@@ -167,20 +167,20 @@ function reflection_transmission_coefficients(wavemodes::Vector{E}, psource::Pla
         k0z = sqrt(k0^2 - k^2 + kz^2)
 
         # Needed coefficients
-        Δ = 2 * k * k0 * ρ * ρ0 * cos(k0 * Z) - 1im * ((k0 * ρ)^2 + (k * ρ0)^2 * sin(k0 * Z))
+        Δ = 2 * k * k0 * ρ * ρ0 * cos(k0 * Z) - 1im * ((k0 * ρ)^2 + (k * ρ0)^2) * sin(k0 * Z)
         D_p = k0 * ρ * (k0 * ρ + k * ρ0) / Δ
         D_m = k0 * ρ * (k0 * ρ - k * ρ0) / Δ
         D_0 = 2 * k * k0 * ρ * ρ0 / Δ
         D_1 = ((k0 * ρ)^2 - (k * ρ0)^2) / 2Δ
 
-        Pr(x::Complex{T}, y::Complex{T}, r::T) = exp(2im * (x + y) / Z) * sin((x + y) * (Z / 2 - r)) / (x + y)
+        Pr(x::Complex{T}, y::Complex{T}, r::T) = exp(1im * (x + y) * Z / 2) * sin((x + y) * (Z / 2 - r)) / (x + y)
 
-        Bp(Fp::Array{Complex{T}}, Fm::Array{Complex{T}}) = (4π / (k0 * k0z)) * sum(
+        Bp(Fp::Array{Complex{T}}, Fm::Array{Complex{T}}) = (4π / (k0^2)) * sum(
             1im^(-T(l)) * Ys[lm_to_n(l, m)] * (Pr(k_eff, -k0, rs[j]) * Fp[lm_to_n(l, m), j, p] +
                                             Pr(-k_eff, -k0, rs[j]) * Fm[lm_to_n(l, m), j, p]) * nf[j]
         for p = 1:size(Fp, 3), l = 0:basis_order for m = -l:l, j in eachindex(species))
 
-        Bm(Fp::Array{Complex{T}}, Fm::Array{Complex{T}}) = (4π / (k0 * k0z)) * sum(
+        Bm(Fp::Array{Complex{T}}, Fm::Array{Complex{T}}) = (4π / (k0^2)) * sum(
             1im^(T(l)) * Ys[lm_to_n(l, m)] * (Pr(k_eff, k0, rs[j]) * Fp[lm_to_n(l, m), j, p] +
                                          Pr(-k_eff, k0, rs[j]) * Fm[lm_to_n(l, m), j, p]) * nf[j]
         for p = 1:size(Fp, 3), l = 0:basis_order for m = -l:l, j in eachindex(species))
@@ -192,10 +192,6 @@ function reflection_transmission_coefficients(wavemodes::Vector{E}, psource::Pla
         Tamp = (D_m * Bm(wavemodes[1].eigenvectors, wavemodes[2].eigenvectors) +
                 D_p * Bp(wavemodes[1].eigenvectors, wavemodes[2].eigenvectors) +
                 D_0 * G) * exp(-1im * k * Z)
-
-        # direction_ref = psource.direction - 2 * dot(n,psource.direction) * n
-        # reflected_wave = PlaneSource(psource.medium; direction = direction_ref, amplitude = Ramp)
-        # transmitted_wave = PlaneSource(psource.medium; direction = psource.direction, amplitude = Tamp)
 
         return [Ramp, Tamp]
     else
