@@ -237,26 +237,14 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors1::Array{C
         Z1 = Z0 - Z / 2
         Z2 = Z0 + Z / 2
 
-        # next the components of the wavenumbers in the direction of the inward normal
-        kz = k * dot(-conj(n), psource.direction)
-        k0z = sqrt(k0^2 - (k^2 - kz^2))
-
-        # Needs adjustments for complex wavespeeds
-        direction_k0 = real(k) * (psource.direction - dot(-conj(n), psource.direction) * psource.direction)
-        direction_k0 = direction_k0 + real(k0z) * dot(-conj(n), psource.direction) * psource.direction
-        direction_k0 = direction_k0 / norm(direction_k0)
-
-        direction = transmission_direction(k_eff, k * psource.direction, n)
-
-        k_effz_p = k_eff * dot(-conj(n), direction)
-        k_effz_m = -k_effz_p
+        direction = [0.0, 0.0, 1.0]
 
         # Needed coefficients
-        Δ = 2 * k * k0 * ρ * ρ0 * cos(k0*Z) - 1im * ((k0 * ρ)^2 + (k * ρ0)^2) * sin(k0 * Z)
+        Δ = 2 * k * k0 * ρ * ρ0 * cos(k0 * Z) - 1im * ((k0 * ρ)^2 + (k * ρ0)^2) * sin(k0 * Z)
         D_p = k0 * ρ * (k0 * ρ + k * ρ0) / Δ
         D_m = k0 * ρ * (k0 * ρ - k * ρ0) / Δ
-        D_1 = ((k0 * ρ)^2 - (k * ρ0)^2) / 2Δ
-        D_2 = (k0 * ρ - k * ρ0)^2 / 2Δ
+        D_1 = ((k0 * ρ)^2 - (k * ρ0)^2) / (2 * Δ)
+        D_2 = (k0 * ρ - k * ρ0)^2 / (2 * Δ)
         γ0 = k * ρ0 / (k0 * ρ)
 
         rθφ = cartesian_to_radial_coordinates(direction)

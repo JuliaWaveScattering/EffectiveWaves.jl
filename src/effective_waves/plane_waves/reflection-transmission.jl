@@ -171,7 +171,7 @@ function reflection_transmission_coefficients(wavemodes::Vector{E}, psource::Pla
         D_p = k0 * ρ * (k0 * ρ + k * ρ0) / Δ
         D_m = k0 * ρ * (k0 * ρ - k * ρ0) / Δ
         D_0 = 2 * k * k0 * ρ * ρ0 / Δ
-        D_1 = ((k0 * ρ)^2 - (k * ρ0)^2) / 2Δ
+        D_1 = ((k0 * ρ)^2 - (k * ρ0)^2) / (2 * Δ)
 
         Pr(x::Complex{T}, y::Complex{T}, r::T) = exp(1im * (x + y) * Z / 2) * sin((x + y) * (Z / 2 - r)) / (x + y)
 
@@ -193,7 +193,7 @@ function reflection_transmission_coefficients(wavemodes::Vector{E}, psource::Pla
                 D_p * Bp(wavemodes[1].eigenvectors, wavemodes[2].eigenvectors) +
                 D_0 * G) * exp(-1im * k * Z)
 
-        return [Ramp, Tamp]
+        return [Ramp, Tamp * exp(im * kz * Z2)]
     else
         # Unpacking parameters
         ω = wavemodes[1].ω
