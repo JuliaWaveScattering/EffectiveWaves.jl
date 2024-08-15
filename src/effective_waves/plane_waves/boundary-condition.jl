@@ -263,15 +263,15 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors1::Array{C
         for p = 1:size(F, 3), l = 0:basis_order for m = -l:l, j in eachindex(species))
 
         Iu(F::Array{Complex{T}}, p_or_m::Int) = (2π / (k0^2)) * sum(
-            1im^(-T(dl)) * Ys[lm_to_n(dl, dm)] * exp(1im * (p_or_m * k_eff - k0) * rs[j]) * F[lm_to_n(dl, dm), j, p] * nf[j] / (k_eff - p_or_m * k0)
+            1im^(-T(dl)) * Ys[lm_to_n(dl, dm)] * exp(1im * (p_or_m * k_eff - k0) * rs[j]) * F[lm_to_n(dl, dm), j, p] * nf[j] / (k0 - p_or_m * k_eff)
         for p = 1:size(F, 3), dl = 0:basis_order for dm = -dl:dl, j in eachindex(species))
 
         Il(F::Array{Complex{T}}, p_or_m::Int) = (2π / (k0^2)) * sum(
-            1im^(T(dl)) * Ys[lm_to_n(dl, dm)] * exp(1im * (p_or_m * k_eff + k0) * (Z - rs[j])) * F[lm_to_n(dl, dm), j, p] * nf[j] / (k_eff + p_or_m * k0)
+            1im^(T(dl)) * Ys[lm_to_n(dl, dm)] * exp(1im * (p_or_m * k_eff + k0) * (Z - rs[j])) * F[lm_to_n(dl, dm), j, p] * nf[j] / (k0 + p_or_m * k_eff)
         for p = 1:size(F, 3), dl = 0:basis_order for dm = -dl:dl, j in eachindex(species))
 
-        MI11 = D_2 * Bp(F_p, 1) * exp(1im * k0 * Z) + D_1 * Bm(F_p, 1) * exp(-1im * k0 * Z) + 1im * Iu(F_p, 1)
-        MI12 = D_2 * Bp(F_m, -1) * exp(1im * k0 * Z) + D_1 * Bm(F_m, -1) * exp(-1im * k0 * Z) + 1im * Iu(F_m, -1)
+        MI11 = D_2 * Bp(F_p, 1) * exp(1im * k0 * Z) + D_1 * Bm(F_p, 1) * exp(-1im * k0 * Z) - 1im * Iu(F_p, 1)
+        MI12 = D_2 * Bp(F_m, -1) * exp(1im * k0 * Z) + D_1 * Bm(F_m, -1) * exp(-1im * k0 * Z) - 1im * Iu(F_m, -1)
         MI21 = (D_1 * Bp(F_p, 1) + D_2 * Bm(F_p, 1)) * exp(1im * k0 * Z) - 1im * Il(F_p, 1)
         MI22 = (D_1 * Bp(F_m, -1) + D_2 * Bm(F_m, -1)) * exp(1im * k0 * Z) - 1im * Il(F_m, -1)
 

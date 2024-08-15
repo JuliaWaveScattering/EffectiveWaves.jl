@@ -191,9 +191,9 @@ function reflection_transmission_coefficients(wavemodes::Vector{E}, psource::Pla
 
         Tamp = (D_m * Bm(wavemodes[1].eigenvectors, wavemodes[2].eigenvectors) +
                 D_p * Bp(wavemodes[1].eigenvectors, wavemodes[2].eigenvectors) +
-                D_0 * G) * exp(-1im * k * Z)
+                D_0 * G)
 
-        return [Ramp, Tamp * exp(im * kz * Z2)]
+        return [Ramp, Tamp] * exp(im * k * Z1)
     else
         # Unpacking parameters
         ω = wavemodes[1].ω
