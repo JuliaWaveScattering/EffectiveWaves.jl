@@ -29,6 +29,9 @@ include("complex.jl")
 
     include("pair-correlation.jl")
 
+# Eigensystems and fields for the case of two media
+    include("acoustics-3D/Two-media/planar-symmetry.jl")
+
 # test equivalence between methods for finding wavenumbers
     # test does not run on Julia version < 0.7 due to differences in Optim versions
     # include("path_mesh_wavenumbers.jl")
