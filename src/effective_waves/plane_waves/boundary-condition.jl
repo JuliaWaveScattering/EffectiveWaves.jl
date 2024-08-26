@@ -84,7 +84,7 @@ function solve_boundary_condition(ω::T, k_eff::Complex{T}, eigvectors::Array{Co
         k0 = ω / c0
         species = material.microstructure.species
         rs = outer_radius.(species)
-        nf = number_density(material.microstructure.species)
+        nf = number_density.(material.microstructure.species)
         Fs = eigvectors
         M = size(Fs,3)
 
