@@ -1,7 +1,7 @@
 name = "EffectiveWaves"
 uuid = "37e8709b-1ed2-53db-b26a-3571262b3cb4"
-authors = ["Artur L. Gower <arturgower@gmail.com>"]
 version = "0.3.6"
+authors = ["Artur L. Gower <arturgower@gmail.com>"]
 
 [deps]
 Accessors = "7d9f7c33-5ae7-4f3b-8dc6-eff91059b697"
@@ -27,7 +27,7 @@ Accessors = "^0.1"
 CSV = "^0.10"
 ClassicalOrthogonalPolynomials = "0.3 - 0.11"
 HCubature = "1"
-Interpolations = "0.12, ^0.13"
+Interpolations = "0.12, ^0.13, 0.16"
 IterTools = "1"
 MDBM = "0.1"
 MultipleScattering = "^0.1.22"
