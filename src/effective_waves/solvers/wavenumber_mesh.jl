@@ -53,7 +53,7 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, micro::Microstructu
 
     new_ks = [
         optimize(dispersion, lower, upper, kvec,
-            Fminbox(inner_optimizer), Optim.Options(x_tol=low_tol, g_tol = low_tol^3)).minimizer
+            Fminbox(inner_optimizer), Optim.Options(x_abstol=low_tol, g_tol = low_tol^3)).minimizer
     for kvec in k_mesh]
     deleteat!(new_ks, findall(dispersion.(new_ks) .> low_tol))
     new_ks = reduce_kvecs(new_ks, low_tol)
@@ -62,9 +62,9 @@ function wavenumbers_mesh(ω::T, k_effs::Vector{Complex{T}}, micro::Microstructu
 
     # Here we refine the new roots
     new_ks = map(new_ks) do k_vec
-        # res = optimize(dispersion, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_tol=tol)
+        # res = optimize(dispersion, k_vec; g_tol = tol^2.0, f_tol = tol^4.0, x_abstol=tol)
         res = optimize(dispersion, lower, upper, k_vec, Fminbox(inner_optimizer),
-            Optim.Options(g_tol = tol^3.0, x_tol=tol))
+            Optim.Options(g_tol = tol^3.0, x_abstol=tol))
         if res.minimum < T(100)*tol || (Optim.converged(res) && res.minimum < T(10)*low_tol)
             res.minimizer
         else

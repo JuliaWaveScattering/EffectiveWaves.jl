@@ -132,8 +132,6 @@ end
 calculate effective transmission angle θ_eff. We restrict -pi/2 < Re θ_eff < pi/2 for 2 dimensions.
 """
 function transmission_angle_wiener(k::Union{T,Complex{T}}, k_eff::Union{T,Complex{T}}, θin) where T<:Number
-    # snell(θ::Array{T}) = abs(k*sin(θin) - k_eff*sin(θ[1] + im*θ[2]))
-    # result = optimize(snell, [θin,0.]; x_tol= tol, g_tol= tol^2.0)
 
     θ_eff = asin(k * sin(θin) / k_eff)
 

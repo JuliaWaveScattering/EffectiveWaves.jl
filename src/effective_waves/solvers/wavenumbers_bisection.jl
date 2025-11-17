@@ -7,7 +7,7 @@ function wavenumbers_bisection(ω::T, micro::Microstructure{Dim};
         bisection_mesh_points::Int = Int(round(2 - log(tol))) + 25 * num_wavenumbers,
         fixedparameters::Optim.FixedParameters = NelderMeadparameters(),
         optimoptions::Optim.Options{T} = Optim.Options(
-            g_tol = tol^T(3), x_tol=tol^T(2),
+            g_tol = tol^T(3), x_abstol=tol^T(2),
             iterations = 800 - Int(round(log(tol)*40))
         ),
         kws...) where {T,Dim}

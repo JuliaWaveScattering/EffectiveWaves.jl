@@ -96,9 +96,10 @@ end
     material = Material(medium,Sphere(R),species);
 
     opts = Dict(
-        :tol => tol, :num_wavenumbers => 3,
+        :tol => tol, :num_wavenumbers => 2,
         :mesh_size => 1.0, :mesh_points => 10,
-        :basis_order => basis_order, :basis_field_order => basis_field_order, 
+        :basis_order => basis_order, 
+        :basis_field_order => basis_field_order, 
         :symmetry => PlanarAzimuthalSymmetry()
         # , :numberofparticles => material.numberofparticles
     );

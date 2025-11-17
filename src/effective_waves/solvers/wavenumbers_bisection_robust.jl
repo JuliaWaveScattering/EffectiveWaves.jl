@@ -8,7 +8,7 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
         bisection_iteration::Int = Int(round(-log(tol) / 3)),
         fixedparameters::Optim.FixedParameters = NelderMeadparameters(),
         optimoptions::Optim.Options{T} = Optim.Options(
-            g_tol = tol^T(3), x_tol=tol^T(2),
+            g_tol = tol^T(3), x_abstol=tol^T(2),
             iterations = 1000 + Int(round(log(tol)*20))
         ),
         kws...) where {T,Dim}

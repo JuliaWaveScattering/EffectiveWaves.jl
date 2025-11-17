@@ -10,7 +10,7 @@ function wavenumbers_refine(ω::T, medium::Medium, species::Species;
     k_vecs = [[real(kp),imag(kp)] for kp in k_effs]
 
     k_vecs = map(k_vecs) do k_vec
-       res = optimize(dispersion, k_vec, Optim.Options(iterations = 10 * Int(abs(round(log(tol)))), g_tol = tol^3.0, x_tol=tol))
+       res = optimize(dispersion, k_vec, Optim.Options(iterations = 10 * Int(abs(round(log(tol)))), g_tol = tol^3.0, x_abstol=tol))
        if res.minimum > T(100)*tol
            [zero(T),-one(T)]
        else
