@@ -14,7 +14,6 @@ end
 
 function kernelW3D(k::Union{T,Complex{T}}, keff::Complex{T}, ps::AbstractMatrix{DP}, basis_order::Int) where {T<:AbstractFloat, DP <: DiscretePairCorrelation}
 
-    S = size(ps,1)
     r = ps[1].r
 
     σ = integration_scheme(r)

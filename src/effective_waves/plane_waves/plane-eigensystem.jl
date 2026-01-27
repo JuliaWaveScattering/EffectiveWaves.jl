@@ -34,9 +34,9 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{2}, ::AbstractPlana
         micro.paircorrelations[i,j].minimal_distance
     for i in eachindex(sps), j in eachindex(sps)]
 
-    if length(micro.paircorrelations[1].r) > 1
-        pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
-    end
+    # if length(micro.paircorrelations[1].r) > 1
+    #     pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
+    # end
 
     function M_component(Ns,s1,s2,m,n)
         (n == m ? 1.0 : 0.0)*(s1 == s2 ? 1.0 : 0.0) + 2.0pi * number_density(sps[s2]) * t_matrices[s1][m+ho+1,m+ho+1] * Ns[n-m + 2ho+1,s1,s2]
@@ -50,7 +50,6 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{2}, ::AbstractPlana
 
         # For a pair correlation which is not hole correction need to add a finite integral
         if length(micro.paircorrelations[1].r) > 1
-            # Ns = Ns - kernelW2D(k, keff, pair_rs, gs, hks, basis_order)
             Ns = Ns - kernelW2D(k, keff, micro.paircorrelations, ho)
         end
 
@@ -108,9 +107,9 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::AbstractPlana
         micro.paircorrelations[i,j].minimal_distance
     for i in eachindex(species), j in eachindex(species)]
 
-    if length(micro.paircorrelations[1].r) > 1
-        pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
-    end
+    # if length(micro.paircorrelations[1].r) > 1
+    #     pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
+    # end
 
     function M_component(Ns::Array{Complex{T}},l::Int,m::Int,s1::Int,dl::Int,dm::Int,s2::Int)::Complex{T}
         (m == dm && l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
@@ -170,9 +169,9 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::PlanarAzimuth
 
     # Pre calculations for pair correlation
     # Am going to assume the discrete pair correlation is sampled on the same mesh for every specie. Otherwise the code will be too inefficient.
-    if length(micro.paircorrelations[1].r) > 1
-        pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
-    end
+    # if length(micro.paircorrelations[1].r) > 1
+    #     pair_rs, hks, gs = precalculate_pair_correlations(micro, k, ho)
+    # end
 
     function M_component(Ns::Array{Complex{T}},l,s1,dl,s2)::Complex{T}
         (l == dl && s1 == s2 ? one(Complex{T}) : zero(Complex{T})) +
@@ -192,8 +191,8 @@ function eigensystem(ω::T, micro::ParticulateMicrostructure{3}, ::PlanarAzimuth
 
         # For a pair correlation which is not hole correction need to add a finite integral
         if length(micro.paircorrelations[1].r) > 1
-            Ns = Ns - kernelW3D(k, keff, pair_rs, gs, hks, basis_order) ./ (keff^2.0 - k^2.0)
-            # Ns = Ns - kernelW3D(k, keff, micro.paircorrelations, basis_order)
+            # Ns = Ns - kernelW3D(k, keff, pair_rs, gs, hks, basis_order) ./ (keff^2.0 - k^2.0)
+            Ns = Ns - kernelW3D(k, keff, micro.paircorrelations, basis_order)
         end
 
         ind2 = 1

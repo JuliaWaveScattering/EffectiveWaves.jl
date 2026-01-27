@@ -22,12 +22,12 @@ include("complex.jl")
 
 # Eigensystems for different symmetries (i.e. a sphere fille with particles or a halfspace filled with particles)
     include("acoustics-3D/equivalent-symmetries.jl")
-    include("acoustics-3D/low_volume_fraction.jl")
+    include("acoustics-3D/low_volume_fraction-test.jl")
     include("acoustics-3D/low_frequency.jl")
     include("acoustics-3D/planar-symmetry.jl")
     include("acoustics-3D/sphere.jl")
 
-    include("pair-correlation.jl")
+    include("acoustics-3D/pair-correlation.jl")
 
 # Eigensystems and fields for the case of two media
     include("acoustics-3D/Two-media/planar-symmetry.jl")

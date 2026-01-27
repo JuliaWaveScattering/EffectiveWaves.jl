@@ -23,39 +23,46 @@ function wavenumber_low_volumefraction(ω::T, micro::ParticulateMicrostructure{3
 
     volfrac = volume_fraction(species)
     if volfrac >= 0.4 && verbose
-    @warn("the volume fraction $(round(100*volfrac))% is too high, expect a relative error of approximately $(round(100*volfrac^3.0))%")
+        @warn("the volume fraction $(round(100*volfrac))% is too high, expect a relative error of approximately $(round(100*volfrac^3.0))%")
     end
 
     # background wavenumber
     k = ω / medium.c
-
-    # total particle number density
-    scale_number_density = one(T)
-    bar_numdensity = sum(number_density.(species))
 
     Ts = get_t_matrices(medium, species, ω, basis_order)
 
     # Non-dimensional exclusion distance between particles
     kas = k .* [s1.separation_ratio * outer_radius(s1) + s2.separation_ratio * outer_radius(s2) for s1 in species, s2 in species]
 
+    # Note that Ts_diag[s] is itself a (2*basis_order+1) x (2*basis_order+1) matrix. If Ts_diag[s] is diagonal, with all the elements the same (As it should be for a spherically symmetric particle), then sum(Ts_diag[s]) = Ts_diag[s][1,1] * (2*basis_order + 1)
     Ts_diag = diag.(Ts)
-    fo = scale_number_density * sum(
+    fo = sum(
             sum(Ts_diag[s]) * number_density(species[s])
-    for s in eachindex(species)) / bar_numdensity
+    for s in eachindex(species))
+    K1 = - im * 4pi * fo / k
 
     len(order::Int) = basisorder_to_basislength(Acoustic{T,3},order)
 
-    foo = scale_number_density^2 * sum(
+    # pre-calculate pair-correlation integral. Each ws[l] is an s x s matrix
+    ws = kernelW3D(k, k, micro.paircorrelations, 2*basis_order) 
+
+    # q(x,l) = d3D(x,l) / x - (2k^3)/(x^2) .* ws[l+1][s1,s2] 
+    # x * q(x,l) = d3D(x,l) - (2k^3)/(x) .* ws[l+1][s1,s2] 
+
+    foo = sum(
         sqrt((2l + 1)*(2dl + 1)*(2l1 + 1)) * Complex{T}(im)^(l-dl-l1+1) * gaunt_coefficient(l,0,dl,0,l1,0) *
         sum(
-            kas[s1,s2] * d3D(kas[s1,s2],l1) *
+            kas[s1,s2] * (d3D(kas[s1,s2],l1) - (2k^3)/(kas[s1,s2]) * ws[l1+1,s1,s2]) *
             Ts_diag[s1][len(l)] * Ts_diag[s2][len(dl)] *
             number_density(species[s1]) * number_density(species[s2])
         for s1 in eachindex(species), s2 in eachindex(species))
-    for l = 0:basis_order for dl = 0:basis_order for l1 = abs(l-dl):abs(l+dl)) / Complex{T}(2 * sqrt(4pi) * bar_numdensity^2)
+    for l = 0:basis_order for dl = 0:basis_order for l1 = abs(l-dl):abs(l+dl)) 
+        
+    foo = foo / Complex{T}(2 * sqrt(4pi))
+    K2 = (4pi)^2 * foo / k^4
 
     # effective wavenumber squared up too second order in particle volume fraction
-    kT2::Complex{T} = k^T(2) - im * 4pi * bar_numdensity * fo / k + (4pi)^2 * bar_numdensity^2 * foo / k^4
+    kT2::Complex{T} = k^T(2) + K1 + K2
 
     return (imag(sqrt(kT2)) > zero(T)) ? sqrt(kT2) : -sqrt(kT2)
 end

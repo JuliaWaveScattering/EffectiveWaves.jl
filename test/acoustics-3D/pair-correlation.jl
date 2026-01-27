@@ -3,6 +3,63 @@
 using EffectiveWaves, Test
 using LinearAlgebra
 
+@testset "3D pair-correlation low volume fraction" begin
+
+    # Going to choose an unrealistic pair-correlation which has a significant effect on the effective wavenumber, to test the implementation
+
+    # assume data is given for pair correlation
+    r = 0.5
+    rs = (2r):0.1:(4r)
+
+    # input your data here.
+    g_data = 1.0 .+ sin.(2 .* rs)
+    g_data = 10.0 .+ 0 .* rs
+    dp = DiscretePairCorrelation(3, rs, g_data .- 1.0)
+
+    # pairtype = PercusYevick(3; rtol = 1e-3, meshsize = 0.05, maxlength = 50)
+
+    medium = Acoustic(3; ρ=1.0, c=1.0)
+
+    volfracs = [0.001, 0.01, 0.03, 0.05]
+    data = map(volfracs) do v
+        s = Specie(
+            Acoustic(3; ρ = 10.0, c = 10.0),
+            Sphere(r),
+            volume_fraction = v,
+            separation_ratio = 1.0
+        );
+        # micro = Microstructure(medium, s, pairtype);
+        micro = Microstructure(medium,s,dp)
+        micro_nopair = Microstructure(medium, s);
+
+        ω = 2.2
+        basis_order = 2
+
+        k_lowvol = wavenumber_low_volumefraction(ω, micro;
+            basis_order = basis_order
+        )
+        
+        k_lowvol_nopair = wavenumber_low_volumefraction(ω, micro_nopair;
+            basis_order = basis_order
+        )
+
+        kps_py = wavenumbers(ω, micro;
+            basis_order = basis_order, num_wavenumbers = 4
+        );
+        kps_py[1]
+        abs(k_lowvol - kps_py[1]), abs(k_lowvol_nopair - kps_py[1])
+    end
+
+    errors = [d[1] for d in data]
+    errors_nopair = [d[2] for d in data]
+
+    @test all(errors .< 100.0 .* volfracs .^3)
+    @test all(errors .< errors_nopair)
+
+    # compare the two errors to see that including the pair-correlation reduces the error by approximately a factor of volfrac^2
+    @test all(0.2 .< abs.(errors - errors_nopair) ./ (volfracs .^2) .< 10.0)
+end
+
 @testset "3D pair-correlation" begin
 
     # NOTE: the package has only Percus-Yevick, MonteCarloPairCorrelation, and HoleCorrection implemented
