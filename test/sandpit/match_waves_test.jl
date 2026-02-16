@@ -44,13 +44,6 @@ wave_effs = WaveModes(ω, medium, [specie];
     extinction_rescale = false
 )
 
-# k_effs = [w.wavenumber for w in wave_effs];
-# mesh_ks = wavenumbers_mesh(ω, k_effs, medium, [specie];
-#     basis_order=ho, tol = 1e-7,  θin = θin, verbose = true,
-#     num_wavenumbers = num_wavenumbers,
-#     radius_multiplier = radius_multiplier, mesh_refine = 0.2
-#     );
-
 using Plots; pyplot()
 plot(wave_effs, color=:black)
 plot!(wave_effs[1:num_wavenumbers], markercolor=:white)

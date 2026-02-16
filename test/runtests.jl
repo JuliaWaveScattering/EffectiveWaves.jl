@@ -8,6 +8,7 @@ using ClassicalOrthogonalPolynomials
 end
 
 include("complex.jl")
+# include("wavenumbers-solvers.jl")
 
 # Single effective wavenumber tests
     include("acoustics-2D/strong_low_freq_effective.jl")
@@ -31,10 +32,6 @@ include("complex.jl")
 
 # Eigensystems and fields for the case of two media
     include("acoustics-3D/Two-media/planar-symmetry.jl")
-
-# test equivalence between methods for finding wavenumbers
-    # test does not run on Julia version < 0.7 due to differences in Optim versions
-    # include("path_mesh_wavenumbers.jl")
 
 # Test functions used for the discretisation
     include("discretisation/numerical_integration.jl")
