@@ -3,7 +3,7 @@ function wavenumbers_bisection(ω::T, micro::Microstructure{Dim};
         symmetry::AbstractSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(),
         tol::T = 1e-5,
         num_wavenumbers = 3,
-        box_k::Vector{Vector{T}} = box_keff(ω, medium, micro.species; tol = tol),
+        box_k::Vector{Vector{T}} = box_keff(ω, micro; num_wavenumbers = num_wavenumbers),
         bisection_mesh_points::Int = Int(round(2 - log(tol))) + 25 * num_wavenumbers,
         fixedparameters::Optim.FixedParameters = NelderMeadparameters(),
         optimoptions::Optim.Options{T} = Optim.Options(

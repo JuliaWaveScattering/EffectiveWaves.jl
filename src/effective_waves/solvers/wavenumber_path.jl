@@ -9,7 +9,6 @@ function wavenumbers_path(ω::T, micro::Microstructure{Dim};
         inner_optimizer = NelderMead(; parameters = NelderMeadparameters()),
         optimoptions::Optim.Options{T} = Optim.Options(g_tol = tol^T(3),x_abstol=tol^T(2)),
         k_effs::Vector{Complex{T}} = Complex{T}[],
-        # numberofparticles::T = Inf,
         kws...) where {T,Dim}
 
     if mesh_size > 1 @warn "mesh_size should be smaller than 1" end

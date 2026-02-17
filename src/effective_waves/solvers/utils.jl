@@ -23,25 +23,28 @@
 
 """
     box_keff(ω::T, medium::PhysicalMedium, species::Species;
-            tol::T = 1e-5, min_imag::T = zero(T))
+            num_wavenumbers = 2)
 
-Estimates a box in complex k_eff space where all needed effective wavenumbers, for the given tolerance, are inside.
-""" # Should really use assymptotics for monopole scatterers to properly estimate box size. Would be more robust.
-function box_keff(ω::T, medium::PhysicalMedium, species::Species;
-        tol::T = 1e-5, min_imag::T = zero(T)
+Estimates a box in complex k_eff space that contains the first `num_wavenumbers` effective wavenumbers. Using asymptotic results for monopole scatterers. This is used as a search box for the bisection method.
+"""
+function box_keff(ω::T, micro::Microstructure;
+        num_wavenumbers = 2
     ) where T
+    
+    
+    return if num_wavenumbers > 1
+        k_asyms = asymptotic_monopole_wavenumbers(ω, micro;
+            num_wavenumbers = num_wavenumbers)
+        imag_kmax = maximum(imag.(k_asyms))
+        real_kmax = maximum(abs.(real.(k_asyms)))
 
-    # eff_medium = effective_medium(medium, species)
-    # ko = real(ω / eff_medium.c)
-    # if isnan(ko) ko = real(ω / medium.c) end
-
-    ko = real(ω / medium.c)
-
-    # After two wavelengths distance the solution would be smaller than tol
-    max_imag = - log(tol) * ko / (T(4) * pi)
-    max_real = T(4) * ko
-
-   return [[-max_real,max_real],[min_imag, max_imag]]
+        [[-real_kmax,real_kmax],[T(0), imag_kmax]]
+    else
+        kφ = wavenumber_low_volumefraction(ω, micro;
+            verbose = false
+        )
+        [[-10 * abs(real(kφ)),10 * abs(real(kφ))],[T(0), 10 * imag(kφ)]]
+    end
 end
 
 struct MySimplexer{T<:AbstractFloat} <: Optim.Simplexer

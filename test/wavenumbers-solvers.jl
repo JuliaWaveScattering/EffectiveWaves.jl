@@ -23,6 +23,12 @@ using EffectiveWaves, Test
         tol = tol
     )
     
+
+    k_asyms = asymptotic_monopole_wavenumbers(ω, micro;
+        num_wavenumbers = num_wavenumbers + 2)
+    maximum(imag.(k_asyms))
+    maximum(abs.(real.(k_asyms)))
+
     using Plots
     scatter(real.(k_effs_path),imag.(k_effs_path))
     plot!(xlims = (0.4, 0.8), ylims = (-0.01, 0.3))
@@ -61,8 +67,13 @@ using EffectiveWaves, Test
                  xlabel="Re(kz)", ylabel="Im(kz)",
                  title="Imaginary part of disp(ω=$ω, kz)",
                  c=:balance, clims = (-1,1))
-    
+        
     plot(p1, p2, layout=(2,1), size=(1200, 500))
+
+    p3 = heatmap(kz_real_vals, kz_imag_vals, sqrt.(Z_imag .^2 + Z_real .^2),
+                 xlabel="Re(kz)", ylabel="Im(kz)",
+                 title="Imaginary part of disp(ω=$ω, kz)",
+                 clims = (0,1))
 
     # k_effs_mesh = wavenumbers_mesh(ω, k_effs_path[1:num_wavenumbers], micro;
     #     basis_order=basis_order,
