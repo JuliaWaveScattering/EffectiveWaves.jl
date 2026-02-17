@@ -1,6 +1,7 @@
 # NOTE: PlanarAzimuthalSymmetry() does not include all possible wavenumbers
 function wavenumbers_path(ω::T, micro::Microstructure{Dim};
         symmetry::AbstractSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(),
+        basis_order::Int = 2,
         tol::T = 1e-5,
         mesh_points::Int = 3,
         mesh_size::Number = one(T) / T(2),
@@ -29,7 +30,7 @@ function wavenumbers_path(ω::T, micro::Microstructure{Dim};
         kscale = one(T)
 
         kφ = wavenumber_low_volumefraction(ω, micro;
-            verbose = false
+            verbose = false, basis_order = basis_order
         )
 
         # guess initial mesh for lowest attenuating wavenumbers
@@ -91,7 +92,7 @@ function wavenumbers_path(ω::T, micro::Microstructure{Dim};
 
     # The dispersion equation is given by: `dispersion([k1,k2]) = 0` where k_eff = k1 + im*k2.
         dispersion_dim = dispersion_equation(ω, micro, symmetry;
-            tol = low_tol,
+            tol = low_tol, basis_order = basis_order, 
             kws...)
 
         dispersion(vec::Vector{T}) = constraint(vec) + dispersion_dim((vec[1] + vec[2]*im) .* kscale)

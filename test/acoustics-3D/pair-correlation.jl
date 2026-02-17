@@ -23,7 +23,7 @@ using LinearAlgebra
     volfracs = [0.001, 0.01, 0.03, 0.05]
     data = map(volfracs) do v
         s = Specie(
-            Acoustic(3; ρ = 10.0, c = 10.0),
+            Acoustic(3; ρ = 100.0, c = 100.0),
             Sphere(r),
             volume_fraction = v,
             separation_ratio = 1.0

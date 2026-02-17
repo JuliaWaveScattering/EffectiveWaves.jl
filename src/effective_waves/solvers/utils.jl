@@ -43,7 +43,7 @@ function box_keff(ω::T, micro::Microstructure;
         kφ = wavenumber_low_volumefraction(ω, micro;
             verbose = false
         )
-        [[-10 * abs(real(kφ)),10 * abs(real(kφ))],[T(0), 10 * imag(kφ)]]
+        [[-6 * abs(real(kφ)), 6 * abs(real(kφ))],[T(0), 6 * imag(kφ)]]
     end
 end
 

@@ -2,11 +2,7 @@
 
 d2D(x,m) = diffbesselj(m,x)*diffhankelh1(m,x) + (1.0 - (m/x)^2)*besselj(m,x)*hankelh1(m,x)
 
-# This funciton was used in the paper below, but it seems wrong. Have done multiple checks, analytic and numeric. 
-# 2006 paper: Multiple Scattering by Multiple Spheres: A New Proof of the Lloyd-Berry Formula for the Effective Wavenumber
-    d3D(x,m) = x * diffsbesselj(m,x) * (x * diffshankelh1(m,x) + shankelh1(m,x)) + (x^2 + - m * (m+1)) * sbesselj(m,x) * shankelh1(m,x)
-# It should just be: 
-# d3D(x,m) = - x * hankelh1(m,x) * diffsbesselj(m,x)
+d3D(x,m) = x * diffsbesselj(m,x) * (x * diffshankelh1(m,x) + shankelh1(m,x)) + (x^2 + - m * (m+1)) * sbesselj(m,x) * shankelh1(m,x)
 
 function far_field_pattern(ω::T, medium::Acoustic{T,2}, species::Species{2}; basis_order = 2) where T<:Number
 
