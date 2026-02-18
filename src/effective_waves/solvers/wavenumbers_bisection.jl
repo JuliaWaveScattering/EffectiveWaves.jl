@@ -1,3 +1,8 @@
+
+wavenumbers_bisection(ω::Number, medium::PhysicalMedium, species::Species; kws...) = wavenumbers_bisection(ω::Number, medium::PhysicalMedium, species::Species; kws...) = wavenumbers(ω, Microstructure(medium,species); kws...)
+
+wavenumbers_bisection(ω::Number, medium::PhysicalMedium, specie::Specie; kws...) = wavenumbers_bisection(ω, Microstructure(medium,[specie]); kws...)
+
 # NOTE: PlanarAzimuthalSymmetry() does not included all possible wavenumbers
 function wavenumbers_bisection(ω::T, micro::Microstructure{Dim};
         symmetry::AbstractSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(),

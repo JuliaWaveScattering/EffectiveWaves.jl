@@ -28,22 +28,23 @@
 Estimates a box in complex k_eff space that contains the first `num_wavenumbers` effective wavenumbers. Using asymptotic results for monopole scatterers. This is used as a search box for the bisection method.
 """
 function box_keff(ω::T, micro::Microstructure;
-        num_wavenumbers = 2
+        num_wavenumbers = 2, verbose = false, kws...
     ) where T
-    
-    
-    return if num_wavenumbers > 1
-        k_asyms = asymptotic_monopole_wavenumbers(ω, micro;
-            num_wavenumbers = num_wavenumbers)
-        imag_kmax = maximum(imag.(k_asyms))
-        real_kmax = maximum(abs.(real.(k_asyms)))
 
+    kφ = wavenumber_low_volumefraction(ω, micro;
+        verbose = verbose, kws...
+    )
+    
+    k_asyms = asymptotic_monopole_wavenumbers(ω, micro; num_wavenumbers = num_wavenumbers)
+    imag_kmax = max(abs(imag(kφ)), maximum(imag.(k_asyms)))
+    real_kmax = max(abs(real(kφ)), maximum(abs.(real.(k_asyms))))
+
+    return if num_wavenumbers > 1
+        
         [[-real_kmax,real_kmax],[T(0), imag_kmax]]
     else
-        kφ = wavenumber_low_volumefraction(ω, micro;
-            verbose = false
-        )
-        [[-6 * abs(real(kφ)), 6 * abs(real(kφ))],[T(0), 6 * imag(kφ)]]
+        
+        [[-2 * abs(real(kφ)), 4 * abs(real(kφ))],[T(0), 6 * imag(kφ)]]
     end
 end
 

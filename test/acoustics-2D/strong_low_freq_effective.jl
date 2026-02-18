@@ -28,10 +28,18 @@ using EffectiveWaves, Test
         wavenumbers(ω, medium, species; tol=tol, num_wavenumbers=1, basis_order=1)
         # num_wavenumbers = 1 usually finds the wavenubmer with the smallest attenuation
     for ω in ωs]
+    
+    k_effs_arr2 = [
+        wavenumbers_bisection_robust(ω, medium, species; tol=tol, num_wavenumbers=1, basis_order=1)
+    for ω in ωs]
 
+    inds = [argmin(abs.(k_effs_arr2[i] .- k_eff_φs[i])) for i in eachindex(ωs)]
+    k_effs2 = [k_effs_arr2[i][inds[i]] for i in eachindex(inds)]
+    
     inds = [argmin(abs.(k_effs_arr[i] .- k_eff_φs[i])) for i in eachindex(ωs)]
-    k_effs2 = [k_effs_arr[i][inds[i]] for i in eachindex(inds)]
+    k_effs = [k_effs_arr[i][inds[i]] for i in eachindex(inds)]
 
+    @test norm(k_effs2 - k_effs)/norm(k_effs2) < 5e-9
     @test norm(k_effs2 - k_eff_lows)/norm(k_effs2) < 5e-7
     @test norm(k_effs2[1] - k_eff_lows[1])/norm(k_eff_lows[1]) < 5e-7
     @test norm(k_effs2 - k_eff_φs)/norm(k_effs2) < 0.01

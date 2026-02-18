@@ -19,7 +19,7 @@ where α is determined so that
     sum(x^2 for x in wnp) + α^2  = sum(x^2 for x in k_eff_vec) = k_eff^2
 """
 function transmission_direction(k_eff::Complex{T}, incident_wavevector::AbstractArray{CT} where CT <: Union{T,Complex{T}}, surface_normal::AbstractArray{T};
-        tol::T = sqrt(eps(T))) where {T<:AbstractFloat,Dim}
+        tol::T = sqrt(eps(T))) where {T<:AbstractFloat}
 
     # Let us first make the surface normal a unit vector which is outward pointing
     surface_normal = surface_normal / norm(surface_normal)

@@ -1,3 +1,6 @@
+wavenumbers_bisection_robust(ω::Number, medium::PhysicalMedium, specie::Specie; kws...) = wavenumbers_bisection_robust(ω, Microstructure(medium,[specie]); kws...)
+wavenumbers_bisection_robust(ω::Number, medium::PhysicalMedium, species::Species; kws...) = wavenumbers_bisection_robust(ω, Microstructure(medium,species); kws...)
+
 # NOTE: PlanarAzimuthalSymmetry() does not included all possible wavenumbers
 function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
         symmetry::AbstractSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(),
@@ -5,7 +8,7 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
         tol::T = 1e-5,
         distance_factor::T = 1.0,
         num_wavenumbers = 1,
-        box_k::Vector{Vector{T}} = box_keff(ω, micro; num_wavenumbers = num_wavenumbers),
+        box_k::Vector{Vector{T}} = box_keff(ω, micro; num_wavenumbers = num_wavenumbers, basis_order = basis_order),
         bisection_mesh_points::Int = 2 * Int(round(- log(tol))) + 2*num_wavenumbers,
         bisection_iteration::Int = 2,
         fixedparameters::Optim.FixedParameters = NelderMeadparameters(),
@@ -13,24 +16,24 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
             g_tol = tol^T(3), x_abstol=tol^T(2)),
         kws...) where {T,Dim}
 
-    # exact low-frequency effective wavenumber is known
-    # ko = real(ω / effective_medium(micro).c)
-
     kφ = wavenumber_low_volumefraction(ω, micro;
         verbose = false, basis_order = basis_order,
     )
-
+# println("kφ: ", kφ)
     disp = dispersion_complex(ω, micro, symmetry; basis_order = basis_order, kws...)
 
     freal(x, y)::T = real(disp(x + y*im))
     fimag(x, y)::T = imag(disp(x + y*im))
 
-    dx = max((box_k[1][2] - box_k[1][1]) / bisection_mesh_points, real(kφ))
-    dy = max((box_k[2][2] - box_k[2][1]) / bisection_mesh_points, imag(kφ))
-    
-    x = box_k[1][1]:dx:box_k[1][2];
-    y = (box_k[2][1] - imag(kφ)):dy:box_k[2][2];
+    x = LinRange(box_k[1][1],box_k[1][2],bisection_mesh_points)
+    x = [x; -real(kφ):real(kφ):(2real(kφ))]
+    x = sort(x)
+    y = LinRange(box_k[2][1],box_k[2][2],bisection_mesh_points)
+    y = [y; -imag(kφ):imag(kφ):(2imag(kφ))]
+    y = sort(y)
 
+    # println("box_k: ", box_k)
+    # plot(x,y) |> display
     # axes=[range ω, real part of kz, imag part of kz]
     # axes = [1:3,0:4,-4:4]
 
@@ -40,22 +43,30 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
         #     f_combined(x...) = (freal(x...), fimag(x...))
         #     Intersectmdbm = MDBM_Problem(f_combined,axes)
 
-    axes = [Axis(x,"x"),Axis(y,"y")]
-    Intersectmdbm = MDBM_Problem(fimag,axes)
+    axes_xy = [Axis(x,"x"),Axis(y,"y")]
+    
+    Intersectmdbm = MDBM_Problem(fimag,axes_xy)
+    solve!(Intersectmdbm,bisection_iteration)
+    x_sol_imag, y_sol_imag = getinterpolatedsolution(Intersectmdbm)
+    
+    Intersectmdbm = MDBM_Problem(freal,axes_xy)
+# println("Intersectmdbm real part", Intersectmdbm)
 
     solve!(Intersectmdbm,bisection_iteration)
-    x_sol, y_sol = getinterpolatedsolution(Intersectmdbm)
+    x_sol_real, y_sol_real = getinterpolatedsolution(Intersectmdbm)
+
+    x_sol = vcat(x_sol_imag, x_sol_real)
+    y_sol = vcat(y_sol_imag, y_sol_real)
 
     roots = map(x_sol, y_sol) do x,y
         [x,y]
     end
-    
+
+    # scatter(x_sol, y_sol) |> display
+
     f_vec(x_vec)::T = abs(disp(x_vec[1] + x_vec[2]*im))
 
-    # finds = sortperm(f_vec.(roots))
-    # roots = roots[finds[1:min(150, length(finds))]]
-
-    # select only those roots where the function is small
+    # select only 10% of the smallest roots
     fs = f_vec.(roots)
     fs = fs ./ mean(fs)
 
@@ -63,19 +74,32 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
     int1 = max(Int(round(length(inds1) * 0.1)), 4 * num_wavenumbers)
     inds1 = inds1[1:int1]
 
-    w = min(0.2, abs(1.0 - std(fs)/2) + 10*tol)
-    inds2 = findall(fs .< w)
-    inds = intersect(inds1,inds2)
+    # select only those roots where the function is small
+    println("abs(1.0 - std(fs)/2): ", abs(1.0 - std(fs)/2))
 
+    # plot(fs |> sort) |> display
+    w = max(0.2, abs(1.0 - std(fs)) + 10*tol)
+    inds2 = findall(fs .< w)
+    
+        # println("inds1: ", inds1)
+        println("inds2: ", inds2)
+
+    inds = intersect(inds1,inds2)
     roots = roots[inds]
 
     # expected distance between roots:
     k_asyms = asymptotic_monopole_wavenumbers(ω, micro;
     num_wavenumbers = 2)
-    dist = abs(k_asyms[3] - k_asyms[2]) * 0.6
+    k_asyms_vecs = [[real(k), imag(k)] for k in k_asyms]
+
+    dist = if k_asyms_vecs[1] ∈ box_k || k_asyms_vecs[2] ∈ box_k
+        abs(k_asyms[3] - k_asyms[2]) * 0.6
+    else
+        Inf
+    end
     
     # the most important distance is the between the main roots and its negative counterpart, which is 2*abs(kφ). This distance also tends to be smaller then the dist above.
-    dist = distance_factor * 1.5*abs(kφ)
+    dist = distance_factor * min(1.5*abs(kφ), dist)
 
     # find clusters of roots that are close together, and replace them with the smallest roots.
     all_inds = collect(eachindex(roots))
@@ -94,13 +118,9 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
         end
     end
     deleteat!(roots_vec, findall(v-> v == [[zero(T),-one(T)]], roots_vec) )
-    # plot()
-    # map(1:length(roots_vec)) do i 
-    #     scatter!([r[1] for r in roots_vec[i]], [r[2] for r in roots_vec[i]], lab = "")
-    # end
-    # plot!(lab = "")
 
     roots = vcat(roots_vec...)
+    
     # Used to create the NelderMead simplexer
     x_max = maximum(abs.(x_sol))
     y_max = maximum(abs.(y_sol))
@@ -109,7 +129,6 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
 
     # Here we refine the roots
     roots2 = map(roots) do root
-
         inner_optimizer = NelderMead(
             initial_simplex =  EffectiveWaves.MySimplexer(dx,dy),
             parameters  = fixedparameters
@@ -125,6 +144,10 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
     end;
     deleteat!(roots2, findall(v-> v == [zero(T),-one(T)], roots2) )
     roots2 = reduce_kvecs(roots2, T(50) * tol * abs(kφ))
+
+    low_tol =  T(50) * tol * abs(kφ)
+    inds = findall([-low_tol < abs(k_vec[2])/k_vec[1] < zero(T) for k_vec in roots2])
+    deleteat!(roots2, inds)
 
     k_effs = [sol[1] + sol[2]*im for sol in roots2]
     k_effs = sort(k_effs, by=imag)
