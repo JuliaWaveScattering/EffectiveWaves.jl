@@ -25,6 +25,8 @@ using LinearAlgebra
             wavenumbers_bisection_robust(ω, micro; tol=tol, num_wavenumbers=1, basis_order=basis_order)
         for ω in ωs2]
 
+        @test norm(k_effs[1][1] - k_effs3[1][1]) < tol
+
         inds = [argmin(abs.(k_effs[i] .- k_eff_φs[i])) for i in eachindex(ωs2)]
         k_effs2 = [k_effs[i][inds[i]] for i in eachindex(inds)]
 
