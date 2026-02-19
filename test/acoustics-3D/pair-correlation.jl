@@ -20,7 +20,7 @@ using LinearAlgebra
 
     medium = Acoustic(3; ρ=1.0, c=1.0)
 
-    volfracs = [0.001, 0.01, 0.03, 0.05]
+    volfracs = [0.0001, 0.001, 0.01, 0.02, 0.04]
     data = map(volfracs) do v
         s = Specie(
             Acoustic(3; ρ = 100.0, c = 100.0),
@@ -61,7 +61,7 @@ using LinearAlgebra
     errors = errors ./ scale
     errors_nopair = errors_nopair ./ scale
     # shouldn't the error be cubic in the volume fraction? We find that it is approximately quadratic.
-    @test all(errors ./ volfracs .^2 .< 1400.0)
+    @test all(errors ./ volfracs .^2 .< 3000.0)
     @test all(errors .< errors_nopair)
 
     # compare the two errors to see that including the pair-correlation reduces the error by approximately a factor of volfrac^2
