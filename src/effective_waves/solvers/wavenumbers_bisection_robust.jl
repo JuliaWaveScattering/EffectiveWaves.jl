@@ -13,7 +13,7 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
         bisection_iteration::Int = 2,
         fixedparameters::Optim.FixedParameters = NelderMeadparameters(),
         optimoptions::Optim.Options{T} = Optim.Options(
-            iterations = 2000,
+            iterations =  Int(round(-log(tol))) * 200,
             g_tol = tol^T(3), x_abstol=tol^T(2)),
         kws...) where {T,Dim}
 
@@ -132,7 +132,7 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
 
         res = optimize(f_vec, root, inner_optimizer, optimoptions)
 
-        if res.minimum < T(100)*tol || (Optim.converged(res) && res.minimum < T(1000)*tol)
+        if res.minimum < sqrt(tol) || (Optim.converged(res) && res.minimum < T(10)* sqrt(tol))
             res.minimizer
         else
             [zero(T),-one(T)]
