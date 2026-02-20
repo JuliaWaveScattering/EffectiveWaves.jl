@@ -32,9 +32,6 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
     y = [y; -imag(kφ):imag(kφ):(imag(kφ))]
     y = sort(y)
 
-    # println("bisection_mesh_points: ", bisection_mesh_points)
-    # println("lkength(x): ", length(x))
-    # plot(x,y) |> display
     # axes=[range ω, real part of kz, imag part of kz]
     # axes = [1:3,0:4,-4:4]
 
@@ -75,7 +72,6 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
     # select only those roots where the function is small
     # println("abs(1.0 - std(fs)/2): ", abs(1.0 - std(fs)/2))
 
-    plot(fs |> sort) |> display
     w = max(0.2, abs(1.0 - std(fs)) + 10*tol)
     inds2 = findall(fs .< w)
     

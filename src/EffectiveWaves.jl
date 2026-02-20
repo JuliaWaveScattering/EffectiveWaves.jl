@@ -11,11 +11,6 @@ export  Material, Microstructure, ParticulateMicrostructure
 # export  Specie, Species, SetupSymmetry, number_density, volume_fraction, exclusion_distance
 export  SetupSymmetry
 
-## Pair correlation
-# export PairCorrelation, PercusYevick, MonteCarloPairCorrelation, HoleCorrection, DiscretePairCorrelation
-# export hole_correction_pair_correlation, gls_pair_radial_fun, pair_radial_fun
-# export calculate_pair_correlation, smooth_pair_corr_distance, pair_radial_to_pair_corr
-
 # for MatchPlaneWaveMode
 export  match_error, x_mesh_match
 
@@ -47,8 +42,11 @@ using Reexport
 using ParticleCorrelations
 
 @reexport using MultipleScattering
-@reexport using ParticleCorrelations
-# @reexport using ParticleCorrelations: Specie, Species, volume_fraction, PercusYevick, MonteCarloPairCorrelation, HoleCorrection, DiscretePairCorrelation, hole_correction_pair_correlation, smooth_pair_corr_distance, gls_pair_radial_fun
+# @reexport using ParticleCorrelations
+@reexport using ParticleCorrelations: Specie, Species, volume_fraction, number_density, exclusion_distance, HardMedium
+# @reexport using ParticleCorrelations: pair_correlation, structure_factor
+@reexport using ParticleCorrelations: PercusYevick, MonteCarloPairCorrelation, HoleCorrection, DiscretePairCorrelation, hole_correction_pair_correlation, smooth_pair_corr_distance, gls_pair_radial_fun, translate_pair_correlation
+@reexport using ParticleCorrelations: PercusYevick, MonteCarloPairCorrelation, HoleCorrection, DiscretePairCorrelation, hole_correction_pair_correlation, smooth_pair_corr_distance, gls_pair_radial_fun, pair_radial_to_pair_corr
 
 import MultipleScattering: RegularSource, Acoustic
 
