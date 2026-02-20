@@ -20,19 +20,20 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
         verbose = false, basis_order = basis_order,
     )
 # println("kφ: ", kφ)
-    disp = dispersion_complex(ω, micro, symmetry; basis_order = basis_order, kws...)
+    disp = dispersion_complex(ω, micro, symmetry; basis_order = basis_order, kws...);
 
     freal(x, y)::T = real(disp(x + y*im))
     fimag(x, y)::T = imag(disp(x + y*im))
 
-    x = LinRange(box_k[1][1],box_k[1][2],bisection_mesh_points)
-    x = [x; -real(kφ):real(kφ):(2real(kφ))]
-    x = sort(x)
-    y = LinRange(box_k[2][1],box_k[2][2],bisection_mesh_points)
-    y = [y; -imag(kφ):imag(kφ):(2imag(kφ))]
-    y = sort(y)
+    x = LinRange(box_k[1][1],box_k[1][2],bisection_mesh_points);
+    x = [x; -real(kφ):real(kφ):(2real(kφ))];
+    x = sort(x);
+    y = LinRange(box_k[2][1],box_k[2][2],bisection_mesh_points);
+    y = [y; -imag(kφ):imag(kφ):(2imag(kφ))];
+    y = sort(y);
 
-    # println("box_k: ", box_k)
+    # println("bisection_mesh_points: ", bisection_mesh_points)
+    # println("lkength(x): ", length(x))
     # plot(x,y) |> display
     # axes=[range ω, real part of kz, imag part of kz]
     # axes = [1:3,0:4,-4:4]
@@ -43,14 +44,14 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
         #     f_combined(x...) = (freal(x...), fimag(x...))
         #     Intersectmdbm = MDBM_Problem(f_combined,axes)
 
-    axes_xy = [Axis(x,"x"),Axis(y,"y")]
+    axes_xy = [Axis(x,"x"),Axis(y,"y")];
     
-    Intersectmdbm = MDBM_Problem(fimag,axes_xy)
-    solve!(Intersectmdbm,bisection_iteration)
-    x_sol_imag, y_sol_imag = getinterpolatedsolution(Intersectmdbm)
+    Intersectmdbm = MDBM_Problem(fimag,axes_xy);
+    solve!(Intersectmdbm,bisection_iteration);
+    x_sol_imag, y_sol_imag = getinterpolatedsolution(Intersectmdbm);
     
-    Intersectmdbm = MDBM_Problem(freal,axes_xy)
-# println("Intersectmdbm real part", Intersectmdbm)
+    Intersectmdbm = MDBM_Problem(freal,axes_xy);
+println("Intersectmdbm real part", Intersectmdbm)
 
     solve!(Intersectmdbm,bisection_iteration)
     x_sol_real, y_sol_real = getinterpolatedsolution(Intersectmdbm)
@@ -62,7 +63,6 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
         [x,y]
     end
 
-    # scatter(x_sol, y_sol) |> display
 
     f_vec(x_vec)::T = abs(disp(x_vec[1] + x_vec[2]*im))
 
@@ -77,7 +77,7 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
     # select only those roots where the function is small
     println("abs(1.0 - std(fs)/2): ", abs(1.0 - std(fs)/2))
 
-    # plot(fs |> sort) |> display
+    plot(fs |> sort) |> display
     w = max(0.2, abs(1.0 - std(fs)) + 10*tol)
     inds2 = findall(fs .< w)
     
