@@ -13,24 +13,24 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
         bisection_iteration::Int = 2,
         fixedparameters::Optim.FixedParameters = NelderMeadparameters(),
         optimoptions::Optim.Options{T} = Optim.Options(
+            iterations =  Int(round(-log(tol))) * 200,
             g_tol = tol^T(3), x_abstol=tol^T(2)),
         kws...) where {T,Dim}
 
     kφ = wavenumber_low_volumefraction(ω, micro;
         verbose = false, basis_order = basis_order,
     )
-# println("kφ: ", kφ)
-    disp = dispersion_complex(ω, micro, symmetry; basis_order = basis_order, kws...);
+    disp = dispersion_complex(ω, micro, symmetry; basis_order = basis_order, kws...)
 
     freal(x, y)::T = real(disp(x + y*im))
     fimag(x, y)::T = imag(disp(x + y*im))
 
-    x = LinRange(box_k[1][1],box_k[1][2],bisection_mesh_points);
-    x = [x; -real(kφ):real(kφ):(2real(kφ))];
-    x = sort(x);
-    y = LinRange(box_k[2][1],box_k[2][2],bisection_mesh_points);
-    y = [y; -imag(kφ):imag(kφ):(2imag(kφ))];
-    y = sort(y);
+    x = LinRange(box_k[1][1],box_k[1][2],bisection_mesh_points)
+    x = [x; -real(kφ):real(kφ):(real(kφ))]
+    x = sort(x)
+    y = LinRange(box_k[2][1],box_k[2][2],bisection_mesh_points)
+    y = [y; -imag(kφ):imag(kφ):(imag(kφ))]
+    y = sort(y)
 
     # println("bisection_mesh_points: ", bisection_mesh_points)
     # println("lkength(x): ", length(x))
@@ -50,8 +50,7 @@ function wavenumbers_bisection_robust(ω::T, micro::Microstructure{Dim};
     solve!(Intersectmdbm,bisection_iteration);
     x_sol_imag, y_sol_imag = getinterpolatedsolution(Intersectmdbm);
     
-    Intersectmdbm = MDBM_Problem(freal,axes_xy);
-println("Intersectmdbm real part", Intersectmdbm)
+    Intersectmdbm = MDBM_Problem(freal,axes_xy)
 
     solve!(Intersectmdbm,bisection_iteration)
     x_sol_real, y_sol_real = getinterpolatedsolution(Intersectmdbm)
@@ -62,7 +61,6 @@ println("Intersectmdbm real part", Intersectmdbm)
     roots = map(x_sol, y_sol) do x,y
         [x,y]
     end
-
 
     f_vec(x_vec)::T = abs(disp(x_vec[1] + x_vec[2]*im))
 
@@ -75,15 +73,12 @@ println("Intersectmdbm real part", Intersectmdbm)
     inds1 = inds1[1:int1]
 
     # select only those roots where the function is small
-    println("abs(1.0 - std(fs)/2): ", abs(1.0 - std(fs)/2))
+    # println("abs(1.0 - std(fs)/2): ", abs(1.0 - std(fs)/2))
 
     plot(fs |> sort) |> display
     w = max(0.2, abs(1.0 - std(fs)) + 10*tol)
     inds2 = findall(fs .< w)
     
-        # println("inds1: ", inds1)
-        println("inds2: ", inds2)
-
     inds = intersect(inds1,inds2)
     roots = roots[inds]
 
@@ -120,23 +115,25 @@ println("Intersectmdbm real part", Intersectmdbm)
     deleteat!(roots_vec, findall(v-> v == [[zero(T),-one(T)]], roots_vec) )
 
     roots = vcat(roots_vec...)
-    
-    # Used to create the NelderMead simplexer
-    x_max = maximum(abs.(x_sol))
-    y_max = maximum(abs.(y_sol))
-    dx = T(0.5) * x_max / sqrt(length(roots))
-    dy = T(0.5) * y_max / sqrt(length(roots))
+    roots = reduce_kvecs(roots, tol * abs(kφ))
+    roots = [roots; [[real(kφ), imag(kφ)]]]
+
+    # # Used to create the NelderMead simplexer
+    # x_max = maximum(abs.(x_sol))
+    # y_max = maximum(abs.(y_sol))
+    # dx = T(0.5) * x_max / sqrt(length(roots))
+    # dy = T(0.5) * y_max / sqrt(length(roots))
 
     # Here we refine the roots
     roots2 = map(roots) do root
         inner_optimizer = NelderMead(
-            initial_simplex =  EffectiveWaves.MySimplexer(dx,dy),
+            # initial_simplex =  EffectiveWaves.MySimplexer(dx,dy),
             parameters  = fixedparameters
         )
 
         res = optimize(f_vec, root, inner_optimizer, optimoptions)
 
-        if res.minimum < T(100)*tol || (Optim.converged(res) && res.minimum < T(1000)*tol)
+        if res.minimum < sqrt(tol) || (Optim.converged(res) && res.minimum < T(10)* sqrt(tol))
             res.minimizer
         else
             [zero(T),-one(T)]

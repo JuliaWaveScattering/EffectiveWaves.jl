@@ -28,7 +28,9 @@ errors = map(volfracs) do volfrac
         num_wavenumbers = 2, mesh_size = 2.0, mesh_points = 4,
         symmetry = PlanarAzimuthalSymmetry())
 
-    abs(AP_kps[1] - kp_lowvol) / abs(kp_lowvol)
+    kps = wavenumbers_bisection_robust(ω, medium, species; basis_order=2, tol=1e-5, num_wavenumbers=1)
+    
+    sqrt(2) * abs(AP_kps[1] - kp_lowvol) / abs(kp_lowvol) + sqrt(2) * abs(AP_kps[1] - kps[1]) / abs(kp_lowvol) 
 end
 
 # as volfrac -> 0, error -> smaller than volfrac^3
