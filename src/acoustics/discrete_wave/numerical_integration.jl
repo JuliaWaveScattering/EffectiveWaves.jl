@@ -21,22 +21,18 @@ function integration_scheme(x::AbstractVector{T}; scheme::Symbol = :trapezoidal,
     end
 end
 
-function trapezoidal_scheme(x::AbstractVector{T}; x0::T = first(x), xn::T = last(x)) where T<:AbstractFloat
+function trapezoidal_scheme(x::AbstractVector{T}) where T<:AbstractFloat
 
-    inds = axes(x,1)
+    dx = circshift(x,-1) - x;
+    dx = dx[1:end-1];
+    dx = (circshift(dx,-1) + dx) ./ 2.0;
+    dx = dx[1:end-1];
 
-    h = (x[inds[2]]-x[inds[1]])
     σs = similar(x)
-    σs .= h
+    σs[2:end-1] = dx
 
-    σs[inds[1]] -= h/T(2)
-
-    σs[end] -= h/T(2)
-    # accounts for the ends
-    σs[inds[1]] +=   (x[inds[1]] - x0)*(x[inds[2]] - x0 + h)/(2.0h)
-    σs[inds[2]] +=  -(x0 - x[inds[1]])^T(2)/(T(2)*h)
-    σs[end] +=  (xn - x[end])*(xn - x[end-1] + h)/(2h)
-    σs[end-1] += - (xn - x[end])^T(2)/(T(2)*h)
+    σs[1] =  (x[2] - x[1]) / 2
+    σs[end] =  (x[end] - x[end-1]) / 2
 
     return σs
 end
