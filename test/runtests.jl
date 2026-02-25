@@ -9,6 +9,8 @@ end
 
 include("complex.jl")
 include("wavenumbers-solvers.jl")
+include("numerical_methods.jl")
+
 
 # Single effective wavenumber tests
     include("acoustics-2D/strong_low_freq_effective.jl")

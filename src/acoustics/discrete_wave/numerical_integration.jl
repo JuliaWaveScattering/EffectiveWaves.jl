@@ -37,6 +37,7 @@ function trapezoidal_scheme(x::AbstractVector{T}) where T<:AbstractFloat
     return σs
 end
 
+# written only for a uniform mesh
 function simpson_scheme(x::AbstractVector{T}; x0::T = first(x), xn::T = last(x)) where T<:AbstractFloat
     inds = axes(x,1)
 
