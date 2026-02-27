@@ -9,7 +9,6 @@ using EffectiveWaves, Test
     ω = 0.6;
     tol = 1e-6
     basis_order = 2
-
     
     species = [
         Specie(Particle(Acoustic(2; ρ=8.0, c=1.1), ms.Circle(1.0)); volume_fraction=0.25),
@@ -30,6 +29,10 @@ using EffectiveWaves, Test
         tol = tol
     )
     @test maximum(abs.(k_effs_bi[1] - k_effs_path[1])) < 10*tol
+
+    ωs = LinRange(0.1, ω, 30)
+    k_effs = wavenumbers(ωs, micro; tol = tol, basis_order = basis_order)
+    @test abs(k_effs[end] - k_effs_bi[1]) < 10*tol
 
     num_wavenumbers = 8;
 
@@ -68,6 +71,11 @@ using EffectiveWaves, Test
         tol = tol
     )
     @test maximum(abs.(k_effs_bi[1] - k_effs_path[1])) < 10*tol
+
+    # Case below doesn't work. Because the wavenumber with the smaller imaginary part for ω is not on the same branch as the wavenumber with the smaller imaginary part for lower frequenices. This can be seen be running the below.
+    # ωs = LinRange(0.6, 0.01, 5200)
+    # k_effs = wavenumbers(ωs, micro; tol = tol, basis_order = basis_order)
+    # @test abs(k_effs[end] - k_effs_bi[1]) < 10*tol
 
     num_wavenumbers = 8;
 

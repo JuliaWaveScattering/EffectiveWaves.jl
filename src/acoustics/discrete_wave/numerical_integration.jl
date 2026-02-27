@@ -41,6 +41,14 @@ end
 function simpson_scheme(x::AbstractVector{T}; x0::T = first(x), xn::T = last(x)) where T<:AbstractFloat
     inds = axes(x,1)
 
+    dx = circshift(x,-1) - x;
+    dx = dx[1:end-1];
+    
+    if !all(isapprox.(dx, dx[1]))
+        @error("Simpson's integration scheme is designed for a uniform mesh. The mesh provided is not uniform. Will use trapezoidal scheme instead.")
+        return trapezoidal_scheme(x)
+    end
+
     if iseven(length(inds))
         @warn("Simpson's integration scheme is designed for an odd number of mesh points")
     end

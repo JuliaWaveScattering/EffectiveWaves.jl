@@ -34,10 +34,11 @@ function box_keff(ω::T, micro::Microstructure;
     kφ = wavenumber_low_volumefraction(ω, micro;
         verbose = verbose, kws...
     )
+    klow = ω / effective_medium(micro).c
     
     k_asyms = asymptotic_monopole_wavenumbers(ω, micro; num_wavenumbers = num_wavenumbers)
     imag_kmax = max(abs(imag(kφ)), maximum(imag.(k_asyms)))
-    real_kmax = max(abs(real(kφ)), maximum(abs.(real.(k_asyms))))
+    real_kmax = max(abs(real(kφ)), maximum(abs.(real.(k_asyms))), abs(real(klow)))
 
     return if num_wavenumbers > 1
         

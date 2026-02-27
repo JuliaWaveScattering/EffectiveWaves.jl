@@ -49,6 +49,7 @@ opts = Dict(
 )
 
 detMM = dispersion_complex(ω, medium, species; opts...)
+detMM = disp
 
 kps =  wavenumbers(ω, medium,  species; opts...)
 
@@ -59,6 +60,7 @@ k_low = ω ./ effective_medium(medium, species).c
 inds = 1:1
 x_max = maximum(abs.(real.(kps[inds])))
 y_max = maximum(abs.(imag.(kps[inds])))
+
 
 x = LinRange(-x_max,x_max,150)
 y = LinRange(0.,y_max,100)
