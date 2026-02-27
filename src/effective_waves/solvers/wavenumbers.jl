@@ -25,7 +25,8 @@ Compute effective wavenumbers over a range of frequencies using adaptive interpo
 """
 function wavenumbers(ωs::AbstractVector{T}, micro::Microstructure{Dim}; 
         symmetry::AbstractSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(), 
-        tol::T = 1e-6, branch_number::Int = 1, 
+        tol::T = 1e-6, branch_number::Int = 1,
+        basis_orders = 2 * ones(Int, length(ωs)),
         optimoptions = Optim.Options(
             iterations = Int(round(-log(tol))) * 20,
             g_tol = tol^T(2), x_abstol=tol^T(2)),
@@ -43,14 +44,14 @@ function wavenumbers(ωs::AbstractVector{T}, micro::Microstructure{Dim};
         @warn "The method is design to start with small wavelengths, compared to the particle size. Starting with ka = $(kas[1]) might be too large. "
     end
 
-    function predict_next!(interpolation_order::Int, i::Int, ωs::AbstractVector{T}, keffs::Vector{Complex{T}}, errors::Vector{T}, micro::Microstructure{Dim}, symmetry::AbstractSymmetry{Dim}, tol::T, kws...) where {T,Dim}
+    function predict_next!(interpolation_order::Int, i::Int, ωs::AbstractVector{T}, keffs::Vector{Complex{T}}, errors::Vector{T}, micro::Microstructure{Dim}, symmetry::AbstractSymmetry{Dim}, tol::T; kws...) where {T,Dim}
         
         disp = dispersion_complex(ωs[i], micro, symmetry; kws...)
         f_vec(x_vec) = abs(disp(x_vec[1] + x_vec[2]*im))
 
         if interpolation_order == 0
             ks = wavenumbers(ωs[i], micro; 
-                symmetry = symmetry, 
+                symmetry = symmetry,
                 num_wavenumbers = 1, 
                 tol = tol, 
                 k_effs = Complex{T}[keffs[i-1]], 
@@ -97,10 +98,10 @@ function wavenumbers(ωs::AbstractVector{T}, micro::Microstructure{Dim};
     end
 
     # ceff = effective_medium(micro).c
-    disp = dispersion_complex(ωs[1], micro, symmetry; kws...)
+    disp = dispersion_complex(ωs[1], micro, symmetry; basis_order = basis_orders[1], kws...)
     f_vec(x_vec) = abs(disp(x_vec[1] + x_vec[2]*im))
 
-    k0s = wavenumbers(ωs[1], micro; symmetry = symmetry, num_wavenumbers = 1, tol = tol, kws...)
+    k0s = wavenumbers(ωs[1], micro; symmetry = symmetry, basis_order = basis_orders[1], num_wavenumbers = 1, tol = tol, kws...)
     # k0s = wavenumbers_bisection_robust(ωs[1], micro; symmetry = symmetry, num_wavenumbers = 10, tol = tol, kws...)
     
     if branch_number > length(k0s)
@@ -120,7 +121,7 @@ function wavenumbers(ωs::AbstractVector{T}, micro::Microstructure{Dim};
     interpolation_order = 0
     for i in 2:length(ωs)
 
-        predict_next!(interpolation_order, i, ωs, keffs, errors, micro, symmetry, tol, kws...)
+        predict_next!(interpolation_order, i, ωs, keffs, errors, micro, symmetry, tol;                 basis_order = basis_orders[i], kws...)
         keffs[i]
         k = ωs[i] / real(micro.medium.c)
         abs(keffs[i] - keffs[i-1]) / k 
@@ -139,9 +140,9 @@ function wavenumbers(ωs::AbstractVector{T}, micro::Microstructure{Dim};
         imag(keff) < -tol ? - keff : keff
     end
 
-    kφs = map(ωs) do ω 
-        wavenumber_low_volumefraction(ω, micro; kws...)
-    end
+    # kφs = map(ωs) do ω 
+    #     wavenumber_low_volumefraction(ω, micro; basis_order = basis_orders[i],  kws...)
+    # end
     
     # plot(ωs, real.(keffs), lab = "real")
     # plot!(ωs, real.(kφs), lab = "real (low volume fraction)", linestyle=:dash)
