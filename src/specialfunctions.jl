@@ -30,22 +30,27 @@ function transmission_direction(k_eff::Complex{T}, incident_wavevector::Abstract
     wnp = incident_wavevector -  dot(surface_normal,incident_wavevector) .* surface_normal
     α = sqrt(k_eff^2 - sum(x^2 for x in wnp))
 
+    # Guard against degenerate k_eff (e.g. NaN input). Return the inward-pointing unit direction.
+    if isnan(α)
+        direction = wnp - surface_normal
+        return direction ./ sqrt(sum(x^2 for x in direction))
+    end
+
     # The conditions below guarantee (in order of priority) that either: 1) the wave attenuates when travelling into the material (imag(α) < 0), or 2) the wave does not attenuate, but travels into the material.
     if tol * real(α) > abs(imag(α))
         α = -α # leads to real(α) < 0
     elseif imag(α) > 0
         α = -α # leads to imag(α) < 0
-    elseif isnan(α)
-        α = -one(T) # covers the cases k_eff = Inf and k_eff = 0.0
-        return wnp + α .* surface_normal
     end
 
     return (wnp + α .* surface_normal) ./ k_eff
 end
 
-function transmission_direction(k_eff::Complex{T},  psource::PlaneSource{T}, material::Material; tol::T = sqrt(eps(T))) where T
-    transmission_direction(k_eff, psource.direction, material.shape.normal; tol = tol)
-end
+# Below appears to be wrong because we need to pass the incident wavevector, not just the direction to the function transmission_direction. 
+# function transmission_direction(k_eff::Complex{T},  psource::PlaneSource{T}, material::Material; tol::T = sqrt(eps(T))) where T
+
+#     transmission_direction(k_eff, psource.direction, material.shape.normal; tol = tol)
+# end
 
 transmission_angle(pwave::Union{PlaneSource,EffectivePlaneWaveMode}, material::Material) = transmission_angle(pwave, material.shape)
 
