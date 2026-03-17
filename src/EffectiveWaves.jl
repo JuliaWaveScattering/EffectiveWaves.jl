@@ -45,7 +45,8 @@ using ParticleCorrelations
 # @reexport using ParticleCorrelations
 @reexport using ParticleCorrelations: Specie, Species, volume_fraction, number_density, exclusion_distance, HardMedium
 # @reexport using ParticleCorrelations: pair_correlation, structure_factor
-@reexport using ParticleCorrelations: PercusYevick, MonteCarloPairCorrelation, HoleCorrection, DiscretePairCorrelation, hole_correction_pair_correlation, smooth_pair_corr_distance, gls_pair_radial_fun, translate_pair_correlation, pair_radial_to_pair_corr
+@reexport using ParticleCorrelations: PercusYevick, MonteCarloPairCorrelation, HoleCorrection, DiscretePairCorrelation, hole_correction_pair_correlation, smooth_pair_corr_distance, gls_pair_radial_fun, pair_radial_to_pair_corr
+# @reexport using translate_pair_correlation
 
 import MultipleScattering: RegularSource, Acoustic
 

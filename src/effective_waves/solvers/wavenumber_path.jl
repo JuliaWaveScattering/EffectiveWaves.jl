@@ -1,4 +1,7 @@
 # NOTE: PlanarAzimuthalSymmetry() does not include all possible wavenumbers
+wavenumbers_path(ω, medium::PhysicalMedium, sps::Species; kws...) = wavenumbers_path(ω, Microstructure(medium,sps); kws...)
+
+# NOTE: PlanarAzimuthalSymmetry() does not include all possible wavenumbers
 function wavenumbers_path(ω::T, micro::Microstructure{Dim};
         symmetry::AbstractSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(),
         basis_order::Int = 2,

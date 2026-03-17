@@ -235,8 +235,9 @@ end
     Rlows = [reflection_transmission_coefficients(ω, source, eff_medium, halfspace)[1] for ω in ωs];
 
     # Calculate the effective wavenumber and wavemode numerically from the general methods
-    kp_arr = [wavenumbers(ω, medium, species; tol = 1e-6, num_wavenumbers = 2, basis_order = basis_order) for ω in ωs]
-    k_effs = [kps[1] for kps in kp_arr]
+    # kp_arr = [wavenumbers(ω, medium, species; tol = 1e-6, num_wavenumbers = 2, basis_order = basis_order) for ω in ωs]
+    # k_effs = [kps[1] for kps in kp_arr]
+    k_effs = wavenumbers(ωs, Microstructure(medium, species); tol = 1e-6, num_wavenumbers = 2, basis_order = basis_order)
 
     material = Material(medium,halfspace,species)
     wavemodes = [WaveMode(ωs[i], k_effs[i], source, material; tol = 1e-6, basis_order = basis_order) for i in eachindex(ωs)];
