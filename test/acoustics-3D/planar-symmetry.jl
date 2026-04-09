@@ -106,7 +106,9 @@ end
 
     basis_order = 4
 
-    k_effs = wavenumbers(ω, medium, species; tol = 1e-6, num_wavenumbers = 2, basis_order = basis_order)
+    # k_effs = wavenumbers(ω, medium, species; tol = 1e-6, num_wavenumbers = 2, basis_order = basis_order)
+    k_effs = wavenumbers_path(ω,  medium, species; tol = 1e-6, num_wavenumbers = 1, basis_order = basis_order)
+
     k_eff = k_effs[1]
 
     halfspace = Halfspace([0.0,0.0,-1.0])
@@ -183,7 +185,8 @@ end
     source = PlaneSource(medium, [0.0,0.0,1.0])
 
     # Calculate the effective wavenumber and wavemode numerically from the general methods
-    k_effs = wavenumbers(ω, medium, species; tol = 1e-6, num_wavenumbers = 2, basis_order = basis_order)
+    # k_effs = wavenumbers(ω, medium, species; tol = 1e-6, num_wavenumbers = 2, basis_order = basis_order)
+    k_effs = wavenumbers_path(ω, medium, species; tol = 1e-6, num_wavenumbers = 1, basis_order = basis_order)
     k_eff = k_effs[1]
 
     material = Material(medium,halfspace,species)
@@ -197,6 +200,30 @@ end
 
     @test abs(Reff - RTeff[1]) < 1e-10
 end
+
+# material = Material(medium,plate,species)
+# wavemodes = WaveMode(ω, k_eff, source, material; tol = 1e-6, basis_order = basis_order);
+
+# w1 = wavemodes[1].eigenvectors / norm(wavemodes[1].eigenvectors)
+
+
+# w1 = w1 .* (0.45 + 0.45im) 
+# w1 = w1 / norm(w1)
+# w2 = wavemodes[2].eigenvectors / norm(wavemodes[2].eigenvectors)
+
+# θ = (w1[1] / w2[1]) |> angle 
+
+# (w1[3] + w2[3] * exp(im*θ))  |> abs
+# (w1[7] - w2[7] * exp(im*θ))  |> abs 
+
+# n = material.shape.normal;
+# n = - n .* sign(real(dot(n,source.direction)));
+
+# direction1 = transmission_direction(k_eff, k * source.direction, n)
+# eigvectors1 = eigenvectors(ω, k_eff, source, material; direction_eff = direction1, basis_order = basis_order)
+
+# eigvectors2 = eigenvectors(ω, -k_eff, source, material; direction_eff = direction1, basis_order = basis_order)
+
 
 @testset "Compare low frequency halfspace" begin
 

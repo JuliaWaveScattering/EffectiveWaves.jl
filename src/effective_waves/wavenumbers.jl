@@ -26,7 +26,7 @@ function wavenumbers(ω::T, micro::Microstructure;
         # max_Imk::T = maximum(imag.(asymptotic_monopole_wavenumbers(ω, medium, micro; num_wavenumbers = num_wavenumbers + 3))),
         basis_order::Int = 3 * Int(round(maximum(outer_radius.(micro.species)) * ω / abs(micro.medium.c) )) + 1,
         # max_Rek::T = T(2) + T(20) * abs(real(wavenumber_low_volumefraction(ω, medium, species; verbose = false))),
-        bisection_method::Bool = true,
+        bisection_method::Bool = false,
         kws...) where T<:Number
 
     # For very low attenuation, need to search close to assymptotic root with a path method.
@@ -59,15 +59,17 @@ function wavenumbers(ω::T, micro::Microstructure;
                 basis_order = basis_order,
                 kws...)
             k_effs = [k_effs; k_effs2]
-        catch k_effs
+
+            low_tol = min(1e-4, sqrt(tol))
+            # Finally delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
+            deleteat!(k_effs, findall([-low_tol < abs(imag(keff))/real(keff) < zero(T) for keff in k_effs]))
+
+            k_effs = reduce_kvecs(k_effs, sqrt(tol))
+            k_effs = sort(k_effs, by = imag)
+        catch 
+            @warn "Bisection method failed, returning results from path method. This can be due to the initial box not being large enough to contain the roots."
+            k_effs
         end
-
-        low_tol = min(1e-4, sqrt(tol))
-        # Finally delete unphysical waves, including waves travelling backwards with almost no attenuation. This only is important in the limit of very low frequency or very weak scatterers.
-        deleteat!(k_effs, findall([-low_tol < abs(imag(keff))/real(keff) < zero(T) for keff in k_effs]))
-
-        k_effs = reduce_kvecs(k_effs, sqrt(tol))
-        k_effs = sort(k_effs, by = imag)
     end
 
     return Complex{Float64}.(k_effs)

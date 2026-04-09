@@ -17,6 +17,8 @@ function wavenumbers_bisection(ω::T, micro::Microstructure{Dim};
         ),
         kws...) where {T,Dim}
 
+    @warn "This method is outdated and not recommended. The bisection method is designed to find curves and not singular points as it is used here."
+            
     medium = micro.medium
 
     ko = real(ω / medium.c)
@@ -26,7 +28,7 @@ function wavenumbers_bisection(ω::T, micro::Microstructure{Dim};
 
     function f(x, y)
         z = disp(x + y*im)
-        [real(z),imag(z)]
+        real(z), imag(z)
     end
 
     x = LinRange(box_k[1][1],box_k[1][2],bisection_mesh_points);

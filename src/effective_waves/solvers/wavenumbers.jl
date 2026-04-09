@@ -26,7 +26,8 @@ Compute effective wavenumbers over a range of frequencies using adaptive interpo
 function wavenumbers(ωs::AbstractVector{T}, micro::Microstructure{Dim}; 
         symmetry::AbstractSymmetry{Dim} = PlanarAzimuthalSymmetry{Dim}(), 
         tol::T = 1e-6, branch_number::Int = 1,
-        basis_orders = 2 * ones(Int, length(ωs)),
+        basis_order = 2,
+        basis_orders = basis_order * ones(Int, length(ωs)),
         optimoptions = Optim.Options(
             iterations = Int(round(-log(tol))) * 20,
             g_tol = tol^T(2), x_abstol=tol^T(2)),
