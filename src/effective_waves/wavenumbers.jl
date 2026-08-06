@@ -72,5 +72,6 @@ function wavenumbers(ω::T, micro::Microstructure;
         end
     end
 
-    return Complex{Float64}.(k_effs)
+    # NOTE: k_effs is annotated as a Vector{Complex{T}} above, so that the precision of T is kept
+    return k_effs
 end

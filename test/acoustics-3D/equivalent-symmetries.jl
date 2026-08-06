@@ -117,6 +117,12 @@ basis_order = 2
 
     @test maximum(norm(PM * Pvs[:,i]) for i in axes(Pvs,2)) < 1e-8
 
+
+#  vecs = eigenvectors(ω, k_eff, micro, PlanarSymmetry{spatial_dim}();
+#     direction_eff = direction_eff,
+#     basis_order = basis_order
+# ) 
+
 end
 
 @testset "Equivalence for solving sphere scattering" begin
