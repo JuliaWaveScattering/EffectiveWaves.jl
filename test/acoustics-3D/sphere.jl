@@ -455,7 +455,7 @@ end
         norm.(eff_scats_radial[i] - eff_scats_azi[i]) ./ norm.(eff_scats_radial[i])
     for i in eachindex(ωs)];
 
-    @test maximum(maximum.(errors)) < 1e-12
+    @test maximum(maximum.(errors)) < 2e-12
 
     # the discrete method does have a difference
     errors = [

@@ -58,7 +58,12 @@ function WaveMode(ω::T, wavenumber::Complex{T}, psource::PlaneSource{T,Dim,1}, 
     tol::T = 1e-6, kws...) where {T,Dim}
 
     direction = transmission_direction(wavenumber, (ω / psource.medium.c) * psource.direction, material.shape.normal)
-    eigvectors = eigenvectors(ω, wavenumber, psource, material; direction_eff = direction, kws...)
+    # `tol` sets the singular value below which a direction counts as null, so it has to
+    # reach `eigenvectors`. Being named in this signature it is taken out of `kws`, and was
+    # therefore silently dropped, leaving the default of `eigenvectors` in force and no way
+    # to choose the tolerance for a halfspace. The plate method below has no `tol` of its
+    # own and so passes it through `kws` already.
+    eigvectors = eigenvectors(ω, wavenumber, psource, material; direction_eff = direction, tol = tol, kws...)
 
     α = solve_boundary_condition(ω, wavenumber, eigvectors, psource, material; kws...)
 
@@ -135,17 +140,54 @@ function eigenvectors(ω::T, k_eff::Complex{T}, micro::Microstructure, symmetry:
 
     MM = eigensystem(ω, micro, symmetry; kws...)
 
+    A = MM(k_eff)
+
+    # Every column of the eigensystem carries the number density of its source specie and
+    # every row the T-matrix of its observer specie. For one specie, or for species of a
+    # similar size, these are all of one magnitude and the matrix is fine as it stands.
+    # Over a wide size distribution they are not: n ∼ a⁻³ while T ∼ (k a)³, so ‖A‖ comes
+    # to be set by the smallest particles alone and the singular values that ought to
+    # vanish sink below eps(T) * ‖A‖. The numerical rank is then meaningless and the null
+    # space comes back spuriously degenerate, with a basis that jumps from one frequency to
+    # the next. Scaling the rows and columns to unit norm cures that, since
+    # As = Dr⁻¹ A Dc⁻¹ satisfies As v = 0 ⟺ A (Dc⁻¹ v) = 0.
+    #
+    # The scaling is applied only when the spread of the norms is wide enough to matter.
+    # Rescaling a matrix that is already well balanced would buy nothing and would still
+    # perturb the result in the last few digits, which is enough to disturb the identities
+    # between symmetries that hold to near machine precision.
+    dr = [norm(view(A, i, :)) for i in axes(A, 1)]
+    dc = [norm(view(A, :, j)) for j in axes(A, 2)]
+    dr[iszero.(dr)] .= one(T)
+    dc[iszero.(dc)] .= one(T)
+    badly_scaled = max(maximum(dr) / minimum(dr), maximum(dc) / minimum(dc)) > T(1e6)
+
     # calculate eigenvectors
-    MM_svd = svd(MM(k_eff))
-    inds = findall(MM_svd.S .< tol)
+    MM_svd = badly_scaled ? svd((A ./ dr) ./ transpose(dc)) : svd(A)
+
+    # once equilibrated the singular values are of order one, so the tolerance is taken
+    # relative to the largest of them rather than as an absolute size
+    inds = badly_scaled ? findall(MM_svd.S .< tol .* MM_svd.S[1]) : findall(MM_svd.S .< tol)
 
     if isempty(inds)
-        @warn("No eigenvectors found with the tolerance tol = $tol. Will return only one eigenvector with the tolernace $(MM_svd.S[end])")
+        @warn("No eigenvectors found with the tolerance tol = $tol. Will return only one eigenvector with the tolernace $(badly_scaled ? MM_svd.S[end] / MM_svd.S[1] : MM_svd.S[end])")
         inds = [length(MM_svd.S)]
+    elseif badly_scaled && length(inds) > 1
+        # More directions pass the tolerance than can be genuinely null. A null space of
+        # several dimensions has its singular values all of one size, whereas a spurious
+        # one is separated from the true null space by orders of magnitude, so split the
+        # candidates at their largest relative gap and keep what lies below it. A merely
+        # degenerate null space has every ratio near one and is left untouched.
+        Ss = MM_svd.S[inds]
+        ratios = Ss[1:end-1] ./ Ss[2:end]
+        i = argmax(ratios)
+        if ratios[i] > 10
+            inds = inds[i+1:end]
+        end
     end
 
     #NOTE: MM(k_eff) ≈ MM_svd.U * diagm(0 => MM_svd.S) * MM_svd.Vt
-    eigvectors = MM_svd.V[:,inds]
+    eigvectors = badly_scaled ? MM_svd.V[:,inds] ./ dc : MM_svd.V[:,inds]
 
     # Reshape to separate different species and eigenvectors
     S = length(micro.species)
