@@ -1,7 +1,6 @@
-include("low_volumefraction.jl")
-
 using JLD
 using Plots
+using EffectiveWaves
 plotly()
 
 strfs = ["f_slow1","f_slow2","f_fast1","f_fast2"];

@@ -64,7 +64,13 @@ function wavenumber_low_volumefraction(ω::T, micro::ParticulateMicrostructure{3
     # effective wavenumber squared up too second order in particle volume fraction
     kT2::Complex{T} = k^T(2) + K1 + K2
 
-    return (imag(sqrt(kT2)) > zero(T)) ? sqrt(kT2) : -sqrt(kT2)
+    kT = if abs(imag(sqrt(kT2)) / real(sqrt(kT2))) < eps(T) 
+        real(sqrt(kT2)) < 0 ? -sqrt(kT2) : sqrt(kT2)
+    else 
+        imag(sqrt(kT2)) > 0 ? sqrt(kT2) : -sqrt(kT2)
+    end
+
+    return kT
 end
 
 function wavenumber_low_volumefraction(ω::T, micro::ParticulateMicrostructure{2};
@@ -90,7 +96,13 @@ function wavenumber_low_volumefraction(ω::T, micro::ParticulateMicrostructure{2
     # Add pair-field contribution
     kT2 += - 4.0im*bar_numdensity^(2.0)*pair_field_pattern(ω, medium, species; basis_order=basis_order)(0.0)
 
-    return (imag(sqrt(kT2)) > zero(T)) ? sqrt(kT2) : -sqrt(kT2)
+    kT = if abs(imag(sqrt(kT2)) / real(sqrt(kT2))) < eps(T) 
+        real(sqrt(kT2)) < 0 ? -sqrt(kT2) : sqrt(kT2)
+    else 
+        imag(sqrt(kT2)) > 0 ? sqrt(kT2) : -sqrt(kT2)
+    end
+
+    return kT
 end
 
 reflection_coefficient_low_volumefraction(ωs::AbstractVector{T},psource::PlaneSource{T,2,1,Acoustic{T,2}}, material::Material{Halfspace{T,2}}; kws... ) where T<:Number =

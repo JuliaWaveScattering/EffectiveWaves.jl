@@ -49,4 +49,26 @@
     β_eff = 1 / ((1 - sum(volfracs)) / (ρ * c^2) + sum(volfracs ./ bulk_modulus.(solids)))
 
     @test abs(k_eff^2 - ω^2 * ρ_eff / β_eff) / abs(k_eff^2) < 5e-4
+
+## Fine and coarse particles in a viscous liquid
+
+    # The radius of the fine particles is 2 times the viscous skin depth, and the radius of the coarse particles is 2000 times. For the coarse particles the conversion of a pressure wave into a shear wave is of the order 1e867, which is too large for Float64, so this tests that the shear waves are scaled. The coefficients δ1 and δ2 of ε, and of ε squared, were calculated with 4096 bits of precision, and no scaling, from the same equations as for the first test, with the closed forms of the spherical Bessel functions. The same calculation gives δ1 and δ2 of the first test to 16 digits.
+    δ = 5e-3 * c / ω # the viscous skin depth
+    ν = ω * δ^2 / 2 # the kinematic viscosity
+    liquid = Elastic(3; ρ = ρ, cp = complex(c), cs = sqrt(-im * ω * ν))
+    solid = Elastic(3; ρ = 3.95, cp = complex(6.7), cs = complex(3.7))
+
+    δ1 = 0.20797417440177765 + 0.17745622860119267im
+    δ2 = 0.004186538281623636 + 0.032961020638257954im
+
+    ε = 1e-2
+    species = [
+        Specie(solid, Sphere(2000 * δ); volume_fraction = 0.6 * ε),
+        Specie(solid, Sphere(2 * δ); volume_fraction = 0.4 * ε)
+    ]
+
+    k_eff = wavenumber_compressional_low_volumefraction(ω, liquid, species; basis_order = 2)
+    kp = ω / liquid.cp
+
+    @test k_eff^2 ≈ kp^2 + ε * δ1 + ε^2 * δ2 rtol = 1e-10
 end
