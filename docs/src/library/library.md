@@ -48,6 +48,7 @@ EffectiveRegularWaveMode
 ```@docs
 wavenumbers
 wavenumber_low_volumefraction
+wavenumber_compressional_low_volumefraction
 effective_medium
 ```
 

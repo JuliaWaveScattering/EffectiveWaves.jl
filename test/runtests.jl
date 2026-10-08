@@ -32,6 +32,9 @@ include("numerical_methods.jl")
 
     include("acoustics-3D/pair-correlation.jl")
 
+# Effective wavenumbers for an elastic medium
+    include("elasticity/low_volume_fraction.jl")
+
 # Eigensystems and fields for the case of two media
     include("acoustics-3D/Two-media/planar-symmetry.jl")
 

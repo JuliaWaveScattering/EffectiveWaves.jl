@@ -50,6 +50,9 @@ using ParticleCorrelations
 
 import MultipleScattering: RegularSource, Acoustic
 
+# The elastic medium and its T-matrices are defined in ElasticWaves
+@reexport using ElasticWaves: Elastic
+
 Sphere = MultipleScattering.Sphere
 
 using RecipesBase, OffsetArrays, LinearAlgebra
@@ -79,6 +82,7 @@ include("specialfunctions.jl")
 
 include("effective_waves/export.jl")
 include("acoustics/export.jl")
+include("elasticity/low_volume_fraction.jl")
 
 include("match_waves/match_waves.jl")
 include("match_waves/match_arrays.jl")
