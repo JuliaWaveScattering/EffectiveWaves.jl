@@ -28,6 +28,7 @@ include("numerical_methods.jl")
     include("acoustics-3D/low_volume_fraction-test.jl")
     include("acoustics-3D/low_frequency.jl")
     include("acoustics-3D/planar-symmetry.jl")
+    include("acoustics-3D/small-and-large-particles.jl")
     include("acoustics-3D/sphere.jl")
 
     include("acoustics-3D/pair-correlation.jl")
