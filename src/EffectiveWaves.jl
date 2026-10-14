@@ -83,6 +83,7 @@ include("specialfunctions.jl")
 include("effective_waves/export.jl")
 include("acoustics/export.jl")
 include("elasticity/low_volume_fraction.jl")
+include("elasticity/compressional_wave.jl")
 
 include("match_waves/match_waves.jl")
 include("match_waves/match_arrays.jl")

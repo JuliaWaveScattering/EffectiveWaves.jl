@@ -34,6 +34,7 @@ include("numerical_methods.jl")
 
 # Effective wavenumbers for an elastic medium
     include("elasticity/low_volume_fraction.jl")
+    include("elasticity/compressional_wave.jl")
 
 # Eigensystems and fields for the case of two media
     include("acoustics-3D/Two-media/planar-symmetry.jl")

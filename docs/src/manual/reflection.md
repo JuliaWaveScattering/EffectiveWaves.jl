@@ -198,3 +198,43 @@ sum(abs.([Ramp,Tamp]).^2) ≈ 1.0
 sum(abs.(RTeff).^2)
 ```
 Formulas from [Gower & Kristensson 2020](https://arxiv.org/pdf/2010.00934.pdf).
+
+# 3D elasticity
+
+## A compressional wave at direct incidence
+
+For an elastic medium filled with spherical particles, we can calculate the reflection and transmission of a plane compressional wave which is at direct incidence on a plate or a halfspace. This includes particles in a viscous liquid, as a viscous liquid is the same as an elastic medium with the complex shear wave speed $c_s = \sqrt{- i \omega \nu}$, where $\nu$ is the kinematic viscosity.
+
+At direct incidence the average reflected and transmitted waves are only compressional waves. When written in terms of the pressure potential $\varphi$, where the displacement of the compressional wave is $\nabla \varphi$, these waves have the same form as for acoustics. Due to this, the source below is a plane wave in the `Acoustic` medium which has the same density and pressure wave speed as the elastic medium.
+
+```julia
+ω = 1.0
+ν = 2e-4 # the kinematic viscosity
+
+medium = Elastic(3; ρ = 1.0, cp = 1.0, cs = sqrt(-im * ω * ν))
+species = [
+    Specie(Elastic(3; ρ = 4.0, cp = 7.0, cs = 4.0), Sphere(0.02); volume_fraction = 0.1)
+]
+
+# the effective wavenumber of the compressional wave
+k_eff = wavenumber_compressional_low_volumefraction(ω, medium, species)
+
+normal = [0.0,0.0,-1.0] # an outward normal to both surfaces of the plate
+width = 4.0
+plate = Plate(normal, width, [0.0,0.0,width/2])
+
+material = Material(medium, plate, species)
+psource = PlaneSource(Acoustic(3; ρ = medium.ρ, c = medium.cp), [0.0,0.0,1.0])
+
+wavemodes = WaveMode(ω, k_eff, psource, material)
+R, T = reflection_transmission_coefficients(wavemodes, psource, material)
+
+# for a halfspace there is only reflection
+material = Material(medium, Halfspace(normal), species)
+
+wavemode = WaveMode(ω, k_eff, psource, material)
+R = reflection_coefficient(wavemode, psource, material)
+```
+Here `R` and `T` are the reflection and transmission coefficients of the pressure potential, which are the same as those of the normal stress. For the displacement the reflection coefficient is `-R`.
+
+The shear waves do change how each particle scatters a pressure wave. The eigensystem used by `WaveMode` accounts for a pressure wave which is converted into a shear wave at one particle, scattered as a shear wave any number of times between the particles, and then converted back into a pressure wave. The formulas are from [Martin & Pinfield 2025](https://doi.org/10.1016/j.wavemoti.2024.103478), and the tests are in [test/elasticity/compressional_wave.jl](../../../test/elasticity/compressional_wave.jl).
